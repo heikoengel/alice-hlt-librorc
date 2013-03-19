@@ -3,13 +3,13 @@
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2011-08-16
- * 
+ *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -28,23 +28,23 @@
  * @brief Library to interface to rorcfs kernel driver
  *
  * \section Organization
- * A rorcfs_device object corresponds to a phsical RORC, resp. a PCI 
+ * A rorcfs_device object corresponds to a phsical RORC, resp. a PCI
  * device controlled by the rorcfs device driver. Use rorcfs_device::init()
  * to bind the object to the hardware.
  *
  * Objects of rorcfs_bar can be attached to a rorcfs_device to control
  * its PCIe Base Address Registers (BARs). Once the rorcfs_bar object is
- * initialized with rorcfs_bar::init() it can perform low level IO to/from 
- * the RORC via rorcfs_bar::get() or rorcfs_bar::set() methods. These 
+ * initialized with rorcfs_bar::init() it can perform low level IO to/from
+ * the RORC via rorcfs_bar::get() or rorcfs_bar::set() methods. These
  * methods are widely used in the rorcLib.
  *
  * A rorcfs_buffer object represents a DMA buffer on the host machine. This
- * buffers are mapped to the RORC for DMA transfers. Buffers can be 
- * allocated and deallocated with rorcfs_buffer::allocate() and 
+ * buffers are mapped to the RORC for DMA transfers. Buffers can be
+ * allocated and deallocated with rorcfs_buffer::allocate() and
  * rorcfs_buffer::deallocate(). The object can be bound to existing buffers
  * via the rorcfs_buffer::connect() method.
  *
- * All DMA operations are handled with objects of rorcfs_dma_channel. These 
+ * All DMA operations are handled with objects of rorcfs_dma_channel. These
  * objects have to be initialized to a specific bar and offset within the
  * bar with rorcfs_dma_channel::init(). After initialization the DMA buffer
  * information can be copied to the RORC, the maximum payload can be set and
@@ -55,7 +55,7 @@
  * object of rorcfs_diu. The data source of the rorcfs_diu object can either
  * be an actual DIU or a pattern generator at the DIU Interface. The data source
  * can be selected with rorcfs_diu::setDataSource(). If a pattern generator is
- * chosen, an according rorcfs_pattern_generator object has to be attached to the 
+ * chosen, an according rorcfs_pattern_generator object has to be attached to the
  * DIU in order to control the pattern generator parameters.
  **/
 
@@ -79,16 +79,16 @@ typedef unsigned char uint8;
 
 
 /**
- * @class rorcfs_device 
+ * @class rorcfs_device
  * @brief represents a RORC PCIe device
  *
  * The rorcfs_device class is the base class for all device
- * IO. Create a rorcfs_device instance and initialize 
- * (via init(int n)) with the device you want to bind to. 
+ * IO. Create a rorcfs_device instance and initialize
+ * (via init(int n)) with the device you want to bind to.
  * Once the device is sucessfully initialized you can attach
  * instances of rorcfs_bar.
  **/
-class rorcfs_device 
+class rorcfs_device
 {
 	public:
 		rorcfs_device();
@@ -124,22 +124,25 @@ class rorcfs_device
 		 **/
 		uint8 getFunc() { return func; }
 
-		/**
-		 * get SysFS directory name
-		 * @param ptr char** pointer for the directory name
-		 * @return size of directory name
-		 **/
-		int getDName( char **ptr );
+//		/**
+//		 * get SysFS directory name
+//		 * @param ptr char** pointer for the directory name
+//		 * @return size of directory name
+//		 **/
+//		int getDName( char **ptr );
 
 	private:
-		char *dname;
-		int dname_size;
+		//char *dname;
+		//int dname_size;
 		uint8 bus;
 		uint8 slot;
 		uint8 func;
+		// NEW
+        DeviceOperator *dop;
+        PciDevice *device;
 
-	protected:
-		int find_rorc(char *basedir, struct dirent ***namelist);
+//	protected:
+//		int find_rorc(char *basedir, struct dirent ***namelist);
 };
 
 #endif
