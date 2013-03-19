@@ -62,19 +62,15 @@
 #ifndef _RORCLIB_RORCFS_DEVICE_H
 #define _RORCLIB_RORCFS_DEVICE_H
 
-#ifndef uint8
-/**
- * @typedef uint8
- * @brief typedef for unsigned 8 bit IDs
- **/
-typedef unsigned char uint8;
-#endif
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 /** conditional debug printout command **/
 #ifdef DEBUG
-#define librorc_debug(fmt, args...) printf(fmt, ## args)
+    #define librorc_debug(fmt, args...) printf(fmt, ## args)
 #else
-#define librorc_debug(fmt, args...)
+    #define librorc_debug(fmt, args...)
 #endif
 
 
@@ -110,39 +106,25 @@ class rorcfs_device
 		 * get PCIe Bus-ID
 		 * @return uint8 Bus-ID
 		 **/
-		uint8 getBus() { return bus; }
+		uint8_t getBus();
 
 		/**
 		 * get PCIe Slot-ID
 		 * @return uint8 Slot-ID
 		 **/
-		uint8 getSlot() { return slot; }
+		uint8_t getSlot();
 
 		/**
 		 * get PCIe Function-ID
 		 * @return uint8 Function-ID
 		 **/
-		uint8 getFunc() { return func; }
+		uint8_t getFunc();
 
-//		/**
-//		 * get SysFS directory name
-//		 * @param ptr char** pointer for the directory name
-//		 * @return size of directory name
-//		 **/
-//		int getDName( char **ptr );
 
 	private:
-		//char *dname;
-		//int dname_size;
-		uint8 bus;
-		uint8 slot;
-		uint8 func;
-		// NEW
         DeviceOperator *dop;
         PciDevice *device;
 
-//	protected:
-//		int find_rorc(char *basedir, struct dirent ***namelist);
 };
 
 #endif
