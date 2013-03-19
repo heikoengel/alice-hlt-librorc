@@ -2,7 +2,7 @@ include $(TOP_DIR)/prefix.make
 obj := $(patsubst %.cpp, $(TOP_DIR)/lib/$(BUILD_ID)/%.o, $(wildcard *.cpp))
 LIB := $(TOP_DIR)/lib/$(BUILD_ID)
 
-INCLUDES := -I../../../rorcfs/trunk/include -I../$(FIRMWARE_BASE)
+INCLUDES := -I../../rorcfs/include/ -I../$(FIRMWARE_BASE)
 ifdef INSTALL_HOME
 	INCLUDES += -I$(INSTALL_HOME)/include
 endif
