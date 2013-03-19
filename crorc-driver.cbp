@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="crorc-driver" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/crorc-driver" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="apps/src/event_handling.h" />
+		<Unit filename="apps/src/gtxdma.cpp" />
+		<Unit filename="apps/src/gtxdma_continuous.cpp" />
+		<Unit filename="librorc/include/librorc.h" />
+		<Unit filename="librorc/src/flisock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="librorc/src/flisock.h" />
+		<Unit filename="librorc/src/rorcfs_bar.cpp" />
+		<Unit filename="librorc/src/rorcfs_bar.hh" />
+		<Unit filename="librorc/src/rorcfs_buffer.cpp" />
+		<Unit filename="librorc/src/rorcfs_buffer.hh" />
+		<Unit filename="librorc/src/rorcfs_device.cpp" />
+		<Unit filename="librorc/src/rorcfs_device.hh" />
+		<Unit filename="librorc/src/rorcfs_diu.cpp" />
+		<Unit filename="librorc/src/rorcfs_diu.hh" />
+		<Unit filename="librorc/src/rorcfs_dma_channel.cpp" />
+		<Unit filename="librorc/src/rorcfs_dma_channel.hh" />
+		<Unit filename="librorc/src/rorcfs_flash_htg.cpp" />
+		<Unit filename="librorc/src/rorcfs_flash_htg.hh" />
+		<Unit filename="librorc/src/rorcfs_pattern_generator.cpp" />
+		<Unit filename="librorc/src/rorcfs_pattern_generator.hh" />
+		<Unit filename="librorc/src/rorcfs_sysmon.cpp" />
+		<Unit filename="librorc/src/rorcfs_sysmon.hh" />
+		<Unit filename="registers/rorc_registers.h" />
+		<Unit filename="rorcfs/build/3.7.0-gentoo/include/rorcfs.h" />
+		<Unit filename="rorcfs/build/3.7.0-gentoo/rorcfs.mod.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/build/3.7.0-gentoo/src/base.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/build/3.7.0-gentoo/src/base.h" />
+		<Unit filename="rorcfs/build/3.7.0-gentoo/src/buffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/build/3.7.0-gentoo/src/buffer.h" />
+		<Unit filename="rorcfs/build/3.7.0-gentoo/src/sysfs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/build/3.7.0-gentoo/src/sysfs.h" />
+		<Unit filename="rorcfs/include/rorcfs.h" />
+		<Unit filename="rorcfs/src/base.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/src/base.h" />
+		<Unit filename="rorcfs/src/buffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/src/buffer.h" />
+		<Unit filename="rorcfs/src/sysfs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rorcfs/src/sysfs.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
