@@ -91,10 +91,8 @@ typedef struct PciDevice_struct PciDevice;
 class rorcfs_device
 {
 public:
-rorcfs_device
-    ();
-~rorcfs_device
-    ();
+    rorcfs_device();
+    ~rorcfs_device();
 
 /**
  * Initialize device. This has to be done before using
@@ -129,6 +127,9 @@ uint8_t getSlot();
  * @return uint8 Function-ID
  **/
 uint8_t getFunc();
+
+uint8_t  *getBarMap(uint8_t n);
+uint64_t  getBarSize(uint8_t n);
 
 private:
     DeviceOperator *m_dop;

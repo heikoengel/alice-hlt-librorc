@@ -17,23 +17,23 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include <iostream>
-#include <sys/stat.h>
+#include <assert.h>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <assert.h>
-#include <sys/time.h>
 #include <dirent.h>
+#include <fcntl.h>
+#include <iostream>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
+#include "rorc_registers.h"
 #include "rorcfs.h"
 #include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
-#include "rorc_registers.h"
 
 #include "rorcfs_buffer.hh"
 #include "rorcfs_dma_channel.hh"
@@ -43,60 +43,61 @@
  * */
 #define USLEEP_TIME 50
 
-
 /** Prototypes **/
-char *getChOff(unsigned int addr);
-int get_offset( uint64_t phys_addr, uint64_t *buffer_id, uint64_t *offset );
+char*
+getChOff
+(
+    unsigned int addr
+);
 
+int
+get_offset
+(
+    uint64_t  phys_addr,
+    uint64_t *buffer_id,
+    uint64_t *offset
+);
 
 /***********************************************
  * Constructor
  **********************************************/
-rorcfs_bar::rorcfs_bar(rorcfs_device *dev, int n)
+rorcfs_bar::rorcfs_bar
+(
+    rorcfs_device *dev,
+    int            n
+)
 {
-  char basedir[] = "/sys/module/rorcfs/drivers/pci:rorcfs/";
-  char subdir[] = "/mmap/";
-  int digits = snprintf(NULL, 0, "%d", n);
+    m_parent_dev = dev;
 
-  bar = NULL;
-
-  fname = (char *) malloc(strlen(basedir) + 12	+
-      strlen(subdir) + 3 + digits);
-
-  // get sysfs file name for selected bar
-  sprintf(fname, "%s0000:%02x:%02x.%x%sbar%d",
-      basedir, dev->getBus(),
-      dev->getSlot(), dev->getFunc(), subdir, n);
-
-  number = n;
-  parent_dev = dev;
-
-  // initialize mutex
-  pthread_mutex_init(&mtx, NULL);
+    /** initialize mutex */
+    pthread_mutex_init(&m_mtx, NULL);
 }
+
 
 
 rorcfs_bar::~rorcfs_bar()
 {
-  pthread_mutex_destroy(&mtx);
-  if (fname)
-    free(fname);
-  if (bar)
-    munmap( bar, barstat.st_size);
-  if (handle)
-    close(handle);
+    pthread_mutex_destroy(&m_mtx);
+    /** Further stuff here **/
 }
+
 
 
 /**
  * scandir_filter:
  * return nonzero if a directory is found
  **/
-static int scandir_filter(const struct dirent* entry) {
-  if( entry->d_type == DT_DIR && strncmp(entry->d_name, ".", 1)!=0 )
-    return 1;
-  else
-    return 0;
+
+static int
+scandir_filter
+(
+    const struct dirent *entry
+)
+{
+    if( ( entry->d_type == DT_DIR) && ( strncmp(entry->d_name, ".", 1) != 0) )
+        return 1;
+    else
+        return 0;
 }
 
 
@@ -105,20 +106,23 @@ static int scandir_filter(const struct dirent* entry) {
  * rorcfs_bar::init()
  * Initialize and mmap BAR
  * */
-int rorcfs_bar::init()
+
+int
+rorcfs_bar::init()
 {
-  handle = open(fname, O_RDWR);
-  if ( handle == -1 )
-    return handle;
+    handle = open(fname, O_RDWR);
+    if(handle == -1)
+        return handle;
 
-  if ( fstat(handle, &barstat) == -1 )
-    return -1;
+    if(fstat(handle, &barstat) == -1)
+        return -1;
 
-  bar = (unsigned int*) mmap(0, barstat.st_size,
-      PROT_READ|PROT_WRITE, MAP_SHARED, handle, 0);
-  if ( bar == MAP_FAILED )
-    return -1;
+    bar = (unsigned int*) mmap(0, barstat.st_size,
+                               PROT_READ | PROT_WRITE, MAP_SHARED, handle, 0);
+    if(bar == MAP_FAILED)
+        return -1;
 }
+
 
 
 /**
@@ -126,20 +130,26 @@ int rorcfs_bar::init()
  * @param addr address (DW-aligned)
  * @return value read from BAR
  * */
-unsigned int rorcfs_bar::get(unsigned long addr) {
 
-  unsigned int result;
-  assert ( bar!=NULL );
-  if ( (addr<<2)<barstat.st_size )
-  {
-    result = bar[addr];
-    return result;
-  }
-  else
-  {
-    return -1;
-  }
+unsigned int
+rorcfs_bar::get
+(
+    unsigned long addr
+)
+{
+    unsigned int result;
+    assert( bar != NULL );
+    if( (addr << 2) < barstat.st_size)
+    {
+        result = bar[addr];
+        return result;
+    }
+    else
+    {
+        return -1;
+    }
 }
+
 
 
 /**
@@ -147,18 +157,25 @@ unsigned int rorcfs_bar::get(unsigned long addr) {
  * @param addr Dw-aligned address
  * @param data DW data to be written
  * */
-void rorcfs_bar::set(unsigned long addr, unsigned int data)
+
+void
+rorcfs_bar::set
+(
+    unsigned long addr,
+    unsigned int  data
+)
 {
     // access mmap'ed BAR region
-    assert ( bar!=NULL );
-    if( (addr<<2)<barstat.st_size )
+    assert( bar != NULL );
+    if( (addr << 2) < barstat.st_size)
     {
-        pthread_mutex_lock(&mtx);
+        pthread_mutex_lock(&m_mtx);
         bar[addr] = data;
-        msync( (bar + ((addr<<2) & PAGE_MASK)), PAGE_SIZE, MS_SYNC);
-        pthread_mutex_unlock(&mtx);
+        msync( (bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+        pthread_mutex_unlock(&m_mtx);
     }
 }
+
 
 
 /**
@@ -167,138 +184,189 @@ void rorcfs_bar::set(unsigned long addr, unsigned int data)
  * @param source source buffer
  * @param num number of bytes to be copied from source to dest
  * */
-void rorcfs_bar::memcpy_bar(unsigned long addr, const void *source, size_t num)
-{
-    pthread_mutex_lock(&mtx);
-    memcpy((unsigned char *)bar + (addr<<2), source, num);
-    msync( (bar + ((addr<<2) & PAGE_MASK)), PAGE_SIZE, MS_SYNC);
-    pthread_mutex_unlock(&mtx);
-}
 
-
-unsigned short rorcfs_bar::get16(unsigned long addr)
+void
+rorcfs_bar::memcpy_bar
+(
+    unsigned long addr,
+    const void   *source,
+    size_t        num
+)
 {
-  unsigned short *sbar;
-  sbar = (unsigned short *)bar;
-  unsigned short result;
-  assert ( sbar!=NULL );
-  if ( (addr<<1)<barstat.st_size ) {
-    result = sbar[addr];
-    return result;
-  }
-  else
-    return 0xffff;
+    pthread_mutex_lock(&m_mtx);
+    memcpy( (unsigned char*)bar + (addr << 2), source, num);
+    msync( (bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    pthread_mutex_unlock(&m_mtx);
 }
 
 
 
-void rorcfs_bar::set16(unsigned long addr, unsigned short data)
+unsigned short
+rorcfs_bar::get16
+(
+    unsigned long addr
+)
 {
-
-  unsigned short *sbar;
-  sbar = (unsigned short *)bar;
-  // access mmap'ed BAR region
-  assert ( sbar!=NULL );
-  if ( (addr<<1)<barstat.st_size )
-  {
-    pthread_mutex_lock(&mtx);
-    sbar[addr] = data;
-    msync( (sbar + ((addr<<1) & PAGE_MASK)),
-        PAGE_SIZE, MS_SYNC);
-    pthread_mutex_unlock(&mtx);
-  }
+    unsigned short *sbar;
+    sbar = (unsigned short*)bar;
+    unsigned short result;
+    assert( sbar != NULL );
+    if( (addr << 1) < barstat.st_size)
+    {
+        result = sbar[addr];
+        return result;
+    }
+    else
+    {
+        return 0xffff;
+    }
 }
+
+
+
+void
+rorcfs_bar::set16
+(
+    unsigned long  addr,
+    unsigned short data
+)
+{
+    unsigned short *sbar;
+    sbar = (unsigned short*)bar;
+
+    // access mmap'ed BAR region
+    assert( sbar != NULL );
+    if( (addr << 1) < barstat.st_size)
+    {
+        pthread_mutex_lock(&m_mtx);
+        sbar[addr] = data;
+        msync( (sbar + ( (addr << 1) & PAGE_MASK) ),
+               PAGE_SIZE, MS_SYNC);
+        pthread_mutex_unlock(&m_mtx);
+    }
+}
+
+
 
 //TODO: get rid of this
-int rorcfs_bar::gettime(struct timeval *tv, struct timezone *tz)
+int
+rorcfs_bar::gettime
+(
+    struct timeval  *tv,
+    struct timezone *tz
+)
 {
-  return gettimeofday(tv, tz);
+    return gettimeofday(tv, tz);
 }
 
-char *getChOff(unsigned int addr) {
-  int channel = (addr>>15)&0xf;
-  int comp = (addr>>RORC_DMA_CMP_SEL) & 0x01;
-  int offset = addr & ((1<<RORC_DMA_CMP_SEL)-1);
-  char *buffer = (char *)malloc(256);
-  sprintf(buffer, "ch:%d comp:%d off:%d",
-      channel, comp, offset);
-  return buffer;
+
+
+char*
+getChOff
+(
+    unsigned int addr
+)
+{
+    int   channel = (addr >> 15) & 0xf;
+    int   comp = (addr >> RORC_DMA_CMP_SEL) & 0x01;
+    int   offset = addr & ( (1 << RORC_DMA_CMP_SEL) - 1);
+    char *buffer = (char*)malloc(256);
+    sprintf(buffer, "ch:%d comp:%d off:%d",
+            channel, comp, offset);
+    return buffer;
 }
+
 
 
 /**
  * get file and offset for physical address
  * */
-int get_offset( uint64_t phys_addr, uint64_t *buffer_id, uint64_t *offset )
+
+int
+get_offset
+(
+    uint64_t  phys_addr,
+    uint64_t *buffer_id,
+    uint64_t *offset
+)
 {
-  char *basedir;
-  int i, j, bufn, nentries, fd, nbytes;
-  struct dirent **namelist;
-  struct rorcfs_dma_desc desc;
-  struct stat filestat;
-  int fname_size;
-  char *fname;
-  int err;
+    char           *basedir;
+    int             i, j, bufn, nentries, fd, nbytes;
+    struct dirent **namelist;
 
-  // attach to device
-  rorcfs_device *dev = new rorcfs_device();
-  if ( dev->init(0) == -1 ) {
-    printf("failed to initialize device 0\n");
-  }
-  //dev->getDName(&basedir);
+    struct rorcfs_dma_desc desc;
 
-  // get list of buffers
-  bufn = scandir(basedir, &namelist, scandir_filter, alphasort);
+    struct stat filestat;
 
-  // iterate over all buffers
-  for (i=0;i<bufn;i++) {
+    int   fname_size;
+    char *fname;
+    int   err;
 
-    // get filename of sglist file
-    fname_size = snprintf(NULL, 0, "%s%s/sglist",
-        basedir, namelist[i]->d_name) + 1;
-    fname = (char *)malloc(fname_size);
-    snprintf(fname, fname_size, "%s%s/sglist",
-        basedir, namelist[i]->d_name);
+    // attach to device
+    rorcfs_device *dev = new rorcfs_device();
+    if(dev->init(0) == -1)
+    {
+        printf("failed to initialize device 0\n");
+    }
 
-    // get number of entries
-    err = stat(fname, &filestat);
-    if (err)
-      printf("DMA_MON ERROR: failed to stat file %s\n", fname);
-    nentries = filestat.st_size / sizeof( struct rorcfs_dma_desc);
+    //dev->getDName(&basedir);
 
-    // open sglist file
-    fd = open(fname, O_RDONLY);
-    free(fname);
-    if (fd==-1)
-      perror("DMA_MON ERROR: open sglist");
+    // get list of buffers
+    bufn = scandir(basedir, &namelist, scandir_filter, alphasort);
 
-    *offset = 0;
+    // iterate over all buffers
+    for(i = 0; i < bufn; i++)
+    {
+        // get filename of sglist file
+        fname_size = snprintf(NULL, 0, "%s%s/sglist",
+                              basedir, namelist[i]->d_name) + 1;
+        fname = (char*)malloc(fname_size);
+        snprintf(fname, fname_size, "%s%s/sglist",
+                 basedir, namelist[i]->d_name);
 
-    // iterate over all sglist entries
-    for(j=0; j<nentries; j++) {
-      nbytes = read(fd, &desc, sizeof(struct rorcfs_dma_desc));
-      if(nbytes!=sizeof(struct rorcfs_dma_desc))
-        printf("DMA_MON ERROR: nbytes(=%d) != sizeof(struct "
-            "rorcfs_dma_desc)\n",	nbytes);
+        // get number of entries
+        err = stat(fname, &filestat);
+        if(err)
+            printf("DMA_MON ERROR: failed to stat file %s\n", fname);
+        nentries = filestat.st_size / sizeof( struct rorcfs_dma_desc);
 
-      // check if this is the destination segment
-      if ( desc.addr <= phys_addr && desc.addr + desc.len > phys_addr )
-      {
-        //adjust offset
-        *offset += (phys_addr - desc.addr);
-        *buffer_id = strtoul(namelist[i]->d_name, NULL, 0);
+        // open sglist file
+        fd = open(fname, O_RDONLY);
+        free(fname);
+        if(fd == -1)
+            perror("DMA_MON ERROR: open sglist");
+        *offset = 0;
+
+        // iterate over all sglist entries
+        for(j = 0; j < nentries; j++)
+        {
+            nbytes = read(fd, &desc, sizeof(struct rorcfs_dma_desc) );
+            if(nbytes != sizeof(struct rorcfs_dma_desc) )
+            {
+                printf("DMA_MON ERROR: nbytes(=%d) != sizeof(struct "
+                       "rorcfs_dma_desc)\n", nbytes);
+            }
+
+            // check if this is the destination segment
+            if( ( desc.addr <= phys_addr) && ( desc.addr + desc.len > phys_addr) )
+            {
+                //adjust offset
+                *offset += (phys_addr - desc.addr);
+                *buffer_id = strtoul(namelist[i]->d_name, NULL, 0);
+                close(fd);
+                return 0;
+
+            } // dest-segment found
+            else
+            {
+                *offset += desc.len;
+            }
+        } //iterate over segments
+
+        // close sglist file
         close(fd);
-        return 0;
+    } // iterate over buffers
 
-      } // dest-segment found
-      else
-        *offset += desc.len;
-    } //iterate over segments
-
-    // close sglist file
-    close(fd);
-  } // iterate over buffers
-
-  printf("ERROR: destination not found: addr=%lx\n", phys_addr);
-  return -1;
+    printf("ERROR: destination not found: addr=%lx\n", phys_addr);
+    return -1;
 }

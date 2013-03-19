@@ -3,13 +3,13 @@
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2011-08-17
- * 
+ *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -54,11 +54,11 @@ rorcfs_buffer::rorcfs_buffer()
 }
 
 /**
- * Destructor: 
+ * Destructor:
  * release() buffer if not done already
  **/
 rorcfs_buffer::~rorcfs_buffer()
-{	
+{
 	munmap(mem, MappingSize);
 	mem = NULL;
 	close(fdEB);
@@ -83,7 +83,7 @@ int rorcfs_buffer::deallocate()
 		return -ENOMEM;
 
 	snprintf(fname, base_name_size + 11 , "%sfree_buffer",	base_name);
-	
+
 	// open /sys/module/rorcfs/drivers/pci:rorcfs/[pci-ID]/mmap/free_buffer
 	fd = open(fname, O_WRONLY);
 	if ( fd==-1 ) {
@@ -106,7 +106,7 @@ int rorcfs_buffer::deallocate()
 	PhysicalSize = 0;
 	MappingSize = 0;
 	overmapped = 0;
-	
+
 	dname_size = 0;
 	dname = NULL;
 
@@ -120,9 +120,9 @@ int rorcfs_buffer::deallocate()
  * Allocate Buffer: initiate memory allocation,
  * connect to new buffer & retrieve actual buffer sizes
  **/
-int rorcfs_buffer::allocate( 
-		rorcfs_device *dev, 
-		unsigned long size, 
+int rorcfs_buffer::allocate(
+		rorcfs_device *dev,
+		unsigned long size,
 		unsigned long id,
 		int overmap,
 		int dma_direction)
@@ -138,7 +138,7 @@ int rorcfs_buffer::allocate(
 	}
 
 	// get sysfs base directory name and size
-	base_name_size = dev->getDName( &base_name );
+	/***base_name_size = dev->getDName( &base_name ); ***/
 
 	fname = (char *) malloc( base_name_size + 12 );
 	if (!fname) {
@@ -193,7 +193,7 @@ int rorcfs_buffer::connect( rorcfs_device *dev, unsigned long id )
 	}
 
 	// get sysfs base directory name and size
-	base_name_size = dev->getDName( &base_name );
+	/*** base_name_size = dev->getDName( &base_name ); ***/
 
 	// get MappingSize from sysfs attribute
 	fname_size = snprintf(NULL, 0, "%s%03ld/mem", base_name, id);
@@ -213,12 +213,12 @@ int rorcfs_buffer::connect( rorcfs_device *dev, unsigned long id )
 		return -1;
 	}
 	free(fname);
-	
+
 	if ( fstat(fdEB, &filestat) == -1 ) {
 		close(fdEB);
 		return -1;
 	}
-	
+
 	// set MappingSize to the size of the sysfs file
 	MappingSize = filestat.st_size;
 
@@ -253,7 +253,7 @@ int rorcfs_buffer::connect( rorcfs_device *dev, unsigned long id )
 	close(fd);
 
 	// Set PhysicalSize attribute according to the contents of
-	// the sysfs file "overmapped" 
+	// the sysfs file "overmapped"
 	if ( overmapped )
 		PhysicalSize = MappingSize/2;
 	else
@@ -263,7 +263,7 @@ int rorcfs_buffer::connect( rorcfs_device *dev, unsigned long id )
 
 
 	// MMap Buffer
-	mem = (unsigned int*)mmap(0, MappingSize, PROT_READ|PROT_WRITE, 
+	mem = (unsigned int*)mmap(0, MappingSize, PROT_READ|PROT_WRITE,
 			MAP_SHARED, fdEB, 0);
 	if( mem==MAP_FAILED ) {
 		close(fdEB);
@@ -300,7 +300,7 @@ int rorcfs_buffer::connect( rorcfs_device *dev, unsigned long id )
 
 	// store buffer id
 	this->id = id;
-		
+
 	// save sysfs directory name of created buffer
 	// e.g. /sys/module/rorcfs/drivers/pci:rorcfs/0000:03:00.0/mmap/001/
 	dname_size = snprintf(NULL, 0, "%s%03ld/", base_name, id);
@@ -312,7 +312,7 @@ int rorcfs_buffer::connect( rorcfs_device *dev, unsigned long id )
 	}
 
 	snprintf(dname, dname_size, "%s%03ld/", base_name, id);
-	
+
 	/*librorc_debug("librorc::connect ID=%ld, PhysSize=%ld, MapSize=%ld, "
 			"nSG=%ld, overmapped=%d, dma_direction=%d\n",
 			id, PhysicalSize, MappingSize, nSGEntries, overmapped,

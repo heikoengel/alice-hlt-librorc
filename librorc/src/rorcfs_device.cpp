@@ -116,3 +116,49 @@ rorcfs_device::getFunc()
 
     return(0);
 }
+
+uint8_t*
+rorcfs_device::getBarMap
+(
+    uint8_t n
+)
+{
+    uint8_t   *buffer = NULL;
+    uint64_t   size;
+
+    Bar *bar = NULL;
+    if(PciDevice_getBar(m_device, &bar, n) != PDA_SUCCESS)
+    {
+        return(NULL);
+    }
+
+    if(Bar_getMap(bar, &buffer, &size) != PDA_SUCCESS)
+    {
+        return(NULL);
+    }
+
+    return(buffer);
+}
+
+uint64_t
+rorcfs_device::getBarSize
+(
+    uint8_t n
+)
+{
+    uint8_t   *buffer = NULL;
+    uint64_t   size;
+
+    Bar *bar = NULL;
+    if(PciDevice_getBar(m_device, &bar, n) != PDA_SUCCESS)
+    {
+        return(0);
+    }
+
+    if(Bar_getMap(bar, &buffer, &size) != PDA_SUCCESS)
+    {
+        return(0);
+    }
+
+    return(size);
+}
