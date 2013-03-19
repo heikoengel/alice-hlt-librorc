@@ -1,6 +1,6 @@
 SUBDIRS := $(shell ls */Makefile | sed -r 's/\/.*//')
 TOP_DIR := $(shell pwd)
-FIRMWARE_BASE :=  ../../../crorc_fw
+FIRMWARE_BASE :=  ../registers
 include prefix.make
 
 all: release

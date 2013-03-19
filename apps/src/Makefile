@@ -1,6 +1,6 @@
 include $(TOP_DIR)/prefix.make
-LIB_BASE := ../../../librorc/trunk
-DRV_BASE := ../../../rorcfs/trunk
+LIB_BASE := ../../librorc
+DRV_BASE := ../../rorcfs
 LIB := $(LIB_BASE)/lib/$(BUILD_ID)
 
 INCLUDES := -I$(LIB_BASE)/src -I$(LIB_BASE)/include -I$(DRV_BASE)/include -I../$(FIRMWARE_BASE)
