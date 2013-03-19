@@ -1,6 +1,6 @@
 /**
  * @file rorcfs_device.cpp
- * @author Heiko Engel <hengel@cern.ch>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @date 2011-08-16
  *
  * @section LICENSE
@@ -79,10 +79,22 @@ uint8_t rorcfs_device::getBus()
 
 uint8_t rorcfs_device::getSlot()
 {
+    uint8_t device_id;
+    if(PciDevice_getDeviceID(device, &device_id) == PDA_SUCCESS)
+    {
+        return(device_id);
+    }
 
+    return(0);
 }
 
 uint8_t rorcfs_device::getFunc()
 {
+    uint8_t function_id;
+    if(PciDevice_getFunctionID(device, &function_id) == PDA_SUCCESS)
+    {
+        return(function_id);
+    }
 
+    return(0);
 }

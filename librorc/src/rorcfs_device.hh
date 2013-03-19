@@ -1,7 +1,6 @@
 /**
- * @file rorcfs_device.hh
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2011-08-16
  *
  * @section LICENSE
@@ -23,11 +22,11 @@
 
 /**
  * @mainpage
- * @author Heiko Engel <hengel@cern.ch>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @date 2011-08-16
- * @brief Library to interface to rorcfs kernel driver
+ * @brief Library to interface to CRORCs
  *
- * \section Organization
+ * @section Organization
  * A rorcfs_device object corresponds to a phsical RORC, resp. a PCI
  * device controlled by the rorcfs device driver. Use rorcfs_device::init()
  * to bind the object to the hardware.
@@ -65,6 +64,9 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/types.h>
+
+typedef struct DeviceOperator_struct DeviceOperator;
+typedef struct PciDevice_struct PciDevice;
 
 /** conditional debug printout command **/
 #ifdef DEBUG
