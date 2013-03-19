@@ -53,7 +53,7 @@ int main()
 
 
   // create new device class
-  dev = new rorcfs_device();	
+  dev = new rorcfs_device();
   if ( dev->init(0) == -1 ) {
     cout << "failed to initialize device 0" << endl;
     goto out;
@@ -74,8 +74,8 @@ int main()
   for(i=0;i<CHANNELS;i++) {
 
     // create new DMA event buffer
-    ebuf[i] = new rorcfs_buffer();			
-    if ( ebuf[i]->allocate(dev, EBUFSIZE, 2*i, 
+    ebuf[i] = new rorcfs_buffer();
+    if ( ebuf[i]->allocate(dev, EBUFSIZE, 2*i,
           1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
       if ( errno == EEXIST ) {
         if ( ebuf[i]->connect(dev, 2*i) != 0 ) {
@@ -90,7 +90,7 @@ int main()
 
     // create new DMA report buffer
     rbuf[i] = new rorcfs_buffer();;
-    if ( rbuf[i]->allocate(dev, RBUFSIZE, 2*i+1, 
+    if ( rbuf[i]->allocate(dev, RBUFSIZE, 2*i+1,
           1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
       if ( errno == EEXIST ) {
         //printf("INFO: Buffer already exists, trying to connect...\n");
@@ -151,7 +151,7 @@ int main()
 
     /* clear report buffer */
     reportbuffer[i] = (struct rorcfs_event_descriptor *)rbuf[i]->getMem();
-    printf("pRBUF=%p, MappingSize=%ld\n", 
+    printf("pRBUF=%p, MappingSize=%ld\n",
         rbuf[i]->getMem(), rbuf[i]->getMappingSize() );
     memset(reportbuffer[i], 0, rbuf[i]->getMappingSize());
 
@@ -190,7 +190,8 @@ int main()
     ch[i]->setEnableRB(1);
   }
 
-  bar1->gettime(&start_time, 0);
+  //bar1->gettime(&start_time, 0);
+  gettimeofday(&start_time, 0);
 
   for(i=0;i<CHANNELS;i++) {
     // enable DMA channel
@@ -204,7 +205,7 @@ int main()
 
     for(i=0;i<CHANNELS;i++) {
       if ( handle_channel_data(reportbuffer[i], eventbuffer[i], ch[i],
-            chstats[i], rbuf[i]->getPhysicalSize(), 
+            chstats[i], rbuf[i]->getPhysicalSize(),
             rbuf[i]->getMaxRBEntries(), 1) != 0 ) {
         printf("handle_channel_data failed for channel %ld\n", i);
         goto out;
@@ -221,11 +222,12 @@ int main()
 
     // check break condition
     if(bytes_received > N_BYTES_TRANSFER) {
-      bar1->gettime(&end_time, 0);
+      //bar1->gettime(&end_time, 0);
+      gettimeofday(&end_time, 0);
 
       printf("%ld Byte / %ld events in %.2f sec"
-          "-> %.1f MB/s.\n", 
-          (bytes_received), events_received, 
+          "-> %.1f MB/s.\n",
+          (bytes_received), events_received,
           gettimeofday_diff(start_time, end_time),
           ((float)bytes_received/
            gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
@@ -233,12 +235,12 @@ int main()
       for(i=0;i<CHANNELS;i++) {
         if(!chstats[i]->set_offset_count) //avoid DivByZero Exception
           printf("CH%ld: No Events\n", i);
-        else 
+        else
           printf("CH%ld: Events %ld, max_epi=%ld, min_epi=%ld, "
               "avg_epi=%ld, set_offset_count=%ld\n", i,
-              chstats[i]->n_events, chstats[i]->max_epi, 
+              chstats[i]->n_events, chstats[i]->max_epi,
               chstats[i]->min_epi,
-              chstats[i]->n_events/chstats[i]->set_offset_count, 
+              chstats[i]->n_events/chstats[i]->set_offset_count,
               chstats[i]->set_offset_count);
       }
       printf("\n");
@@ -250,7 +252,7 @@ int main()
   }
 
   // disable DMA Engine
-  for(i=0;i<CHANNELS;i++) {		
+  for(i=0;i<CHANNELS;i++) {
 
     // check if link is still up: LD_N == 1
     if ( ch[i]->getGTX(RORC_REG_DDL_CTRL) & (1<<5) ) {

@@ -1,7 +1,7 @@
 /**
  * @file rorcfs_bar.hh
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2011-08-16
  *
  * @section LICENSE
@@ -61,8 +61,7 @@ rorcfs_bar
 /**
  * Deconstructor: free fname, unmap BAR, close file
  **/
-~rorcfs_bar
-    ();
+~rorcfs_bar();
 
 /**
  * read DWORD from BAR address
@@ -127,30 +126,6 @@ set16
 );
 
 /**
- * get current time of day
- * @param tv pointer to struct timeval
- * @param tz pointer to struct timezone
- * @return return valiue from gettimeof day or zero for FLI simulation
- **/
-int
-gettime
-(
-    struct timeval  *tv,
-    struct timezone *tz
-);
-
-/**
- * get file handle for sysfs file
- * @return int file handle
- **/
-
-int
-getHandle()
-{
-    return handle;
-};
-
-/**
  * initialize BAR mapping: open sysfs file, get file stats,
  * mmap file. This has to be done before using any other
  * member funtion. This function will fail if the requested
@@ -164,22 +139,18 @@ int init();
  * @return size of mapped BAR in (unsigned long) bytes
  **/
 
-unsigned long
+size_t
 getSize()
 {
-    return barstat.st_size;
+    return m_size;
 }
 
 private:
     rorcfs_device   *m_parent_dev;
     pthread_mutex_t  m_mtx;
-
-int         handle;
-char       *fname;
-struct stat barstat;
-
-unsigned int   *bar;
-int             number;
+    int              m_number;
+    uint8_t         *m_bar;
+    size_t           m_size;
 
 };
 

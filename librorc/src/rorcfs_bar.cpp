@@ -1,7 +1,7 @@
 /**
  * @file rorcfs_bar.cpp
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2011-08-16
  *
  * @section LICENSE
@@ -58,9 +58,8 @@ get_offset
     uint64_t *offset
 );
 
-/***********************************************
- * Constructor
- **********************************************/
+
+
 rorcfs_bar::rorcfs_bar
 (
     rorcfs_device *dev,
@@ -68,6 +67,7 @@ rorcfs_bar::rorcfs_bar
 )
 {
     m_parent_dev = dev;
+    m_number     = n;
 
     /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
@@ -84,25 +84,6 @@ rorcfs_bar::~rorcfs_bar()
 
 
 /**
- * scandir_filter:
- * return nonzero if a directory is found
- **/
-
-static int
-scandir_filter
-(
-    const struct dirent *entry
-)
-{
-    if( ( entry->d_type == DT_DIR) && ( strncmp(entry->d_name, ".", 1) != 0) )
-        return 1;
-    else
-        return 0;
-}
-
-
-
-/**
  * rorcfs_bar::init()
  * Initialize and mmap BAR
  * */
@@ -110,17 +91,14 @@ scandir_filter
 int
 rorcfs_bar::init()
 {
-    handle = open(fname, O_RDWR);
-    if(handle == -1)
-        return handle;
+    m_bar = m_parent_dev->getBarMap(m_number);
 
-    if(fstat(handle, &barstat) == -1)
+    if(m_bar == NULL)
+    {
         return -1;
+    }
 
-    bar = (unsigned int*) mmap(0, barstat.st_size,
-                               PROT_READ | PROT_WRITE, MAP_SHARED, handle, 0);
-    if(bar == MAP_FAILED)
-        return -1;
+    return 0;
 }
 
 
@@ -137,9 +115,11 @@ rorcfs_bar::get
     unsigned long addr
 )
 {
+    assert( m_bar != NULL );
+
+    unsigned int *bar = (unsigned int *)m_bar;
     unsigned int result;
-    assert( bar != NULL );
-    if( (addr << 2) < barstat.st_size)
+    if( (addr << 2) < m_size)
     {
         result = bar[addr];
         return result;
@@ -154,7 +134,7 @@ rorcfs_bar::get
 
 /**
  * write 1 DW to BAR
- * @param addr Dw-aligned address
+ * @param addr DW-aligned address
  * @param data DW data to be written
  * */
 
@@ -165,9 +145,9 @@ rorcfs_bar::set
     unsigned int  data
 )
 {
-    // access mmap'ed BAR region
-    assert( bar != NULL );
-    if( (addr << 2) < barstat.st_size)
+    assert( m_bar != NULL );
+    unsigned int *bar = (unsigned int *)m_bar;
+    if( (addr << 2) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
         bar[addr] = data;
@@ -194,8 +174,8 @@ rorcfs_bar::memcpy_bar
 )
 {
     pthread_mutex_lock(&m_mtx);
-    memcpy( (unsigned char*)bar + (addr << 2), source, num);
-    msync( (bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
+    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
 }
 
@@ -208,10 +188,10 @@ rorcfs_bar::get16
 )
 {
     unsigned short *sbar;
-    sbar = (unsigned short*)bar;
+    sbar = (unsigned short*)m_bar;
     unsigned short result;
     assert( sbar != NULL );
-    if( (addr << 1) < barstat.st_size)
+    if( (addr << 1) < m_size)
     {
         result = sbar[addr];
         return result;
@@ -232,11 +212,10 @@ rorcfs_bar::set16
 )
 {
     unsigned short *sbar;
-    sbar = (unsigned short*)bar;
+    sbar = (unsigned short*)m_bar;
 
-    // access mmap'ed BAR region
     assert( sbar != NULL );
-    if( (addr << 1) < barstat.st_size)
+    if( (addr << 1) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
         sbar[addr] = data;
@@ -247,20 +226,7 @@ rorcfs_bar::set16
 }
 
 
-
-//TODO: get rid of this
-int
-rorcfs_bar::gettime
-(
-    struct timeval  *tv,
-    struct timezone *tz
-)
-{
-    return gettimeofday(tv, tz);
-}
-
-
-
+//TODO: turn this into a method
 char*
 getChOff
 (
@@ -309,10 +275,12 @@ get_offset
         printf("failed to initialize device 0\n");
     }
 
-    //dev->getDName(&basedir);
+    /**
+    dev->getDName(&basedir);
 
     // get list of buffers
     bufn = scandir(basedir, &namelist, scandir_filter, alphasort);
+    **/
 
     // iterate over all buffers
     for(i = 0; i < bufn; i++)
