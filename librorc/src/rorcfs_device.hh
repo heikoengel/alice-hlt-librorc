@@ -1,5 +1,6 @@
 /**
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler
+ *<eschweiler@fias.uni-frankfurt.de>
  * @version 0.2
  * @date 2011-08-16
  *
@@ -22,7 +23,8 @@
 
 /**
  * @mainpage
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler
+ *<eschweiler@fias.uni-frankfurt.de>
  * @date 2011-08-16
  * @brief Library to interface to CRORCs
  *
@@ -54,7 +56,8 @@
  * object of rorcfs_diu. The data source of the rorcfs_diu object can either
  * be an actual DIU or a pattern generator at the DIU Interface. The data source
  * can be selected with rorcfs_diu::setDataSource(). If a pattern generator is
- * chosen, an according rorcfs_pattern_generator object has to be attached to the
+ * chosen, an according rorcfs_pattern_generator object has to be attached to
+ *the
  * DIU in order to control the pattern generator parameters.
  **/
 
@@ -62,19 +65,18 @@
 #define _RORCLIB_RORCFS_DEVICE_H
 
 #include <stdint.h>
-#include <unistd.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
 /** conditional debug printout command **/
 #ifdef DEBUG
-    #define librorc_debug(fmt, args...) printf(fmt, ## args)
+    #define librorc_debug(fmt, args ...) printf(fmt, ## args)
 #else
-    #define librorc_debug(fmt, args...)
+    #define librorc_debug(fmt, args ...)
 #endif
-
 
 /**
  * @class rorcfs_device
@@ -88,44 +90,49 @@ typedef struct PciDevice_struct PciDevice;
  **/
 class rorcfs_device
 {
-	public:
-		rorcfs_device();
-		~rorcfs_device();
+public:
+rorcfs_device
+    ();
+~rorcfs_device
+    ();
 
-		/**
-		 * Initialize device. This has to be done before using
-		 * any other member funtion.
-		 * @param n device-number to be used. n is the n-th directory
-		 * 					in /sys/module/rorcfs/drivers/pci:rorcfs/ with name
-		 * 					0000:[Bus-ID]:[Slot-ID].[Function-ID] as returned by
-		 * 					scandir() with alphasort().
-		 * @return 0 on sucess, -1 on error or if device
-		 * 				 does not exist
-		 **/
-		int init(int n=0);
+/**
+ * Initialize device. This has to be done before using
+ * any other member funtion.
+ * @param n device-number to be used. n is the n-th directory
+ *                  in /sys/module/rorcfs/drivers/pci:rorcfs/ with name
+ *                  0000:[Bus-ID]:[Slot-ID].[Function-ID] as returned by
+ *                  scandir() with alphasort().
+ * @return 0 on sucess, -1 on error or if device
+ *               does not exist
+ **/
+int
+init
+(
+    int n = 0
+);
 
-		/**
-		 * get PCIe Bus-ID
-		 * @return uint8 Bus-ID
-		 **/
-		uint8_t getBus();
+/**
+ * get PCIe Bus-ID
+ * @return uint8 Bus-ID
+ **/
+uint8_t getBus();
 
-		/**
-		 * get PCIe Slot-ID
-		 * @return uint8 Slot-ID
-		 **/
-		uint8_t getSlot();
+/**
+ * get PCIe Slot-ID
+ * @return uint8 Slot-ID
+ **/
+uint8_t getSlot();
 
-		/**
-		 * get PCIe Function-ID
-		 * @return uint8 Function-ID
-		 **/
-		uint8_t getFunc();
+/**
+ * get PCIe Function-ID
+ * @return uint8 Function-ID
+ **/
+uint8_t getFunc();
 
-
-	private:
-        DeviceOperator *dop;
-        PciDevice *device;
+private:
+    DeviceOperator *m_dop;
+    PciDevice      *m_device;
 
 };
 

@@ -1,6 +1,7 @@
 /**
  * @file rorcfs_device.cpp
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler
+ *<eschweiler@fias.uni-frankfurt.de>
  * @date 2011-08-16
  *
  * @section LICENSE
@@ -16,14 +17,14 @@
  * http://www.gnu.org/copyleft/gpl.html
  **/
 
-#include <stdio.h>
-#include <errno.h>
-#include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
+#include <stdio.h>
+#include <sys/stat.h>
 
-#include <iostream>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 
 #include <pda.h>
 
@@ -35,11 +36,19 @@ rorcfs_device::rorcfs_device()
 {
 }
 
+
+
 rorcfs_device::~rorcfs_device()
 {
 }
 
-int rorcfs_device::init(int n)
+
+
+int
+rorcfs_device::init
+(
+    int n
+)
 {
     /** A list of PCI ID to which PDA has to attach. */
     const char *pci_ids[] =
@@ -49,27 +58,30 @@ int rorcfs_device::init(int n)
     };
 
     /** The device operator manages all devices with the given IDs. */
-    if( (dop=DeviceOperator_new(pci_ids)) == NULL )
+    if( (m_dop = DeviceOperator_new(pci_ids) ) == NULL)
     {
         cout << "Unable to get device-operator!" << endl;
         return -1;
     }
 
     /** Get a device object device n in the list. */
-    device = NULL;
-    if(DeviceOperator_getPciDevice(dop, &device, n) != PDA_SUCCESS)
+    m_device = NULL;
+    if(DeviceOperator_getPciDevice(m_dop, &m_device, n) != PDA_SUCCESS)
     {
         cout << "Can't get device!" << endl;
         return -1;
     }
 
-	return 0;
+    return 0;
 }
 
-uint8_t rorcfs_device::getBus()
+
+
+uint8_t
+rorcfs_device::getBus()
 {
     uint8_t bus_id;
-    if(PciDevice_getBusID(device, &bus_id) == PDA_SUCCESS)
+    if(PciDevice_getBusID(m_device, &bus_id) == PDA_SUCCESS)
     {
         return(bus_id);
     }
@@ -77,10 +89,13 @@ uint8_t rorcfs_device::getBus()
     return(0);
 }
 
-uint8_t rorcfs_device::getSlot()
+
+
+uint8_t
+rorcfs_device::getSlot()
 {
     uint8_t device_id;
-    if(PciDevice_getDeviceID(device, &device_id) == PDA_SUCCESS)
+    if(PciDevice_getDeviceID(m_device, &device_id) == PDA_SUCCESS)
     {
         return(device_id);
     }
@@ -88,10 +103,13 @@ uint8_t rorcfs_device::getSlot()
     return(0);
 }
 
-uint8_t rorcfs_device::getFunc()
+
+
+uint8_t
+rorcfs_device::getFunc()
 {
     uint8_t function_id;
-    if(PciDevice_getFunctionID(device, &function_id) == PDA_SUCCESS)
+    if(PciDevice_getFunctionID(m_device, &function_id) == PDA_SUCCESS)
     {
         return(function_id);
     }
