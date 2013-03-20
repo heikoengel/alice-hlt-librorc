@@ -18,11 +18,12 @@
  *
  * */
 
-#include <assert.h>
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
+
+#include <iostream>
 
 #include "rorcfs_bar.hh"
 #include "rorcfs_flash_htg.hh"
@@ -89,22 +90,26 @@ rorcfs_flash_htg::clearStatusRegister
 
 
 unsigned short
-rorcfs_flash_htg::getManufacturerCode
-    ()
+rorcfs_flash_htg::getManufacturerCode()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
+    {
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
+    }
+
     return bar->get16(0x00);
 }
 
 
 
 unsigned short
-rorcfs_flash_htg::getDeviceID
-    ()
+rorcfs_flash_htg::getDeviceID()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
+    {
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
+    }
+
     return bar->get16(0x01);
 }
 
@@ -117,18 +122,23 @@ rorcfs_flash_htg::getBlockLockConfiguration
 )
 {
     if(read_state != FLASH_READ_IDENTIFIER)
+    {
         setReadState(FLASH_READ_IDENTIFIER, blkaddr);
+    }
+
     return bar->get16(blkaddr + 0x02);
 }
 
 
 
 unsigned short
-rorcfs_flash_htg::getReadConfigurationRegister
-    ()
+rorcfs_flash_htg::getReadConfigurationRegister()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
+    {
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
+    }
+
     return bar->get16(0x05);
 }
 
@@ -153,7 +163,7 @@ rorcfs_flash_htg::programWord
     unsigned short data
 )
 {
-    unsigned short status = 0;
+    unsigned short status  = 0;
     unsigned int   timeout = CFG_FLASH_TIMEOUT;
 
     // word program setup
@@ -170,7 +180,9 @@ rorcfs_flash_htg::programWord
         status = bar->get16(addr);
         timeout--;
         if(timeout == 0)
+        {
             return -1;
+        }
     }
 
     if(status == FLASH_PEC_BUSY)
@@ -200,8 +212,10 @@ rorcfs_flash_htg::programBuffer
     unsigned int   blkaddr = addr & CFG_FLASH_BLKMASK;
 
     // check if block is locked
-    if(getBlockLockConfiguration(blkaddr) )
+    if( getBlockLockConfiguration(blkaddr) )
+    {
         unlockBlock(blkaddr);
+    }
 
     //write to buffer command
     bar->set16(blkaddr, FLASH_CMD_BUFFER_PROG);
@@ -210,11 +224,7 @@ rorcfs_flash_htg::programBuffer
     // read status register
     status = bar->get16(blkaddr);
     if( (status & FLASH_PEC_BUSY) == 0)                                           //
-    { // check
-     // if
-     // WSM
-     // is
-     // ready
+    {
         return -1;
     }
 
@@ -227,8 +237,6 @@ rorcfs_flash_htg::programBuffer
     for(i = 1; i < length; i++)
     {
         bar->set16(addr + i, data[i]);
-
-        //printf("writing %04x to addr %x\n", data[i], addr+i);
     }
 
     // write {confirm, blkaddr}
@@ -423,8 +431,7 @@ rorcfs_flash_htg::blankCheck
         }
     }
     clearStatusRegister(blkaddr);
-    printf("Blank Check addr %08xx=%04x\n",
-           blkaddr, status);
+    printf("Blank Check addr %08xx=%04x\n", blkaddr, status);
 
     // SR5==1: block not empty -> return 0
     // SR5==0: block empty -> return 1
