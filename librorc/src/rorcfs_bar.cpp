@@ -1,5 +1,4 @@
 /**
- * @file rorcfs_bar.cpp
  * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.2
  * @date 2011-08-16

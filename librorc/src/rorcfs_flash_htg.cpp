@@ -1,7 +1,6 @@
 /**
- * @file rorcfs_flash_htg.cpp
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2012-02-29
  *
  * @section LICENSE
@@ -27,6 +26,8 @@
 
 #include "rorcfs_bar.hh"
 #include "rorcfs_flash_htg.hh"
+
+using namespace std;
 
 rorcfs_flash_htg::rorcfs_flash_htg
 (
@@ -248,7 +249,7 @@ rorcfs_flash_htg::programBuffer
         timeout--;
         if(timeout == 0)
         {
-            printf("programBuffer timed out (%04x)\n", status);
+            cout << "programBuffer timed out " << status << endl;
             return -1;
         }
     }
@@ -256,34 +257,34 @@ rorcfs_flash_htg::programBuffer
     /** SR.5 or SR.4 nonzero -> program/erase/sequence error */
     if(status != FLASH_PEC_BUSY)
     {
-        printf("programBuffer failed: ");
+        cout << "programBuffer failed: ";
         switch(status & 0x0030)
         {
             case 0x0030:
             {
-                printf("Command Sequence Error - command aborted\n");
+                cout << "Command Sequence Error - command aborted!" << endl;
             }
             break;
 
             case 0x0010:
             {
-                printf("Program Error - operation aborted\n");
+                cout << "Program Error - operation aborted!" << endl;
                 if(status & 0x0002)
                 {
-                    printf("Block locked during program\n");
+                    cout << "Block locked during program!" << endl;
                 }
             }
             break;
 
             case 0x0020:
             {
-                printf("Erase Error - operation aborted\n");
+                cout << "Erase Error - operation aborted!" << endl;
             }
             break;
 
             default:
             {
-                printf("Unknown Error - Software Bug!\n");
+                cout << "Unknown Error - Software Bug!" << endl;
             }
             break;
         }
@@ -321,7 +322,7 @@ rorcfs_flash_htg::eraseBlock
         timeout--;
         if(timeout == 0)
         {
-            printf("eraseBlock timeout\n");
+            cout << "eraseBlock timeout" << endl;
             return -1;
         }
     }
@@ -419,12 +420,13 @@ rorcfs_flash_htg::blankCheck
         timeout--;
         if(timeout == 0)
         {
-            printf("blankCheck timeout: %08x\n", status);
+            cout << "blankCheck timeout: " << status << endl;
             return -1;
         }
     }
     clearStatusRegister(blkaddr);
-    printf("Blank Check addr %08xx=%04x\n", blkaddr, status);
+    cout << "Blank Check addr " <<  hex << blkaddr
+         << "=" << hex << status;
 
     /**
      * SR5==1: block not empty -> return 0

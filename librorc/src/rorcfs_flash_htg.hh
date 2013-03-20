@@ -1,7 +1,6 @@
 /**
- * @file rorcfs_flash_htg.hh
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2012-02-29
  *
  * @section LICENSE
@@ -21,6 +20,8 @@
 #ifndef _RORCLIB_RORCFS_FLASH_HTG
 #define _RORCLIB_RORCFS_FLASH_HTG
 
+
+//TODO : refine this into an enum ...
 /** Read array mode **/
 #define FLASH_READ_ARRAY 0x00ff
 
