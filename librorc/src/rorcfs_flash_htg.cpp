@@ -166,10 +166,9 @@ rorcfs_flash_htg::programWord
     unsigned short status  = 0;
     unsigned int   timeout = CFG_FLASH_TIMEOUT;
 
-    // word program setup
+    /** word program setup */
     bar->set16(addr, FLASH_CMD_PROG_SETUP);
 
-    // addr, data
     bar->set16(addr, data);
     read_state = FLASH_READ_STATUS;
     status = bar->get16(addr);
@@ -211,43 +210,38 @@ rorcfs_flash_htg::programBuffer
     unsigned int   timeout = CFG_FLASH_TIMEOUT;
     unsigned int   blkaddr = addr & CFG_FLASH_BLKMASK;
 
-    // check if block is locked
+    /** check if block is locked */
     if( getBlockLockConfiguration(blkaddr) )
     {
         unlockBlock(blkaddr);
     }
 
-    //write to buffer command
+    /** write to buffer command */
     bar->set16(blkaddr, FLASH_CMD_BUFFER_PROG);
     read_state = FLASH_READ_STATUS;
 
-    // read status register
+    /** read status register */
     status = bar->get16(blkaddr);
     if( (status & FLASH_PEC_BUSY) == 0)                                           //
     {
         return -1;
     }
 
-    // write word count
+    /** write word count */
     bar->set16(blkaddr, length - 1);
 
-    //write {buffer-data, start-addr}
     bar->set16(addr, data[0]);
 
-    for(i = 1; i < length; i++)
+    for(i=1; i < length; i++)
     {
         bar->set16(addr + i, data[i]);
     }
 
-    // write {confirm, blkaddr}
     bar->set16(blkaddr, FLASH_CMD_CONFIRM);
-
-    // read status register
     status = bar->get16(blkaddr);
 
-    //printf("programBuffer STS: %04x\n", status);
-
-    while(!(status & FLASH_PEC_BUSY) )  // device is busy
+    /** Wait while device is busy */
+    while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
         status = bar->get16(blkaddr);
@@ -258,8 +252,9 @@ rorcfs_flash_htg::programBuffer
             return -1;
         }
     }
-    if(status != FLASH_PEC_BUSY)  // SR.5 or SR.4 nonzero ->
-                                  // program/erase/sequence error
+
+    /** SR.5 or SR.4 nonzero -> program/erase/sequence error */
+    if(status != FLASH_PEC_BUSY)
     {
         printf("programBuffer failed: ");
         switch(status & 0x0030)
@@ -274,7 +269,9 @@ rorcfs_flash_htg::programBuffer
             {
                 printf("Program Error - operation aborted\n");
                 if(status & 0x0002)
+                {
                     printf("Block locked during program\n");
+                }
             }
             break;
 
@@ -293,7 +290,7 @@ rorcfs_flash_htg::programBuffer
         return -1;
     }
 
-    //return to ReadArry mode
+    /** return to ReadArry mode */
     setReadState(FLASH_READ_ARRAY, blkaddr);
     return 0;
 }
@@ -309,16 +306,13 @@ rorcfs_flash_htg::eraseBlock
     unsigned short status;
     unsigned int   timeout = CFG_FLASH_TIMEOUT;
 
-    // erase command
+    /** erase command */
     bar->set16(blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
 
-    //confim command
+    /** confim command */
     bar->set16(blkaddr, FLASH_CMD_CONFIRM);
     read_state = FLASH_READ_STATUS;
-
     status = bar->get16(blkaddr);
-
-    //printf("erase STS: %04x\n", status);
 
     while( (status & FLASH_PEC_BUSY) == 0)
     {
@@ -332,7 +326,6 @@ rorcfs_flash_htg::eraseBlock
         }
     }
 
-    //printf("erase time: %d x 100us\n", CFG_FLASH_TIMEOUT - timeout);
     if(status == FLASH_PEC_BUSY)
     {
         clearStatusRegister(blkaddr);
@@ -374,8 +367,8 @@ rorcfs_flash_htg::lockBlock
     unsigned int blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP); // block lock setup
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM); // block lock
+    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
 }
 
 
@@ -386,8 +379,8 @@ rorcfs_flash_htg::unlockBlock
     unsigned int blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP); // block lock setup
-    bar->set16(blkaddr, FLASH_CMD_CONFIRM); // block unlock
+    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    bar->set16(blkaddr, FLASH_CMD_CONFIRM);
 }
 
 
@@ -418,7 +411,7 @@ rorcfs_flash_htg::blankCheck
     read_state = FLASH_READ_STATUS;
     status = bar->get16(blkaddr);
 
-    // wait for blankCheck to complete
+    /** wait for blankCheck to complete */
     while( (status & FLASH_PEC_BUSY) == 0)
     {
         usleep(100);
@@ -433,8 +426,10 @@ rorcfs_flash_htg::blankCheck
     clearStatusRegister(blkaddr);
     printf("Blank Check addr %08xx=%04x\n", blkaddr, status);
 
-    // SR5==1: block not empty -> return 0
-    // SR5==0: block empty -> return 1
+    /**
+     * SR5==1: block not empty -> return 0
+     * SR5==0: block empty -> return 1
+     **/
     return ~(status >> 5) & 0x01;
 }
 
@@ -457,9 +452,13 @@ rorcfs_flash_htg::getBlockAddress
      * block 0: 0x7fc000 - 0x7fffff
      * */
     if(addr <= 0x7effff)
+    {
         return (addr & 0xffff0000);
+    }
     else
+    {
         return (addr & 0xffffc000);
+    }
 }
 
 
@@ -471,5 +470,5 @@ rorcfs_flash_htg::getBankAddress
 )
 {
     /** bank 0: 0x000000 - 0x080000 **/
-    return (addr & 0xff800000);
+    return(addr & 0xff800000);
 }
