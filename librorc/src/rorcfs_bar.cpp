@@ -17,6 +17,8 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
+#include "rorcfs_bar.hh"
+
 #include <assert.h>
 #include <cstdio>
 #include <cstdlib>
@@ -31,8 +33,6 @@
 #include <unistd.h>
 
 #include "rorc_registers.h"
-#include "rorcfs.h"
-#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
 
 #include "rorcfs_buffer.hh"
