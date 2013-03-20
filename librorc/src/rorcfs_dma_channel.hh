@@ -1,15 +1,14 @@
 /**
- * @file rorcfs_dma_channel.hh
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2011-08-17
- * 
+ *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
@@ -31,7 +30,7 @@
  * DMA engine configuration register contents **/
 struct rorcfs_buffer_software_pointers {
 	/** EBDM read pointer low **/
-	uint32_t ebdm_software_read_pointer_low; 
+	uint32_t ebdm_software_read_pointer_low;
 	/** EBDM read pointer high **/
 	uint32_t ebdm_software_read_pointer_high;
 	/** RBDM read pointer low **/
@@ -78,12 +77,12 @@ struct t_sg_entry_cfg {
  * @brief DMA channel management class
  *
  * Initialize DMA channel with init() before using any other member
- * function. Initialization sets the parent BAR and the channel offset 
- * within the BAR (via dma_base). Use prepareEB() and prepareRB() to 
+ * function. Initialization sets the parent BAR and the channel offset
+ * within the BAR (via dma_base). Use prepareEB() and prepareRB() to
  * fill the buffer descriptor memories, then configure Buffer-Enable
- * and -Continuous flags (setRBDMEnable(), setEBDMEnable(), 
- * setRBDMContinuous(), setEBDMContinuous() ). 
- * No DMA transfer will start unless setDMAEnable() has been called 
+ * and -Continuous flags (setRBDMEnable(), setEBDMEnable(),
+ * setRBDMContinuous(), setEBDMContinuous() ).
+ * No DMA transfer will start unless setDMAEnable() has been called
  * with enable=1.
  **/
 class rorcfs_dma_channel
@@ -100,7 +99,7 @@ class rorcfs_dma_channel
 		void init(rorcfs_bar *dma_bar, unsigned int dma_base);
 
 		/**
-		 * prepare EventBuffer: copy scatterlist from 
+		 * prepare EventBuffer: copy scatterlist from
 		 * rorcfs_buffer into the EventBufferDescriptorManager
 		 * in the RORC
 		 * @param buf rorcfs_buffer instance to be used as
@@ -111,7 +110,7 @@ class rorcfs_dma_channel
 		int prepareEB ( rorcfs_buffer *buf );
 
 		/**
-		 * prepare ReportBuffer: copy scatterlist from 
+		 * prepare ReportBuffer: copy scatterlist from
 		 * rorcfs_buffer into the ReportBufferDescriptorManager
 		 * in the RORC
 		 * @param buf rorcfs_buffer instance to be used as
@@ -201,7 +200,7 @@ class rorcfs_dma_channel
 		unsigned int getDMABusy();
 
 		/**
-		 * get buffer size set in EBDM. This returns the size of the 
+		 * get buffer size set in EBDM. This returns the size of the
 		 * DMA buffer set in the DMA enginge and has to be the physical
 		 * size of the associated DMA buffer.
 		 * @return buffer size in bytes
@@ -217,9 +216,9 @@ class rorcfs_dma_channel
 
 		/**
 		 * configure DMA engine for current set of buffers
-		 * @param ebuf pointer to struct rorcfs_buffer to be used as 
+		 * @param ebuf pointer to struct rorcfs_buffer to be used as
 		 * event buffer
-		 * @param rbuf pointer to struct rorcfs_buffer to be used as 
+		 * @param rbuf pointer to struct rorcfs_buffer to be used as
 		 * report buffer
 		 * @param max_payload maximum payload size to be used (in bytes)
 		 * @return 0 on sucess, <0 on error
@@ -251,7 +250,7 @@ class rorcfs_dma_channel
 		 * the DMA engine only writes to the Event buffer as long as
 		 * its internal offset is at least (MaxPayload)-bytes smaller
 		 * than the Event Buffer Offset. In order to start a transfer,
-		 * set EBOffset to (BufferSize-MaxPayload). 
+		 * set EBOffset to (BufferSize-MaxPayload).
 		 * IMPORTANT: offset has always to be a multiple of MaxPayload!
 		 **/
 		void setEBOffset( unsigned long offset );
@@ -337,7 +336,7 @@ class rorcfs_dma_channel
 		 * @param dma_desc pointer to struct rorcfs_dma_desc
 		 * */
 		void memcpyEBDRAMentry(
-				unsigned int startaddr, 
+				unsigned int startaddr,
 				struct rorcfs_dma_desc *dma_desc);
 
 			/**
@@ -360,7 +359,7 @@ class rorcfs_dma_channel
 		 * @param dma_desc pointer to struct rorcfs_dma_desc
 		 * */
 		void memcpyRBDRAMentry(
-				unsigned int startaddr, 
+				unsigned int startaddr,
 				struct rorcfs_dma_desc *dma_desc);
 
 		/**
