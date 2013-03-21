@@ -169,7 +169,7 @@ unsigned long getMaxRBEntries()
  * @return pointer to char string
  **/
 
-char *getDName()
+char *getDName() //remove
 {
     return dname;
 }
