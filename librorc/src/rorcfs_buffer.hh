@@ -1,7 +1,6 @@
 /**
- * @file rorcfs_buffer.hh
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2011-08-17
  *
  * @section LICENSE
