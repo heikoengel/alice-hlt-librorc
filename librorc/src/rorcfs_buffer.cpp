@@ -46,18 +46,16 @@ extern int errno; //remove ?
  **/
 rorcfs_buffer::rorcfs_buffer()
 {
-    m_overmapped   = 0;
-    m_id           = 0;
-    m_size         = 0;
-    m_dmaDirection = 0;
-    m_mem          = NULL;
+    m_overmapped                   = 0;
+    m_id                           = 0;
+    m_size                         = 0;
+    m_dmaDirection                 = 0;
+    m_mem                          = NULL;
+    m_numberOfScatterGatherEntries = 0;
 
-    nSGEntries = 0;
-
-
+    //TODO:
     dname = NULL;//remove
     dname_size = 0;//remove
-    //PhysicalSize = 0;//remove
     base_name_size = 0;//remove
     base_name = NULL;//remove
 }
@@ -109,8 +107,6 @@ rorcfs_buffer::allocate
         }
     }
 
-    m_dmaDirection = dma_direction;
-
     /** Overmap if wanted */
     if(overmap == 1)
     {
@@ -129,15 +125,11 @@ rorcfs_buffer::allocate
         return -1;
     }
 
-    /** connect to allocated buffer */
-    if(connect(dev, id) == -1)
-    {
-        return -1;
-    }
+    m_dmaDirection = dma_direction;
+    m_id           = id;
 
-    m_id = id;
 
-    return 0;
+    return connect(dev, id);
 }
 
 
@@ -167,6 +159,7 @@ rorcfs_buffer::connect
         return -1;
     }
 
+/** */
 //    // get nSGEntries from sysfs attribute
 //    fname_size = snprintf(NULL, 0, "%s%03ld/sglist", base_name, id);
 //    fname_size++;
@@ -196,7 +189,20 @@ rorcfs_buffer::connect
 //    nSGEntries = filestat.st_size / sizeof(struct rorcfs_dma_desc);
 //
 //    close(fd);
-//
+/** */
+
+    DMABuffer_SGNode *sglist;
+    if(DMABuffer_getSGList(m_buffer, &sglist) != PDA_SUCCESS)
+    {
+        cout << "SG list lookup failed!" << endl;
+        return -1;
+    }
+
+    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
+    {
+        m_numberOfScatterGatherEntries++;
+    }
+
 //    // store buffer id
 //    this->id = id;
 //

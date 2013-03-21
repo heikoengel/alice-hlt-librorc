@@ -141,7 +141,7 @@ unsigned long getMappingSize()
 
 unsigned long getnSGEntries()
 {
-    return nSGEntries;
+    return m_numberOfScatterGatherEntries;
 }
 
 /**
@@ -193,22 +193,15 @@ private:
     uint64_t       m_size;       //remove this -> PDA
     int            m_dmaDirection;
     unsigned int  *m_mem;
+    unsigned long  m_numberOfScatterGatherEntries;
 
-
-    unsigned long nSGEntries;
     /** old stuff */
-    // sysfs directory of buffer
-    char *dname; //remove
 
     // sysfs-mmap directory of driver
-    char *base_name; //remove
-
-    int dname_size; //remove
+    char *base_name;    //remove
+    int dname_size;     //remove
+    char *dname;        //remove
     int base_name_size; //remove
-
-    //unsigned long PhysicalSize;
-    //unsigned long MappingSize; //remove
-    //int           dma_direction;
 
     int fdEB;
     /** about to be removed */
