@@ -185,7 +185,6 @@ private:
 
     unsigned int  *m_mem;
     unsigned long  m_id;
-    uint64_t       m_size;       //remove this -> PDA
     int            m_dmaDirection;
     unsigned long  m_numberOfScatterGatherEntries;
 

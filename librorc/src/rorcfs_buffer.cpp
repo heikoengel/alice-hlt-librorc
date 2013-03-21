@@ -43,7 +43,6 @@ extern int errno; //remove ?
 rorcfs_buffer::rorcfs_buffer()
 {
     m_id                           = 0;
-    m_size                         = 0;
     m_dmaDirection                 = 0;
     m_mem                          = NULL;
     m_numberOfScatterGatherEntries = 0;
@@ -78,6 +77,14 @@ rorcfs_buffer::isOvermapped()
 unsigned long
 rorcfs_buffer::getSize()
 {
+    uint64_t m_size = 0;
+
+    if(DMABuffer_getLength(m_buffer, &m_size)!=PDA_SUCCESS)
+    {
+        cout << "Size lookup failed!" << endl;
+        return 0;
+    }
+
     return m_size;
 }
 
@@ -124,13 +131,6 @@ rorcfs_buffer::allocate
             cout << "Overmapping failed!" << endl;
             return(-1);
         }
-    }
-
-    /** Get the length */
-    if(DMABuffer_getLength(m_buffer, &m_size)!=PDA_SUCCESS)
-    {
-        cout << "Size lookup failed!" << endl;
-        return -1;
     }
 
     m_dmaDirection = dma_direction;
