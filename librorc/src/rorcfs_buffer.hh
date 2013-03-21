@@ -104,20 +104,9 @@ unsigned long getID()
  * @return number of bytes allocated as Buffer
  **/
 
-unsigned long getPhysicalSize()
+unsigned long getSize()
 {
-    return PhysicalSize;
-}
-
-/**
- * Get size of the EB mapping. THis is double the size of
- * the physical buffer size due to overmapping
- * @return size of the EB mapping in bytes
- **/
-
-unsigned long getMappingSize()
-{
-    return MappingSize;
+    return m_size;
 }
 
 /**
@@ -125,7 +114,8 @@ unsigned long getMappingSize()
  * @return 0 if unset, nonzero if set
  **/
 
-int getOvermapped()
+// TODO : boolean
+int isOvermapped()
 {
     return m_overmapped;
 }
@@ -147,7 +137,7 @@ unsigned long getnSGEntries()
 
 unsigned long getMaxRBEntries()
 {
-    return (PhysicalSize / sizeof(struct rorcfs_event_descriptor) );
+    return (m_size / sizeof(struct rorcfs_event_descriptor) );
 }
 
 /**
@@ -186,21 +176,23 @@ private:
 
     unsigned long  m_id;
     int            m_overmapped;
+    uint64_t       m_size;
+    int            m_dmaDirection;
 
     /** old stuff */
     // sysfs directory of buffer
-    char *dname;
+    char *dname; //remove
 
     // sysfs-mmap directory of driver
-    char *base_name;
+    char *base_name; //remove
 
-    int dname_size;
-    int base_name_size;
+    int dname_size; //remove
+    int base_name_size; //remove
 
-    unsigned long PhysicalSize;
-    unsigned long MappingSize;
+    //unsigned long PhysicalSize;
+    //unsigned long MappingSize; //remove
     unsigned long nSGEntries;
-    int           dma_direction;
+    //int           dma_direction;
 
     int fdEB;
 

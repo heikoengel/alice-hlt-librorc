@@ -46,17 +46,18 @@ extern int errno; //remove ?
  **/
 rorcfs_buffer::rorcfs_buffer()
 {
-    m_overmapped = 0;
-    m_id         = 0;
+    m_overmapped   = 0;
+    m_id           = 0;
+    m_size         = 0;
+    m_dmaDirection = 0;
 
-    MappingSize = 0;
+    //MappingSize = 0;
     nSGEntries = 0;
     mem = NULL;
 
     dname = NULL;//remove
     dname_size = 0;//remove
-    PhysicalSize = 0;//remove
-    dma_direction = 0;
+    //PhysicalSize = 0;//remove
     base_name_size = 0;//remove
     base_name = NULL;//remove
 }
@@ -91,6 +92,8 @@ rorcfs_buffer::allocate
     m_device =
         dev->getPdaPciDevice();
 
+    //TODO: convert direction specifier
+
     m_buffer = NULL;
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     {
@@ -105,6 +108,8 @@ rorcfs_buffer::allocate
             return -1;
         }
     }
+
+    m_dmaDirection = dma_direction;
 
     if(overmap == 1)
     {
@@ -148,8 +153,10 @@ rorcfs_buffer::connect
     unsigned long  id
 )
 {
+
+/** */
 //    char       *fname;
-//    int         fd, fname_size;
+//    int         fname_size;
 //    struct stat filestat;
 //
 //    int nbytes = 0;
@@ -190,7 +197,10 @@ rorcfs_buffer::connect
 //        close(fdEB);
 //        return -1;
 //    }
-//
+/** */
+
+/** __ */
+//    int fd;
 //    // set MappingSize to the size of the sysfs file
 //    MappingSize = filestat.st_size;
 //

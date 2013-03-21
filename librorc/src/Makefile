@@ -16,9 +16,8 @@ FLI=$(TOP_DIR)/lib/fli.so
 endif
 
 
-CFLAGS += -c -fPIC $(INCLUDES) -lpthread
+CFLAGS += -c -Wall -fPIC $(INCLUDES) -lpthread
 LD=g++ -shared -Bsymbolic -o 
-#`pda-config --sdpath`
 
 all : $(TOP_DIR)/lib/$(BUILD_ID)/librorc.so $(FLI)
 
