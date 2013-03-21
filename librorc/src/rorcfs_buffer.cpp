@@ -121,6 +121,12 @@ rorcfs_buffer::allocate
         m_overmapped = 1;
     }
 
+    if(DMABuffer_getLength(m_buffer, &m_size)!=PDA_SUCCESS)
+    {
+        cout << "Size lookup failed!" << endl;
+        return -1;
+    }
+
     /** connect to allocated buffer */
     if(connect(dev, id) == -1)
     {
