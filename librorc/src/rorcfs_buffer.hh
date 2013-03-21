@@ -94,7 +94,7 @@ connect
 
 unsigned long getID()
 {
-    return id;
+    return m_id;
 }
 
 /**
@@ -181,10 +181,11 @@ unsigned int *getMem()
 }
 
 private:
-    PciDevice *m_device;
-    DMABuffer *m_buffer;
+    PciDevice     *m_device;
+    DMABuffer     *m_buffer;
 
-    int        m_overmapped;
+    unsigned long  m_id;
+    int            m_overmapped;
 
     /** old stuff */
     // sysfs directory of buffer
@@ -196,7 +197,6 @@ private:
     int dname_size;
     int base_name_size;
 
-    unsigned long id;
     unsigned long PhysicalSize;
     unsigned long MappingSize;
     unsigned long nSGEntries;

@@ -47,14 +47,15 @@ extern int errno; //remove ?
 rorcfs_buffer::rorcfs_buffer()
 {
     m_overmapped = 0;
+    m_id         = 0;
 
-    dname = NULL;//remove
-    dname_size = 0;//remove
-    id = 0;
-    PhysicalSize = 0;//remove
     MappingSize = 0;
     nSGEntries = 0;
     mem = NULL;
+
+    dname = NULL;//remove
+    dname_size = 0;//remove
+    PhysicalSize = 0;//remove
     dma_direction = 0;
     base_name_size = 0;//remove
     base_name = NULL;//remove
@@ -120,6 +121,8 @@ rorcfs_buffer::allocate
     {
         return -1;
     }
+
+    m_id = id;
 
     return 0;
 }
