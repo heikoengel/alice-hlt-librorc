@@ -8,7 +8,7 @@ ifdef INSTALL_HOME
 	INCLUDES += -I$(INSTALL_HOME)/include
 endif
 
-CFLAGS += $(INCLUDES) -L$(LIB)
+CFLAGS += $(INCLUDES) -L$(LIB) -L`pda-config --ldlibrarypath`
 OBJ := $(patsubst %.cpp, $(TOP_DIR)/build/$(BUILD_ID)/%.o, $(wildcard *.cpp))
 #OBJ := $(TOP_DIR)/build/$(BUILD_ID)/rorc_status.o 
 #OBJ += $(TOP_DIR)/build/$(BUILD_ID)/pcie128pg_nch.o
@@ -26,7 +26,7 @@ $(LIB) : $(INCLUDE_TARGETS)
 	make -C $(LIB_BASE) $(BUILD_ID)
 
 $(TOP_DIR)/build/$(BUILD_ID)/%.o: %.cpp $(INCLUDE_TARGETS) $(LOCAL_INCLUDES) $(LIBRARY)
-	g++ $(CFLAGS) $< -o $@ -lrorc -lpthread
+	g++ $(CFLAGS) $< -o $@ -lrorc -lpthread -lpda
 
 $(TOP_DIR)/build/$(BUILD_ID)/%.o: %.c
 	$(CC) $(CFLAGS) $< -o $@

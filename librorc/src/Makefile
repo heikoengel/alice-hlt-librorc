@@ -17,7 +17,8 @@ endif
 
 
 CFLAGS += -c -fPIC $(INCLUDES) -lpthread
-LD=g++ -shared -Bsymbolic -o
+LD=g++ -shared -Bsymbolic -o 
+#`pda-config --sdpath`
 
 all : $(TOP_DIR)/lib/$(BUILD_ID)/librorc.so $(FLI)
 
