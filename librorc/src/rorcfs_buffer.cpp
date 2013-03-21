@@ -42,7 +42,6 @@ extern int errno; //remove ?
  **/
 rorcfs_buffer::rorcfs_buffer()
 {
-    m_overmapped                   = 0;
     m_id                           = 0;
     m_size                         = 0;
     m_dmaDirection                 = 0;
@@ -60,7 +59,21 @@ rorcfs_buffer::~rorcfs_buffer()
 {
 }
 
+int
+rorcfs_buffer::isOvermapped()
+{
+    void *map_two = NULL;
 
+    if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
+    {
+        if(map_two != NULL)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 /**
  * Allocate Buffer: initiate memory allocation,
@@ -105,7 +118,6 @@ rorcfs_buffer::allocate
             cout << "Overmapping failed!" << endl;
             return(-1);
         }
-        m_overmapped = 1;
     }
 
     /** Get the length */

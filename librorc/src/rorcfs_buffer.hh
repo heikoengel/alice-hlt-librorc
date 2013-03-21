@@ -102,10 +102,7 @@ unsigned long getID()
  **/
 
 // TODO : boolean
-int isOvermapped()
-{
-    return m_overmapped;
-}
+int isOvermapped();
 
 /**
  * Get physical Buffer size in bytes. Requested buffer
@@ -190,7 +187,6 @@ private:
     DMABuffer     *m_buffer;
 
     unsigned long  m_id;
-    int            m_overmapped; //remove this -> PDA
     uint64_t       m_size;       //remove this -> PDA
     int            m_dmaDirection;
     unsigned int  *m_mem;
