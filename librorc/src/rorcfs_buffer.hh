@@ -98,6 +98,17 @@ unsigned long getID()
 }
 
 /**
+ * get the overmapped flag of the buffer
+ * @return 0 if unset, nonzero if set
+ **/
+
+// TODO : boolean
+int isOvermapped()
+{
+    return m_overmapped;
+}
+
+/**
  * Get physical Buffer size in bytes. Requested buffer
  * size from init() is rounded up to the next PAGE_SIZE
  * boundary.
@@ -109,15 +120,18 @@ unsigned long getSize()
     return m_size;
 }
 
-/**
- * get the overmapped flag of the buffer
- * @return 0 if unset, nonzero if set
- **/
-
-// TODO : boolean
-int isOvermapped()
+unsigned long getPhysicalSize()
 {
-    return m_overmapped;
+    return m_size;
+}
+
+unsigned long getMappingSize()
+{
+    if(isOvermapped() == 1)
+    {
+        return m_size * 2;
+    }
+    return m_size;
 }
 
 /**
@@ -155,7 +169,7 @@ char *getDName()
  * @return size of the dname string in number of bytes
  **/
 
-int getDNameSize()
+int getDNameSize() //remove
 {
     return dname_size;
 }
@@ -175,10 +189,12 @@ private:
     DMABuffer     *m_buffer;
 
     unsigned long  m_id;
-    int            m_overmapped;
-    uint64_t       m_size;
+    int            m_overmapped; //remove this -> PDA
+    uint64_t       m_size;       //remove this -> PDA
     int            m_dmaDirection;
 
+
+    unsigned long nSGEntries;
     /** old stuff */
     // sysfs directory of buffer
     char *dname; //remove
@@ -191,7 +207,6 @@ private:
 
     //unsigned long PhysicalSize;
     //unsigned long MappingSize; //remove
-    unsigned long nSGEntries;
     //int           dma_direction;
 
     int fdEB;
