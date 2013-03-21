@@ -75,6 +75,12 @@ rorcfs_buffer::isOvermapped()
     return 0;
 }
 
+unsigned long
+rorcfs_buffer::getSize()
+{
+    return m_size;
+}
+
 /**
  * Allocate Buffer: initiate memory allocation,
  * connect to new buffer & retrieve actual buffer sizes

@@ -111,23 +111,20 @@ int isOvermapped();
  * @return number of bytes allocated as Buffer
  **/
 
-unsigned long getSize()
-{
-    return m_size;
-}
+unsigned long getSize();
 
 unsigned long getPhysicalSize()
 {
-    return m_size;
+    return getSize();
 }
 
 unsigned long getMappingSize()
 {
     if(isOvermapped() == 1)
     {
-        return m_size * 2;
+        return(2*getSize());
     }
-    return m_size;
+    return getSize();
 }
 
 /**
@@ -157,7 +154,7 @@ unsigned long getnSGEntries()
 
 unsigned long getMaxRBEntries()
 {
-    return (m_size / sizeof(struct rorcfs_event_descriptor) );
+    return (getSize()/sizeof(struct rorcfs_event_descriptor) );
 }
 
 /**
@@ -186,10 +183,10 @@ private:
     PciDevice     *m_device;
     DMABuffer     *m_buffer;
 
+    unsigned int  *m_mem;
     unsigned long  m_id;
     uint64_t       m_size;       //remove this -> PDA
     int            m_dmaDirection;
-    unsigned int  *m_mem;
     unsigned long  m_numberOfScatterGatherEntries;
 
     /** old stuff */
