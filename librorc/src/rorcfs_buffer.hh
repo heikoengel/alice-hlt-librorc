@@ -135,6 +135,16 @@ unsigned long getMappingSize()
 }
 
 /**
+ * get memory buffer
+ * @return pointer to mmap'ed buffer memory
+ **/
+
+unsigned int *getMem()
+{
+    return m_mem;
+}
+
+/**
  * Get number of scatter-gather entries for the Buffer
  * @return (unsigned long) number of entries
  **/
@@ -174,15 +184,7 @@ int getDNameSize() //remove
     return dname_size;
 }
 
-/**
- * get memory buffer
- * @return pointer to mmap'ed buffer memory
- **/
 
-unsigned int *getMem()
-{
-    return m_mem;
-}
 
 private:
     PciDevice     *m_device;
