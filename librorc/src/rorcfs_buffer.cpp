@@ -67,9 +67,6 @@ rorcfs_buffer::rorcfs_buffer()
  **/
 rorcfs_buffer::~rorcfs_buffer()
 {
-    munmap(mem, MappingSize);
-    mem = NULL;
-    close(fdEB);
 }
 
 
@@ -116,61 +113,11 @@ rorcfs_buffer::allocate
         }
     }
 
-
-//    char                  *fname;
-//    struct t_rorcfs_buffer buf;
-//
-//    int fd, ret;
-//
-//    // already connected to another buffer? unmap first!
-//    if(mem != NULL)
-//    {
-//        errno = EPERM;
-//        return -1;
-//    }
-//
-//    // get sysfs base directory name and size
-//
-//    /***base_name_size = dev->getDName( &base_name ); ***/
-//
-//    fname = (char*) malloc( base_name_size + 12 );
-//    if(!fname)
-//    {
-//        errno = ENOMEM;
-//        return -1;
-//    }
-//
-//    snprintf(fname, base_name_size + 12, "%salloc_buffer", base_name);
-//    buf.id = id;
-//    buf.bytes = size;
-//    buf.overmap = overmap;
-//    buf.dma_direction = dma_direction;
-//
-//    fd = open(fname, O_WRONLY);
-//    if(fd == -1)
-//    {
-//        perror("open alloc_buffer");
-//        free(fname);
-//        return -1;
-//    }
-//
-//    ret = write( fd, &buf, sizeof(buf) );
-//    if(ret != sizeof(buf) )
-//    {
-//        //perror("write to alloc_buffer");
-//        close(fd);
-//        free(fname);
-//        return -1;
-//    }
-//
-//    free(fname);
-//    close(fd);
-//
-//    // connect to allocated buffer
-//    if(connect(dev, id) == -1)
-//    {
-//        return -1;
-//    }
+    /** connect to allocated buffer */
+    if(connect(dev, id) == -1)
+    {
+        return -1;
+    }
 
     return 0;
 }
