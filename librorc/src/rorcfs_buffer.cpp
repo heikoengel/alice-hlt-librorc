@@ -34,12 +34,8 @@
 
 using namespace std;
 
-/** errno */
-extern int errno; //remove ?
 
-/**
- * Constructor
- **/
+
 rorcfs_buffer::rorcfs_buffer()
 {
     m_id                           = 0;
@@ -50,13 +46,11 @@ rorcfs_buffer::rorcfs_buffer()
 
 
 
-/**
- * Destructor:
- * release() buffer if not done already
- **/
 rorcfs_buffer::~rorcfs_buffer()
 {
 }
+
+
 
 int
 rorcfs_buffer::isOvermapped()
@@ -74,6 +68,8 @@ rorcfs_buffer::isOvermapped()
     return 0;
 }
 
+
+
 unsigned long
 rorcfs_buffer::getSize()
 {
@@ -88,10 +84,7 @@ rorcfs_buffer::getSize()
     return m_size;
 }
 
-/**
- * Allocate Buffer: initiate memory allocation,
- * connect to new buffer & retrieve actual buffer sizes
- **/
+
 
 int
 rorcfs_buffer::allocate
@@ -141,10 +134,6 @@ rorcfs_buffer::allocate
 }
 
 
-
-/**
- * Release buffer
- **/
 
 int
 rorcfs_buffer::deallocate()
