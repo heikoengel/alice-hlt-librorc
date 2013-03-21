@@ -90,6 +90,8 @@ typedef struct PciDevice_struct PciDevice;
  **/
 class rorcfs_device
 {
+friend class rorcfs_buffer;
+
 public:
     rorcfs_device();
     ~rorcfs_device();
@@ -132,6 +134,11 @@ uint8_t  *getBarMap(uint8_t n);
 uint64_t  getBarSize(uint8_t n);
 
 private:
+    PciDevice *getPdaPciDevice()
+    {
+        return(m_device);
+    }
+
     DeviceOperator *m_dop;
     PciDevice      *m_device;
 
