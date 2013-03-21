@@ -21,11 +21,8 @@
  */
 
 #include <stdio.h>
-#include <sys/mman.h> //remove
-#include <sys/stat.h> //remove
 #include <unistd.h>
-#include <errno.h> //remove
-#include <fcntl.h> //remove
+
 
 #include <cstdlib>
 #include <cstring>
@@ -52,12 +49,6 @@ rorcfs_buffer::rorcfs_buffer()
     m_dmaDirection                 = 0;
     m_mem                          = NULL;
     m_numberOfScatterGatherEntries = 0;
-
-    //TODO:
-    dname = NULL;//remove
-    dname_size = 0;//remove
-    base_name_size = 0;//remove
-    base_name = NULL;//remove
 }
 
 
@@ -160,7 +151,7 @@ rorcfs_buffer::connect
     }
 
     DMABuffer_SGNode *sglist;
-    if(DMABuffer_getSGList(m_buffer, &sglist) != PDA_SUCCESS)
+    if(DMABuffer_getSGList(m_buffer, &sglist)!=PDA_SUCCESS)
     {
         cout << "SG list lookup failed!" << endl;
         return -1;

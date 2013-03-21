@@ -196,14 +196,8 @@ private:
     unsigned long  m_numberOfScatterGatherEntries;
 
     /** old stuff */
-
-    // sysfs-mmap directory of driver
-    char *base_name;    //remove
-    int dname_size;     //remove
-    char *dname;        //remove
-    int base_name_size; //remove
-
-    int fdEB;
+    char *dname;          //remove
+    int   dname_size;     //remove
     /** about to be removed */
 };
 
