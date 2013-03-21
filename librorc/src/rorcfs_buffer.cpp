@@ -39,24 +39,25 @@
 using namespace std;
 
 /** errno */
-extern int errno;
+extern int errno; //remove ?
 
 /**
  * Constructor
  **/
 rorcfs_buffer::rorcfs_buffer()
 {
-    dname = NULL;
-    dname_size = 0;
+    m_overmapped = 0;
+
+    dname = NULL;//remove
+    dname_size = 0;//remove
     id = 0;
-    PhysicalSize = 0;
+    PhysicalSize = 0;//remove
     MappingSize = 0;
     nSGEntries = 0;
     mem = NULL;
-    overmapped = 0;
     dma_direction = 0;
-    base_name_size = 0;
-    base_name = NULL;
+    base_name_size = 0;//remove
+    base_name = NULL;//remove
 }
 
 
@@ -111,6 +112,7 @@ rorcfs_buffer::allocate
             cout << "Overmapping failed!" << endl;
             return(-1);
         }
+        m_overmapped = 1;
     }
 
     /** connect to allocated buffer */

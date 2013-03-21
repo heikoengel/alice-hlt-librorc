@@ -127,7 +127,7 @@ unsigned long getMappingSize()
 
 int getOvermapped()
 {
-    return overmapped;
+    return m_overmapped;
 }
 
 /**
@@ -184,6 +184,8 @@ private:
     PciDevice *m_device;
     DMABuffer *m_buffer;
 
+    int        m_overmapped;
+
     /** old stuff */
     // sysfs directory of buffer
     char *dname;
@@ -198,7 +200,6 @@ private:
     unsigned long PhysicalSize;
     unsigned long MappingSize;
     unsigned long nSGEntries;
-    int           overmapped;
     int           dma_direction;
 
     int fdEB;
