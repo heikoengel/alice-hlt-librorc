@@ -181,7 +181,7 @@ int getDNameSize() //remove
 
 unsigned int *getMem()
 {
-    return mem;
+    return m_mem;
 }
 
 private:
@@ -192,6 +192,7 @@ private:
     int            m_overmapped; //remove this -> PDA
     uint64_t       m_size;       //remove this -> PDA
     int            m_dmaDirection;
+    unsigned int  *m_mem;
 
 
     unsigned long nSGEntries;
@@ -210,8 +211,6 @@ private:
     //int           dma_direction;
 
     int fdEB;
-
-    unsigned int *mem;
     /** about to be removed */
 };
 

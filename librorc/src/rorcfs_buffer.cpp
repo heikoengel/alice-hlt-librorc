@@ -50,10 +50,10 @@ rorcfs_buffer::rorcfs_buffer()
     m_id           = 0;
     m_size         = 0;
     m_dmaDirection = 0;
+    m_mem          = NULL;
 
-    //MappingSize = 0;
     nSGEntries = 0;
-    mem = NULL;
+
 
     dname = NULL;//remove
     dname_size = 0;//remove
@@ -111,6 +111,7 @@ rorcfs_buffer::allocate
 
     m_dmaDirection = dma_direction;
 
+    /** Overmap if wanted */
     if(overmap == 1)
     {
         if(PDA_SUCCESS != DMABuffer_overmap(m_buffer) )
@@ -121,6 +122,7 @@ rorcfs_buffer::allocate
         m_overmapped = 1;
     }
 
+    /** Get the length */
     if(DMABuffer_getLength(m_buffer, &m_size)!=PDA_SUCCESS)
     {
         cout << "Size lookup failed!" << endl;
@@ -159,24 +161,12 @@ rorcfs_buffer::connect
     unsigned long  id
 )
 {
+    if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
+    {
+        cout << "Mapping failed!" << endl;
+        return -1;
+    }
 
-//    // Set PhysicalSize attribute according to the contents of
-//    // the sysfs file "overmapped"
-//    if(overmapped)
-//        PhysicalSize = MappingSize / 2;
-//    else
-//        PhysicalSize = MappingSize;
-//
-//    // MMap Buffer
-//    mem = (unsigned int*)mmap(0, MappingSize, PROT_READ | PROT_WRITE,
-//                              MAP_SHARED, fdEB, 0);
-//    if(mem == MAP_FAILED)
-//    {
-//        close(fdEB);
-//        perror("mmap mem");
-//        return -1;
-//    }
-//
 //    // get nSGEntries from sysfs attribute
 //    fname_size = snprintf(NULL, 0, "%s%03ld/sglist", base_name, id);
 //    fname_size++;
