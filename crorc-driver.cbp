@@ -24,24 +24,16 @@
 		<Unit filename="apps/src/gtxdma.cpp" />
 		<Unit filename="apps/src/gtxdma_continuous.cpp" />
 		<Unit filename="librorc/include/librorc.h" />
-		<Unit filename="librorc/src/flisock.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="librorc/src/flisock.h" />
 		<Unit filename="librorc/src/rorcfs_bar.cpp" />
 		<Unit filename="librorc/src/rorcfs_bar.hh" />
 		<Unit filename="librorc/src/rorcfs_buffer.cpp" />
 		<Unit filename="librorc/src/rorcfs_buffer.hh" />
 		<Unit filename="librorc/src/rorcfs_device.cpp" />
 		<Unit filename="librorc/src/rorcfs_device.hh" />
-		<Unit filename="librorc/src/rorcfs_diu.cpp" />
-		<Unit filename="librorc/src/rorcfs_diu.hh" />
 		<Unit filename="librorc/src/rorcfs_dma_channel.cpp" />
 		<Unit filename="librorc/src/rorcfs_dma_channel.hh" />
 		<Unit filename="librorc/src/rorcfs_flash_htg.cpp" />
 		<Unit filename="librorc/src/rorcfs_flash_htg.hh" />
-		<Unit filename="librorc/src/rorcfs_pattern_generator.cpp" />
-		<Unit filename="librorc/src/rorcfs_pattern_generator.hh" />
 		<Unit filename="librorc/src/rorcfs_sysmon.cpp" />
 		<Unit filename="librorc/src/rorcfs_sysmon.hh" />
 		<Unit filename="registers/rorc_registers.h" />
