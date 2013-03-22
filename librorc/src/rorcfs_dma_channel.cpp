@@ -154,7 +154,6 @@ rorcfs_dma_channel::prepareEB
     m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
                        &sg_entry, sizeof(sg_entry) );
 
-
     close(fd);
     return(0);
 }
@@ -287,6 +286,7 @@ rorcfs_dma_channel::getEnableEB()
 {
     return (getPKT( RORC_REG_DMA_CTRL ) >> 2 ) & 0x01;
 }
+
 
 
 
