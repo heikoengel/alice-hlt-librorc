@@ -99,7 +99,7 @@ rorcfs_dma_channel::prepareEB
     assert(m_bar!=NULL);
 
     /** open buf->mem_sglist */
-    char *fname = (char*)malloc(buf->getDNameSize() + 6);
+    char *fname = (char*)malloc(buf->getDNameSize()+6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
     int fd = open(fname, O_RDONLY);
     if(fd == -1)
@@ -110,15 +110,14 @@ rorcfs_dma_channel::prepareEB
     free(fname);
 
     /**
-     * get maximum number of sg-entries supported
-     * by the firmware
+     * get maximum number of sg-entries supported by the firmware
      * N_SG_CONFIG:
      * [15:0] : current number of sg entries in RAM
      * [31:16]: maximum number of entries
      **/
-    unsigned int bdcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
+    unsigned int bdcfg = getPKT(RORC_REG_EBDM_N_SG_CONFIG);
 
-    /** check if buffers SGList fits into EBDRAM */
+    /** check if buffers SGList fits into DRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
     {
         errno = EFBIG;
@@ -136,7 +135,7 @@ rorcfs_dma_channel::prepareEB
         nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
         if(nbytes != sizeof(struct rorcfs_dma_desc) )
         {
-            perror("prepareEB:read(rorcfs_dma_desc)");
+            perror("prepare:read(rorcfs_dma_desc)");
             close(fd);
             return -EBUSY;
         }
@@ -300,7 +299,7 @@ rorcfs_dma_channel::prepareRB
     assert(m_bar!=NULL);
 
     /** open buf->mem_sglist */
-    char *fname = (char*) malloc(buf->getDNameSize() + 6);
+    char *fname = (char*)malloc(buf->getDNameSize()+6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
     int fd = open(fname, O_RDONLY);
     if(fd == -1)
@@ -311,13 +310,14 @@ rorcfs_dma_channel::prepareRB
     free(fname);
 
     /**
+     * get maximum number of sg-entries supported by the firmware
      * N_SG_CONFIG:
-     * [15:0] : actual number of sg entries in RAM
-     *[31:16]: maximum number of entries
-     */
-    unsigned int bdcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
+     * [15:0] : current number of sg entries in RAM
+     * [31:16]: maximum number of entries
+     **/
+    unsigned int bdcfg = getPKT(RORC_REG_RBDM_N_SG_CONFIG);
 
-    /** check if buffers SGList fits into RBDRAM */
+    /** check if buffers SGList fits into DRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
     {
         errno = EFBIG;
@@ -335,7 +335,7 @@ rorcfs_dma_channel::prepareRB
         nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
         if(nbytes != sizeof(struct rorcfs_dma_desc) )
         {
-            perror("prepareRB:read(rorcfs_dma_desc)");
+            perror("prepare:read(rorcfs_dma_desc)");
             close(fd);
             return -EBUSY;
         }
@@ -349,7 +349,7 @@ rorcfs_dma_channel::prepareRB
                            &sg_entry, sizeof(sg_entry) );
     }
 
-    /**  clear following BD entry (required!) */
+    /** clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
     m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
                        &sg_entry, sizeof(sg_entry) );
