@@ -116,8 +116,7 @@ rorcfs_dma_channel::prepareEB
      * [15:0] : current number of sg entries in RAM
      * [31:16]: maximum number of entries
      **/
-    unsigned int bdcfg
-        = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
+    unsigned int bdcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
 
     /** check if buffers SGList fits into EBDRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
@@ -153,8 +152,8 @@ rorcfs_dma_channel::prepareEB
 
     /** clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
-    m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW,
-                      &sg_entry, sizeof(sg_entry) );
+    m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
+                       &sg_entry, sizeof(sg_entry) );
 
 
     close(fd);
@@ -302,8 +301,7 @@ rorcfs_dma_channel::prepareRB
 
     /** open buf->mem_sglist */
     char *fname = (char*) malloc(buf->getDNameSize() + 6);
-    snprintf(fname, buf->getDNameSize() + 6, "%ssglist",
-             buf->getDName() );
+    snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
     int fd = open(fname, O_RDONLY);
     if(fd == -1)
     {
@@ -327,6 +325,7 @@ rorcfs_dma_channel::prepareRB
         return -EFBIG;
     }
 
+    /** fetch all sg-entries from sglist */
     int nbytes = 0;
     struct rorcfs_dma_desc dma_desc;
     struct t_sg_entry_cfg sg_entry;
@@ -346,14 +345,17 @@ rorcfs_dma_channel::prepareRB
         sg_entry.ctrl = (1 << 31) | (1 << 30) | ( (uint32_t)i);
 
         /** write rorcfs_dma_desc to RORC EBDM */
-        m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
+        m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
+                           &sg_entry, sizeof(sg_entry) );
     }
 
     /**  clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
-    m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
+    m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
+                       &sg_entry, sizeof(sg_entry) );
 
-    return 0;
+    close(fd);
+    return(0);
 }
 
 
