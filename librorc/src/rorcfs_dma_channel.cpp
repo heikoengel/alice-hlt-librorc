@@ -96,10 +96,9 @@ rorcfs_dma_channel::prepareEB
     rorcfs_buffer *buf
 )
 {
-    char                  *fname;
-    int                    fd, nbytes, ret = 0;
-    unsigned int           bdcfg;
-    unsigned long          i;
+    int fd;
+    unsigned int bdcfg;
+    unsigned long i;
     struct rorcfs_dma_desc dma_desc;
 
     struct t_sg_entry_cfg sg_entry;
@@ -107,7 +106,7 @@ rorcfs_dma_channel::prepareEB
     assert( m_bar != NULL );
 
     /** open buf->mem_sglist */
-    fname = (char*) malloc(buf->getDNameSize() + 6);
+    char *fname = (char*)malloc(buf->getDNameSize() + 6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
     fd = open(fname, O_RDONLY);
     if(fd == -1)
@@ -129,21 +128,22 @@ rorcfs_dma_channel::prepareEB
     /** check if buffers SGList fits into EBDRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
     {
-        ret = -EFBIG;
         errno = EFBIG;
-        goto close_fd;
+        close(fd);
+        return -EFBIG;
     }
 
     /** fetch all sg-entries from sglist */
+    int nbytes = 0;
     for(i = 0; i < buf->getnSGEntries(); i++)
     {
         /**read multiples of struct rorcfs_dma_desc */
         nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
         if(nbytes != sizeof(struct rorcfs_dma_desc) )
         {
-            ret = -EBUSY;
             perror("prepareEB:read(rorcfs_dma_desc)");
-            goto close_fd;
+            close(fd);
+            return -EBUSY;
         }
         sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
         sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
@@ -160,9 +160,9 @@ rorcfs_dma_channel::prepareEB
     m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW,
                       &sg_entry, sizeof(sg_entry) );
 
-close_fd:
+
     close(fd);
-    return ret;
+    return(0);
 }
 
 
