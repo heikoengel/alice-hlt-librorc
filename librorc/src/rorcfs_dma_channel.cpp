@@ -98,7 +98,6 @@ rorcfs_dma_channel::prepareEB
 {
     assert(m_bar!=NULL);
 
-
     /** open buf->mem_sglist */
     char *fname = (char*)malloc(buf->getDNameSize() + 6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
@@ -178,7 +177,6 @@ rorcfs_dma_channel::configureChannel
     uint32_t              max_rd_req
 )
 {
-    struct rorcfs_channel_config config;
 
     /**
      * MAX_PAYLOAD has to be provided as #DWs
@@ -228,6 +226,8 @@ rorcfs_dma_channel::configureChannel
         return errno;
     }
 
+    //TODO refactor this into a sepparate method
+    struct rorcfs_channel_config config;
     config.ebdm_n_sg_config      = ebuf->getnSGEntries();
     config.ebdm_buffer_size_low  = (ebuf->getPhysicalSize() ) & 0xffffffff;
     config.ebdm_buffer_size_high = ebuf->getPhysicalSize() >> 32;
@@ -298,18 +298,19 @@ rorcfs_dma_channel::prepareRB
     rorcfs_buffer *buf
 )
 {
-    char                  *fname;
-    int                    fd, nbytes, ret = 0;
-    unsigned int           bdcfg;
-    unsigned long          i;
+    assert(m_bar!=NULL);
+
+    int fd     = 0;
+    int nbytes = 0;
+    unsigned int bdcfg;
     struct rorcfs_dma_desc dma_desc;
 
     struct t_sg_entry_cfg sg_entry;
 
-    assert( m_bar!=NULL );
+
 
     /** open buf->mem_sglist */
-    fname = (char*) malloc(buf->getDNameSize() + 6);
+    char *fname = (char*) malloc(buf->getDNameSize() + 6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist",
              buf->getDName() );
     fd = open(fname, O_RDONLY);
@@ -330,20 +331,20 @@ rorcfs_dma_channel::prepareRB
     /** check if buffers SGList fits into RBDRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
     {
-        ret = -EFBIG;
         errno = EFBIG;
-        goto close_fd;
+        close(fd);
+        return -EFBIG;
     }
 
-    for(i = 0; i < buf->getnSGEntries(); i++)
+    for(unsigned long i = 0; i < buf->getnSGEntries(); i++)
     {
         /** read multiples of struct rorcfs_dma_desc */
         nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
         if(nbytes != sizeof(struct rorcfs_dma_desc) )
         {
-            ret = -EBUSY;
             perror("prepareRB:read(rorcfs_dma_desc)");
-            goto close_fd;
+            close(fd);
+            return -EBUSY;
         }
         sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
         sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
@@ -358,10 +359,7 @@ rorcfs_dma_channel::prepareRB
     memset(&sg_entry, 0, sizeof(sg_entry) );
     m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
 
-//TODO :  this is a no no no in C++
-close_fd:
-    close(fd);
-    return ret;
+    return 0;
 }
 
 
