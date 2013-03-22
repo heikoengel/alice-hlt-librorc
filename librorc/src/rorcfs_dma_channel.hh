@@ -310,7 +310,7 @@ getBase()
 rorcfs_bar*
 getBar()
 {
-    return bar;
+    return m_bar;
 }
 
 /**
@@ -545,7 +545,7 @@ private:
     unsigned int channel;
     unsigned int cMaxPayload;
 
-    rorcfs_bar  *bar;
+    rorcfs_bar  *m_bar;
 };
 
 #endif

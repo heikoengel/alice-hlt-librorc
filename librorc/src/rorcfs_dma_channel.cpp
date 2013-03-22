@@ -43,8 +43,9 @@ extern int errno;
  * */
 rorcfs_dma_channel::rorcfs_dma_channel()
 {
+    m_bar = NULL;
+
     base = 0;
-    bar = NULL;
     cMaxPayload = 0;
 }
 
@@ -55,8 +56,9 @@ rorcfs_dma_channel::rorcfs_dma_channel()
  * */
 rorcfs_dma_channel::~rorcfs_dma_channel()
 {
+    m_bar = NULL;
+
     base = 0;
-    bar = NULL;
     cMaxPayload = 0;
 }
 
@@ -76,7 +78,8 @@ rorcfs_dma_channel::init
 {
     base = (channel_number + 1) * RORC_CHANNEL_OFFSET;
     channel = channel_number;
-    bar = dma_bar;
+
+    m_bar = dma_bar;
 }
 
 
@@ -101,7 +104,7 @@ rorcfs_dma_channel::prepareEB
 
     struct t_sg_entry_cfg sg_entry;
 
-    assert( bar != NULL );
+    assert( m_bar != NULL );
 
     /** open buf->mem_sglist */
     fname = (char*) malloc(buf->getDNameSize() + 6);
@@ -148,14 +151,14 @@ rorcfs_dma_channel::prepareEB
         sg_entry.ctrl = (1 << 31) | (0 << 30) | ( (uint32_t)i);
 
         /** write rorcfs_dma_desc to RORC EBDM */
-        bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW,
-                        &sg_entry, sizeof(sg_entry) );
+        m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
+                           &sg_entry, sizeof(sg_entry) );
     }
 
     /** clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
-    bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW,
-                    &sg_entry, sizeof(sg_entry) );
+    m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW,
+                      &sg_entry, sizeof(sg_entry) );
 
 close_fd:
     close(fd);
@@ -246,8 +249,8 @@ rorcfs_dma_channel::configureChannel
         (rbuf->getPhysicalSize() - sizeof(struct rorcfs_event_descriptor) ) >> 32;
 
     /** set new MAX_PAYLOAD and MAX_READ_REQUEST size */
-    bar->set(base + RORC_REG_DMA_PKT_SIZE,
-             (mr_size << 16) + mp_size);
+    m_bar->set( (base+RORC_REG_DMA_PKT_SIZE),
+                ((mr_size << 16)+mp_size) );
 
     config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
                              (channel << 16); // set PCIe tag
@@ -256,8 +259,8 @@ rorcfs_dma_channel::configureChannel
      * copy configuration struct to RORC, starting
      * at the address of the lowest register(EBDM_N_SG_CONFIG)
      */
-    bar->memcpy_bar(base + RORC_REG_EBDM_N_SG_CONFIG, &config,
-                    sizeof(struct rorcfs_channel_config) );
+    m_bar->memcpy_bar(base + RORC_REG_EBDM_N_SG_CONFIG, &config,
+                      sizeof(struct rorcfs_channel_config) );
     cMaxPayload = max_payload;
 
     return 0;
@@ -306,7 +309,7 @@ rorcfs_dma_channel::prepareRB
 
     struct t_sg_entry_cfg sg_entry;
 
-    assert( bar != NULL );
+    assert( m_bar!=NULL );
 
     /** open buf->mem_sglist */
     fname = (char*) malloc(buf->getDNameSize() + 6);
@@ -351,12 +354,12 @@ rorcfs_dma_channel::prepareRB
         sg_entry.ctrl = (1 << 31) | (1 << 30) | ( (uint32_t)i);
 
         /** write rorcfs_dma_desc to RORC EBDM */
-        bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
+        m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
     }
 
     /**  clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
-    bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
+    m_bar->memcpy_bar(base + RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
 
 //TODO :  this is a no no no in C++
 close_fd:
@@ -441,7 +444,7 @@ rorcfs_dma_channel::_setMaxPayload
      * MAX_PAYLOAD is located in the higher WORD of
      * RORC_REG_DMA_CTRL: [25:16], 10 bits wide
      */
-    assert( bar != NULL );
+    assert( m_bar!=NULL );
 
     /**
      * assure valid values for "size":
@@ -474,7 +477,7 @@ rorcfs_dma_channel::_setMaxPayload
 unsigned int
 rorcfs_dma_channel::getMaxPayload()
 {
-    assert( bar != NULL );
+    assert(m_bar!=NULL);
 
     /** RORC_REG_DMA_CTRL = {max_rd_req, max_payload} */
     unsigned int status = getPKT(RORC_REG_DMA_PKT_SIZE);
@@ -494,7 +497,7 @@ rorcfs_dma_channel::setOffsets
     unsigned long rboffset
 )
 {
-    assert(bar != NULL);
+    assert(m_bar!=NULL);
     struct rorcfs_buffer_software_pointers offsets;
 
     offsets.ebdm_software_read_pointer_low =
@@ -512,8 +515,8 @@ rorcfs_dma_channel::setOffsets
                        (1 << 3)  | /** enable RB         */
                        (1 << 0);   /** enable DMA engine */
 
-    bar->memcpy_bar(base + RORC_REG_EBDM_SW_READ_POINTER_L,
-                    &offsets, sizeof(offsets) );
+    m_bar->memcpy_bar(base + RORC_REG_EBDM_SW_READ_POINTER_L,
+                      &offsets, sizeof(offsets) );
 }
 
 
@@ -524,11 +527,11 @@ rorcfs_dma_channel::setEBOffset
     unsigned long offset
 )
 {
-    assert( bar != NULL );
+    assert(m_bar!=NULL);
     unsigned int status;
 
-    bar->memcpy_bar(base + RORC_REG_EBDM_SW_READ_POINTER_L,
-                    &offset, sizeof(offset) );
+    m_bar->memcpy_bar(base + RORC_REG_EBDM_SW_READ_POINTER_L,
+                      &offset, sizeof(offset) );
     status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
 }
@@ -563,11 +566,11 @@ rorcfs_dma_channel::setRBOffset
     unsigned long offset
 )
 {
-    assert( bar != NULL );
+    assert(m_bar!=NULL);
     unsigned int status;
 
-    bar->memcpy_bar(base + RORC_REG_RBDM_SW_READ_POINTER_L,
-                    &offset, sizeof(offset) );
+    m_bar->memcpy_bar( (base+RORC_REG_RBDM_SW_READ_POINTER_L),
+                        &offset, sizeof(offset) );
     status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
 }
@@ -649,8 +652,7 @@ rorcfs_dma_channel::setPKT
     unsigned int data
 )
 {
-    bar->set(base + addr,
-             data);
+    m_bar->set((base + addr), data);
 }
 
 
@@ -661,7 +663,7 @@ rorcfs_dma_channel::getPKT
     unsigned int addr
 )
 {
-    return bar->get(base + addr);
+    return m_bar->get(base+addr);
 }
 
 
@@ -673,7 +675,7 @@ rorcfs_dma_channel::setGTX
     unsigned int data
 )
 {
-    bar->set(base + (1 << RORC_DMA_CMP_SEL) + addr, data);
+    m_bar->set( base+(1<<RORC_DMA_CMP_SEL)+addr, data);
 }
 
 
@@ -684,5 +686,5 @@ rorcfs_dma_channel::getGTX
     unsigned int addr
 )
 {
-    return bar->get(base + (1 << RORC_DMA_CMP_SEL) + addr);
+    return m_bar->get(base+(1<<RORC_DMA_CMP_SEL)+addr);
 }
