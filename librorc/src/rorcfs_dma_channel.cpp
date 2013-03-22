@@ -96,19 +96,13 @@ rorcfs_dma_channel::prepareEB
     rorcfs_buffer *buf
 )
 {
-    int fd;
-    unsigned int bdcfg;
-    unsigned long i;
-    struct rorcfs_dma_desc dma_desc;
+    assert(m_bar!=NULL);
 
-    struct t_sg_entry_cfg sg_entry;
-
-    assert( m_bar != NULL );
 
     /** open buf->mem_sglist */
     char *fname = (char*)malloc(buf->getDNameSize() + 6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
-    fd = open(fname, O_RDONLY);
+    int fd = open(fname, O_RDONLY);
     if(fd == -1)
     {
         free(fname);
@@ -122,8 +116,9 @@ rorcfs_dma_channel::prepareEB
      * N_SG_CONFIG:
      * [15:0] : current number of sg entries in RAM
      * [31:16]: maximum number of entries
-     * */
-    bdcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
+     **/
+    unsigned int bdcfg
+        = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
 
     /** check if buffers SGList fits into EBDRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
@@ -135,7 +130,9 @@ rorcfs_dma_channel::prepareEB
 
     /** fetch all sg-entries from sglist */
     int nbytes = 0;
-    for(i = 0; i < buf->getnSGEntries(); i++)
+    struct rorcfs_dma_desc dma_desc;
+    struct t_sg_entry_cfg sg_entry;
+    for(unsigned long i = 0; i < buf->getnSGEntries(); i++)
     {
         /**read multiples of struct rorcfs_dma_desc */
         nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
