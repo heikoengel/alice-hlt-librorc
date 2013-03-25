@@ -45,10 +45,9 @@ extern int errno;
  * */
 rorcfs_dma_channel::rorcfs_dma_channel()
 {
-    m_bar = NULL;
-    m_base = 0;
-
-    cMaxPayload = 0;
+    m_bar        = NULL;
+    m_base       = 0;
+    m_MaxPayload = 0;
 }
 
 
@@ -58,10 +57,6 @@ rorcfs_dma_channel::rorcfs_dma_channel()
  * */
 rorcfs_dma_channel::~rorcfs_dma_channel()
 {
-    m_bar = NULL;
-    m_base = 0;
-
-    cMaxPayload = 0;
 }
 
 
@@ -305,7 +300,7 @@ rorcfs_dma_channel::configureChannel
      */
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_N_SG_CONFIG, &config,
                       sizeof(struct rorcfs_channel_config) );
-    cMaxPayload = max_payload;
+    m_MaxPayload = max_payload;
 
     return 0;
 }
@@ -439,7 +434,7 @@ rorcfs_dma_channel::_setMaxPayload
 
     /** write DMA_CTRL */
     setPKT(RORC_REG_DMA_PKT_SIZE, status);
-    cMaxPayload = size;
+    m_MaxPayload = size;
 }
 
 
