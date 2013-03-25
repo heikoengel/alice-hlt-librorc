@@ -94,6 +94,8 @@ rorcfs_bar::init()
         return -1;
     }
 
+    m_size = m_parent_dev->getBarSize(m_number);
+
     return 0;
 }
 
