@@ -104,7 +104,7 @@ struct t_sg_entry_cfg
 class rorcfs_dma_channel
 {
 public:
-    rorcfs_dma_channel();
+     rorcfs_dma_channel();
     ~rorcfs_dma_channel();
 
 /**
@@ -117,6 +117,14 @@ init
 (
     rorcfs_bar  *dma_bar,
     unsigned int dma_base
+);
+
+
+int
+prepare
+(
+    rorcfs_buffer *buf,
+    unsigned int   flag
 );
 
 /**
