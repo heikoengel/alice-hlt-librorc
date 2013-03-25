@@ -532,7 +532,7 @@ getGTX
 
 private:
     unsigned int m_base;
-    unsigned int channel;
+    unsigned int m_channel;
     unsigned int cMaxPayload;
 
     rorcfs_bar  *m_bar;

@@ -74,12 +74,12 @@ rorcfs_dma_channel::~rorcfs_dma_channel()
 void
 rorcfs_dma_channel::init
 (
-    rorcfs_bar  *dma_bar,
-    unsigned int channel_number
+    rorcfs_bar   *dma_bar,
+    unsigned int  channel_number
 )
 {
-    m_base = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    channel = channel_number;
+    m_base    = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel = channel_number;
 
     m_bar = dma_bar;
 }
@@ -297,7 +297,7 @@ rorcfs_dma_channel::configureChannel
                 ((mr_size << 16)+mp_size) );
 
     config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (channel << 16); // set PCIe tag
+                             (m_channel << 16); // set PCIe tag
 
     /**
      * copy configuration struct to RORC, starting
