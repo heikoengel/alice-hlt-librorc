@@ -178,6 +178,7 @@ rorcfs_dma_channel::prepare
 }
 
 
+
 /**
  * prepareRB
  * Fill ReportBufferDescriptorRAM with scatter-gather
@@ -190,67 +191,13 @@ rorcfs_dma_channel::prepareEB
     rorcfs_buffer *buf
 )
 {
-    assert(m_bar!=NULL);
-
-    /** open buf->mem_sglist */
-    char *fname = (char*)malloc(buf->getDNameSize()+6);
-    snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
-    int fd = open(fname, O_RDONLY);
-    if(fd == -1)
-    {
-        free(fname);
-        return -1;
-    }
-    free(fname);
-
-    /**
-     * get maximum number of sg-entries supported by the firmware
-     * N_SG_CONFIG:
-     * [15:0] : current number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     **/
-    unsigned int bdcfg = getPKT(RORC_REG_EBDM_N_SG_CONFIG);
-
-    /** check if buffers SGList fits into DRAM */
-    if(buf->getnSGEntries() > (bdcfg >> 16) )
-    {
-        errno = EFBIG;
-        close(fd);
-        return -EFBIG;
-    }
-
-    /** fetch all sg-entries from sglist */
-    int nbytes = 0;
-    struct rorcfs_dma_desc dma_desc;
-    struct t_sg_entry_cfg sg_entry;
-    for(unsigned long i = 0; i < buf->getnSGEntries(); i++)
-    {
-        /**read multiples of struct rorcfs_dma_desc */
-        nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
-        if(nbytes != sizeof(struct rorcfs_dma_desc) )
-        {
-            perror("prepare:read(rorcfs_dma_desc)");
-            close(fd);
-            return -EBUSY;
-        }
-        sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
-        sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
-        sg_entry.sg_len = (uint32_t)(dma_desc.len);
-        sg_entry.ctrl = (1 << 31) | (0 << 30) | ( (uint32_t)i);
-
-        /** write rorcfs_dma_desc to RORC EBDM */
-        m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
-                           &sg_entry, sizeof(sg_entry) );
-    }
-
-    /** clear following BD entry (required!) */
-    memset(&sg_entry, 0, sizeof(sg_entry) );
-    m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
-                       &sg_entry, sizeof(sg_entry) );
-
-    close(fd);
-    return(0);
+    return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
 }
+
+
+/** REWORKED __________________________________________________________*/
+
+
 
 
 
