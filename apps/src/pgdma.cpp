@@ -65,13 +65,13 @@ int main( int argc, char *argv[])
     exit(-1);
   }
 
-  EventSize = strtoul(argv[1], NULL, 0);	
+  EventSize = strtoul(argv[1], NULL, 0);
   if ((errno == ERANGE && EventSize == ULONG_MAX)
       || (errno != 0 && EventSize== 0)) {
     perror("illegal EventSize");
     result = -1;
     exit(-1);
-  }	
+  }
 
 
 
@@ -83,7 +83,7 @@ int main( int argc, char *argv[])
   }
 
   // create new device class
-  dev = new rorcfs_device();	
+  dev = new rorcfs_device();
   if ( dev->init(0) == -1 ) {
     cout << "failed to initialize device 0" << endl;
     goto out;
@@ -104,8 +104,8 @@ int main( int argc, char *argv[])
   for(i=0;i<CHANNELS;i++) {
 
     // create new DMA event buffer
-    ebuf[i] = new rorcfs_buffer();			
-    if ( ebuf[i]->allocate(dev, EBUFSIZE, 2*i, 
+    ebuf[i] = new rorcfs_buffer();
+    if ( ebuf[i]->allocate(dev, EBUFSIZE, 2*i,
           1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
       if ( errno == EEXIST ) {
         if ( ebuf[i]->connect(dev, 2*i) != 0 ) {
@@ -120,7 +120,7 @@ int main( int argc, char *argv[])
 
     // create new DMA report buffer
     rbuf[i] = new rorcfs_buffer();;
-    if ( rbuf[i]->allocate(dev, RBUFSIZE, 2*i+1, 
+    if ( rbuf[i]->allocate(dev, RBUFSIZE, 2*i+1,
           1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
       if ( errno == EEXIST ) {
         //printf("INFO: Buffer already exists, trying to connect...\n");
@@ -181,7 +181,7 @@ int main( int argc, char *argv[])
 
     /* clear report buffer */
     reportbuffer[i] = (struct rorcfs_event_descriptor *)rbuf[i]->getMem();
-    printf("pRBUF=%p, MappingSize=%ld\n", 
+    printf("pRBUF=%p, MappingSize=%ld\n",
         rbuf[i]->getMem(), rbuf[i]->getMappingSize() );
     memset(reportbuffer[i], 0, rbuf[i]->getMappingSize());
 
@@ -200,16 +200,17 @@ int main( int argc, char *argv[])
       usleep(100);
 
     ch[i]->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize);
-    ch[i]->setGTX(RORC_REG_DDL_CTRL, 
+    ch[i]->setGTX(RORC_REG_DDL_CTRL,
         ch[i]->getGTX(RORC_REG_DDL_CTRL) | 0x600); //set PG mode
-    ch[i]->setGTX(RORC_REG_DDL_CTRL, 
+    ch[i]->setGTX(RORC_REG_DDL_CTRL,
         ch[i]->getGTX(RORC_REG_DDL_CTRL) | 0x100); //enable PG
 
     ch[i]->setEnableEB(1);
     ch[i]->setEnableRB(1);
   }
 
-  bar1->gettime(&start_time, 0);
+  //bar1->gettime(&start_time, 0);
+  gettimeofday(&start_time, 0);
 
   for(i=0;i<CHANNELS;i++) {
     // enable DMA channel
@@ -223,12 +224,12 @@ int main( int argc, char *argv[])
 
     for(i=0;i<CHANNELS;i++) {
       result = handle_channel_data(
-          reportbuffer[i], 
-          eventbuffer[i], 
+          reportbuffer[i],
+          eventbuffer[i],
           ch[i],
-          chstats[i], 
-          rbuf[i]->getPhysicalSize(), 
-          rbuf[i]->getMaxRBEntries(), 
+          chstats[i],
+          rbuf[i]->getPhysicalSize(),
+          rbuf[i]->getMaxRBEntries(),
           1); // do sanity checks
       if ( result < 0 ) {
         printf("handle_channel_data failed for channel %ld\n", i);
@@ -247,11 +248,12 @@ int main( int argc, char *argv[])
 
     // check break condition
     if(bytes_received > N_BYTES_TRANSFER) {
-      bar1->gettime(&end_time, 0);
+      //bar1->gettime(&end_time, 0);
+      gettimeofday(&end_time, 0);
 
       printf("%ld Byte / %ld events in %.2f sec"
-          "-> %.1f MB/s.\n", 
-          (bytes_received), events_received, 
+          "-> %.1f MB/s.\n",
+          (bytes_received), events_received,
           gettimeofday_diff(start_time, end_time),
           ((float)bytes_received/
            gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
@@ -259,12 +261,12 @@ int main( int argc, char *argv[])
       for(i=0;i<CHANNELS;i++) {
         if(!chstats[i]->set_offset_count) //avoid DivByZero Exception
           printf("CH%ld: No Events\n", i);
-        else 
+        else
           printf("CH%ld: Events %ld, max_epi=%ld, min_epi=%ld, "
               "avg_epi=%ld, set_offset_count=%ld\n", i,
-              chstats[i]->n_events, chstats[i]->max_epi, 
+              chstats[i]->n_events, chstats[i]->max_epi,
               chstats[i]->min_epi,
-              chstats[i]->n_events/chstats[i]->set_offset_count, 
+              chstats[i]->n_events/chstats[i]->set_offset_count,
               chstats[i]->set_offset_count);
       }
       printf("\n");
