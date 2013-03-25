@@ -26,68 +26,7 @@
 // TODO get this from PDA
 #define MAX_PAYLOAD 256
 
-// TODO: make this private ...
-/** struct holding both read pointers and the
- * DMA engine configuration register contents **/
-struct rorcfs_buffer_software_pointers
-{
-    /** EBDM read pointer low **/
-    uint32_t ebdm_software_read_pointer_low;
 
-    /** EBDM read pointer high **/
-    uint32_t ebdm_software_read_pointer_high;
-
-    /** RBDM read pointer low **/
-    uint32_t rbdm_software_read_pointer_low;
-
-    /** RBDM read pointer high **/
-    uint32_t rbdm_software_read_pointer_high;
-
-    /** DMA control register **/
-    uint32_t dma_ctrl;
-};
-
-/** struct rorcfs_channel_config **/
-struct rorcfs_channel_config
-{
-    /** EBDM number of sg entries **/
-    uint32_t ebdm_n_sg_config;
-
-    /** EBDM buffer size low (in bytes) **/
-    uint32_t ebdm_buffer_size_low;
-
-    /** EBDM buffer size high (in bytes) **/
-    uint32_t ebdm_buffer_size_high;
-
-    /** RBDM number of sg entries **/
-    uint32_t rbdm_n_sg_config;
-
-    /** RBDM buffer size low (in bytes) **/
-    uint32_t rbdm_buffer_size_low;
-
-    /** RBDM buffer size high (in bytes) **/
-    uint32_t rbdm_buffer_size_high;
-
-    /** struct for read pointers nad control register **/
-    struct rorcfs_buffer_software_pointers swptrs;
-
-};
-
-/** struct t_sg_entry_cfg **/
-struct t_sg_entry_cfg
-{
-    /** lower part of sg address **/
-    uint32_t sg_addr_low;
-
-    /** higher part of sg address **/
-    uint32_t sg_addr_high;
-
-    /** total length of sg entry in bytes **/
-    uint32_t sg_len;
-
-    /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
-    uint32_t ctrl;
-};
 
 /**
  * @class rorcfs_dma_channel

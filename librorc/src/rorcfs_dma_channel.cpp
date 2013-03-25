@@ -39,6 +39,70 @@
 
 using namespace std;
 
+/** struct holding both read pointers and the
+ *  DMA engine configuration register contents
+ **/
+struct rorcfs_buffer_software_pointers
+{
+    /** EBDM read pointer low **/
+    uint32_t ebdm_software_read_pointer_low;
+
+    /** EBDM read pointer high **/
+    uint32_t ebdm_software_read_pointer_high;
+
+    /** RBDM read pointer low **/
+    uint32_t rbdm_software_read_pointer_low;
+
+    /** RBDM read pointer high **/
+    uint32_t rbdm_software_read_pointer_high;
+
+    /** DMA control register **/
+    uint32_t dma_ctrl;
+};
+
+/** struct rorcfs_channel_config **/
+struct rorcfs_channel_config
+{
+    /** EBDM number of sg entries **/
+    uint32_t ebdm_n_sg_config;
+
+    /** EBDM buffer size low (in bytes) **/
+    uint32_t ebdm_buffer_size_low;
+
+    /** EBDM buffer size high (in bytes) **/
+    uint32_t ebdm_buffer_size_high;
+
+    /** RBDM number of sg entries **/
+    uint32_t rbdm_n_sg_config;
+
+    /** RBDM buffer size low (in bytes) **/
+    uint32_t rbdm_buffer_size_low;
+
+    /** RBDM buffer size high (in bytes) **/
+    uint32_t rbdm_buffer_size_high;
+
+    /** struct for read pointers nad control register **/
+    struct rorcfs_buffer_software_pointers swptrs;
+
+};
+
+/** struct t_sg_entry_cfg **/
+struct t_sg_entry_cfg
+{
+    /** lower part of sg address **/
+    uint32_t sg_addr_low;
+
+    /** higher part of sg address **/
+    uint32_t sg_addr_high;
+
+    /** total length of sg entry in bytes **/
+    uint32_t sg_len;
+
+    /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
+    uint32_t ctrl;
+};
+
+
 /** extern error number **/
 extern int errno;
 
@@ -161,7 +225,27 @@ rorcfs_dma_channel::_prepare
 //        m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
 //                           &sg_entry, sizeof(sg_entry) );
 //    }
-//
+
+    for(unsigned long i = 0; i<(buf->getnSGEntries()); i++)
+    {
+        /**read multiples of struct rorcfs_dma_desc */
+//        nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
+//        if(nbytes != sizeof(struct rorcfs_dma_desc) )
+//        {
+//            perror("prepare:read(rorcfs_dma_desc)");
+//            close(fd);
+//            return -EBUSY;
+//        }
+        sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
+        sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
+        sg_entry.sg_len = (uint32_t)(dma_desc.len);
+        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
+
+        /** write rorcfs_dma_desc to RORC EBDM */
+        m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
+                           &sg_entry, sizeof(sg_entry) );
+    }
+
     /** clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
     m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
