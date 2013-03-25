@@ -205,37 +205,11 @@ rorcfs_dma_channel::_prepare
     /** fetch all sg-entries from sglist */
     int nbytes = 0;
     struct rorcfs_dma_desc dma_desc;
-    struct t_sg_entry_cfg sg_entry;
-//    for(unsigned long i = 0; i < buf->getnSGEntries(); i++)
-//    {
-//        /**read multiples of struct rorcfs_dma_desc */
-//        nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
-//        if(nbytes != sizeof(struct rorcfs_dma_desc) )
-//        {
-//            perror("prepare:read(rorcfs_dma_desc)");
-//            close(fd);
-//            return -EBUSY;
-//        }
-//        sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
-//        sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
-//        sg_entry.sg_len = (uint32_t)(dma_desc.len);
-//        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
-//
-//        /** write rorcfs_dma_desc to RORC EBDM */
-//        m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
-//                           &sg_entry, sizeof(sg_entry) );
-//    }
+    struct t_sg_entry_cfg  sg_entry;
 
-    for(unsigned long i = 0; i<(buf->getnSGEntries()); i++)
+    uint64_t i = 0;
+    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
     {
-        /**read multiples of struct rorcfs_dma_desc */
-//        nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
-//        if(nbytes != sizeof(struct rorcfs_dma_desc) )
-//        {
-//            perror("prepare:read(rorcfs_dma_desc)");
-//            close(fd);
-//            return -EBUSY;
-//        }
         sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
         sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
         sg_entry.sg_len = (uint32_t)(dma_desc.len);
@@ -244,14 +218,13 @@ rorcfs_dma_channel::_prepare
         /** write rorcfs_dma_desc to RORC EBDM */
         m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
                            &sg_entry, sizeof(sg_entry) );
+        i++;
     }
 
     /** clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
     m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
                        &sg_entry, sizeof(sg_entry) );
-
-//    close(fd);
 
     return(0);
 }
