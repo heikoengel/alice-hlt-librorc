@@ -203,11 +203,8 @@ rorcfs_dma_channel::_prepare
 
 
     /** fetch all sg-entries from sglist */
-    int nbytes = 0;
-    struct rorcfs_dma_desc dma_desc;
-    struct t_sg_entry_cfg  sg_entry;
-
     uint64_t i = 0;
+    struct t_sg_entry_cfg  sg_entry;
     for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
     {
         /** convert sg list into CRORC compatible format */
