@@ -35,6 +35,8 @@
 #include "rorcfs_buffer.hh"
 #include "rorcfs_dma_channel.hh"
 
+using namespace std;
+
 /** extern error number **/
 extern int errno;
 
@@ -97,6 +99,21 @@ rorcfs_dma_channel::prepare
 {
     assert(m_bar!=NULL);
 
+    /** Some generic initialization */
+    switch(flag)
+    {
+        case RORC_REG_RBDM_N_SG_CONFIG:
+        break;
+
+        case RORC_REG_EBDM_N_SG_CONFIG:
+        break;
+
+        default:
+            cout << "Invalid flag!" << endl;
+            return -1;
+    }
+
+
     /** open buf->mem_sglist */
     char *fname = (char*)malloc(buf->getDNameSize()+6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
@@ -114,7 +131,7 @@ rorcfs_dma_channel::prepare
      * [15:0] : current number of sg entries in RAM
      * [31:16]: maximum number of entries
      **/
-    unsigned int bdcfg = getPKT(RORC_REG_EBDM_N_SG_CONFIG);
+    unsigned int bdcfg = getPKT(flag);
 
     /** check if buffers SGList fits into DRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
