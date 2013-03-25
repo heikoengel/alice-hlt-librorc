@@ -108,46 +108,46 @@ public:
      rorcfs_dma_channel();
     ~rorcfs_dma_channel();
 
-/**
- * initialize DMA base address within BAR
- * @param dma_base unsigned int base address
- * @param dma_bar according instance of rorcfs_bar
- **/
-void
-init
-(
-    rorcfs_bar  *dma_bar,
-    unsigned int dma_base
-);
+    /**
+     * initialize DMA base address within BAR
+     * @param dma_base unsigned int base address
+     * @param dma_bar according instance of rorcfs_bar
+     **/
+    void
+    init
+    (
+        rorcfs_bar  *dma_bar,
+        unsigned int dma_base
+    );
 
-/**
- * prepare EventBuffer: copy scatterlist from
- * rorcfs_buffer into the EventBufferDescriptorManager
- * in the RORC
- * @param buf rorcfs_buffer instance to be used as
- *                      event destination buffer
- * @return 0 on sucess, -1 on errors, -EFBIG if more
- *               than 2048 sg-entries
- **/
-int
-prepareEB
-(
-    rorcfs_buffer *buf
-);
+    /**
+     * prepare EventBuffer: copy scatterlist from
+     * rorcfs_buffer into the EventBufferDescriptorManager
+     * in the RORC
+     * @param buf rorcfs_buffer instance to be used as
+     *                      event destination buffer
+     * @return 0 on sucess, -1 on errors, -EFBIG if more
+     *               than 2048 sg-entries
+     **/
+    int
+    prepareEB
+    (
+        rorcfs_buffer *buf
+    );
 
-/**
- * prepare ReportBuffer: copy scatterlist from
- * rorcfs_buffer into the ReportBufferDescriptorManager
- * in the RORC
- * @param buf rorcfs_buffer instance to be used as
- *                      report destination buffer
- * @return 0 on sucess, -1 on errors
- **/
-int
-prepareRB
-(
-    rorcfs_buffer *buf
-);
+    /**
+     * prepare ReportBuffer: copy scatterlist from
+     * rorcfs_buffer into the ReportBufferDescriptorManager
+     * in the RORC
+     * @param buf rorcfs_buffer instance to be used as
+     *                      report destination buffer
+     * @return 0 on sucess, -1 on errors
+     **/
+    int
+    prepareRB
+    (
+        rorcfs_buffer *buf
+    );
 
 /**
  * set Enable Bit of EBDM
@@ -217,17 +217,6 @@ setMaxPayload
  **/
 void
 setMaxPayload();
-
-/** INTERNAL ONLY, DO NOT CALL DIRECTLY!
- * setMaxPayload( int size ) and setMaxPayload()
- * are wrappers around _setMaxPayload and should
- * be called instead
- **/
-void
-_setMaxPayload
-(
-    int size
-);
 
 /**
  * get maximum payload size from current HW configuration
@@ -553,6 +542,17 @@ private:
     (
         rorcfs_buffer *buf,
         unsigned int   flag
+    );
+
+    /**
+     * setMaxPayload( int size ) and setMaxPayload()
+     * are wrappers around _setMaxPayload and should
+     * be called instead
+     **/
+    void
+    _setMaxPayload
+    (
+        int size
     );
 };
 
