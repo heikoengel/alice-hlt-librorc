@@ -36,6 +36,7 @@ typedef struct DMABuffer_struct DMABuffer;
  **/
 class rorcfs_buffer
 {
+friend class rorcfs_dma_channel;
 
 public:
 rorcfs_buffer();
@@ -157,27 +158,6 @@ unsigned long getMaxRBEntries()
     return (getSize()/sizeof(struct rorcfs_event_descriptor) );
 }
 
-///**
-// * get sysfs directory name of the buffer
-// * @return pointer to char string
-// **/
-//
-//char *getDName() //remove
-//{
-//    return dname;
-//}
-//
-///**
-// * get size of the dname string
-// * @return size of the dname string in number of bytes
-// **/
-//
-//int getDNameSize() //remove
-//{
-//    return dname_size;
-//}
-
-
 
 private:
     PciDevice     *m_device;
@@ -188,10 +168,12 @@ private:
     int            m_dmaDirection;
     unsigned long  m_numberOfScatterGatherEntries;
 
-//    /** old stuff */
-//    char *dname;          //remove
-//    int   dname_size;     //remove
-//    /** about to be removed */
+    DMABuffer*
+    getPDABuffer()
+    {
+        return m_buffer;
+    }
+
 };
 
 #endif
