@@ -100,12 +100,15 @@ rorcfs_dma_channel::prepare
     assert(m_bar!=NULL);
 
     /** Some generic initialization */
+    uint32_t control_flag = 0;
     switch(flag)
     {
         case RORC_REG_RBDM_N_SG_CONFIG:
+            control_flag = 1;
         break;
 
         case RORC_REG_EBDM_N_SG_CONFIG:
+            control_flag = 0;
         break;
 
         default:
@@ -158,7 +161,7 @@ rorcfs_dma_channel::prepare
         sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
         sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
         sg_entry.sg_len = (uint32_t)(dma_desc.len);
-        sg_entry.ctrl = (1 << 31) | (0 << 30) | ( (uint32_t)i);
+        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
 
         /** write rorcfs_dma_desc to RORC EBDM */
         m_bar->memcpy_bar( (base+RORC_REG_SGENTRY_ADDR_LOW),
