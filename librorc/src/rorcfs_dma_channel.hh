@@ -289,7 +289,7 @@ configureChannel
 unsigned int
 getBase()
 {
-    return base;
+    return m_base;
 }
 
 /**
@@ -531,12 +531,17 @@ getGTX
 );
 
 private:
-    unsigned int base;
+    unsigned int m_base;
     unsigned int channel;
     unsigned int cMaxPayload;
 
     rorcfs_bar  *m_bar;
 
+    /**
+     * This method is the generic version of the
+     * methods to program the sglists into the
+     * CRORC bars.
+     **/
     int
     _prepare
     (
