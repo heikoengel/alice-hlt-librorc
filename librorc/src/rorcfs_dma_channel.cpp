@@ -30,6 +30,8 @@
 #include <cstring>
 #include <iostream>
 
+#include <pda.h>
+
 #include "rorc_registers.h"
 #include "rorcfs_bar.hh"
 #include "rorcfs_buffer.hh"
@@ -111,20 +113,6 @@ rorcfs_dma_channel::_prepare
             return -1;
     }
 
-
-//    /** open buf->mem_sglist */
-//    char *fname = (char*)malloc(buf->getDNameSize()+6);
-//    snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
-//    int fd = open(fname, O_RDONLY);
-//    if(fd == -1)
-//    {
-//        free(fname);
-//        return -1;
-//    }
-//    free(fname);
-
-
-
     /**
      * get maximum number of sg-entries supported by the firmware
      * N_SG_CONFIG:
@@ -133,19 +121,20 @@ rorcfs_dma_channel::_prepare
      **/
     unsigned int bdcfg = getPKT(flag);
 
-//    /** check if buffers SGList fits into DRAM */
-//    if(buf->getnSGEntries() > (bdcfg >> 16) )
-//    {
-//        errno = EFBIG;
-//        close(fd);
-//        return -EFBIG;
-//    }
-
     /** check if buffers SGList fits into DRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
     {
         errno = EFBIG;
         return -EFBIG;
+    }
+
+    /** retrieve scatter gather list */
+    DMABuffer *pda_dma_buffer = buf->getPDABuffer();
+    DMABuffer_SGNode *sglist  = NULL;
+    if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
+    {
+        printf("SG-List fetching failed!\n");
+        return -1;
     }
 
 
