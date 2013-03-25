@@ -26,6 +26,7 @@
 // TODO get this from PDA
 #define MAX_PAYLOAD 256
 
+// TODO: make this private ...
 /** struct holding both read pointers and the
  * DMA engine configuration register contents **/
 struct rorcfs_buffer_software_pointers
@@ -117,14 +118,6 @@ init
 (
     rorcfs_bar  *dma_bar,
     unsigned int dma_base
-);
-
-
-int
-prepare
-(
-    rorcfs_buffer *buf,
-    unsigned int   flag
 );
 
 /**
@@ -554,6 +547,13 @@ private:
     unsigned int cMaxPayload;
 
     rorcfs_bar  *m_bar;
+
+    int
+    _prepare
+    (
+        rorcfs_buffer *buf,
+        unsigned int   flag
+    );
 };
 
 #endif

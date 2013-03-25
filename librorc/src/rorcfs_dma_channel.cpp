@@ -91,7 +91,7 @@ rorcfs_dma_channel::init
  * */
 
 int
-rorcfs_dma_channel::prepare
+rorcfs_dma_channel::_prepare
 (
     rorcfs_buffer *buf,
     unsigned int   flag
@@ -116,7 +116,7 @@ rorcfs_dma_channel::prepare
             return -1;
     }
 
-
+    //TODO : convert to PDA here ->
     /** open buf->mem_sglist */
     char *fname = (char*)malloc(buf->getDNameSize()+6);
     snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
@@ -191,7 +191,7 @@ rorcfs_dma_channel::prepareEB
     rorcfs_buffer *buf
 )
 {
-    return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
+    return(_prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
 }
 
 
@@ -202,7 +202,7 @@ rorcfs_dma_channel::prepareRB
     rorcfs_buffer *buf
 )
 {
-    return(prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
+    return(_prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
 }
 
 
@@ -276,7 +276,7 @@ rorcfs_dma_channel::configureChannel
     //TODO refactor this into a sepparate method
     struct rorcfs_channel_config config;
     config.ebdm_n_sg_config      = ebuf->getnSGEntries();
-    config.ebdm_buffer_size_low  = (ebuf->getPhysicalSize() ) & 0xffffffff;
+    config.ebdm_buffer_size_low  = ebuf->getPhysicalSize() & 0xffffffff;
     config.ebdm_buffer_size_high = ebuf->getPhysicalSize() >> 32;
     config.rbdm_n_sg_config      = rbuf->getnSGEntries();
     config.rbdm_buffer_size_low  = rbuf->getPhysicalSize() & 0xffffffff;
