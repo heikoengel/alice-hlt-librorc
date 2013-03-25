@@ -23,6 +23,8 @@
 		<Unit filename="apps/src/event_handling.h" />
 		<Unit filename="apps/src/gtxdma.cpp" />
 		<Unit filename="apps/src/gtxdma_continuous.cpp" />
+		<Unit filename="apps/src/pgdma.cpp" />
+		<Unit filename="apps/src/pgdma_continuous.cpp" />
 		<Unit filename="librorc/include/librorc.h" />
 		<Unit filename="librorc/src/rorcfs_bar.cpp" />
 		<Unit filename="librorc/src/rorcfs_bar.hh" />
