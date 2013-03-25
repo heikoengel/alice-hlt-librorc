@@ -157,25 +157,25 @@ unsigned long getMaxRBEntries()
     return (getSize()/sizeof(struct rorcfs_event_descriptor) );
 }
 
-/**
- * get sysfs directory name of the buffer
- * @return pointer to char string
- **/
-
-char *getDName() //remove
-{
-    return dname;
-}
-
-/**
- * get size of the dname string
- * @return size of the dname string in number of bytes
- **/
-
-int getDNameSize() //remove
-{
-    return dname_size;
-}
+///**
+// * get sysfs directory name of the buffer
+// * @return pointer to char string
+// **/
+//
+//char *getDName() //remove
+//{
+//    return dname;
+//}
+//
+///**
+// * get size of the dname string
+// * @return size of the dname string in number of bytes
+// **/
+//
+//int getDNameSize() //remove
+//{
+//    return dname_size;
+//}
 
 
 
@@ -188,10 +188,10 @@ private:
     int            m_dmaDirection;
     unsigned long  m_numberOfScatterGatherEntries;
 
-    /** old stuff */
-    char *dname;          //remove
-    int   dname_size;     //remove
-    /** about to be removed */
+//    /** old stuff */
+//    char *dname;          //remove
+//    int   dname_size;     //remove
+//    /** about to be removed */
 };
 
 #endif

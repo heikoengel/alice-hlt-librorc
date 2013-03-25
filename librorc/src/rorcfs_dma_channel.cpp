@@ -111,17 +111,19 @@ rorcfs_dma_channel::_prepare
             return -1;
     }
 
-    //TODO : convert to PDA here ->
-    /** open buf->mem_sglist */
-    char *fname = (char*)malloc(buf->getDNameSize()+6);
-    snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
-    int fd = open(fname, O_RDONLY);
-    if(fd == -1)
-    {
-        free(fname);
-        return -1;
-    }
-    free(fname);
+
+//    /** open buf->mem_sglist */
+//    char *fname = (char*)malloc(buf->getDNameSize()+6);
+//    snprintf(fname, buf->getDNameSize() + 6, "%ssglist", buf->getDName() );
+//    int fd = open(fname, O_RDONLY);
+//    if(fd == -1)
+//    {
+//        free(fname);
+//        return -1;
+//    }
+//    free(fname);
+
+
 
     /**
      * get maximum number of sg-entries supported by the firmware
@@ -131,44 +133,53 @@ rorcfs_dma_channel::_prepare
      **/
     unsigned int bdcfg = getPKT(flag);
 
+//    /** check if buffers SGList fits into DRAM */
+//    if(buf->getnSGEntries() > (bdcfg >> 16) )
+//    {
+//        errno = EFBIG;
+//        close(fd);
+//        return -EFBIG;
+//    }
+
     /** check if buffers SGList fits into DRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
     {
         errno = EFBIG;
-        close(fd);
         return -EFBIG;
     }
+
 
     /** fetch all sg-entries from sglist */
     int nbytes = 0;
     struct rorcfs_dma_desc dma_desc;
     struct t_sg_entry_cfg sg_entry;
-    for(unsigned long i = 0; i < buf->getnSGEntries(); i++)
-    {
-        /**read multiples of struct rorcfs_dma_desc */
-        nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
-        if(nbytes != sizeof(struct rorcfs_dma_desc) )
-        {
-            perror("prepare:read(rorcfs_dma_desc)");
-            close(fd);
-            return -EBUSY;
-        }
-        sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
-        sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
-        sg_entry.sg_len = (uint32_t)(dma_desc.len);
-        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
-
-        /** write rorcfs_dma_desc to RORC EBDM */
-        m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
-                           &sg_entry, sizeof(sg_entry) );
-    }
-
+//    for(unsigned long i = 0; i < buf->getnSGEntries(); i++)
+//    {
+//        /**read multiples of struct rorcfs_dma_desc */
+//        nbytes = read(fd, &dma_desc, sizeof(struct rorcfs_dma_desc) );
+//        if(nbytes != sizeof(struct rorcfs_dma_desc) )
+//        {
+//            perror("prepare:read(rorcfs_dma_desc)");
+//            close(fd);
+//            return -EBUSY;
+//        }
+//        sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
+//        sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
+//        sg_entry.sg_len = (uint32_t)(dma_desc.len);
+//        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
+//
+//        /** write rorcfs_dma_desc to RORC EBDM */
+//        m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
+//                           &sg_entry, sizeof(sg_entry) );
+//    }
+//
     /** clear following BD entry (required!) */
     memset(&sg_entry, 0, sizeof(sg_entry) );
     m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
                        &sg_entry, sizeof(sg_entry) );
 
-    close(fd);
+//    close(fd);
+
     return(0);
 }
 
@@ -261,8 +272,7 @@ rorcfs_dma_channel::configureChannel
         errno = -EINVAL;
         return errno;
     }
-    else
-    if(max_rd_req > 1024)
+    else if(max_rd_req > 1024)
     {
         errno = -ERANGE;
         return errno;
@@ -454,7 +464,7 @@ rorcfs_dma_channel::getMaxPayload()
 }
 
 
-
+/** Rework : remove sepparate methods*/
 void
 rorcfs_dma_channel::setOffsets
 (
@@ -522,8 +532,6 @@ rorcfs_dma_channel::getEBDMAOffset()
     offset += (unsigned long)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
     return offset;
 }
-
-
 
 void
 rorcfs_dma_channel::setRBOffset
@@ -609,7 +617,7 @@ rorcfs_dma_channel::getRBSize()
 }
 
 
-
+/** PKT = Packetizer */
 void
 rorcfs_dma_channel::setPKT
 (
@@ -632,7 +640,7 @@ rorcfs_dma_channel::getPKT
 }
 
 
-
+/** GTK clock domain */
 void
 rorcfs_dma_channel::setGTX
 (
