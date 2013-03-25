@@ -210,10 +210,7 @@ rorcfs_dma_channel::_prepare
     uint64_t i = 0;
     for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
     {
-        // sg_entry.sg_addr_low = (uint32_t)(dma_desc.addr & 0xffffffff);
-        // sg_entry.sg_addr_high = (uint32_t)(dma_desc.addr >> 32);
-        // sg_entry.sg_len = (uint32_t)(dma_desc.len);
-
+        /** convert sg list into CRORC compatible format */
         sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
         sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
         sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
