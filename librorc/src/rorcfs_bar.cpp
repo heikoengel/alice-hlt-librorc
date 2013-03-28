@@ -33,6 +33,7 @@
 
 #include "rorc_registers.h"
 #include "rorcfs_device.hh"
+#include "rorcfs_dma_channel.hh"
 
 /**
  * usleep time for FLI read polling

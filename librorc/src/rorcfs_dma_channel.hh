@@ -20,13 +20,23 @@
 #ifndef _RORCLIB_RORCFS_DMA_CHANNEL_H
 #define _RORCLIB_RORCFS_DMA_CHANNEL_H
 
+#include "rorcfs_buffer.hh"
+#include "rorcfs_bar.hh"
+
 /** default maximum payload size in bytes. Check the capabilities
- * of the chipset and the FPGA PCIe core before modifying this value
- * Common values are 128 or 256 bytes.*/
+ *  of the chipset and the FPGA PCIe core before modifying this value
+ *  Common values are 128 or 256 bytes.*/
+
+//TODO: put this into an enum!
+#define RORCFS_DMA_FROM_DEVICE   2
+#define RORCFS_DMA_TO_DEVICE     1
+#define RORCFS_DMA_BIDIRECTIONAL 0
+
 // TODO get this from PDA
 #define MAX_PAYLOAD 256
 
-
+#define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
+#define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
 /**
  * @class rorcfs_dma_channel

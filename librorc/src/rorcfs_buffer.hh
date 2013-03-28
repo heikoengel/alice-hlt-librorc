@@ -20,8 +20,32 @@
 #ifndef _RORCLIB_RORCFS_BUFFER_H
 #define _RORCLIB_RORCFS_BUFFER_H
 
-#include "rorcfs.h"
 #include "rorcfs_device.hh"
+
+#define DMA_MODE 128
+#if DMA_MODE==32
+struct rorcfs_event_descriptor
+{
+    unsigned long offset;
+    //unsigned long length;
+    unsigned int reported_event_size;
+    unsigned int calc_event_size;
+    unsigned long dummy; //do not use!
+    unsigned long dummy2; //do not use!
+};
+#endif
+
+#if DMA_MODE==128
+struct rorcfs_event_descriptor
+{
+    unsigned long offset;
+    unsigned long length;
+    unsigned int reported_event_size;
+    unsigned int calc_event_size;
+    unsigned long dummy; //do not use!
+};
+#endif
+
 
 typedef struct PciDevice_struct PciDevice;
 typedef struct DMABuffer_struct DMABuffer;
@@ -152,7 +176,6 @@ unsigned long getnSGEntries()
  * Get the maximum number of report buffer entries in the RB
  * @return maximum number of report buffer entries
  **/
-
 unsigned long getMaxRBEntries()
 {
     return (getSize()/sizeof(struct rorcfs_event_descriptor) );

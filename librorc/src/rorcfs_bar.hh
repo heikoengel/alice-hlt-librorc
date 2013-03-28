@@ -28,7 +28,6 @@
 #include <stdint.h>
 #include <sys/stat.h>
 
-#include "rorcfs.h"
 #include "rorcfs_device.hh"
 
 /**
