@@ -1,6 +1,5 @@
 /**
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler
- *<eschweiler@fias.uni-frankfurt.de>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.2
  * @date 2011-08-16
  *
@@ -23,8 +22,7 @@
 
 /**
  * @mainpage
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler
- *<eschweiler@fias.uni-frankfurt.de>
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @date 2011-08-16
  * @brief Library to interface to CRORCs
  *
@@ -132,6 +130,7 @@ uint8_t getFunc();
 
 uint8_t  *getBarMap(uint8_t n);
 uint64_t  getBarSize(uint8_t n);
+void      printDeviceDescription();
 
 private:
     PciDevice *getPdaPciDevice()
@@ -141,6 +140,7 @@ private:
 
     DeviceOperator *m_dop;
     PciDevice      *m_device;
+    uint8_t         m_number;
 
 };
 

@@ -204,39 +204,21 @@ print_devices()
     rorcfs_device *dev = NULL;
     for(uint8_t i=0; i>(-1); i++)
     {
-        uint16_t domain_id = 0;
-        uint8_t  bus_id = 0;
-        uint8_t  device_id = 0;
-        uint8_t  function_id = 0;
-        char *description = (char*)malloc(1024 * sizeof(char));
-
         dev = new rorcfs_device();
-        if ( dev->init(0) == -1 )
+        if ( dev->init(i) == -1 )
         {
             break;
         }
 
-//        PdaDebugReturnCode ret = PDA_SUCCESS;
-//        ret = DeviceOperator_getPciDevice(dop, &device, i);
-//            ret += PciDevice_getDomainID(device, &domain_id);
-//            ret += PciDevice_getBusID(device, &bus_id);
-//            ret += PciDevice_getDeviceID(device, &device_id);
-//            ret += PciDevice_getFunctionID(device, &function_id);
-//            ret += PciDevice_getDescription(device, &description);
-//
-//        if( ret != PDA_SUCCESS )
-//        {
-//            abort();
-//        }
-
-        printf("Device [%u] %04x:%02x:%02x.%x : %s\n", i,
-               domain_id, bus_id, device_id, function_id, description);
+        dev->printDeviceDescription();
+        cout << endl;
 
         delete dev;
-        free(description);
     }
 }
-//
+
+
+
 //int64_t
 //dump_device
 //(

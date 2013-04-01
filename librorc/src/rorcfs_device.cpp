@@ -71,6 +71,8 @@ rorcfs_device::init
         return -1;
     }
 
+    m_number = n;
+
     return 0;
 }
 
@@ -160,4 +162,30 @@ rorcfs_device::getBarSize
     }
 
     return(size);
+}
+
+void
+rorcfs_device::printDeviceDescription()
+{
+    uint16_t domain_id   = 0;
+    uint8_t  bus_id      = 0;
+    uint8_t  device_id   = 0;
+    uint8_t  function_id = 0;
+    char *description = (char*)malloc(1024 * sizeof(char));
+
+        PdaDebugReturnCode ret = PDA_SUCCESS;
+        ret += PciDevice_getDomainID(m_device, &domain_id);
+        ret += PciDevice_getBusID(m_device, &bus_id);
+        ret += PciDevice_getDeviceID(m_device, &device_id);
+        ret += PciDevice_getFunctionID(m_device, &function_id);
+        ret += PciDevice_getDescription(m_device, &description);
+
+        if( ret != PDA_SUCCESS )
+        {
+            abort();
+        }
+
+    printf("Device [%u] %04x:%02x:%02x.%x : %s", m_number,
+            domain_id, bus_id, device_id, function_id, description);
+    free(description);
 }
