@@ -1,5 +1,8 @@
+#define __STDC_FORMAT_MACROS
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <string.h>
@@ -277,37 +280,37 @@ erase_device
     confopts options
 )
 {
-//    crorc_flash_t flash;
-//    init_flash(dop, options, &flash);
-//
-//    uint64_t starting_block = 0;
-//    uint64_t end_block = 258;
-//
-//    printf("Erasing : 100%%");
-//    uint64_t blocks = end_block - starting_block;
-//    for(uint64_t i=starting_block; i<=end_block; i++)
-//    {
-//        uint64_t addr = (255<<16) + ((i-255)<<14);
-//        if(i<=255)
-//		{
-//            addr = (i<<16);
-//		}
-//
-//        printf("\b\b\b\b%3" PRIu64 "%%", (i*100)/blocks);
-//        fflush(stdout);
-//
-//        if(getBlockLockConfiguration(addr)& 0x01)
-//        {
-//            unlock_block(&flash, addr);
-//        }
-//
-//        if(erase_block(&flash, addr) != 0)
-//        {
-//			printf("Flash erase failed, Status (STS): %" PRIx16 "x\n",
-//                    get_status_register(&flash) );
-//			abort();
-//		}
-//    }
+    rorcfs_flash_htg *flash =
+        init_flash(options);
+
+    uint64_t starting_block = 0;
+    uint64_t end_block = 258;
+
+    printf("Erasing : 100%%");
+    uint64_t blocks = end_block - starting_block;
+    for(uint64_t i=starting_block; i<=end_block; i++)
+    {
+        uint64_t addr = (255<<16) + ((i-255)<<14);
+        if(i<=255)
+		{
+            addr = (i<<16);
+		}
+
+        printf("\b\b\b\b%3" PRIu64 "%%", (i*100)/blocks);
+        fflush(stdout);
+
+        if( (flash->getBlockLockConfiguration(addr)) & 0x01)
+        {
+            flash->unlockBlock(addr);
+        }
+
+        if(flash->eraseBlock(addr) < 0)
+        {
+			printf("Flash erase failed, Status (STS): %" PRIx16 "x\n",
+                    flash->getStatusRegister(addr) );
+			abort();
+		}
+    }
 
     printf("\nErase complete.\n");
 
@@ -402,8 +405,9 @@ erase_device
 //
 //    return 0;
 //}
-//
-//
+
+
+
 inline
 rorcfs_flash_htg *
 init_flash
@@ -464,4 +468,5 @@ init_flash
     cout << "Read Config Register : " << hex << setw(4)
          << flash->getReadConfigurationRegister() << endl;
 
+    return(flash);
 }
