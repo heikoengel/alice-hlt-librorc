@@ -51,6 +51,8 @@ List all available devices :                                 \n\
     #define NOT_SET 0xFFFFFFFFFFFFFFFF
 #endif
 
+#define FLASH_FILE_SIZE 16777216
+
 /* Parameter container */
 typedef struct
 {
@@ -80,12 +82,11 @@ erase_device
     confopts options
 );
 
-//int64_t
-//flash_device
-//(
-//    DeviceOperator *dop,
-//    confopts        options
-//);
+int64_t
+flash_device
+(
+    confopts options
+);
 
 
 
@@ -103,6 +104,7 @@ int main
         return -1;
     }
 
+    //TODO revise this
     confopts options =
     {
         NOT_SET,
@@ -319,66 +321,69 @@ erase_device
 
 
 
-//int64_t
-//flash_device
-//(
-//    DeviceOperator *dop,
-//    confopts        options
-//)
-//{
-//    if(options.filename == NULL)
-//    {
-//        printf("File was not given!\n");
-//        abort();
-//    }
-//
-//    struct stat stat_buf;
-//    if( stat(options.filename, &stat_buf) != 0)
-//    {
-//        printf("Flash input file does not exist or is not accessable!\n");
-//        return -1;
-//    }
-//
-//    if(stat_buf.st_size > FLASH_FILE_SIZE)
-//    {
-//        printf("Flash file is to big!\n");
-//        return -1;
-//    }
-//
-//    crorc_flash_t flash;
-//    init_flash(dop, options, &flash);
-//
-//    /* Prequesits flash */
-//    uint64_t addr = (1<<23); //start address: +16MB
-//    uint64_t block_count
-//        = (unsigned int)(stat_buf.st_size>>17)+1;
-//
-//    printf("Bitfile Size: %ld bytes (%.3f MB)\n",
-//           stat_buf.st_size,(double)(stat_buf.st_size/1024.0/1024.0) );
-//	printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
-//	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n",
-//            block_count, addr>>16, (addr>>16)+block_count-1);
-//
-//    /* Open the flash file */
-//    /* TODO : add some cons. checking here */
-//    /* TODO : add preloading here */
-//    int fd = open(options.filename, O_RDONLY);
-//    if( fd==-1 )
-//	{
-//        printf("failed to open input file %s\n", options.filename);
-//        abort();
-//	}
-//
-//    /* Erase the flash first */
-//    if(erase_device(dop, options)!=0)
-//    {
-//        printf("CRORC flash erase failed!\n");
-//        return -1;
-//    }
-//
-//    /* Program flash */
-//	uint16_t *buffer
-//        = (uint16_t *)malloc(512*sizeof(uint16_t));
+int64_t
+flash_device
+(
+    confopts options
+)
+{
+    if(options.filename == NULL)
+    {
+        printf("File was not given!\n");
+        abort();
+    }
+
+    struct stat stat_buf;
+    if( stat(options.filename, &stat_buf) != 0)
+    {
+        cout << "Flash input file does not exist or is not accessable!"
+             << endl;
+        return -1;
+    }
+
+    if(stat_buf.st_size > FLASH_FILE_SIZE)
+    {
+        printf("Flash file is to big!\n");
+        return -1;
+    }
+
+    rorcfs_flash_htg *flash = init_flash(options);
+    if(flash == NULL)
+    {
+        cout << "Flash init failed!" << endl;
+    }
+
+    /* Prequesits flash */
+    uint64_t addr = (1<<23); //start address: +16MB
+    uint64_t block_count
+        = (unsigned int)(stat_buf.st_size>>17)+1;
+
+    printf("Bitfile Size: %ld bytes (%.3f MB)\n",
+           stat_buf.st_size,(double)(stat_buf.st_size/1024.0/1024.0) );
+	printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
+	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n",
+            block_count, addr>>16, (addr>>16)+block_count-1);
+
+    /* Open the flash file */
+    /* TODO : add some cons. checking here */
+    /* TODO : add preloading here */
+    int fd = open(options.filename, O_RDONLY);
+    if(fd == -1)
+	{
+        printf("failed to open input file %s\n", options.filename);
+        abort();
+	}
+
+    /* Erase the flash first */
+    if(erase_device(options)!=0)
+    {
+        printf("CRORC flash erase failed!\n");
+        return -1;
+    }
+
+    /* Program flash */
+	uint16_t *buffer
+        = (uint16_t *)malloc(512*sizeof(uint16_t));
 //    size_t bytes_read = 0;
 //    size_t bytes_programmed = 0;
 //
@@ -396,15 +401,15 @@ erase_device
 //        addr += bytes_read/2;
 //	}
 //	printf("\nDONE.\n");
-//
-//    /* Close everything */
-//	free(buffer);
-//    close(fd);
-//
-//    /* TODO : Use dump_device to verify */
-//
-//    return 0;
-//}
+
+    /* Close everything */
+	free(buffer);
+    close(fd);
+
+    /* TODO : Use dump_device to verify */
+
+    return 0;
+}
 
 
 
