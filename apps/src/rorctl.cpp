@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 
 #include "librorc.h"
 
@@ -198,15 +199,13 @@ ret_main:
 void
 print_devices()
 {
-    printf("Available CRORC devices:\n");
-    uint64_t device_count  = 0;
-
+    cout << "Available CRORC devices:" << endl;
 
     rorcfs_device *dev = NULL;
     for(uint8_t i=0; i>(-1); i++)
     {
         dev = new rorcfs_device();
-        if ( dev->init(i) == -1 )
+        if(dev->init(i) == -1)
         {
             break;
         }
@@ -228,7 +227,7 @@ dump_device
 {
     if(options.device_number == NOT_SET)
     {
-        printf("Device ID was not given!\n");
+        cout << "Device ID was not given!" << endl;
         abort();
     }
 
@@ -236,7 +235,8 @@ dump_device
         = new rorcfs_device();
     if(dev->init(options.device_number) == -1)
     {
-        printf("failed to initialize device 0\n");
+        cout << "failed to initialize device"
+             << options.device_number << endl;
         return(-1);
     }
 
@@ -244,19 +244,19 @@ dump_device
         = new rorcfs_bar(dev, 0);
     if(bar->init() == -1)
     {
-        printf("BAR0 init failed\n");
+        cout << "BAR0 init failed" << endl;
         return(-1);
     }
 
     rorcfs_flash_htg *flash
         = new rorcfs_flash_htg(bar);
-    //READY
-    return -1;
 
     uint16_t status
         = flash->getStatusRegister(0);
-    printf("Status: %04x\n", status);
-    if ( status != 0x0080 )
+
+    cout << "Status: "<< hex << setw(4) << status << endl;
+
+    if( status != 0x0080 )
     {
         flash->clearStatusRegister(0);
         usleep(100);
@@ -266,8 +266,11 @@ dump_device
         }
         status = flash->getStatusRegister(0);
     }
-    printf("Status: %04x\n", status);
 
+    cout << "Status: "<< hex << setw(4) << status << endl;
+
+    //READY
+    return -1;
 
 //    crorc_flash_t flash;
 //    init_flash(dop, options, &flash);
