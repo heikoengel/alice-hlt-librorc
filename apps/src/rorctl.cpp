@@ -302,7 +302,7 @@ erase_device
         if( flash->eraseBlock(current_addr)<0 )
         {
             printf("failed, STS: %04x\n",
-                   flash->getStatusRegistercurrent_addr));
+                   flash->getStatusRegister(current_addr) );
             abort();
         }
 
