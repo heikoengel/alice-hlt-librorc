@@ -285,59 +285,31 @@ erase_device
     rorcfs_flash_htg *flash =
         init_flash(options);
 
-//    uint64_t starting_block = 0;
-//    uint64_t end_block = 258;
-//
-//    printf("Erasing : 100%%");
-//    uint64_t blocks = end_block - starting_block;
-//    for(uint64_t i=starting_block; i<=end_block; i++)
-//    {
-//        uint64_t addr = (255<<16) + ((i-255)<<14);
-//        if(i<=255)
-//		{
-//            addr = (i<<16);
-//		}
-//
-//        printf("\b\b\b\b%3" PRIu64 "%%", (i*100)/blocks);
-//        fflush(stdout);
-//
-//        if( (flash->getBlockLockConfiguration(addr)) & 0x01)
-//        {
-//            flash->unlockBlock(addr);
-//        }
-//
-//        if(flash->eraseBlock(addr) < 0)
-//        {
-//			printf("Flash erase failed, Status (STS): %" PRIx16 "x\n",
-//                    flash->getStatusRegister(addr) );
-//			abort();
-//		}
-//    }
-//    printf("\nErase complete.\n");
-
     unsigned int addr = (1<<23); //start address: +16MB
     int block_count   = (unsigned int)((16<<20)>>17);
 
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
-        printf("\rErasing block %d(%x)...", i, i<<16);
+        uint64_t current_addr = (i<<16);
+        printf("\rErasing block %d(%x)...", i, current_addr);
         fflush(stdout);
 
-        if( flash->getBlockLockConfiguration(i<<16) & 0x01 )
+        if( flash->getBlockLockConfiguration(current_addr) & 0x01 )
         {
-            flash->unlockBlock(i<<16);
+            flash->unlockBlock(current_addr);
         }
 
-        if( flash->eraseBlock(i<<16)<0 )
+        if( flash->eraseBlock(current_addr)<0 )
         {
-            printf("failed, STS: %04x\n", flash->getStatusRegister(i<<16));
+            printf("failed, STS: %04x\n",
+                   flash->getStatusRegistercurrent_addr));
             abort();
         }
 
         fflush(stdout);
     }
 
-    printf("\nErase complete.\n\nProgramming Flash...\n");
+    printf("\nErase complete.\n");
 
     return 0;
 }
