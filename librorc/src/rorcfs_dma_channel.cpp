@@ -32,10 +32,10 @@
 
 #include <pda.h>
 
-#include "rorc_registers.h"
 #include "rorcfs_bar.hh"
 #include "rorcfs_buffer.hh"
 #include "rorcfs_dma_channel.hh"
+#include <librorc_registers.h>
 
 using namespace std;
 

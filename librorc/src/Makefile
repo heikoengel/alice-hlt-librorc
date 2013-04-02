@@ -2,7 +2,7 @@ include $(TOP_DIR)/prefix.make
 obj := $(patsubst %.cpp, $(TOP_DIR)/lib/$(BUILD_ID)/%.o, $(wildcard *.cpp))
 LIB := $(TOP_DIR)/lib/$(BUILD_ID)
 
-INCLUDES := -I../../rorcfs/include/ -I../$(FIRMWARE_BASE) -I`pda-config --include`
+INCLUDES := -I../include/ -I`pda-config --include`
 ifdef INSTALL_HOME
 	INCLUDES += -I$(INSTALL_HOME)/include
 endif
@@ -21,7 +21,7 @@ LD=g++ -shared -Bsymbolic -o
 
 all : $(TOP_DIR)/lib/$(BUILD_ID)/librorc.so $(FLI)
 
-$(obj) : $(TOP_DIR)/lib/$(BUILD_ID)/%.o : %.cpp %.hh ../$(FIRMWARE_BASE)/rorc_registers.h
+$(obj) : $(TOP_DIR)/lib/$(BUILD_ID)/%.o : %.cpp %.hh
 	$(CXX) $(CFLAGS) -o $@ $< 
 
 $(TOP_DIR)/lib/$(BUILD_ID)/librorc.a: $(obj)	

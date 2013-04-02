@@ -27,7 +27,9 @@
 
 #include <pda.h>
 
+#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
+#include <librorc_registers.h>
 
 using namespace std;
 
@@ -185,7 +187,15 @@ rorcfs_device::printDeviceDescription()
             return;
         }
 
-    printf("Device [%u] %04x:%02x:%02x.%x : %s", m_number,
-            domain_id, bus_id, device_id, function_id, description);
+        rorcfs_bar *bar = new rorcfs_bar(this, 1);
+        if ( bar->init() == -1 )
+        {
+            printf("ERROR: failed to initialize BAR1.\n");
+            return;
+        }
+
+    printf("Device [%u] %04x:%02x:%02x.%x : %s  (FirmwareDate: %08x)", m_number,
+            domain_id, bus_id, device_id, function_id, description, bar->get(RORC_REG_FIRMWARE_DATE));
+
     free(description);
 }

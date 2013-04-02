@@ -21,7 +21,7 @@
 #ifndef RORCFS_SYSMON_H
 #define RORCFS_SYSMON_H
 
-#include "rorc_registers.h"
+#include <librorc_registers.h>
 
 /**
  * @class rorcfs_sysmon
@@ -48,7 +48,7 @@ class rorcfs_sysmon
 		 * get PCIe Interface status
 		 * @return PCIe status consisting of:
 		 * pcie_status_q[31:26] <= pl_ltssm_state;
-		 * pcie_status_q[25:23] <= pl_initial_link_width;	
+		 * pcie_status_q[25:23] <= pl_initial_link_width;
 		 * pcie_status_q[22:20] <= pl_lane_reversal_mode;
 		 * pcie_status_q[19] <= pl_link_gen2_capable;
 		 * pcie_status_q[18] <= pl_link_partner_gen2_supported;
@@ -69,7 +69,7 @@ class rorcfs_sysmon
 		 /**
 			* get FPGA Firmware Build Date
 			* @return Firmware Build Date as combination of
-			* year (bits [31:16]), month (bits[15:8]) and 
+			* year (bits [31:16]), month (bits[15:8]) and
 			* day (bits[7:0]).
 			**/
 		 unsigned int getFwBuildDate();
@@ -108,7 +108,7 @@ class rorcfs_sysmon
 			* write to ICAP Interface
 			* @param dword bit-reordered configuration word
 			*
-			* use this function to write already reordered 
+			* use this function to write already reordered
 			* (*.bin-file) contents to the ICAP interface.
 			**/
 		 //void setIcapDin( unsigned int dword );
@@ -117,8 +117,8 @@ class rorcfs_sysmon
 			* write to ICAP Interface and do the bit reordering
 			* @param dword not reordered configuration word
 			*
-			* use this function to write non-reordered 
-			* (*.bit-files) to ICAP and do the reordering 
+			* use this function to write non-reordered
+			* (*.bit-files) to ICAP and do the reordering
 			* in the FPGA.
 			**/
 		 //void setIcapDinReorder( unsigned int dword );
@@ -133,12 +133,12 @@ class rorcfs_sysmon
 			* read byte from i2c memory location
 			* @param slvaddr slave address
 			* @param memaddr memory address
-			* @param data pointer to unsigned char for 
+			* @param data pointer to unsigned char for
 			* received data
 			* @return 0 on success, -1 on errors
 			**/
 		 int i2c_read_mem(
-				 unsigned char slvaddr, 
+				 unsigned char slvaddr,
 				 unsigned char memaddr,
 				 unsigned char *data);
 
@@ -146,12 +146,12 @@ class rorcfs_sysmon
 			* read byte from i2c memory location
 			* @param slvaddr slave address
 			* @param memaddr memory address
-			* @param data pointer to unsigned char for 
+			* @param data pointer to unsigned char for
 			* received data
 			* @return 0 on success, -1 on errors
 			**/
 		 int i2c_write_mem(
-				 unsigned char slvaddr, 
+				 unsigned char slvaddr,
 				 unsigned char memaddr,
 				 unsigned char data);
 

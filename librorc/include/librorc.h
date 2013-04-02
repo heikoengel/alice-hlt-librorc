@@ -1,7 +1,8 @@
 #ifndef LIBRORC_H
 #define LIBRORC_H
 
-    #include "rorc_registers.h"
+    #include "librorc_registers.h"
+
     #include "rorcfs_device.hh"
     #include "rorcfs_bar.hh"
     #include "rorcfs_flash_htg.hh"

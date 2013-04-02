@@ -31,9 +31,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "rorc_registers.h"
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
+#include <librorc_registers.h>
 
 /**
  * usleep time for FLI read polling
