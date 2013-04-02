@@ -57,6 +57,12 @@ typedef struct
 
 void print_devices();
 
+int64_t
+dump_device
+(
+    confopts options
+);
+
 //static void inline
 //init_flash
 //(
@@ -64,14 +70,9 @@ void print_devices();
 //    confopts        options,
 //    crorc_flash_t  *flash
 //);
-//
-//int64_t
-//dump_device
-//(
-//    DeviceOperator* dop,
-//    confopts        options
-//);
-//
+
+
+
 //int64_t
 //flash_device
 //(
@@ -137,7 +138,7 @@ int main
 
                 case 'd':
                 {
-                    //dump_device(dop, options);
+                    dump_device(options);
                 }
                 break;
 
@@ -219,13 +220,55 @@ print_devices()
 
 
 
-//int64_t
-//dump_device
-//(
-//    DeviceOperator *dop,
-//    confopts        options
-//)
-//{
+int64_t
+dump_device
+(
+    confopts options
+)
+{
+    if(options.device_number == NOT_SET)
+    {
+        printf("Device ID was not given!\n");
+        abort();
+    }
+
+    rorcfs_device *dev
+        = new rorcfs_device();
+    if(dev->init(options.device_number) == -1)
+    {
+        printf("failed to initialize device 0\n");
+        return(-1);
+    }
+
+    rorcfs_bar *bar
+        = new rorcfs_bar(dev, 0);
+    if(bar->init() == -1)
+    {
+        printf("BAR0 init failed\n");
+        return(-1);
+    }
+
+    rorcfs_flash_htg *flash
+        = new rorcfs_flash_htg(bar);
+    //READY
+    return -1;
+
+    uint16_t status
+        = flash->getStatusRegister(0);
+    printf("Status: %04x\n", status);
+    if ( status != 0x0080 )
+    {
+        flash->clearStatusRegister(0);
+        usleep(100);
+        if ( status & 0x0084 )
+        {
+            flash->programResume(0);
+        }
+        status = flash->getStatusRegister(0);
+    }
+    printf("Status: %04x\n", status);
+
+
 //    crorc_flash_t flash;
 //    init_flash(dop, options, &flash);
 //
@@ -256,11 +299,12 @@ print_devices()
 //    fwrite(flash_buffer, FLASH_SIZE, 1, filep);
 //    fclose(filep);
 //    free(flash_buffer);
-//
-//    return 0;
-//}
-//
-//
+
+    return 0;
+}
+
+
+
 //int64_t
 //erase_device
 //(
