@@ -176,8 +176,8 @@ int main
 
                 default:
                 {
-                    printf("Unknown parameter (%c)!\n", c);
-                    printf( HELP_TEXT );
+                    cout << "Unknown parameter (" << c << ")!" << endl;
+                    cout << HELP_TEXT;
                     goto ret_main;
                 }
                 break;
@@ -254,8 +254,9 @@ dump_device
     uint16_t status
         = flash->getStatusRegister(0);
 
-    cout << "Status: "<< hex << setw(4) << status << endl;
+    cout << "Status: " << hex << setw(4) << status << endl;
 
+    /** TODO: move into flash class */
     if( status != 0x0080 )
     {
         flash->clearStatusRegister(0);
@@ -269,39 +270,44 @@ dump_device
 
     cout << "Status: "<< hex << setw(4) << status << endl;
 
-    //READY
-    return -1;
+    printf("Manufacturer Code: %04x\n", flash->getManufacturerCode());
+    printf("Device ID: %04x\n", flash->getDeviceID());
+    printf("RCR: %04x\n", flash->getReadConfigurationRegister());
 
-//    crorc_flash_t flash;
-//    init_flash(dop, options, &flash);
-//
-//    FILE *filep =
-//        fopen(options.filename, "w");
-//
-//    uint64_t flash_words = (FLASH_SIZE/2);
-//    uint16_t *flash_buffer =
-//        (uint16_t*)calloc(flash_words, sizeof(uint16_t));
-//
-//    set_read_state(&flash, FLASH_READ_ARRAY, 0x00);
-//    if(options.verbose == 1)
-//    {
-//        for(uint64_t i=0; i<flash_words; i++)
-//        {
-//            flash_buffer[i] = GET(flash, i);
-//            printf("%" PRIx64 ": %04x\n", i, flash_buffer[i]);
-//        }
-//    }
-//    else
-//    {
-//        for(uint64_t i=0; i<flash_words; i++)
-//        {
-//            flash_buffer[i] = GET(flash, i);
-//        }
-//    }
-//
-//    fwrite(flash_buffer, FLASH_SIZE, 1, filep);
-//    fclose(filep);
-//    free(flash_buffer);
+    FILE *filep =
+        fopen(options.filename, "w");
+    if(filep == NULL)
+    {
+        cout << "File open failed!" << endl;
+    }
+
+    uint64_t flash_words = (FLASH_SIZE/2);
+    uint16_t *flash_buffer =
+        (uint16_t*)calloc(flash_words, sizeof(uint16_t));
+
+    if(options.verbose == 1)
+    {
+        for(uint64_t i=0; i<flash_words; i++)
+        {
+            flash_buffer[i] = flash->get(i);
+            cout << i << " : "  << hex << setw(4) << flash_buffer[i];
+        }
+    }
+    else
+    {
+        for(uint64_t i=0; i<flash_words; i++)
+        {
+            flash_buffer[i] = flash->get(i);
+        }
+    }
+
+    if(fwrite(flash_buffer, FLASH_SIZE, 1, filep) != 0)
+    {
+        cout << "WARNING : writing to file failed!" << endl;
+    }
+
+    fclose(filep);
+    free(flash_buffer);
 
     return 0;
 }

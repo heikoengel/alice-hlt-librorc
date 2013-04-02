@@ -20,6 +20,8 @@
 #ifndef _RORCLIB_RORCFS_FLASH_HTG
 #define _RORCLIB_RORCFS_FLASH_HTG
 
+#define FLASH_SIZE 33554432
+
 
 //TODO : refine this into an enum ...
 /** Read array mode **/

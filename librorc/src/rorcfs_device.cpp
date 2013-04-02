@@ -194,7 +194,7 @@ rorcfs_device::printDeviceDescription()
             return;
         }
 
-    printf("Device [%u] %04x:%02x:%02x.%x : %s (FirmwareDate: %08x)", m_number,
+    printf("Device [%u] %04x:%02x:%02x.%x : %s (firmware date: %08x)", m_number,
             domain_id, bus_id, device_id, function_id, description, bar->get(RORC_REG_FIRMWARE_DATE));
 
     free(description);
