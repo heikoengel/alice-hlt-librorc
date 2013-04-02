@@ -182,7 +182,7 @@ rorcfs_device::printDeviceDescription()
 
         if( ret != PDA_SUCCESS )
         {
-            abort();
+            return;
         }
 
     printf("Device [%u] %04x:%02x:%02x.%x : %s", m_number,
