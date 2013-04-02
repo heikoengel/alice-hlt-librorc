@@ -306,10 +306,9 @@ dump_device
 
     size_t bytes_written =
        fwrite(flash_buffer, FLASH_SIZE, 1, filep);
-    if(bytes_written != FLASH_SIZE)
+    if(bytes_written != 1)
     {
         cout << "WARNING : writing to file failed!" << endl;
-        cout << FLASH_SIZE << " " << bytes_written;
     }
 
     fclose(filep);
