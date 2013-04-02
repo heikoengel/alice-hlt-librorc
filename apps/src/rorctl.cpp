@@ -268,11 +268,14 @@ dump_device
         status = flash->getStatusRegister(0);
     }
 
-    cout << "Status               : "<< hex << setw(4) << status << endl;
+    cout << "Status               : " << hex << setw(4) << status << endl;
 
-    printf( "Manufacturer Code    : %04x\n", flash->getManufacturerCode());
-    printf( "Device ID            : %04x\n", flash->getDeviceID());
-    printf( "Read Config Register : %04x\n", flash->getReadConfigurationRegister());
+    cout << "Manufacturer Code    : " << hex << setw(4)
+         << flash->getManufacturerCode() << endl;
+    cout << "Device ID            : " << hex << setw(4)
+         << flash->getDeviceID() << endl;
+    cout << "Read Config Register : " << hex << setw(4)
+         << flash->getReadConfigurationRegister() << endl;
 
     FILE *filep =
         fopen(options.filename, "w");
@@ -301,7 +304,7 @@ dump_device
         }
     }
 
-    if(fwrite(flash_buffer, FLASH_SIZE, 1, filep) != 0)
+    if(fwrite(flash_buffer, FLASH_SIZE, 1, filep) != FLASH_SIZE)
     {
         cout << "WARNING : writing to file failed!" << endl;
     }
