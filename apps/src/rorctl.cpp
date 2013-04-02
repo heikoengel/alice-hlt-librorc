@@ -154,7 +154,7 @@ int main
 
                 case 'p':
                 {
-                    //flash_device(dop, options);
+                    flash_device(options);
                 }
                 break;
 
