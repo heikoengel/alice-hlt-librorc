@@ -316,7 +316,7 @@ erase_device
 //    printf("\nErase complete.\n");
 
     unsigned int addr = (1<<23); //start address: +16MB
-    int block_count   = (unsigned int)(FLASH_FILE_SIZE>>17)+1;
+    int block_count   = (unsigned int)((16<<20)>>17)+1;
 
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
