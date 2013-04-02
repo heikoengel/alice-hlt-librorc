@@ -58,21 +58,24 @@ typedef struct
 
 void print_devices();
 
+inline
+rorcfs_flash_htg *
+init_flash
+(
+    confopts options
+);
+
 int64_t
 dump_device
 (
     confopts options
 );
 
-//static void inline
-//init_flash
-//(
-//    DeviceOperator *dop,
-//    confopts        options,
-//    crorc_flash_t  *flash
-//);
-
-
+int64_t
+erase_device
+(
+    confopts options
+);
 
 //int64_t
 //flash_device
@@ -80,13 +83,8 @@ dump_device
 //    DeviceOperator *dop,
 //    confopts        options
 //);
-//
-//int64_t
-//erase_device
-//(
-//    DeviceOperator* dop,
-//    confopts        options
-//);
+
+
 
 /*----------------------------------------------------------*/
 
@@ -120,7 +118,7 @@ int main
             {
                 case 'h':
                 {
-                    printf( HELP_TEXT );
+                    cout << HELP_TEXT;
                     goto ret_main;
                 }
                 break;
@@ -145,7 +143,7 @@ int main
 
                 case 'e':
                 {
-                    //erase_device(dop, options);
+                    erase_device(options);
                 }
                 break;
 
@@ -225,57 +223,9 @@ dump_device
     confopts options
 )
 {
-    if(options.device_number == NOT_SET)
-    {
-        cout << "Device ID was not given!" << endl;
-        abort();
-    }
-
-    rorcfs_device *dev
-        = new rorcfs_device();
-    if(dev->init(options.device_number) == -1)
-    {
-        cout << "failed to initialize device"
-             << options.device_number << endl;
-        return(-1);
-    }
-
-    rorcfs_bar *bar
-        = new rorcfs_bar(dev, 0);
-    if(bar->init() == -1)
-    {
-        cout << "BAR0 init failed" << endl;
-        return(-1);
-    }
-
-    rorcfs_flash_htg *flash
-        = new rorcfs_flash_htg(bar);
-
-    uint16_t status
-        = flash->getStatusRegister(0);
-
-    cout << "Status               : " << hex << setw(4) << status << endl;
-
-    /** TODO: move into flash class */
-    if( status != 0x0080 )
-    {
-        flash->clearStatusRegister(0);
-        usleep(100);
-        if ( status & 0x0084 )
-        {
-            flash->programResume(0);
-        }
-        status = flash->getStatusRegister(0);
-    }
-
-    cout << "Status               : " << hex << setw(4) << status << endl;
-
-    cout << "Manufacturer Code    : " << hex << setw(4)
-         << flash->getManufacturerCode() << endl;
-    cout << "Device ID            : " << hex << setw(4)
-         << flash->getDeviceID() << endl;
-    cout << "Read Config Register : " << hex << setw(4)
-         << flash->getReadConfigurationRegister() << endl;
+    uint64_t flash_words = (FLASH_SIZE/2);
+    uint16_t *flash_buffer =
+        (uint16_t*)calloc(flash_words, sizeof(uint16_t));
 
     FILE *filep =
         fopen(options.filename, "w");
@@ -284,9 +234,11 @@ dump_device
         cout << "File open failed!" << endl;
     }
 
-    uint64_t flash_words = (FLASH_SIZE/2);
-    uint16_t *flash_buffer =
-        (uint16_t*)calloc(flash_words, sizeof(uint16_t));
+    rorcfs_flash_htg *flash = init_flash(options);
+    if(flash == NULL)
+    {
+        cout << "Flash init failed!" << endl;
+    }
 
     if(options.verbose == 1)
     {
@@ -319,13 +271,12 @@ dump_device
 
 
 
-//int64_t
-//erase_device
-//(
-//    DeviceOperator *dop,
-//    confopts        options
-//)
-//{
+int64_t
+erase_device
+(
+    confopts options
+)
+{
 //    crorc_flash_t flash;
 //    init_flash(dop, options, &flash);
 //
@@ -345,7 +296,7 @@ dump_device
 //        printf("\b\b\b\b%3" PRIu64 "%%", (i*100)/blocks);
 //        fflush(stdout);
 //
-//        if(get_block_lock_configuration(&flash, addr) & 0x01)
+//        if(getBlockLockConfiguration(addr)& 0x01)
 //        {
 //            unlock_block(&flash, addr);
 //        }
@@ -357,13 +308,14 @@ dump_device
 //			abort();
 //		}
 //    }
-//
-//    printf("\nErase complete.\n");
-//
-//    return 0;
-//}
-//
-//
+
+    printf("\nErase complete.\n");
+
+    return 0;
+}
+
+
+
 //int64_t
 //flash_device
 //(
@@ -452,77 +404,64 @@ dump_device
 //}
 //
 //
-//static void inline
-//init_flash
-//(
-//    DeviceOperator *dop,
-//    confopts        options,
-//    crorc_flash_t  *flash
-//)
-//{
-//    PdaDebugReturnCode ret = PDA_SUCCESS;
-//
-//    if(options.device_number == NOT_SET)
-//    {
-//        printf("Device ID was not given!\n");
-//        abort();
-//    }
-//
-//    /* Get the PDA device object */
-//    PciDevice *device = NULL;
-//    ret =
-//        DeviceOperator_getPciDevice
-//            (dop, &device, options.device_number);
-//    if(ret != PDA_SUCCESS)
-//    {
-//        printf("Unable to get device descriptor!\n");
-//        abort();
-//    }
-//
-//    /* Get the object of the first bar of the selected device */
-//    Bar *bar_flash = NULL;
-//    if(PciDevice_getBar(device, &bar_flash, 0) != PDA_SUCCESS)
-//    {
-//        printf("Unable to get BAR0 descriptor!\n");
-//        abort();
-//    }
-//
-//    /* Map the flash controller */
-//    if
-//    (
-//        Bar_getMap(bar_flash, &flash->flash, &flash->flash_size)
-//        != PDA_SUCCESS
-//    )
-//    {
-//        printf("Unable to get flash pointer!\n");
-//        abort();
-//    }
-//
-//    /* Get status register and display it to the users */
-//    uint16_t status=
-//        get_status_register(flash);
-//    printf("STS: %04x\n", status);
-//
-//    if(status != 0x0080)
-//    {
-//        clear_status_register(flash);
-//        usleep(100);
-//        if(status & 0x0084)
-//        {
-//            program_resume(flash);
-//		}
-//		status = get_status_register(flash);
-//    }
-//
-//	printf("STS: %04x\n", status);
-//
-//	if(status!=0x80)
-//	{
-//		printf("ERROR: illegal Flash Status %04x - aborting.\n", status);
-//		abort();
-//	}
-//
-//	printf("Manufacturer Code: %04x\n", get_manufacturer_code(flash) );
-//	printf("Device ID: %04x\n", get_device_id(flash) );
-//	printf("RCR: %04x\n", get_read_configuration_register(flash) );
-//}
+inline
+rorcfs_flash_htg *
+init_flash
+(
+    confopts options
+)
+{
+    if(options.device_number == NOT_SET)
+    {
+        cout << "Device ID was not given!" << endl;
+        abort();
+    }
+
+    rorcfs_device *dev
+        = new rorcfs_device();
+    if(dev->init(options.device_number) == -1)
+    {
+        cout << "Failed to initialize device "
+             << options.device_number << endl;
+        return(NULL);
+    }
+
+    rorcfs_bar *bar
+        = new rorcfs_bar(dev, 0);
+    if(bar->init() == -1)
+    {
+        cout << "BAR0 init failed" << endl;
+        return(NULL);
+    }
+
+    rorcfs_flash_htg *flash
+        = new rorcfs_flash_htg(bar);
+
+    uint16_t status
+        = flash->getStatusRegister(0);
+
+    cout << "Status               : " << hex
+         << setw(4) << status << endl;
+
+    if( status != 0x0080 )
+    {
+        flash->clearStatusRegister(0);
+        usleep(100);
+        if ( status & 0x0084 )
+        {
+            flash->programResume(0);
+        }
+        status = flash->getStatusRegister(0);
+    }
+
+    cout << "Status               : " << hex
+         << setw(4) << status << endl;
+
+    cout << "Manufacturer Code    : " << hex << setw(4)
+         << flash->getManufacturerCode() << endl;
+    cout << "Device ID            : " << hex << setw(4)
+         << flash->getDeviceID() << endl;
+    cout << "Read Config Register : " << hex << setw(4)
+         << flash->getReadConfigurationRegister() << endl;
+
+}

@@ -167,8 +167,7 @@ public:
  * @return Read Configuraion
  **/
     unsigned short
-    getReadConfigurationRegister
-        ();
+    getReadConfigurationRegister();
 
 /**
  * Program single Word to destination address
