@@ -353,7 +353,7 @@ flash_device
         cout << "Flash init failed!" << endl;
     }
 
-    /* Prequesits flash */
+    /** Prequesits flash */
     uint64_t addr = (1<<23); //start address: +16MB
     uint64_t block_count
         = (unsigned int)(stat_buf.st_size>>17)+1;
@@ -364,7 +364,7 @@ flash_device
 	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n",
             block_count, addr>>16, (addr>>16)+block_count-1);
 
-    /* Open the flash file */
+    /** Open the flash file */
     /* TODO : add some cons. checking here */
     /* TODO : add preloading here */
     int fd = open(options.filename, O_RDONLY);
@@ -374,33 +374,47 @@ flash_device
         abort();
 	}
 
-    /* Erase the flash first */
+    /** Erase the flash first */
     if(erase_device(options)!=0)
     {
         printf("CRORC flash erase failed!\n");
         return -1;
     }
 
-    /* Program flash */
-	uint16_t *buffer
-        = (uint16_t *)malloc(512*sizeof(uint16_t));
-//    size_t bytes_read = 0;
-//    size_t bytes_programmed = 0;
-//
-//    while( (bytes_read=read(fd, buffer, 512*sizeof(uint16_t))) > 0 )
-//	{
-//        if(program_buffer(&flash, addr, (bytes_read/2), buffer) < 0)
-//        {
-//            printf("programBuffer failed, STS: %04x\n",
-//                    get_status_register(&flash));
-//            break;
-//        }
-//        bytes_programmed += bytes_read;
-//        printf("\rProgramming : %03ld%%", (100*bytes_programmed)/stat_buf.st_size);
-//        fflush(stdout);
-//        addr += bytes_read/2;
-//	}
-//	printf("\nDONE.\n");
+    /** Program flash */
+    size_t bytes_read = 0;
+    size_t bytes_programmed = 0;
+    uint16_t *buffer
+        = (uint16_t *)malloc(32*sizeof(uint16_t));
+
+    while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
+    {
+        printf("writing %d bytes to %x\n", bytes_read, addr);
+        if ( flash->programBuffer(addr, bytes_read/2, buffer) < 0 )
+        {
+            printf("programBuffer failed, STS: %04x\n",
+                flash->getStatusRegister(addr));
+            break;
+        }
+
+        for(uint64_t i=0; i<bytes_read/2; i++)
+        {
+            uint16_t status = flash->get(addr+i);
+            if( buffer[i] != status )
+            {
+                printf("write failed: written %04x, "
+                    "read %04x, addr %x, bytes_read %d\n",
+                    buffer[i], status, addr+i, bytes_read);
+                break;
+            }
+        }
+
+        bytes_programmed += bytes_read;
+        printf("\r%03ld%%", (100*bytes_programmed)/stat_buf.st_size);
+        fflush(stdout);
+        addr += bytes_read/2;
+    }
+    printf("\nDONE.\n");
 
     /* Close everything */
 	free(buffer);
