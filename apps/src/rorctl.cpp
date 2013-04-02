@@ -254,7 +254,7 @@ dump_device
     uint16_t status
         = flash->getStatusRegister(0);
 
-    cout << "Status: " << hex << setw(4) << status << endl;
+    cout << "Status               : " << hex << setw(4) << status << endl;
 
     /** TODO: move into flash class */
     if( status != 0x0080 )
@@ -268,11 +268,11 @@ dump_device
         status = flash->getStatusRegister(0);
     }
 
-    cout << "Status: "<< hex << setw(4) << status << endl;
+    cout << "Status               : "<< hex << setw(4) << status << endl;
 
-    printf("Manufacturer Code: %04x\n", flash->getManufacturerCode());
-    printf("Device ID: %04x\n", flash->getDeviceID());
-    printf("RCR: %04x\n", flash->getReadConfigurationRegister());
+    printf( "Manufacturer Code    : %04x\n", flash->getManufacturerCode());
+    printf( "Device ID            : %04x\n", flash->getDeviceID());
+    printf( "Read Config Register : %04x\n", flash->getReadConfigurationRegister());
 
     FILE *filep =
         fopen(options.filename, "w");
