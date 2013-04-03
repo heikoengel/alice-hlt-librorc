@@ -361,8 +361,7 @@ flash_device
     uint64_t block_count
         = (unsigned int)(stat_buf.st_size>>17)+1;
 
-    printf("Bitfile Size: %ld bytes (%.3f MB)\n",
-           stat_buf.st_size,(double)(stat_buf.st_size/1024.0/1024.0) );
+    printf("Bitfile Size         : %.3f MB (%ld Bytes)\n",(double)(stat_buf.st_size/1024.0/1024.0), stat_buf.st_size );
 	printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
 	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n",
             block_count, addr>>16, (addr>>16)+block_count-1);
