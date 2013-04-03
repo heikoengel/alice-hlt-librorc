@@ -402,10 +402,10 @@ flash_device
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
         //printf("\rWriting %d bytes to %d (%x) : %03ld%% ...", bytes_read, i, addr, ((100*bytes_programmed)/stat_buf.st_size) );
-        cout << "\rWriting " << (uint64_t)bytes_read << " bytes to "
-             << (uint64_t)i << " (" << addr << hex << ") : "
-             << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
-             << dec << "% ...";
+        cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
+             << (uint64_t)i << " (" << hex << addr << ") : "
+             << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
+             << "% ...";
 
 
         fflush(stdout);
