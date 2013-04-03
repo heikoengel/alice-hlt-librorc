@@ -254,8 +254,8 @@ dump_device
         for(uint64_t i=0; i<flash_words; i++)
         {
             flash_buffer[i] = flash->get(i);
-            cout << "\r" << i << " : "  << hex << setw(4)
-                 << flash_buffer[i] << dec;
+            cout << i << " : "  << hex << setw(4)
+                 << flash_buffer[i] << dec << endl;
         }
     }
     else
@@ -364,7 +364,12 @@ flash_device
     uint64_t block_count
         = (unsigned int)(stat_buf.st_size>>17)+1;
 
-    printf("Bitfile Size         : %.3f MB (%ld Bytes)\n",(double)(stat_buf.st_size/1024.0/1024.0), stat_buf.st_size );
+    //printf("Bitfile Size         : %.3f MB (%ld Bytes)\n",(double)(stat_buf.st_size/1024.0/1024.0), stat_buf.st_size );
+    cout << "Bitfile Size         : "
+         << (double)(stat_buf.st_size/1024.0/1024.0)
+         << " MB (" << stat_buf.st_size <<  "Bytes)"
+         << endl;
+
 	printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
 	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n", block_count, addr>>16, (addr>>16)+block_count-1);
 
