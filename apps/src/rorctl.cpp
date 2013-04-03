@@ -254,7 +254,8 @@ dump_device
         for(uint64_t i=0; i<flash_words; i++)
         {
             flash_buffer[i] = flash->get(i);
-            cout << i << " : "  << hex << setw(4) << flash_buffer[i];
+            cout << i << " : "  << hex << setw(4)
+                 << flash_buffer[i] << dec;
         }
     }
     else
