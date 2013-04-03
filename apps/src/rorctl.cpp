@@ -367,8 +367,8 @@ flash_device
     //printf("Bitfile Size         : %.3f MB (%ld Bytes)\n",(double)(stat_buf.st_size/1024.0/1024.0), stat_buf.st_size );
     cout << "Bitfile Size         : "
          << (double)(stat_buf.st_size/1024.0/1024.0)
-         << " MB (" << stat_buf.st_size <<  " Bytes)"
-         << endl;
+         << " MB (" << dec << stat_buf.st_size
+         << " Bytes)" << endl;
 
 	//printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
 	cout << "Bitfile will be written to Flash starting at addr "
