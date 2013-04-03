@@ -391,7 +391,7 @@ flash_device
     uint64_t i = 0;
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
-        printf("\rWriting %d bytes to %d(%x) ... %03ld%%",
+        printf("\rWriting %d bytes to %d (%x) : %03ld%% ...",
                bytes_read, i, addr, ((100*bytes_programmed)/stat_buf.st_size) );
 
         fflush(stdout);
