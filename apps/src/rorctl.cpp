@@ -103,7 +103,7 @@ int main
 {
     if(argc<2)
     {
-        printf( HELP_TEXT );
+        cout << HELP_TEXT;
         return -1;
     }
 
@@ -298,7 +298,9 @@ erase_device
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
         uint64_t current_addr = (i<<16);
-        printf("\rErasing block %d(%x)...", i, current_addr);
+        //printf("\rErasing block %d(%x)...", i, current_addr);
+        cout << "\rErasing block " << i << "("
+             << hex << current_addr << ")..." << endl;
         fflush(stdout);
 
         if( flash->getBlockLockConfiguration(current_addr) & 0x01 )
@@ -316,7 +318,7 @@ erase_device
         fflush(stdout);
     }
 
-    printf("\nErase complete.\n");
+    cout << endl << "Erase complete!" << endl;
 
     return 0;
 }
