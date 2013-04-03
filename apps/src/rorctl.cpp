@@ -299,8 +299,8 @@ erase_device
     {
         uint64_t current_addr = (i<<16);
         //printf("\rErasing block %d(%x)...", i, current_addr);
-        cout << "\rErasing block " << i << "("
-             << hex << current_addr << " )...";
+        cout << "\rErasing block " << dec << i << " ("
+             << hex << current_addr << ")...";
         fflush(stdout);
 
         if( flash->getBlockLockConfiguration(current_addr) & 0x01 )
