@@ -73,7 +73,8 @@ init_flash
 int64_t
 dump_device
 (
-    confopts options
+    confopts          options,
+    rorcfs_flash_htg *flash
 );
 
 int64_t
@@ -144,7 +145,7 @@ int main
 
                 case 'd':
                 {
-                    dump_device(options);
+                    dump_device(options, init_flash(options));
                 }
                 break;
 
@@ -227,7 +228,8 @@ print_devices()
 int64_t
 dump_device
 (
-    confopts options
+    confopts          options,
+    rorcfs_flash_htg *flash
 )
 {
     uint64_t flash_words = (FLASH_SIZE/2);
@@ -239,12 +241,13 @@ dump_device
     if(filep == NULL)
     {
         cout << "File open failed!" << endl;
+        return -1;
     }
 
-    rorcfs_flash_htg *flash = init_flash(options);
     if(flash == NULL)
     {
         cout << "Flash init failed!" << endl;
+        return -1;
     }
 
     if(options.verbose == 1)
@@ -285,9 +288,14 @@ erase_device
     rorcfs_flash_htg *flash
 )
 {
+    if(flash == NULL)
+    {
+        cout << "Flash init failed!" << endl;
+        return -1;
+    }
+
     unsigned int addr = (1<<23); //start address: +16MB
     int block_count   = (unsigned int)((16<<20)>>17);
-
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
         uint64_t current_addr = (i<<16);
