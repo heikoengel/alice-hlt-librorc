@@ -364,17 +364,14 @@ flash_device
     uint64_t block_count
         = (unsigned int)(stat_buf.st_size>>17)+1;
 
-    //printf("Bitfile Size         : %.3f MB (%ld Bytes)\n",(double)(stat_buf.st_size/1024.0/1024.0), stat_buf.st_size );
     cout << "Bitfile Size         : "
          << (double)(stat_buf.st_size/1024.0/1024.0)
          << " MB (" << dec << stat_buf.st_size
          << " Bytes)" << endl;
 
-	//printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
 	cout << "Bitfile will be written to Flash starting at addr "
 	     << addr << endl;
 
-	//printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n", block_count, addr>>16, (addr>>16)+block_count-1);
     cout << "Using " << (uint64_t)(block_count) << " Blocks ("
          << (uint64_t)(addr>>16) << " to "
          << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
@@ -404,8 +401,12 @@ flash_device
     uint64_t i = 0;
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
-        printf("\rWriting %d bytes to %d (%x) : %03ld%% ...",
-               bytes_read, i, addr, ((100*bytes_programmed)/stat_buf.st_size) );
+        //printf("\rWriting %d bytes to %d (%x) : %03ld%% ...", bytes_read, i, addr, ((100*bytes_programmed)/stat_buf.st_size) );
+        cout << "\rWriting " << (uint64_t)bytes_read << " bytes to "
+             << (uint64_t)i << " (" << addr << hex << ") : "
+             << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
+             << "%% ..." << endl;
+
 
         fflush(stdout);
         if ( flash->programBuffer(addr, bytes_read/2, buffer) < 0 )
