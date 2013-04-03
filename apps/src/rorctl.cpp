@@ -405,7 +405,7 @@ flash_device
         cout << "\rWriting " << (uint64_t)bytes_read << " bytes to "
              << (uint64_t)i << " (" << addr << hex << ") : "
              << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
-             << "%% ..." << endl;
+             << dec << "% ...";
 
 
         fflush(stdout);
