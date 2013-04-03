@@ -374,7 +374,10 @@ flash_device
 	cout << "Bitfile will be written to Flash starting at addr "
 	     << addr << endl;
 
-	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n", block_count, addr>>16, (addr>>16)+block_count-1);
+	//printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n", block_count, addr>>16, (addr>>16)+block_count-1);
+    cout << "Using " << (uint64_t)(block_count) << " Blocks ("
+         << (uint64_t)(addr>>16) << " to "
+         << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
 
     /** Open the flash file */
     int fd = open(options.filename, O_RDONLY);
