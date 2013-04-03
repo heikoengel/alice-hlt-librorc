@@ -401,18 +401,16 @@ flash_device
     uint64_t i = 0;
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
-        //printf("\rWriting %d bytes to %d (%x) : %03ld%% ...", bytes_read, i, addr, ((100*bytes_programmed)/stat_buf.st_size) );
         cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
              << (uint64_t)i << " (" << hex << addr << ") : "
              << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
              << "% ...";
-
-
         fflush(stdout);
+
         if ( flash->programBuffer(addr, bytes_read/2, buffer) < 0 )
         {
-            printf("programBuffer failed, STS: %04x\n",
-                flash->getStatusRegister(addr));
+            cout << "programBuffer failed, STS: " << hex
+                 << flash->getStatusRegister(addr) << dec << endl;
             break;
         }
 
@@ -421,9 +419,10 @@ flash_device
             uint16_t status = flash->get(addr+i);
             if( buffer[i] != status )
             {
-                printf("write failed: written %04x, "
-                    "read %04x, addr %x, bytes_read %d\n",
-                    buffer[i], status, addr+i, bytes_read);
+                cout << "write failed: written " << hex << buffer[i]
+                     << ", read " << status << ", addr " << hex
+                     << (addr+i) << ", bytes_read " << dec << bytes_read
+                     << endl;
                 break;
             }
         }
