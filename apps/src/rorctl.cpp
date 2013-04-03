@@ -298,7 +298,6 @@ erase_device
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
         uint64_t current_addr = (i<<16);
-        //printf("\rErasing block %d(%x)...", i, current_addr);
         cout << "\rErasing block " << dec << i << " ("
              << hex << current_addr << ")...";
         fflush(stdout);
@@ -310,8 +309,8 @@ erase_device
 
         if( flash->eraseBlock(current_addr)<0 )
         {
-            printf("failed, STS: %04x\n",
-                   flash->getStatusRegister(current_addr) );
+            cout << "failed, STS: " << hex << setw(4)
+                 << flash->getStatusRegister(current_addr) << endl;
             abort();
         }
 
