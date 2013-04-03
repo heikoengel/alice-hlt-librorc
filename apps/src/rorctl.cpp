@@ -398,11 +398,10 @@ flash_device
     uint16_t *buffer
         = (uint16_t *)malloc(32*sizeof(uint16_t));
 
-    uint64_t i = 0;
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
         cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
-             << (uint64_t)i << " (" << hex << addr << ") : "
+             << (uint64_t)addr << " (" << hex << addr << ") : "
              << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
              << "% ...";
         fflush(stdout);
@@ -429,7 +428,6 @@ flash_device
 
         bytes_programmed += bytes_read;
         addr += bytes_read/2;
-        i++;
     }
     cout << endl << "DONE!" << endl;
 
