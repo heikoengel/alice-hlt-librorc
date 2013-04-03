@@ -107,7 +107,6 @@ int main
         return -1;
     }
 
-    //TODO revise this
     confopts options =
     {
         NOT_SET,
@@ -356,30 +355,30 @@ flash_device
         cout << "Flash init failed!" << endl;
     }
 
-    /** Prequesits flash */
-    uint64_t addr = (1<<23); //start address: +16MB
+    /** Prequesits flash
+     *  start address: +16MB
+     **/
+    uint64_t addr = (1<<23);
     uint64_t block_count
         = (unsigned int)(stat_buf.st_size>>17)+1;
 
     printf("Bitfile Size         : %.3f MB (%ld Bytes)\n",(double)(stat_buf.st_size/1024.0/1024.0), stat_buf.st_size );
 	printf("Bitfile will be written to Flash starting at addr %" PRIx64 "\n", addr);
-	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n",
-            block_count, addr>>16, (addr>>16)+block_count-1);
+	printf("Using %" PRIu64 " Blocks (%" PRIu64 " to %" PRIu64 ")\n", block_count, addr>>16, (addr>>16)+block_count-1);
 
     /** Open the flash file */
-    /* TODO : add some cons. checking here */
-    /* TODO : add preloading here */
     int fd = open(options.filename, O_RDONLY);
     if(fd == -1)
 	{
-        printf("failed to open input file %s\n", options.filename);
-        abort();
+        cout << "failed to open input file "
+             << options.filename << "!"<< endl;
+        return -1;
 	}
 
     /** Erase the flash first */
     if(erase_device(options, flash)!=0)
     {
-        printf("CRORC flash erase failed!\n");
+        cout << "CRORC flash erase failed!" << endl;
         return -1;
     }
 
@@ -419,7 +418,7 @@ flash_device
         addr += bytes_read/2;
         i++;
     }
-    printf("\nDONE.\n");
+    cout << endl << "DONE!" << endl;
 
     /* Close everything */
 	free(buffer);
