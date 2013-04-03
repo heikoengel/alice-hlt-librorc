@@ -79,13 +79,15 @@ dump_device
 int64_t
 erase_device
 (
-    confopts options
+    confopts          options,
+    rorcfs_flash_htg *flash
 );
 
 int64_t
 flash_device
 (
-    confopts options
+    confopts          options,
+    rorcfs_flash_htg *flash
 );
 
 
@@ -148,13 +150,13 @@ int main
 
                 case 'e':
                 {
-                    erase_device(options);
+                    erase_device(options, init_flash(options));
                 }
                 break;
 
                 case 'p':
                 {
-                    flash_device(options);
+                    flash_device(options, init_flash(options));
                 }
                 break;
 
@@ -279,12 +281,10 @@ dump_device
 int64_t
 erase_device
 (
-    confopts options
+    confopts          options,
+    rorcfs_flash_htg *flash
 )
 {
-    rorcfs_flash_htg *flash =
-        init_flash(options);
-
     unsigned int addr = (1<<23); //start address: +16MB
     int block_count   = (unsigned int)((16<<20)>>17);
 
@@ -319,13 +319,14 @@ erase_device
 int64_t
 flash_device
 (
-    confopts options
+    confopts          options,
+    rorcfs_flash_htg *flash
 )
 {
     if(options.filename == NULL)
     {
-        printf("File was not given!\n");
-        abort();
+        cout << "File was not given!" << endl;
+        return -1;
     }
 
     struct stat stat_buf;
@@ -338,11 +339,10 @@ flash_device
 
     if(stat_buf.st_size > FLASH_FILE_SIZE)
     {
-        printf("Flash file is to big!\n");
+        cout << "Flash file is to big!" << endl;
         return -1;
     }
 
-    rorcfs_flash_htg *flash = init_flash(options);
     if(flash == NULL)
     {
         cout << "Flash init failed!" << endl;
@@ -370,7 +370,7 @@ flash_device
 	}
 
     /** Erase the flash first */
-    if(erase_device(options)!=0)
+    if(erase_device(options, flash)!=0)
     {
         printf("CRORC flash erase failed!\n");
         return -1;
