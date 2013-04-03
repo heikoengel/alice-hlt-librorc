@@ -385,7 +385,10 @@ flash_device
     uint64_t i = 0;
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
-        printf("\rWriting %d bytes to %d(%x)...", bytes_read, i, addr);
+        printf("\rWriting %d bytes to %d(%x) ... %03ld%%",
+               bytes_read, i, addr, ((100*bytes_programmed)/stat_buf.st_size) );
+
+        fflush(stdout);
         if ( flash->programBuffer(addr, bytes_read/2, buffer) < 0 )
         {
             printf("programBuffer failed, STS: %04x\n",
@@ -406,9 +409,6 @@ flash_device
         }
 
         bytes_programmed += bytes_read;
-        //printf("\r%03ld%%", (100*bytes_programmed)/stat_buf.st_size);
-
-        fflush(stdout);
         addr += bytes_read/2;
         i++;
     }
