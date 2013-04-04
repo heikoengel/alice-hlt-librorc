@@ -39,36 +39,6 @@
 		<Unit filename="librorc/src/rorcfs_flash_htg.hh" />
 		<Unit filename="librorc/src/rorcfs_sysmon.cpp" />
 		<Unit filename="librorc/src/rorcfs_sysmon.hh" />
-		<Unit filename="registers/rorc_registers.h" />
-		<Unit filename="rorcfs/build/3.7.0-gentoo/include/rorcfs.h" />
-		<Unit filename="rorcfs/build/3.7.0-gentoo/rorcfs.mod.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/build/3.7.0-gentoo/src/base.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/build/3.7.0-gentoo/src/base.h" />
-		<Unit filename="rorcfs/build/3.7.0-gentoo/src/buffer.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/build/3.7.0-gentoo/src/buffer.h" />
-		<Unit filename="rorcfs/build/3.7.0-gentoo/src/sysfs.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/build/3.7.0-gentoo/src/sysfs.h" />
-		<Unit filename="rorcfs/include/rorcfs.h" />
-		<Unit filename="rorcfs/src/base.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/src/base.h" />
-		<Unit filename="rorcfs/src/buffer.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/src/buffer.h" />
-		<Unit filename="rorcfs/src/sysfs.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="rorcfs/src/sysfs.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
