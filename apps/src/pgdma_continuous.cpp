@@ -101,25 +101,25 @@ int main( int argc, char *argv[])
   }
 
   // get ChannelID
-  ChannelId= strtoul(argv[1], NULL, 0);
+  ChannelId= strtoul(argv[1], NULL, 0);	
   if ((errno == ERANGE && ChannelId == ULONG_MAX)
       || (errno != 0 && ChannelId>MAX_CHANNEL)) {
     perror("illegal ChannelID");
     result = -1;
     exit(-1);
-  }
+  }	
 
   // get EventSize
-  EventSize = strtoul(argv[2], NULL, 0);
+  EventSize = strtoul(argv[2], NULL, 0);	
   if ((errno == ERANGE && EventSize == ULONG_MAX)
       || (errno != 0 && EventSize== 0)) {
     perror("illegal EventSize");
     result = -1;
     exit(-1);
-  }
+  }	
 
   // create new device class
-  dev = new rorcfs_device();
+  dev = new rorcfs_device();	
   if ( dev->init(0) == -1 ) {
     printf("ERROR: failed to initialize device.\n");
     goto out;
@@ -138,8 +138,8 @@ int main( int argc, char *argv[])
   printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
 
   // create new DMA event buffer
-  ebuf = new rorcfs_buffer();
-  if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
+  ebuf = new rorcfs_buffer();			
+  if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 
         1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
       if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
@@ -154,7 +154,7 @@ int main( int argc, char *argv[])
 
   // create new DMA report buffer
   rbuf = new rorcfs_buffer();;
-  if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
+  if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 
         1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
       //printf("INFO: Buffer already exists, trying to connect...\n");
@@ -217,7 +217,7 @@ int main( int argc, char *argv[])
 
   /* clear report buffer */
   reportbuffer = (struct rorcfs_event_descriptor *)rbuf->getMem();
-  printf("pRBUF=%p, MappingSize=%ld\n",
+  printf("pRBUF=%p, MappingSize=%ld\n", 
       rbuf->getMem(), rbuf->getMappingSize() );
   memset(reportbuffer, 0, rbuf->getMappingSize());
 
@@ -234,18 +234,16 @@ int main( int argc, char *argv[])
 
   // Configure Pattern Generator
   ch->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize);
-  ch->setGTX(RORC_REG_DDL_CTRL,
+  ch->setGTX(RORC_REG_DDL_CTRL, 
       ch->getGTX(RORC_REG_DDL_CTRL) | 0x600); //set PG mode
-  ch->setGTX(RORC_REG_DDL_CTRL,
+  ch->setGTX(RORC_REG_DDL_CTRL, 
       ch->getGTX(RORC_REG_DDL_CTRL) | 0x100); //enable PG
 
   ch->setEnableEB(1);
   ch->setEnableRB(1);
 
   // capture starting time
-  //bar1->gettime(&start_time, 0);
-  gettimeofday(&start_time, 0);
-
+  bar1->gettime(&start_time, 0);
   last_time = start_time;
   cur_time = start_time;
 
@@ -261,13 +259,13 @@ int main( int argc, char *argv[])
     // triggered from CTRL+C
 
     result =  handle_channel_data(
-        reportbuffer,
-        eventbuffer,
+        rbuf, 
+        eventbuffer, 
         ch, // channe struct
         chstats, // stats struct
-        rbuf->getPhysicalSize(), //rBuf size
-        rbuf->getMaxRBEntries(), //rBuf #entries
-        1); // do sanity check
+        0xff, // do sanity check
+        NULL, // no reference DDL
+        0); //reference DDL size
 
     if ( result < 0 ) {
       printf("handle_channel_data failed for channel %ld\n", ChannelId);
@@ -277,13 +275,12 @@ int main( int argc, char *argv[])
       usleep(100);
     }
 
-    //bar1->gettime(&cur_time, 0);
-    gettimeofday(&cur_time, 0);
+    bar1->gettime(&cur_time, 0);
 
     // print status line each second
     if(gettimeofday_diff(last_time, cur_time)>1.0) {
       printf("Events: %10ld, DataSize: %8.3f GB",
-          chstats->n_events,
+          chstats->n_events, 
           (double)chstats->bytes_received/(double)(1<<30));
 
       if ( chstats->bytes_received-last_bytes_received)
@@ -303,25 +300,24 @@ int main( int argc, char *argv[])
   }
 
   // EOR
-  //bar1->gettime(&end_time, 0);
-  gettimeofday(&end_time, 0);
+  bar1->gettime(&end_time, 0);
 
   // print summary
   printf("%ld Byte / %ld events in %.2f sec"
-      "-> %.1f MB/s.\n",
-      (chstats->bytes_received), chstats->n_events,
+      "-> %.1f MB/s.\n", 
+      (chstats->bytes_received), chstats->n_events, 
       gettimeofday_diff(start_time, end_time),
       ((float)chstats->bytes_received/
        gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
 
   if(!chstats->set_offset_count) //avoid DivByZero Exception
     printf("CH%ld: No Events\n", ChannelId);
-  else
+  else 
     printf("CH%ld: Events %ld, max_epi=%ld, min_epi=%ld, "
-        "avg_epi=%ld, set_offset_count=%ld\n", ChannelId,
-        chstats->n_events, chstats->max_epi,
+        "avg_epi=%ld, set_offset_count=%ld\n", ChannelId, 
+        chstats->n_events, chstats->max_epi, 
         chstats->min_epi,
-        chstats->n_events/chstats->set_offset_count,
+        chstats->n_events/chstats->set_offset_count, 
         chstats->set_offset_count);
 
 
