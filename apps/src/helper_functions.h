@@ -371,49 +371,4 @@ int dump_to_file (
   return 0;
 }
 
-
-///**
-// * Dump ScatterGather List
-// * @param buf pointer to the according struct rorcfs_buffer
-// * */
-//void dump_sglist( struct rorcfs_buffer *buf )
-//{
-//  char *fname = NULL;
-//  int fname_size = 0;
-//  int fd, nbytes;
-//  unsigned long i;
-//  struct rorcfs_dma_desc dma_desc;
-//  fname_size = snprintf(NULL, 0, "%s/sglist", buf->getDName()) + 1;
-//  fname = (char *)malloc(fname_size);
-//  if (!fname) {
-//    perror("malloc fname failed");
-//    return;
-//  }
-//  snprintf(fname, fname_size, "%s/sglist", buf->getDName());
-//  fd = open(fname, O_RDONLY);
-//  free(fname);
-//  if (fd==-1) {
-//    perror("failed to open sglist file");
-//    return;
-//  }
-//
-//  for(i=0;i<buf->getnSGEntries();i++)
-//  {
-//    nbytes = read(fd, &dma_desc, sizeof(dma_desc));
-//    if (nbytes != sizeof(dma_desc)) {
-//      perror("failed to read from sglist");
-//      close(fd);
-//      return;
-//    }
-//    printf("%04ld: 0x%08x_%08x - 0x%08x_%08x\n",
-//        i, (unsigned int)((unsigned long)dma_desc.addr>>32 & 0xffffffff),
-//        (unsigned int)(dma_desc.addr & 0xffffffff),
-//        (unsigned int)((unsigned long)dma_desc.len>>32 & 0xffffffff),
-//        (unsigned int)(dma_desc.len & 0xffffffff) );
-//  }
-//
-//  close(fd);
-//}
-
-
 #endif
