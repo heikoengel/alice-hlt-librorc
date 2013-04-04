@@ -114,8 +114,6 @@ int main
         0
     };
 
-    rorcfs_device *dev = NULL;
-
     {
         opterr = 0;
         int c;
@@ -139,36 +137,31 @@ int main
                 case 'l':
                 {
                     print_devices();
+                    return(0);
                 }
                 break;
 
                 case 'd':
                 {
-                    dump_device(options, init_flash(options));
+                    return(dump_device(options, init_flash(options)));
                 }
                 break;
 
                 case 'e':
                 {
-                    erase_device(options, init_flash(options));
+                    return(erase_device(options, init_flash(options)));
                 }
                 break;
 
                 case 'p':
                 {
-                    flash_device(options, init_flash(options));
+                    return(flash_device(options, init_flash(options)));
                 }
                 break;
 
                 case 'n':
                 {
                     options.device_number = atoi(optarg);
-                    dev = new rorcfs_device();
-                    if ( dev->init(0) == -1 )
-                    {
-                        cout << "ERROR: failed to initialize device!" << endl;
-                        goto ret_main;
-                    }
                 }
                 break;
 
@@ -312,7 +305,7 @@ erase_device
         {
             cout << "failed, STS: " << hex << setw(4)
                  << flash->getStatusRegister(current_addr) << endl;
-            abort();
+            return -1;
         }
 
         fflush(stdout);
@@ -452,7 +445,7 @@ init_flash
     if(options.device_number == NOT_SET)
     {
         cout << "Device ID was not given!" << endl;
-        abort();
+        return NULL;
     }
 
     rorcfs_device *dev
