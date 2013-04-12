@@ -1,3 +1,22 @@
+/**
+ * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
+ * @date 2012-04-12
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * */
+
 #define __STDC_FORMAT_MACROS
 
 #include <stdio.h>
@@ -50,8 +69,6 @@ List all available devices :                                 \n\
 #ifndef NOT_SET
     #define NOT_SET 0xFFFFFFFFFFFFFFFF
 #endif
-
-#define FLASH_FILE_SIZE 16777216
 
 /* Parameter container */
 typedef struct
@@ -160,7 +177,7 @@ int main
                 case 'p':
                 {
                     flash = init_flash(options);
-                    return(flash_device(options, flash));
+                    return( flash->flash(options.filename) );
                 }
                 break;
 
@@ -222,120 +239,120 @@ print_devices()
 
 
 
-int64_t
-flash_device
-(
-    confopts          options,
-    rorcfs_flash_htg *flash
-)
-{
-    if(options.filename == NULL)
-    {
-        cout << "File was not given!" << endl;
-        return -1;
-    }
-
-    struct stat stat_buf;
-    if( stat(options.filename, &stat_buf) != 0)
-    {
-        cout << "Flash input file does not exist or is not accessable!"
-             << endl;
-        return -1;
-    }
-
-    if(stat_buf.st_size > FLASH_FILE_SIZE)
-    {
-        cout << "Flash file is to big!" << endl;
-        return -1;
-    }
-
-    if(flash == NULL)
-    {
-        cout << "Flash init failed!" << endl;
-    }
-
-    /** Prequesits flash
-     *  start address: +16MB
-     **/
-    uint64_t addr = (1<<23);
-    uint64_t block_count
-        = (unsigned int)(stat_buf.st_size>>17)+1;
-
-    cout << "Bitfile Size         : "
-         << (double)(stat_buf.st_size/1024.0/1024.0)
-         << " MB (" << dec << stat_buf.st_size
-         << " Bytes)" << endl;
-
-	cout << "Bitfile will be written to Flash starting at addr "
-	     << addr << endl;
-
-    cout << "Using " << (uint64_t)(block_count) << " Blocks ("
-         << (uint64_t)(addr>>16) << " to "
-         << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
-
-    /** Open the flash file */
-    int fd = open(options.filename, O_RDONLY);
-    if(fd == -1)
-	{
-        cout << "failed to open input file "
-             << options.filename << "!"<< endl;
-        return -1;
-	}
-
-    /** Erase the flash first */
-    if(flash->erase()!=0)
-    {
-        cout << "CRORC flash erase failed!" << endl;
-        return -1;
-    }
-
-    /** Program flash */
-    size_t bytes_read = 0;
-    size_t bytes_programmed = 0;
-    uint16_t *buffer
-        = (uint16_t *)malloc(32*sizeof(uint16_t));
-
-    while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
-    {
-        cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
-             << (uint64_t)addr << " (" << hex << addr << ") : "
-             << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
-             << "% ...";
-        fflush(stdout);
-
-        if ( flash->programBuffer(addr, bytes_read/2, buffer) < 0 )
-        {
-            cout << "programBuffer failed, STS: " << hex
-                 << flash->getStatusRegister(addr) << dec << endl;
-            break;
-        }
-
-        for(uint64_t i=0; i<(bytes_read/2); i++)
-        {
-            uint16_t status = flash->get(addr+i);
-            if( buffer[i] != status )
-            {
-                cout << "write failed: written " << hex << buffer[i]
-                     << ", read " << status << ", addr " << hex
-                     << (addr+i) << ", bytes_read " << dec << bytes_read
-                     << endl;
-                break;
-            }
-        }
-
-        bytes_programmed += bytes_read;
-        addr += bytes_read/2;
-    }
-    cout << endl << "DONE!" << endl;
-
-    /* Close everything */
-	free(buffer);
-    close(fd);
-
-    /* TODO : Use dump_device to verify */
-
-    return 0;
-}
+//int64_t
+//flash_device
+//(
+//    confopts          options,
+//    rorcfs_flash_htg *flash
+//)
+//{
+//    if(options.filename == NULL)
+//    {
+//        cout << "File was not given!" << endl;
+//        return -1;
+//    }
+//
+//    struct stat stat_buf;
+//    if( stat(options.filename, &stat_buf) != 0)
+//    {
+//        cout << "Flash input file does not exist or is not accessable!"
+//             << endl;
+//        return -1;
+//    }
+//
+//    if(stat_buf.st_size > FLASH_FILE_SIZE)
+//    {
+//        cout << "Flash file is to big!" << endl;
+//        return -1;
+//    }
+//
+//    if(flash == NULL)
+//    {
+//        cout << "Flash init failed!" << endl;
+//    }
+//
+//    /** Prequesits flash
+//     *  start address: +16MB
+//     **/
+//    uint64_t addr = (1<<23);
+//    uint64_t block_count
+//        = (unsigned int)(stat_buf.st_size>>17)+1;
+//
+//    cout << "Bitfile Size         : "
+//         << (double)(stat_buf.st_size/1024.0/1024.0)
+//         << " MB (" << dec << stat_buf.st_size
+//         << " Bytes)" << endl;
+//
+//	cout << "Bitfile will be written to Flash starting at addr "
+//	     << addr << endl;
+//
+//    cout << "Using " << (uint64_t)(block_count) << " Blocks ("
+//         << (uint64_t)(addr>>16) << " to "
+//         << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
+//
+//    /** Open the flash file */
+//    int fd = open(options.filename, O_RDONLY);
+//    if(fd == -1)
+//	{
+//        cout << "failed to open input file "
+//             << options.filename << "!"<< endl;
+//        return -1;
+//	}
+//
+//    /** Erase the flash first */
+//    if(flash->erase()!=0)
+//    {
+//        cout << "CRORC flash erase failed!" << endl;
+//        return -1;
+//    }
+//
+//    /** Program flash */
+//    size_t bytes_read = 0;
+//    size_t bytes_programmed = 0;
+//    uint16_t *buffer
+//        = (uint16_t *)malloc(32*sizeof(uint16_t));
+//
+//    while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
+//    {
+//        cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
+//             << (uint64_t)addr << " (" << hex << addr << ") : "
+//             << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
+//             << "% ...";
+//        fflush(stdout);
+//
+//        if ( flash->programBuffer(addr, bytes_read/2, buffer) < 0 )
+//        {
+//            cout << "programBuffer failed, STS: " << hex
+//                 << flash->getStatusRegister(addr) << dec << endl;
+//            break;
+//        }
+//
+//        for(uint64_t i=0; i<(bytes_read/2); i++)
+//        {
+//            uint16_t status = flash->get(addr+i);
+//            if( buffer[i] != status )
+//            {
+//                cout << "write failed: written " << hex << buffer[i]
+//                     << ", read " << status << ", addr " << hex
+//                     << (addr+i) << ", bytes_read " << dec << bytes_read
+//                     << endl;
+//                break;
+//            }
+//        }
+//
+//        bytes_programmed += bytes_read;
+//        addr += bytes_read/2;
+//    }
+//    cout << endl << "DONE!" << endl;
+//
+//    /* Close everything */
+//	free(buffer);
+//    close(fd);
+//
+//    /* TODO : Use dump_device to verify */
+//
+//    return 0;
+//}
 
 
 
