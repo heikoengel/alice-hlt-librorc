@@ -114,6 +114,8 @@ int main
         0
     };
 
+    rorcfs_flash_htg *flash = NULL;
+
     {
         opterr = 0;
         int c;
@@ -143,19 +145,22 @@ int main
 
                 case 'd':
                 {
-                    return(dump_device(options, init_flash(options)));
+                    flash = init_flash(options);
+                    return( flash->dump(options.filename, options.verbose) );
                 }
                 break;
 
                 case 'e':
                 {
-                    return(erase_device(options, init_flash(options)));
+                    flash = init_flash(options);
+                    return(erase_device(options, flash));
                 }
                 break;
 
                 case 'p':
                 {
-                    return(flash_device(options, init_flash(options)));
+                    flash = init_flash(options);
+                    return(flash_device(options, flash));
                 }
                 break;
 
@@ -213,63 +218,6 @@ print_devices()
 
         delete dev;
     }
-}
-
-
-
-int64_t
-dump_device
-(
-    confopts          options,
-    rorcfs_flash_htg *flash
-)
-{
-    uint64_t flash_words = (FLASH_SIZE/2);
-    uint16_t *flash_buffer =
-        (uint16_t*)calloc(flash_words, sizeof(uint16_t));
-
-    FILE *filep =
-        fopen(options.filename, "w");
-    if(filep == NULL)
-    {
-        cout << "File open failed!" << endl;
-        return -1;
-    }
-
-    if(flash == NULL)
-    {
-        cout << "Flash init failed!" << endl;
-        return -1;
-    }
-
-    if(options.verbose == 1)
-    {
-        for(uint64_t i=0; i<flash_words; i++)
-        {
-            flash_buffer[i] = flash->get(i);
-            cout << i << " : "  << hex << setw(4)
-                 << flash_buffer[i] << dec << endl;
-        }
-    }
-    else
-    {
-        for(uint64_t i=0; i<flash_words; i++)
-        {
-            flash_buffer[i] = flash->get(i);
-        }
-    }
-
-    size_t bytes_written =
-       fwrite(flash_buffer, FLASH_SIZE, 1, filep);
-    if(bytes_written != 1)
-    {
-        cout << "WARNING : writing to file failed!" << endl;
-    }
-
-    fclose(filep);
-    free(flash_buffer);
-
-    return 0;
 }
 
 

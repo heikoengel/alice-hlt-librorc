@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include <iostream>
+#include <iomanip>
 
 #include "rorcfs_bar.hh"
 #include "rorcfs_flash_htg.hh"
@@ -473,4 +474,54 @@ rorcfs_flash_htg::getBankAddress
 {
     /** bank 0: 0x000000 - 0x080000 **/
     return(addr & 0xff800000);
+}
+
+
+
+int64_t
+rorcfs_flash_htg::dump
+(
+    char    *filename,
+    uint8_t  verbose
+)
+{
+    uint64_t flash_words = (FLASH_SIZE/2);
+    uint16_t *flash_buffer =
+        (uint16_t*)calloc(flash_words, sizeof(uint16_t));
+
+    FILE *filep = fopen(filename, "w");
+    if(filep == NULL)
+    {
+        cout << "File open failed!" << endl;
+        return -1;
+    }
+
+    if(verbose == 1)
+    {
+        for(uint64_t i=0; i<flash_words; i++)
+        {
+            flash_buffer[i] = get(i);
+            cout << i << " : "  << hex << setw(4)
+                 << flash_buffer[i] << dec << endl;
+        }
+    }
+    else
+    {
+        for(uint64_t i=0; i<flash_words; i++)
+        {
+            flash_buffer[i] = get(i);
+        }
+    }
+
+    size_t bytes_written =
+       fwrite(flash_buffer, FLASH_SIZE, 1, filep);
+    if(bytes_written != 1)
+    {
+        cout << "WARNING : writing to file failed!" << endl;
+    }
+
+    fclose(filep);
+    free(flash_buffer);
+
+    return 0;
 }

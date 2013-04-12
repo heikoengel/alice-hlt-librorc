@@ -300,6 +300,13 @@ public:
         unsigned int addr
     );
 
+    int64_t
+    dump
+    (
+        char    *filename,
+        uint8_t  verbose
+    );
+
 private:
     rorcfs_bar    *bar;
     unsigned short read_state;
