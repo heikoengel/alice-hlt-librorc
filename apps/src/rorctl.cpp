@@ -254,7 +254,7 @@ init_flash
     rorcfs_flash_htg *flash = NULL;
     try
     {
-        flash = new rorcfs_flash_htg(bar);
+        flash = new rorcfs_flash_htg(bar, options.verbose);
     }
     catch (int e)
     {
