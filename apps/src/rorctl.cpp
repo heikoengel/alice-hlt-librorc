@@ -110,7 +110,7 @@ int main
     {
         NOT_SET,
         NULL,
-        LIBRORC_VERBOSE_ON
+        LIBRORC_VERBOSE_OFF
     };
 
     rorcfs_flash_htg *flash = NULL;
