@@ -636,17 +636,20 @@ rorcfs_flash_htg::flash
     uint64_t block_count
         = (unsigned int)(stat_buf.st_size>>17)+1;
 
-    cout << "Bitfile Size         : "
-         << (double)(stat_buf.st_size/1024.0/1024.0)
-         << " MB (" << dec << stat_buf.st_size
-         << " Bytes)" << endl;
+    if(verbose == LIBRORC_VERBOSE_ON)
+    {
+        cout << "Bitfile Size         : "
+             << (double)(stat_buf.st_size/1024.0/1024.0)
+             << " MB (" << dec << stat_buf.st_size
+             << " Bytes)" << endl;
 
-	cout << "Bitfile will be written to Flash starting at addr "
-	     << addr << endl;
+        cout << "Bitfile will be written to Flash starting at addr "
+             << addr << endl;
 
-    cout << "Using " << (uint64_t)(block_count) << " Blocks ("
-         << (uint64_t)(addr>>16) << " to "
-         << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
+        cout << "Using " << (uint64_t)(block_count) << " Blocks ("
+             << (uint64_t)(addr>>16) << " to "
+             << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
+    }
 
     /** Open the flash file */
     int fd = open(filename, O_RDONLY);
@@ -672,11 +675,14 @@ rorcfs_flash_htg::flash
 
     while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
     {
-        cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
-             << (uint64_t)addr << " (" << hex << addr << ") : "
-             << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
-             << "% ...";
-        fflush(stdout);
+        if(verbose == LIBRORC_VERBOSE_ON)
+        {
+            cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
+                 << (uint64_t)addr << " (" << hex << addr << ") : "
+                 << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
+                 << "% ...";
+            fflush(stdout);
+        }
 
         if ( programBuffer(addr, bytes_read/2, buffer) < 0 )
         {
@@ -701,7 +707,11 @@ rorcfs_flash_htg::flash
         bytes_programmed += bytes_read;
         addr += bytes_read/2;
     }
-    cout << endl << "DONE!" << endl;
+
+    if(verbose == LIBRORC_VERBOSE_ON)
+    {
+        cout << endl << "DONE!" << endl;
+    }
 
     /* Close everything */
 	free(buffer);
