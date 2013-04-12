@@ -515,8 +515,8 @@ rorcfs_flash_htg::getBankAddress
 int64_t
 rorcfs_flash_htg::dump
 (
-    char    *filename,
-    uint8_t  verbose
+    char                   *filename,
+    librorc_verbosity_enum  verbose
 )
 {
     uint64_t flash_words = (FLASH_SIZE/2);
@@ -526,11 +526,10 @@ rorcfs_flash_htg::dump
     FILE *filep = fopen(filename, "w");
     if(filep == NULL)
     {
-        cout << "File open failed!" << endl;
         return -1;
     }
 
-    if(verbose == 1)
+    if(verbose == LIBRORC_VERBOSE_ON)
     {
         for(uint64_t i=0; i<flash_words; i++)
         {

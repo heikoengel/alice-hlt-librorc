@@ -73,9 +73,9 @@ List all available devices :                                 \n\
 /** Parameter container */
 typedef struct
 {
-    uint64_t  device_number;
-    char     *filename;
-    uint8_t   verbose;
+    uint64_t                device_number;
+    char                   *filename;
+    librorc_verbosity_enum  verbose;
 }confopts;
 
 /** Function signatures */
@@ -110,7 +110,7 @@ int main
     {
         NOT_SET,
         NULL,
-        0
+        LIBRORC_VERBOSE_ON
     };
 
     rorcfs_flash_htg *flash = NULL;
@@ -130,7 +130,7 @@ int main
 
                 case 'v':
                 {
-                    options.verbose = 1;
+                    options.verbose = LIBRORC_VERBOSE_ON;
                 }
                 break;
 

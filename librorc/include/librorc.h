@@ -2,6 +2,7 @@
 #define LIBRORC_H
 
     #include "librorc_registers.h"
+    #include "librorc_defines.hh"
 
     #include "rorcfs_device.hh"
     #include "rorcfs_bar.hh"
@@ -10,4 +11,4 @@
     #include "rorcfs_buffer.hh"
     #include "rorcfs_dma_channel.hh"
 
-#endif
+#endif /** LIBRORC_H */

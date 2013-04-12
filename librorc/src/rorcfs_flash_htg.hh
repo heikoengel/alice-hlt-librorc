@@ -20,6 +20,8 @@
 #ifndef _RORCLIB_RORCFS_FLASH_HTG
 #define _RORCLIB_RORCFS_FLASH_HTG
 
+#include "librorc_defines.hh"
+
 #define FLASH_SIZE 33554432
 #define FLASH_FILE_SIZE 16777216
 
@@ -304,8 +306,8 @@ public:
     int64_t
     dump
     (
-        char    *filename,
-        uint8_t  verbose
+        char                   *filename,
+        librorc_verbosity_enum  verbose
     );
 
     int64_t erase();
