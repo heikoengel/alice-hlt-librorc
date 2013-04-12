@@ -38,36 +38,39 @@ rorcfs_flash_htg::rorcfs_flash_htg
     rorcfs_bar *flashbar
 )
 {
-    assert(flashbar != NULL);
+    if(flashbar != NULL)
+    {
+        throw 1;
+    }
+
     bar        = flashbar;
     read_state = 0;
 
     uint16_t status
-        = flash->getStatusRegister(0);
+        = getStatusRegister(0);
 
     cout << "Status               : " << hex
          << setw(4) << status << endl;
 
     if( status != 0x0080 )
     {
-        flash->clearStatusRegister(0);
+        clearStatusRegister(0);
         usleep(100);
         if ( status & 0x0084 )
         {
-            flash->programResume(0);
+            programResume(0);
         }
-        status = flash->getStatusRegister(0);
+        status = getStatusRegister(0);
     }
 
     cout << "Status               : " << hex
          << setw(4) << status << endl;
-
     cout << "Manufacturer Code    : " << hex << setw(4)
-         << flash->getManufacturerCode() << endl;
+         << getManufacturerCode() << endl;
     cout << "Device ID            : " << hex << setw(4)
-         << flash->getDeviceID() << endl;
+         << getDeviceID() << endl;
     cout << "Read Config Register : " << hex << setw(4)
-         << flash->getReadConfigurationRegister() << endl;
+         << getReadConfigurationRegister() << endl;
 
 }
 

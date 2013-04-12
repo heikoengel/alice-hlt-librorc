@@ -70,7 +70,7 @@ List all available devices :                                 \n\
     #define NOT_SET 0xFFFFFFFFFFFFFFFF
 #endif
 
-/* Parameter container */
+/** Parameter container */
 typedef struct
 {
     uint64_t  device_number;
@@ -78,6 +78,7 @@ typedef struct
     uint8_t   verbose;
 }confopts;
 
+/** Function signatures */
 void print_devices();
 
 inline
@@ -87,30 +88,11 @@ init_flash
     confopts options
 );
 
-int64_t
-dump_device
-(
-    confopts          options,
-    rorcfs_flash_htg *flash
-);
-
-int64_t
-erase_device
-(
-    confopts          options,
-    rorcfs_flash_htg *flash
-);
-
-int64_t
-flash_device
-(
-    confopts          options,
-    rorcfs_flash_htg *flash
-);
-
 
 
 /*----------------------------------------------------------*/
+
+
 
 int main
 (
@@ -132,7 +114,6 @@ int main
     };
 
     rorcfs_flash_htg *flash = NULL;
-
     {
         opterr = 0;
         int c;
@@ -269,8 +250,18 @@ init_flash
         return(NULL);
     }
 
-    rorcfs_flash_htg *flash
-        = new rorcfs_flash_htg(bar);
+    /** get flash object */
+    rorcfs_flash_htg *flash = NULL;
+    try
+    {
+        flash = new rorcfs_flash_htg(bar);
+    }
+    catch (int e)
+    {
+        cout << "BAR is no CRORC flash."
+             << " Exception Nr. " << e << endl;
+        return(NULL);
+    }
 
     return(flash);
 }
