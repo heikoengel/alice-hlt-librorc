@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <iostream>
 #include <iomanip>
@@ -38,6 +41,34 @@ rorcfs_flash_htg::rorcfs_flash_htg
     assert(flashbar != NULL);
     bar        = flashbar;
     read_state = 0;
+
+    uint16_t status
+        = flash->getStatusRegister(0);
+
+    cout << "Status               : " << hex
+         << setw(4) << status << endl;
+
+    if( status != 0x0080 )
+    {
+        flash->clearStatusRegister(0);
+        usleep(100);
+        if ( status & 0x0084 )
+        {
+            flash->programResume(0);
+        }
+        status = flash->getStatusRegister(0);
+    }
+
+    cout << "Status               : " << hex
+         << setw(4) << status << endl;
+
+    cout << "Manufacturer Code    : " << hex << setw(4)
+         << flash->getManufacturerCode() << endl;
+    cout << "Device ID            : " << hex << setw(4)
+         << flash->getDeviceID() << endl;
+    cout << "Read Config Register : " << hex << setw(4)
+         << flash->getReadConfigurationRegister() << endl;
+
 }
 
 
@@ -556,6 +587,117 @@ rorcfs_flash_htg::erase()
     }
 
     cout << endl << "Erase complete!" << endl;
+
+    return 0;
+}
+
+
+
+int64_t
+rorcfs_flash_htg::flash
+(
+    char *filename
+)
+{
+    if(filename == NULL)
+    {
+        cout << "File was not given!" << endl;
+        return -1;
+    }
+
+    struct stat stat_buf;
+    if( stat(filename, &stat_buf) != 0)
+    {
+        cout << "Flash input file does not exist or is not accessable!"
+             << endl;
+        return -1;
+    }
+
+    if(stat_buf.st_size > FLASH_FILE_SIZE)
+    {
+        cout << "Flash file is to big!" << endl;
+        return -1;
+    }
+
+    /** Prequesits flash
+     *  start address: +16MB
+     **/
+    uint64_t addr = (1<<23);
+    uint64_t block_count
+        = (unsigned int)(stat_buf.st_size>>17)+1;
+
+    cout << "Bitfile Size         : "
+         << (double)(stat_buf.st_size/1024.0/1024.0)
+         << " MB (" << dec << stat_buf.st_size
+         << " Bytes)" << endl;
+
+	cout << "Bitfile will be written to Flash starting at addr "
+	     << addr << endl;
+
+    cout << "Using " << (uint64_t)(block_count) << " Blocks ("
+         << (uint64_t)(addr>>16) << " to "
+         << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
+
+    /** Open the flash file */
+    int fd = open(filename, O_RDONLY);
+    if(fd == -1)
+	{
+        cout << "failed to open input file "
+             << filename << "!"<< endl;
+        return -1;
+	}
+
+    /** Erase the flash first */
+    if( erase()!=0 )
+    {
+        cout << "CRORC flash erase failed!" << endl;
+        return -1;
+    }
+
+    /** Program flash */
+    size_t bytes_read = 0;
+    size_t bytes_programmed = 0;
+    uint16_t *buffer
+        = (uint16_t *)malloc(32*sizeof(uint16_t));
+
+    while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
+    {
+        cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
+             << (uint64_t)addr << " (" << hex << addr << ") : "
+             << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
+             << "% ...";
+        fflush(stdout);
+
+        if ( programBuffer(addr, bytes_read/2, buffer) < 0 )
+        {
+            cout << "programBuffer failed, STS: " << hex
+                 << getStatusRegister(addr) << dec << endl;
+            break;
+        }
+
+        for(uint64_t i=0; i<(bytes_read/2); i++)
+        {
+            uint16_t status = get(addr+i);
+            if( buffer[i] != status )
+            {
+                cout << "write failed: written " << hex << buffer[i]
+                     << ", read " << status << ", addr " << hex
+                     << (addr+i) << ", bytes_read " << dec << bytes_read
+                     << endl;
+                break;
+            }
+        }
+
+        bytes_programmed += bytes_read;
+        addr += bytes_read/2;
+    }
+    cout << endl << "DONE!" << endl;
+
+    /* Close everything */
+	free(buffer);
+    close(fd);
+
+    /* TODO : Use dump_device to verify */
 
     return 0;
 }

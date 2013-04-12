@@ -21,6 +21,7 @@
 #define _RORCLIB_RORCFS_FLASH_HTG
 
 #define FLASH_SIZE 33554432
+#define FLASH_FILE_SIZE 16777216
 
 
 //TODO : refine this into an enum ...
@@ -308,6 +309,12 @@ public:
     );
 
     int64_t erase();
+
+    int64_t
+    flash
+    (
+        char *filename
+    );
 
 private:
     rorcfs_bar    *bar;

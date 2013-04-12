@@ -272,32 +272,5 @@ init_flash
     rorcfs_flash_htg *flash
         = new rorcfs_flash_htg(bar);
 
-    uint16_t status
-        = flash->getStatusRegister(0);
-
-    cout << "Status               : " << hex
-         << setw(4) << status << endl;
-
-    if( status != 0x0080 )
-    {
-        flash->clearStatusRegister(0);
-        usleep(100);
-        if ( status & 0x0084 )
-        {
-            flash->programResume(0);
-        }
-        status = flash->getStatusRegister(0);
-    }
-
-    cout << "Status               : " << hex
-         << setw(4) << status << endl;
-
-    cout << "Manufacturer Code    : " << hex << setw(4)
-         << flash->getManufacturerCode() << endl;
-    cout << "Device ID            : " << hex << setw(4)
-         << flash->getDeviceID() << endl;
-    cout << "Read Config Register : " << hex << setw(4)
-         << flash->getReadConfigurationRegister() << endl;
-
     return(flash);
 }
