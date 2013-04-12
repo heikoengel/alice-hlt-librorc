@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: a4d7303cc5308d230fea05dcabfbcc4beaae96fc
-// short hash: a4d7303
+// hash: b31ea0dcb12fb852656dd64e316c1eb86febd049
+// short hash: b31ea0d
 //
 
-#define RORC_REVISION 0xa4d7303
-#define RORC_BUILD_DATE 0x20130312
+#define RORC_REVISION 0xb31ea0d
+#define RORC_BUILD_DATE 0x20130326
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
