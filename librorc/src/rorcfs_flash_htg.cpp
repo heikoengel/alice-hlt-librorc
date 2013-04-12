@@ -39,7 +39,7 @@ rorcfs_flash_htg::rorcfs_flash_htg
     librorc_verbosity_enum  verbose
 )
 {
-    if(flashbar != NULL)
+    if(flashbar == NULL)
     {
         throw 1;
     }
