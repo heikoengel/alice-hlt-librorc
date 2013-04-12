@@ -525,3 +525,37 @@ rorcfs_flash_htg::dump
 
     return 0;
 }
+
+
+
+int64_t
+rorcfs_flash_htg::erase()
+{
+    unsigned int addr = (1<<23); //start address: +16MB
+    int block_count   = (unsigned int)((16<<20)>>17);
+    for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
+    {
+        uint64_t current_addr = (i<<16);
+        cout << "\rErasing block " << dec << i << " ("
+             << hex << current_addr << ")...";
+        fflush(stdout);
+
+        if( getBlockLockConfiguration(current_addr) & 0x01 )
+        {
+            unlockBlock(current_addr);
+        }
+
+        if( eraseBlock(current_addr)<0 )
+        {
+            cout << "failed, STS: " << hex << setw(4)
+                 << getStatusRegister(current_addr) << endl;
+            return -1;
+        }
+
+        fflush(stdout);
+    }
+
+    cout << endl << "Erase complete!" << endl;
+
+    return 0;
+}

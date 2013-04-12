@@ -307,6 +307,8 @@ public:
         uint8_t  verbose
     );
 
+    int64_t erase();
+
 private:
     rorcfs_bar    *bar;
     unsigned short read_state;

@@ -153,7 +153,7 @@ int main
                 case 'e':
                 {
                     flash = init_flash(options);
-                    return(erase_device(options, flash));
+                    return( flash->erase() );
                 }
                 break;
 
@@ -223,50 +223,6 @@ print_devices()
 
 
 int64_t
-erase_device
-(
-    confopts          options,
-    rorcfs_flash_htg *flash
-)
-{
-    if(flash == NULL)
-    {
-        cout << "Flash init failed!" << endl;
-        return -1;
-    }
-
-    unsigned int addr = (1<<23); //start address: +16MB
-    int block_count   = (unsigned int)((16<<20)>>17);
-    for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
-    {
-        uint64_t current_addr = (i<<16);
-        cout << "\rErasing block " << dec << i << " ("
-             << hex << current_addr << ")...";
-        fflush(stdout);
-
-        if( flash->getBlockLockConfiguration(current_addr) & 0x01 )
-        {
-            flash->unlockBlock(current_addr);
-        }
-
-        if( flash->eraseBlock(current_addr)<0 )
-        {
-            cout << "failed, STS: " << hex << setw(4)
-                 << flash->getStatusRegister(current_addr) << endl;
-            return -1;
-        }
-
-        fflush(stdout);
-    }
-
-    cout << endl << "Erase complete!" << endl;
-
-    return 0;
-}
-
-
-
-int64_t
 flash_device
 (
     confopts          options,
@@ -327,7 +283,7 @@ flash_device
 	}
 
     /** Erase the flash first */
-    if(erase_device(options, flash)!=0)
+    if(flash->erase()!=0)
     {
         cout << "CRORC flash erase failed!" << endl;
         return -1;
