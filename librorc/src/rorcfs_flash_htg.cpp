@@ -35,7 +35,8 @@ using namespace std;
 
 rorcfs_flash_htg::rorcfs_flash_htg
 (
-    rorcfs_bar *flashbar
+    rorcfs_bar             *flashbar,
+    librorc_verbosity_enum  verbose
 )
 {
     if(flashbar != NULL)
@@ -49,8 +50,11 @@ rorcfs_flash_htg::rorcfs_flash_htg
     uint16_t status
         = getStatusRegister(0);
 
-    cout << "Status               : " << hex
-         << setw(4) << status << endl;
+    if(verbose == LIBRORC_VERBOSE_ON)
+    {
+        cout << "Status               : " << hex
+             << setw(4) << status << endl;
+    }
 
     if( status != 0x0080 )
     {
@@ -63,14 +67,17 @@ rorcfs_flash_htg::rorcfs_flash_htg
         status = getStatusRegister(0);
     }
 
-    cout << "Status               : " << hex
-         << setw(4) << status << endl;
-    cout << "Manufacturer Code    : " << hex << setw(4)
-         << getManufacturerCode() << endl;
-    cout << "Device ID            : " << hex << setw(4)
-         << getDeviceID() << endl;
-    cout << "Read Config Register : " << hex << setw(4)
-         << getReadConfigurationRegister() << endl;
+    if(verbose == LIBRORC_VERBOSE_ON)
+    {
+        cout << "Status               : " << hex
+             << setw(4) << status << endl;
+        cout << "Manufacturer Code    : " << hex << setw(4)
+             << getManufacturerCode() << endl;
+        cout << "Device ID            : " << hex << setw(4)
+             << getDeviceID() << endl;
+        cout << "Read Config Register : " << hex << setw(4)
+             << getReadConfigurationRegister() << endl;
+    }
 
 }
 

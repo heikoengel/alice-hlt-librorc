@@ -93,11 +93,13 @@ public:
 /**
  * constructor
  * @param bar rorcfs_bar instance representing the flash
+ * @param verbosity
  * memory
  **/
     rorcfs_flash_htg
     (
-        rorcfs_bar * bar
+        rorcfs_bar             *flashbar,
+        librorc_verbosity_enum  verbose
     );
 
 /**
