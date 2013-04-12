@@ -143,6 +143,7 @@ int main
 
                 case 'd':
                 {
+                    cout << "Dumping device to file!" << endl;
                     flash = init_flash(options);
                     return( flash->dump(options.filename, options.verbose) );
                 }
@@ -150,6 +151,7 @@ int main
 
                 case 'e':
                 {
+                    cout << "Erasing device!" << endl;
                     flash = init_flash(options);
                     return( flash->erase(options.verbose) );
                 }
@@ -157,6 +159,7 @@ int main
 
                 case 'p':
                 {
+                    cout << "Flashing device!" << endl;
                     flash = init_flash(options);
                     return( flash->flash(options.filename, options.verbose) );
                 }
