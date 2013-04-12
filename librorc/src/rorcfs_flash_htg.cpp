@@ -550,7 +550,7 @@ rorcfs_flash_htg::dump
        fwrite(flash_buffer, FLASH_SIZE, 1, filep);
     if(bytes_written != 1)
     {
-        cout << "WARNING : writing to file failed!" << endl;
+        return -1;
     }
 
     fclose(filep);
@@ -562,16 +562,22 @@ rorcfs_flash_htg::dump
 
 
 int64_t
-rorcfs_flash_htg::erase()
+rorcfs_flash_htg::erase
+(
+    librorc_verbosity_enum verbose
+)
 {
     unsigned int addr = (1<<23); //start address: +16MB
     int block_count   = (unsigned int)((16<<20)>>17);
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
         uint64_t current_addr = (i<<16);
-        cout << "\rErasing block " << dec << i << " ("
-             << hex << current_addr << ")...";
-        fflush(stdout);
+        if(verbose == LIBRORC_VERBOSE_ON)
+        {
+            cout << "\rErasing block " << dec << i << " ("
+                 << hex << current_addr << ")...";
+            fflush(stdout);
+        }
 
         if( getBlockLockConfiguration(current_addr) & 0x01 )
         {
@@ -580,15 +586,16 @@ rorcfs_flash_htg::erase()
 
         if( eraseBlock(current_addr)<0 )
         {
-            cout << "failed, STS: " << hex << setw(4)
-                 << getStatusRegister(current_addr) << endl;
             return -1;
         }
 
         fflush(stdout);
     }
 
-    cout << endl << "Erase complete!" << endl;
+    if(verbose == LIBRORC_VERBOSE_ON)
+    {
+        cout << endl << "Erase complete!" << endl;
+    }
 
     return 0;
 }
@@ -598,7 +605,8 @@ rorcfs_flash_htg::erase()
 int64_t
 rorcfs_flash_htg::flash
 (
-    char *filename
+    char                   *filename,
+    librorc_verbosity_enum  verbose
 )
 {
     if(filename == NULL)
@@ -650,7 +658,7 @@ rorcfs_flash_htg::flash
 	}
 
     /** Erase the flash first */
-    if( erase()!=0 )
+    if( erase(verbose)!=0 )
     {
         cout << "CRORC flash erase failed!" << endl;
         return -1;

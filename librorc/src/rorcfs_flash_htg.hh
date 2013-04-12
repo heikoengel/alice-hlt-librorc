@@ -310,12 +310,17 @@ public:
         librorc_verbosity_enum  verbose
     );
 
-    int64_t erase();
+    int64_t
+    erase
+    (
+        librorc_verbosity_enum verbose
+    );
 
     int64_t
     flash
     (
-        char *filename
+        char                   *filename,
+        librorc_verbosity_enum  verbose
     );
 
 private:

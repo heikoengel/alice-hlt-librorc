@@ -151,14 +151,14 @@ int main
                 case 'e':
                 {
                     flash = init_flash(options);
-                    return( flash->erase() );
+                    return( flash->erase(options.verbose) );
                 }
                 break;
 
                 case 'p':
                 {
                     flash = init_flash(options);
-                    return( flash->flash(options.filename) );
+                    return( flash->flash(options.filename, options.verbose) );
                 }
                 break;
 
