@@ -290,7 +290,7 @@ int main( int argc, char *argv[])
             gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
       } else {
         printf(" \tDataRate: -");
-        dump_dma_state(ch);
+        //dump_dma_state(ch);
       }
       printf("\tErrors: %ld\n", chstats->error_count);
       last_time = cur_time;
