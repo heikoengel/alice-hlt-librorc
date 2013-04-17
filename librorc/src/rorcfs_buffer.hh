@@ -27,7 +27,6 @@
 struct rorcfs_event_descriptor
 {
     unsigned long offset;
-    //unsigned long length;
     unsigned int reported_event_size;
     unsigned int calc_event_size;
     unsigned long dummy; //do not use!
@@ -35,16 +34,16 @@ struct rorcfs_event_descriptor
 };
 #endif
 
-#if DMA_MODE==128
-struct rorcfs_event_descriptor
-{
-    unsigned long offset;
-    unsigned long length;
-    unsigned int reported_event_size;
-    unsigned int calc_event_size;
-    unsigned long dummy; //do not use!
-};
-#endif
+//#if DMA_MODE==128
+//struct rorcfs_event_descriptor
+//{
+//    unsigned long offset;
+//    unsigned long length;
+//    unsigned int reported_event_size;
+//    unsigned int calc_event_size;
+//    unsigned long dummy; //do not use!
+//};
+//#endif
 
 
 typedef struct PciDevice_struct PciDevice;

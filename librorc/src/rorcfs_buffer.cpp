@@ -99,6 +99,8 @@ rorcfs_buffer::allocate
     m_device =
         dev->getPdaPciDevice();
 
+    cout << "buffer id : " << id << endl;
+
     //TODO: convert direction specifier
 
     m_buffer = NULL;
