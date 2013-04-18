@@ -106,6 +106,7 @@ rorcfs_buffer::allocate
     m_buffer = NULL;
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     {
+	cout << "reallocate : " << size << endl;
         if
         (
             PDA_SUCCESS !=
@@ -117,6 +118,9 @@ rorcfs_buffer::allocate
             return -1;
         }
     }
+
+    cout << "size : " << getSize() << endl;
+
 
     /** Overmap if wanted */
     if(overmap == 1)
