@@ -24,7 +24,9 @@
 
 #define DMA_MODE 32
 #if DMA_MODE==32
-struct rorcfs_event_descriptor
+struct
+__attribute__((__packed__))
+rorcfs_event_descriptor
 {
     unsigned long offset;
     unsigned int reported_event_size;
