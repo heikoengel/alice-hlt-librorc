@@ -48,6 +48,16 @@ rorcfs_buffer::rorcfs_buffer()
 
 rorcfs_buffer::~rorcfs_buffer()
 {
+
+    if
+    (
+    PDA_SUCCESS !=
+        DMABuffer_free
+            (m_buffer, PDA_DELETE)
+    )
+    {
+        cout << "Buffer freeing failed!" << endl;
+    }
 }
 
 
