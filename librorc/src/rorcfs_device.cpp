@@ -173,6 +173,7 @@ rorcfs_device::printDeviceDescription()
     uint8_t     bus_id      = 0;
     uint8_t     device_id   = 0;
     uint8_t     function_id = 0;
+    /**TODO : this isn't right!!!*/
     const char *description = (char*)malloc(1024 * sizeof(char));
 
         PdaDebugReturnCode ret = PDA_SUCCESS;
@@ -197,5 +198,5 @@ rorcfs_device::printDeviceDescription()
     printf("Device [%u] %04x:%02x:%02x.%x : %s (firmware date: %08x)", m_number,
             domain_id, bus_id, device_id, function_id, description, bar->get(RORC_REG_FIRMWARE_DATE));
 
-    free(description);
+    //free(description);
 }
