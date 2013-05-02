@@ -169,11 +169,11 @@ rorcfs_device::getBarSize
 void
 rorcfs_device::printDeviceDescription()
 {
-    uint16_t  domain_id   = 0;
-    uint8_t   bus_id      = 0;
-    uint8_t   device_id   = 0;
-    uint8_t   function_id = 0;
-    char     *description = (char*)malloc(1024 * sizeof(char));
+    uint16_t    domain_id   = 0;
+    uint8_t     bus_id      = 0;
+    uint8_t     device_id   = 0;
+    uint8_t     function_id = 0;
+    const char *description = (char*)malloc(1024 * sizeof(char));
 
         PdaDebugReturnCode ret = PDA_SUCCESS;
         ret += PciDevice_getDomainID(m_device, &domain_id);
