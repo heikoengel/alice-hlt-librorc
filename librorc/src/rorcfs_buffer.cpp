@@ -114,7 +114,7 @@ rorcfs_buffer::allocate
     m_buffer = NULL;
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     {
-	cout << "reallocate : " << size << endl;
+	cout << "reallocate : " << size << "  ID: " id << endl;
         if
         (
             PDA_SUCCESS !=
