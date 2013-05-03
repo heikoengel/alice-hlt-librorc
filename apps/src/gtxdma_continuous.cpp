@@ -299,7 +299,7 @@ int main( int argc, char *argv[])
   // TODO: wait for DIU status???
 
   // capture starting time
-  bar1->gettime(&start_time, 0);
+  gettimeofday(&start_time, 0);
   last_time = start_time;
   cur_time = start_time;
 
@@ -334,7 +334,7 @@ int main( int argc, char *argv[])
       usleep(100);
     }
 
-    bar1->gettime(&cur_time, 0);
+    gettimeofday(&cur_time, 0);
 
     // print status line each second
     if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
@@ -370,7 +370,7 @@ int main( int argc, char *argv[])
   }
 
   // EOR
-  bar1->gettime(&end_time, 0);
+  gettimeofday(&end_time, 0);
 
   // print summary
   printf("%ld Byte / %ld events in %.2f sec"
