@@ -206,7 +206,7 @@ int main( int argc, char *argv[])
     }
   }
   printf("EventBuffer:\n");
-  dump_sglist(ebuf);
+  //dump_sglist(ebuf);
 
   // create new DMA report buffer
   rbuf = new rorcfs_buffer();;
@@ -224,7 +224,7 @@ int main( int argc, char *argv[])
     }
   }
   printf("ReportBuffer:\n");
-  dump_sglist(rbuf);
+  //dump_sglist(rbuf);
 
   memset(chstats, 0, sizeof(struct ch_stats));
   chstats->index = 0;

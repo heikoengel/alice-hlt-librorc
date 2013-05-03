@@ -38,7 +38,7 @@ double gettimeofday_diff(timeval time1, timeval time2) {
     diff.tv_sec -= 1;
   }
 
-  return (double)((double)diff.tv_sec + 
+  return (double)((double)diff.tv_sec +
       (double)((double)diff.tv_usec / 1000000));
 }
 
@@ -51,31 +51,31 @@ double gettimeofday_diff(timeval time1, timeval time2) {
  * @param len size in DWs of the event
  * */
 void dump_event(
-    uint32_t *eventbuffer, 
+    uint32_t *eventbuffer,
     uint64_t offset,
     uint64_t len)
 {
   uint64_t i = 0;
   for(i=0;i<len;i++) {
-    printf("%03ld: %08x\n", 
+    printf("%03ld: %08x\n",
         i, (uint32_t)*(eventbuffer + offset +i));
   }
   if(len&0x01) {
-    printf("%03ld: %08x (dummy)\n", i, 
+    printf("%03ld: %08x (dummy)\n", i,
         (uint32_t)*(eventbuffer + offset + i));
     i++;
   }
-  printf("%03ld: EOE reported_event_size: %08x\n", i, 
+  printf("%03ld: EOE reported_event_size: %08x\n", i,
       (uint32_t)*(eventbuffer + offset + i));
 #if DMA_MODE==128
   i++;
-  printf("%03ld: EOE calc_event_size: %08x\n", i, 
+  printf("%03ld: EOE calc_event_size: %08x\n", i,
       (uint32_t)*(eventbuffer + offset + i));
   i++;
-  printf("%03ld: EOE dummy %08x\n", i, 
+  printf("%03ld: EOE dummy %08x\n", i,
       (uint32_t)*(eventbuffer + offset + i));
   i++;
-  printf("%03ld: EOE dummy: %08x\n", i, 
+  printf("%03ld: EOE dummy: %08x\n", i,
       (uint32_t)*(eventbuffer + offset + i));
 #endif
 }
@@ -84,7 +84,7 @@ void dump_event(
 /**
  * Dump reportbuffer entry
  * @param reportbuffer pointer to reportbuffer
- * @param i index of current struct rorcfs_event_descriptor within 
+ * @param i index of current struct rorcfs_event_descriptor within
  * reportbuffer
  * @param ch DMA channel number
  * */
@@ -141,7 +141,7 @@ void dump_dma_state(
 
 /**
  * ==========================================================
- * print summary statistics 
+ * print summary statistics
  * ==========================================================
  * @param n number of channels
  * @param chstats pointer to struct ch_stats
@@ -152,7 +152,7 @@ void dump_dma_state(
 void print_summary_stats(
     uint32_t n,
     struct ch_stats *chstats[],
-    uint64_t *ch_last_bytes_received, 
+    uint64_t *ch_last_bytes_received,
     double timediff)
 {
   struct ch_stats statsum;
@@ -169,7 +169,7 @@ void print_summary_stats(
   }
   // summary stats
   printf("SUM:  Events: %10ld, DataSize: %8.3f GB ",
-      statsum.n_events, 
+      statsum.n_events,
       (double)statsum.bytes_received/(double)(1<<30));
 
   if ( statsum.bytes_received-last_bytes_received)
@@ -197,7 +197,7 @@ void print_summary_stats(
 void print_channel_stats(
     uint32_t n,
     struct ch_stats *chstats[],
-    uint64_t *ch_last_bytes_received, 
+    uint64_t *ch_last_bytes_received,
     double timediff)
 {
   struct ch_stats statsum;
@@ -221,7 +221,7 @@ void print_channel_stats(
   // per channel stats
   for(i=0;i<n;i++) {
     printf("CH%2d: Events: %10ld, DataSize: %8.3f GB ",
-        i, chstats[i]->n_events, 
+        i, chstats[i]->n_events,
         (double)chstats[i]->bytes_received/(double)(1<<30));
 
     if ( chstats[i]->bytes_received-ch_last_bytes_received[i])
@@ -246,7 +246,7 @@ void dump_diu_state ( struct rorcfs_dma_channel *ch )
   printf("\nDIU_IF: ");
   if ( status & 1 ) printf("DIU_ON ");
   else printf("DIU_OFF ");
-  if ( status>>1 & 1) printf("FC_ON "); 
+  if ( status>>1 & 1) printf("FC_ON ");
   else printf("FC_OFF ");
   if ( !(status>>4 & 1) ) printf("LF ");
   if ( !(status>>5 & 1) ) printf("LD ");
@@ -288,7 +288,7 @@ int dump_to_file (
   uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
   // get length of destination file string
-  len = snprintf(NULL, 0, "%s/ch%d_%d.ddl", 
+  len = snprintf(NULL, 0, "%s/ch%d_%d.ddl",
       base_dir, ch_index, file_index);
   if (len<0) {
     perror("dump_to_file::snprintf failed");
@@ -308,9 +308,9 @@ int dump_to_file (
   }
 
   // fill destination file string
-  snprintf(ddlname, len+1, "%s/ch%d_%d.ddl", 
+  snprintf(ddlname, len+1, "%s/ch%d_%d.ddl",
       base_dir, ch_index, file_index);
-  snprintf(logname, len+1, "%s/ch%d_%d.log", 
+  snprintf(logname, len+1, "%s/ch%d_%d.log",
       base_dir, ch_index, file_index);
 
   // open DDL file
@@ -339,27 +339,27 @@ int dump_to_file (
   if (reportbuffer[rb_index].calc_event_size > (ebuf->getPhysicalSize()>>2))
   {
     fprintf(fd_log, "calc_event_size (0x%x DWs) is larger than physical "
-        "buffer size (0x%lx DWs) - not dumping event.\n", 
-        reportbuffer[rb_index].calc_event_size, 
+        "buffer size (0x%lx DWs) - not dumping event.\n",
+        reportbuffer[rb_index].calc_event_size,
         (ebuf->getPhysicalSize()>>2) );
   }
   // check for reasonable offset
   else if (reportbuffer[rb_index].offset > ebuf->getPhysicalSize())
   {
     fprintf(fd_log, "offset (0x%lx) is larger than physical "
-        "buffer size (0x%lx) - not dumping event.\n", 
-        reportbuffer[rb_index].offset, 
+        "buffer size (0x%lx) - not dumping event.\n",
+        reportbuffer[rb_index].offset,
         ebuf->getPhysicalSize() );
-  } 
-  else 
+  }
+  else
   {
     // dump event to log
-    for(i=0;i<reportbuffer[rb_index].calc_event_size;i++) 
-      fprintf(fd_log, "%03ld: %08x\n", 
-          i, (uint32_t)*(eventbuffer + 
+    for(i=0;i<reportbuffer[rb_index].calc_event_size;i++)
+      fprintf(fd_log, "%03ld: %08x\n",
+          i, (uint32_t)*(eventbuffer +
             (reportbuffer[rb_index].offset>>2) + i));
 
-    fprintf(fd_log, "%03ld: EOE reported_event_size: %08x\n", i, 
+    fprintf(fd_log, "%03ld: EOE reported_event_size: %08x\n", i,
         (uint32_t)*(eventbuffer + (reportbuffer[rb_index].offset>>2) + i));
 
     //dump event to DDL file
@@ -370,7 +370,7 @@ int dump_to_file (
       return -1;
     }
 
-  } 
+  }
 
   fclose(fd_log);
   fclose(fd_ddl);
@@ -379,48 +379,48 @@ int dump_to_file (
 }
 
 
-/**
- * Dump ScatterGather List
- * @param buf pointer to the according struct rorcfs_buffer
- * */
-void dump_sglist( struct rorcfs_buffer *buf )
-{
-  char *fname = NULL;
-  int fname_size = 0;
-  int fd, nbytes;
-  unsigned long i;
-  struct rorcfs_dma_desc dma_desc;
-  fname_size = snprintf(NULL, 0, "%s/sglist", buf->getDName()) + 1;
-  fname = (char *)malloc(fname_size);
-  if (!fname) {
-    perror("malloc fname failed");
-    return;
-  }
-  snprintf(fname, fname_size, "%s/sglist", buf->getDName());
-  fd = open(fname, O_RDONLY);
-  free(fname);
-  if (fd==-1) {
-    perror("failed to open sglist file");
-    return;
-  }
-
-  for(i=0;i<buf->getnSGEntries();i++)
-  {
-    nbytes = read(fd, &dma_desc, sizeof(dma_desc));
-    if (nbytes != sizeof(dma_desc)) {
-      perror("failed to read from sglist");
-      close(fd);
-      return;
-    }
-    printf("%04ld: 0x%08x_%08x - 0x%08x_%08x\n",
-        i, (unsigned int)((unsigned long)dma_desc.addr>>32 & 0xffffffff),
-        (unsigned int)(dma_desc.addr & 0xffffffff),
-        (unsigned int)((unsigned long)dma_desc.len>>32 & 0xffffffff),
-        (unsigned int)(dma_desc.len & 0xffffffff) );
-  }
-
-  close(fd);
-}
+///**
+// * Dump ScatterGather List
+// * @param buf pointer to the according struct rorcfs_buffer
+// * */
+//void dump_sglist( struct rorcfs_buffer *buf )
+//{
+//  char *fname = NULL;
+//  int fname_size = 0;
+//  int fd, nbytes;
+//  unsigned long i;
+//  struct rorcfs_dma_desc dma_desc;
+//  fname_size = snprintf(NULL, 0, "%s/sglist", buf->getDName()) + 1;
+//  fname = (char *)malloc(fname_size);
+//  if (!fname) {
+//    perror("malloc fname failed");
+//    return;
+//  }
+//  snprintf(fname, fname_size, "%s/sglist", buf->getDName());
+//  fd = open(fname, O_RDONLY);
+//  free(fname);
+//  if (fd==-1) {
+//    perror("failed to open sglist file");
+//    return;
+//  }
+//
+//  for(i=0;i<buf->getnSGEntries();i++)
+//  {
+//    nbytes = read(fd, &dma_desc, sizeof(dma_desc));
+//    if (nbytes != sizeof(dma_desc)) {
+//      perror("failed to read from sglist");
+//      close(fd);
+//      return;
+//    }
+//    printf("%04ld: 0x%08x_%08x - 0x%08x_%08x\n",
+//        i, (unsigned int)((unsigned long)dma_desc.addr>>32 & 0xffffffff),
+//        (unsigned int)(dma_desc.addr & 0xffffffff),
+//        (unsigned int)((unsigned long)dma_desc.len>>32 & 0xffffffff),
+//        (unsigned int)(dma_desc.len & 0xffffffff) );
+//  }
+//
+//  close(fd);
+//}
 
 
 #endif

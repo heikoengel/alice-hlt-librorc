@@ -115,24 +115,24 @@ int main( int argc, char *argv[])
   }
 
   // get ChannelID
-  ChannelId= strtoul(argv[1], NULL, 0);	
+  ChannelId= strtoul(argv[1], NULL, 0);
   if ( errno || ChannelId>MAX_CHANNEL) {
     perror("illegal ChannelId");
     result = -1;
     exit(-1);
-  }	
+  }
 
   // get EventSize
-  EventSize = strtoul(argv[2], NULL, 0);	
+  EventSize = strtoul(argv[2], NULL, 0);
   if ((errno == ERANGE && EventSize == ULONG_MAX)
       || (errno != 0 && EventSize== 0)) {
     perror("illegal EventSize");
     result = -1;
     exit(-1);
-  }	
+  }
 
   //allocate shared mem
-  shID = shmget(SHM_KEY_OFFSET + ChannelId, 
+  shID = shmget(SHM_KEY_OFFSET + ChannelId,
       sizeof(struct ch_stats), IPC_CREAT | 0666);
   if(shID==-1) {
     perror("shmget");
@@ -148,7 +148,7 @@ int main( int argc, char *argv[])
 
 
   // create new device instance
-  dev = new rorcfs_device();	
+  dev = new rorcfs_device();
   if ( dev->init(0) == -1 ) {
     printf("ERROR: failed to initialize device.\n");
     goto out;
@@ -174,8 +174,8 @@ int main( int argc, char *argv[])
   }
 
   // create new DMA event buffer
-  ebuf = new rorcfs_buffer();			
-  if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 
+  ebuf = new rorcfs_buffer();
+  if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
         1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
       if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
@@ -188,11 +188,11 @@ int main( int argc, char *argv[])
     }
   }
   printf("EventBuffer:\n");
-  dump_sglist(ebuf);
+  //dump_sglist(ebuf);
 
   // create new DMA report buffer
   rbuf = new rorcfs_buffer();;
-  if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 
+  if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
         1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
       //printf("INFO: Buffer already exists, trying to connect...\n");
@@ -206,7 +206,7 @@ int main( int argc, char *argv[])
     }
   }
   printf("ReportBuffer:\n");
-  dump_sglist(rbuf);
+  //dump_sglist(rbuf);
 
   memset(chstats, 0, sizeof(struct ch_stats));
   chstats->index = 0;
@@ -269,9 +269,9 @@ int main( int argc, char *argv[])
 
   // Configure Pattern Generator
   ch->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize);
-  ch->setGTX(RORC_REG_DDL_CTRL, 
+  ch->setGTX(RORC_REG_DDL_CTRL,
       ch->getGTX(RORC_REG_DDL_CTRL) | 0x600); //set PG mode
-  ch->setGTX(RORC_REG_DDL_CTRL, 
+  ch->setGTX(RORC_REG_DDL_CTRL,
       ch->getGTX(RORC_REG_DDL_CTRL) | 0x100); //enable PG
 
 
@@ -291,8 +291,8 @@ int main( int argc, char *argv[])
 
 
     result =  handle_channel_data(
-        rbuf, 
-        ebuf, 
+        rbuf,
+        ebuf,
         ch, // channe struct
         chstats, // stats struct
         0xff, // do sanity check
@@ -312,7 +312,7 @@ int main( int argc, char *argv[])
     // print status line each second
     if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
       printf("Events: %10ld, DataSize: %8.3f GB",
-          chstats->n_events, 
+          chstats->n_events,
           (double)chstats->bytes_received/(double)(1<<30));
 
       if ( chstats->bytes_received-last_bytes_received)
@@ -347,20 +347,20 @@ int main( int argc, char *argv[])
 
   // print summary
   printf("%ld Byte / %ld events in %.2f sec"
-      "-> %.1f MB/s.\n", 
-      (chstats->bytes_received), chstats->n_events, 
+      "-> %.1f MB/s.\n",
+      (chstats->bytes_received), chstats->n_events,
       gettimeofday_diff(start_time, end_time),
       ((float)chstats->bytes_received/
        gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
 
   if(!chstats->set_offset_count) //avoid DivByZero Exception
     printf("CH%d: No Events\n", ChannelId);
-  else 
+  else
     printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
-        "avg_epi=%ld, set_offset_count=%ld\n", ChannelId, 
-        chstats->n_events, chstats->max_epi, 
+        "avg_epi=%ld, set_offset_count=%ld\n", ChannelId,
+        chstats->n_events, chstats->max_epi,
         chstats->min_epi,
-        chstats->n_events/chstats->set_offset_count, 
+        chstats->n_events/chstats->set_offset_count,
         chstats->set_offset_count);
 
 
