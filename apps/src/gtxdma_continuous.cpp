@@ -80,7 +80,6 @@ int main( int argc, char *argv[])
   rorcfs_dma_channel *ch = NULL;
 
   struct rorcfs_event_descriptor *reportbuffer = NULL;
-  unsigned int *eventbuffer = NULL;
   timeval start_time, end_time;
   timeval last_time, cur_time;
   unsigned long last_bytes_received;
@@ -206,6 +205,8 @@ int main( int argc, char *argv[])
       goto out;
     }
   }
+  printf("EventBuffer:\n");
+  dump_sglist(ebuf);
 
   // create new DMA report buffer
   rbuf = new rorcfs_buffer();;
@@ -222,6 +223,8 @@ int main( int argc, char *argv[])
       goto out;
     }
   }
+  printf("ReportBuffer:\n");
+  dump_sglist(rbuf);
 
   memset(chstats, 0, sizeof(struct ch_stats));
   chstats->index = 0;
@@ -266,8 +269,6 @@ int main( int argc, char *argv[])
   reportbuffer = (struct rorcfs_event_descriptor *)rbuf->getMem();
   memset(reportbuffer, 0, rbuf->getMappingSize());
 
-  eventbuffer = (unsigned int *)ebuf->getMem();
-
   // enable BDMs
   ch->setEnableEB(1);
   ch->setEnableRB(1);
@@ -298,7 +299,7 @@ int main( int argc, char *argv[])
   // TODO: wait for DIU status???
 
   // capture starting time
-  gettimeofday(&start_time, 0);
+  bar1->gettime(&start_time, 0);
   last_time = start_time;
   cur_time = start_time;
 
@@ -318,7 +319,7 @@ int main( int argc, char *argv[])
 
     result =  handle_channel_data(
         rbuf,
-        eventbuffer,
+        ebuf,
         ch, // channe struct
         chstats, // stats struct
         sanity_checks, // do sanity check
@@ -333,7 +334,7 @@ int main( int argc, char *argv[])
       usleep(100);
     }
 
-    gettimeofday(&cur_time, 0);
+    bar1->gettime(&cur_time, 0);
 
     // print status line each second
     if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
@@ -369,7 +370,7 @@ int main( int argc, char *argv[])
   }
 
   // EOR
-  gettimeofday(&end_time, 0);
+  bar1->gettime(&end_time, 0);
 
   // print summary
   printf("%ld Byte / %ld events in %.2f sec"

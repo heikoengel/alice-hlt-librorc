@@ -297,7 +297,7 @@ int event_sanity_check(
  **/
 int handle_channel_data( 
     struct rorcfs_buffer *rbuf,
-    uint32_t *eventbuffer,
+    struct rorcfs_buffer *ebuf,
     struct rorcfs_dma_channel *ch,
     struct ch_stats *stats,
     int do_sanity_check,
@@ -314,6 +314,7 @@ int handle_channel_data(
 
   struct rorcfs_event_descriptor *reportbuffer = 
     (struct rorcfs_event_descriptor *)rbuf->getMem();
+  uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
   // new event received
   if( reportbuffer[stats->index].calc_event_size!=0 ) { 
@@ -351,7 +352,7 @@ int handle_channel_data(
                 stats->index, // reportbuffer index
                 stats->error_count, // file index
                 reportbuffer, // Report Buffer
-                eventbuffer // Event Buffer
+                ebuf // Event Buffer
                 );
 #ifdef SIM
           return -1;
