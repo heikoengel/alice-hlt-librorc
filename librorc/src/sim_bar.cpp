@@ -188,7 +188,7 @@ sim_bar::set
     unsigned int  data
 )
 {
-    /** semd write command to Modelsim FLI server */
+    /** send write command to Modelsim FLI server */
     pthread_mutex_lock(&m_mtx);
     {
         int32_t  buffersize = 5;
@@ -312,7 +312,7 @@ sim_bar::get16
         }
         else
         {
-            /** wait for completion */
+            /** wait for FLI completion */
             while( !read_from_dev_done )
             {
                 usleep(USLEEP_TIME);
@@ -329,23 +329,50 @@ sim_bar::get16
 
 
 
-//void
-//rorcfs_bar::set16
-//(
-//    unsigned long  addr,
-//    unsigned short data
-//)
-//{
-//    unsigned short *sbar;
-//    sbar = (unsigned short*)m_bar;
-//
-//    assert( sbar != NULL );
-//    if( (addr << 1) < m_size)
-//    {
-//        pthread_mutex_lock(&m_mtx);
-//        sbar[addr] = data;
-//        msync( (sbar + ( (addr << 1) & PAGE_MASK) ),
-//               PAGE_SIZE, MS_SYNC);
-//        pthread_mutex_unlock(&m_mtx);
-//    }
-//}
+void
+sim_bar::set16
+(
+    unsigned long  addr,
+    unsigned short data
+)
+{
+    /** send write command to Modelsim FLI server */
+    pthread_mutex_lock(&m_mtx);
+    {
+        int buffersize = 5;
+        uint32_t buffer[buffersize];
+        buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
+        buffer[1] = msgid;
+        buffer[2] = (addr<<1) & ~(0x03);
+        if ( addr & 0x01 )
+        {
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0x0c<<16) + 1;
+        }
+        else
+        {
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0x03<<16) + 1;
+        }
+        buffer[4] = (data<<16) + data;
+
+        if
+        (
+            write(sockfd, buffer, buffersize*sizeof(uint32_t))
+                != buffersize*sizeof(uint32_t) )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for FLI acknowledgement */
+            while( !write_to_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            write_to_dev_done=0;
+            msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+}

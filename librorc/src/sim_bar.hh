@@ -70,6 +70,13 @@ public:
         unsigned long addr
     );
 
+    void
+    set16
+    (
+        unsigned long  addr,
+        unsigned short data
+    );
+
     void *sock_monitor();
     void *cmpl_handler();
 
