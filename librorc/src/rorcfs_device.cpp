@@ -55,6 +55,7 @@ rorcfs_device::init
     const char *pci_ids[] =
     {
         "10dc beaf", /* CRORC BETA */
+        "8086 1e22", /* Heikos SMBus Controller for modelsim*/
         NULL         /* Delimiter*/
     };
 
