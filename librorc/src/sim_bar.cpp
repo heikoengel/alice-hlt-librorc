@@ -146,16 +146,20 @@ sim_bar::get
     uint32_t  data = 0;
     pthread_mutex_lock(&m_mtx);
     {
-        uint32_t buffer[4];
+        int32_t  buffersize = 4;
+        uint32_t buffer[buffersize];
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
         buffer[1] = msgid;
         buffer[2] = addr<<2;
         buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
 
-        int n = write(sockfd, buffer, 4*sizeof(uint32_t));
-        if( n != (4*sizeof(uint32_t)) )
+        if
+        (
+            write( sockfd, buffer, buffersize*sizeof(uint32_t) )
+                != buffersize*sizeof(uint32_t)
+        )
         {
-            printf("ERROR writing to socket: %d\n", n);
+            cout << "ERROR writing to socket" << endl;
         }
         else
         {
@@ -187,7 +191,7 @@ sim_bar::set
     /** semd write command to Modelsim FLI server */
     pthread_mutex_lock(&m_mtx);
     {
-        int32_t buffersize = 5;
+        int32_t  buffersize = 5;
         uint32_t buffer[buffersize];
         buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = msgid;
@@ -195,7 +199,11 @@ sim_bar::set
         buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
         buffer[4] = data;
 
-        if( write(sockfd, buffer, buffersize) != buffersize )
+        if
+        (
+            write( sockfd, buffer, buffersize*sizeof(uint32_t) )
+                != buffersize*sizeof(uint32_t)
+        )
         {
             cout << "ERROR writing to socket" << endl;
         }
