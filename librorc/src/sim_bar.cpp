@@ -31,6 +31,8 @@
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
 
+using namespace std;
+
 /**
  * usleep time for FLI read polling
  * */
@@ -141,68 +143,78 @@ sim_bar::get
     unsigned long addr
 )
 {
-    int       n;
     uint32_t  data = 0;
-
-    uint32_t buffer[4];
-    buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
-    buffer[1] = msgid;
-    buffer[2] = addr<<2;
-    buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
-
     pthread_mutex_lock(&m_mtx);
+    {
+        uint32_t buffer[4];
+        buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
+        buffer[1] = msgid;
+        buffer[2] = addr<<2;
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
 
-    n = write(sockfd, buffer, 4*sizeof(uint32_t));
-    if( n != (4*sizeof(uint32_t)) )
-    {
-        printf("ERROR writing to socket: %d\n", n);
-    }
-    else
-    {
-        /** wait for completion */
-        while( !read_from_dev_done )
+        int n = write(sockfd, buffer, 4*sizeof(uint32_t));
+        if( n != (4*sizeof(uint32_t)) )
         {
-            usleep(USLEEP_TIME);
+            printf("ERROR writing to socket: %d\n", n);
         }
+        else
+        {
+            /** wait for completion */
+            while( !read_from_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
 
-        data = read_from_dev_data;
-        read_from_dev_done = 0;
+            data = read_from_dev_data;
+            read_from_dev_done = 0;
 
-        msgid++;
+            msgid++;
+        }
     }
-
     pthread_mutex_unlock(&m_mtx);
     return data;
 }
 
 
 
-///**
-// * write 1 DW to BAR
-// * @param addr DW-aligned address
-// * @param data DW data to be written
-// * */
-//
-//void
-//rorcfs_bar::set
-//(
-//    unsigned long addr,
-//    unsigned int  data
-//)
-//{
-//    assert( m_bar != NULL );
-//    unsigned int *bar = (unsigned int *)m_bar;
-//    if( (addr << 2) < m_size)
-//    {
-//        pthread_mutex_lock(&m_mtx);
-//        bar[addr] = data;
-//        msync( (bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
-//        pthread_mutex_unlock(&m_mtx);
-//    }
-//}
-//
-//
-//
+void
+sim_bar::set
+(
+    unsigned long addr,
+    unsigned int  data
+)
+{
+    /** semd write command to Modelsim FLI server */
+    pthread_mutex_lock(&m_mtx);
+    {
+        int32_t buffersize = 5;
+        uint32_t buffer[buffersize];
+        buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
+        buffer[1] = msgid;
+        buffer[2] = addr<<2;
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
+        buffer[4] = data;
+
+        if( write(sockfd, buffer, buffersize) != buffersize )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for FLI acknowledgement */
+            while( !write_to_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            write_to_dev_done=0;
+            msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
 ///**
 // * copy a buffer to BAR via memcpy
 // * @param addr DW-aligned address
