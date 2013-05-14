@@ -41,6 +41,13 @@ public:
     );
 
     ~sim_bar();
+    int init();
+
+    unsigned int
+    get
+    (
+        unsigned long addr
+    );
 
     void *sock_monitor();
     void *cmpl_handler();

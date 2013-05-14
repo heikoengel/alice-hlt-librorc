@@ -127,11 +127,6 @@ sim_bar::~sim_bar()
 
 
 
-/**
- * rorcfs_bar::init()
- * Initialize and mmap BAR
- * */
-
 int
 sim_bar::init()
 {
@@ -140,35 +135,48 @@ sim_bar::init()
 
 
 
-///**
-// * read 1 DW from BAR
-// * @param addr address (DW-aligned)
-// * @return value read from BAR
-// * */
-//
-//unsigned int
-//rorcfs_bar::get
-//(
-//    unsigned long addr
-//)
-//{
-//    assert( m_bar != NULL );
-//
-//    unsigned int *bar = (unsigned int *)m_bar;
-//    unsigned int result;
-//    if( (addr << 2) < m_size)
-//    {
-//        result = bar[addr];
-//        return result;
-//    }
-//    else
-//    {
-//        return -1;
-//    }
-//}
-//
-//
-//
+unsigned int
+sim_bar::get
+(
+    unsigned long addr
+)
+{
+    int       n;
+    uint32_t  data = 0;
+
+    uint32_t buffer[4];
+    buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
+    buffer[1] = msgid;
+    buffer[2] = addr<<2;
+    buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
+
+    pthread_mutex_lock(&m_mtx);
+
+    n = write(sockfd, buffer, 4*sizeof(uint32_t));
+    if( n != (4*sizeof(uint32_t)) )
+    {
+        printf("ERROR writing to socket: %d\n", n);
+    }
+    else
+    {
+        /** wait for completion */
+        while( !read_from_dev_done )
+        {
+            usleep(USLEEP_TIME);
+        }
+
+        data = read_from_dev_data;
+        read_from_dev_done = 0;
+
+        msgid++;
+    }
+
+    pthread_mutex_unlock(&m_mtx);
+    return data;
+}
+
+
+
 ///**
 // * write 1 DW to BAR
 // * @param addr DW-aligned address
