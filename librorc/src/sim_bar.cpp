@@ -239,18 +239,15 @@ sim_bar::memcpy_bar
         buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = msgid;
         buffer[2] = addr<<2;
-
-        if(ndw>1)
+        if( ndw > 1 )
         {
-            buffer[3] =
-                (m_number<<24) + (0xff<<16) + ndw;
-                    //BAR, BE, length
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0xff<<16) + ndw;
         }
         else
         {
-            buffer[3] =
-                (m_number<<24) + (0x0f<<16) + ndw;
-                    //BAR, BE, length
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0x0f<<16) + ndw;
         }
 
         memcpy(&(buffer[4]), source, num);
@@ -280,26 +277,55 @@ sim_bar::memcpy_bar
 
 
 
-//unsigned short
-//rorcfs_bar::get16
-//(
-//    unsigned long addr
-//)
-//{
-//    unsigned short *sbar;
-//    sbar = (unsigned short*)m_bar;
-//    unsigned short result;
-//    assert( sbar != NULL );
-//    if( (addr << 1) < m_size)
-//    {
-//        result = sbar[addr];
-//        return result;
-//    }
-//    else
-//    {
-//        return 0xffff;
-//    }
-//}
+unsigned short
+sim_bar::get16
+(
+    unsigned long addr
+)
+{
+    uint16_t data = 0;
+    pthread_mutex_lock(&m_mtx);
+    {
+        int32_t  buffersize = 4;
+        uint32_t buffer[buffersize];
+        buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
+        buffer[1] = msgid;
+        buffer[2] = (addr<<1) & ~(0x03);
+        if ( addr & 0x01 )
+        {
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0x0c<<16) + 1;
+        }
+        else
+        {
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0x03<<16) + 1;
+        }
+
+        if
+        (
+            write(sockfd, buffer, buffersize*sizeof(uint32_t))
+                != buffersize*sizeof(uint32_t)
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for completion */
+            while( !read_from_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            data = read_from_dev_data & 0xffff;
+            read_from_dev_done = 0;
+            msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+
+    return data;
+}
 
 
 

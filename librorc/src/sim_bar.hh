@@ -64,6 +64,12 @@ public:
         size_t        num
     );
 
+    unsigned short
+    get16
+    (
+        unsigned long addr
+    );
+
     void *sock_monitor();
     void *cmpl_handler();
 
