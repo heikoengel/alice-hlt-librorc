@@ -33,7 +33,15 @@
 
 class sim_bar : public rorcfs_bar
 {
-public
+public:
+    sim_bar
+    (
+        rorcfs_device *dev,
+        int            n
+    );
+
+    ~sim_bar();
+
     void *sock_monitor();
     void *cmpl_handler();
 
@@ -53,13 +61,13 @@ private:
 
     static void *sock_monitor_helper(void * This)
     {
-        ((rorcfs_bar *)This)->sock_monitor();
+        ((sim_bar *)This)->sock_monitor();
         return 0;
     }
 
     static void *cmpl_handler_helper(void * This)
     {
-        ((rorcfs_bar *)This)->cmpl_handler();
+        ((sim_bar *)This)->cmpl_handler();
         return 0;
     }
 

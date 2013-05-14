@@ -58,13 +58,8 @@ sim_bar::sim_bar
     rorcfs_device *dev,
     int            n
 )
+: rorcfs_bar(dev, n)
 {
-    m_parent_dev = dev;
-    m_number     = n;
-
-    /** initialize mutex */
-    pthread_mutex_init(&m_mtx, NULL);
-
     struct sockaddr_in serv_addr;
     struct hostent *server;
 //    struct in_addr ipaddr;

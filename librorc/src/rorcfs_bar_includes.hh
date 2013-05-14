@@ -14,4 +14,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#define MODELSIM_SERVER "localhost"
+
 #endif
