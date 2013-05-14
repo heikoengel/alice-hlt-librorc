@@ -56,6 +56,14 @@ public:
         unsigned int  data
     );
 
+    void
+    memcpy_bar
+    (
+        unsigned long addr,
+        const void   *source,
+        size_t        num
+    );
+
     void *sock_monitor();
     void *cmpl_handler();
 

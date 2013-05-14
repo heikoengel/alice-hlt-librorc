@@ -223,29 +223,63 @@ sim_bar::set
 
 
 
-///**
-// * copy a buffer to BAR via memcpy
-// * @param addr DW-aligned address
-// * @param source source buffer
-// * @param num number of bytes to be copied from source to dest
-// * */
-//
-//void
-//rorcfs_bar::memcpy_bar
-//(
-//    unsigned long addr,
-//    const void   *source,
-//    size_t        num
-//)
-//{
-//    pthread_mutex_lock(&m_mtx);
-//    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
-//    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
-//    pthread_mutex_unlock(&m_mtx);
-//}
-//
-//
-//
+void
+sim_bar::memcpy_bar
+(
+    unsigned long addr,
+    const void   *source,
+    size_t        num
+)
+{
+    pthread_mutex_lock(&m_mtx);
+    {
+        size_t   ndw = num>>2;
+        int32_t  buffersize = 4;
+        uint32_t buffer[buffersize];
+        buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
+        buffer[1] = msgid;
+        buffer[2] = addr<<2;
+
+        if(ndw>1)
+        {
+            buffer[3] =
+                (m_number<<24) + (0xff<<16) + ndw;
+                    //BAR, BE, length
+        }
+        else
+        {
+            buffer[3] =
+                (m_number<<24) + (0x0f<<16) + ndw;
+                    //BAR, BE, length
+        }
+
+        memcpy(&(buffer[4]), source, num);
+
+        if
+        (
+            write( sockfd, buffer, buffersize*sizeof(uint32_t) )
+                != buffersize*sizeof(uint32_t)
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for FLI acknowledgement */
+            while( !write_to_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            write_to_dev_done=0;
+            msgid++;
+        }
+
+    }
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
 //unsigned short
 //rorcfs_bar::get16
 //(
@@ -266,9 +300,9 @@ sim_bar::set
 //        return 0xffff;
 //    }
 //}
-//
-//
-//
+
+
+
 //void
 //rorcfs_bar::set16
 //(
