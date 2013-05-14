@@ -143,7 +143,7 @@ getSize()
     return m_size;
 }
 
-private:
+protected:
     rorcfs_device   *m_parent_dev;
     pthread_mutex_t  m_mtx;
     int              m_number;

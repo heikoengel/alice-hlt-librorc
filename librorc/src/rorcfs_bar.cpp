@@ -18,27 +18,11 @@
 
 #include "rorcfs_bar.hh"
 
-#include <assert.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <dirent.h>
-#include <fcntl.h>
-#include <iostream>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include "rorcfs_bar_includes.hh"
 
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
-
-/**
- * usleep time for FLI read polling
- * */
-#define USLEEP_TIME 50
 
 /** Prototypes **/
 char*
