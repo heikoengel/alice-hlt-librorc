@@ -127,28 +127,19 @@ sim_bar::~sim_bar()
 
 
 
-///**
-// * rorcfs_bar::init()
-// * Initialize and mmap BAR
-// * */
-//
-//int
-//rorcfs_bar::init()
-//{
-//    m_bar = m_parent_dev->getBarMap(m_number);
-//
-//    if(m_bar == NULL)
-//    {
-//        return -1;
-//    }
-//
-//    m_size = m_parent_dev->getBarSize(m_number);
-//
-//    return 0;
-//}
-//
-//
-//
+/**
+ * rorcfs_bar::init()
+ * Initialize and mmap BAR
+ * */
+
+int
+sim_bar::init()
+{
+    return 0;
+}
+
+
+
 ///**
 // * read 1 DW from BAR
 // * @param addr address (DW-aligned)
