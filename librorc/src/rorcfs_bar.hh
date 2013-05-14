@@ -124,6 +124,19 @@ set16
 );
 
 /**
+ * get current time of day
+ * @param tv pointer to struct timeval
+ * @param tz pointer to struct timezone
+ * @return return valiue from gettimeof day or zero for FLI simulation
+ **/
+int
+gettime
+(
+    struct timeval *tv,
+    struct timezone *tz
+);
+
+/**
  * initialize BAR mapping: open sysfs file, get file stats,
  * mmap file. This has to be done before using any other
  * member funtion. This function will fail if the requested

@@ -77,6 +77,13 @@ public:
         unsigned short data
     );
 
+    int
+    gettime
+    (
+        struct timeval *tv,
+        struct timezone *tz
+    );
+
     void *sock_monitor();
     void *cmpl_handler();
 

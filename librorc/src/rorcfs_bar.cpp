@@ -207,3 +207,15 @@ rorcfs_bar::set16
         pthread_mutex_unlock(&m_mtx);
     }
 }
+
+
+
+int
+rorcfs_bar::gettime
+(
+    struct timeval *tv,
+    struct timezone *tz
+)
+{
+    return gettimeofday(tv, tz);
+}

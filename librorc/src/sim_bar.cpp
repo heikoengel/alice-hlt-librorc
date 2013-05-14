@@ -376,3 +376,38 @@ sim_bar::set16
     }
     pthread_mutex_unlock(&m_mtx);
 }
+
+
+
+int sim_bar::gettime(struct timeval *tv, struct timezone *tz)
+{
+    pthread_mutex_lock(&m_mtx);
+    {
+        int32_t  buffersize = 2;
+        uint32_t buffer[buffersize];
+        buffer[0] = (2<<16) + CMD_GET_TIME;
+        buffer[1] = msgid;
+
+        if( 0 > write(sockfd, &buffer, buffersize*sizeof(uint32_t)) )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+
+        /** wait for FLI completion */
+        while( !read_from_dev_done )
+        {
+            usleep(USLEEP_TIME);
+        }
+
+        uint32_t data = read_from_dev_data;
+        read_from_dev_done = 0;
+
+        /** mti_Now is in [ps] */
+        tv->tv_sec  = (data/1000/1000/1000/1000);
+        tv->tv_usec = (data/1000/1000)%1000000;
+        msgid++;
+    }
+    pthread_mutex_unlock(&m_mtx);
+
+    return 0;
+}
