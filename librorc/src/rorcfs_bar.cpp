@@ -35,6 +35,8 @@ rorcfs_bar::rorcfs_bar
     m_parent_dev = dev;
     m_number     = n;
 
+    m_pda_pci_device = dev->getPdaPciDevice();
+
     /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
 }

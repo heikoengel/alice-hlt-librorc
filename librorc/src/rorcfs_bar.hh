@@ -158,6 +158,7 @@ getSize()
 
 protected:
     rorcfs_device   *m_parent_dev;
+    PciDevice       *m_pda_pci_device;
     pthread_mutex_t  m_mtx;
     int              m_number;
     uint8_t         *m_bar;
