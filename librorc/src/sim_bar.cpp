@@ -26,6 +26,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <pda.h>
 
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
@@ -627,6 +628,36 @@ sim_bar::sockMonitor()
         uint64_t *offset
     )
     {
+        DMABuffer *buffer;
+
+        if
+        (
+            PDA_SUCCESS !=
+                PciDevice_getDMABuffer(m_pda_pci_device, 0, &buffer)
+        )
+        {
+            return 1;
+        }
+
+        while(buffer != NULL)
+        {
+            /** Get SG-List for this buffer */
+            DMABuffer_SGNode *sglist;
+            DMABuffer_getSGList(const DMABuffer *buffer, &sglist);
+
+            for
+            (
+                DMABuffer_SGNode *sg = sglist;
+                sg != NULL;
+                sg = sg->next
+            )
+            {
+                printf("", sg);
+            }
+
+            /** Iterate buffer */
+            DMABuffer_getNext(buffer, &buffer);
+        }
 
         return 1;
     }
