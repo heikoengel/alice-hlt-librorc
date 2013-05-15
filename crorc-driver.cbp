@@ -29,6 +29,7 @@
 		<Unit filename="librorc/src/librorc_defines.hh" />
 		<Unit filename="librorc/src/rorcfs_bar.cpp" />
 		<Unit filename="librorc/src/rorcfs_bar.hh" />
+		<Unit filename="librorc/src/rorcfs_bar_includes.hh" />
 		<Unit filename="librorc/src/rorcfs_buffer.cpp" />
 		<Unit filename="librorc/src/rorcfs_buffer.hh" />
 		<Unit filename="librorc/src/rorcfs_device.cpp" />
@@ -39,6 +40,8 @@
 		<Unit filename="librorc/src/rorcfs_flash_htg.hh" />
 		<Unit filename="librorc/src/rorcfs_sysmon.cpp" />
 		<Unit filename="librorc/src/rorcfs_sysmon.hh" />
+		<Unit filename="librorc/src/sim_bar.cpp" />
+		<Unit filename="librorc/src/sim_bar.hh" />
 		<Extensions>
 			<code_completion />
 			<debugger />
