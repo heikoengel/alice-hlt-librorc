@@ -116,7 +116,6 @@ private:
     pthread_t cmpl_handler_p;
 
 
-
     static void*
     sock_monitor_helper(void * This)
     {

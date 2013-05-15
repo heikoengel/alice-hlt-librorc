@@ -637,3 +637,99 @@ sim_bar::sock_monitor()
         read_from_dev_data = readDWfromSock(sockfd);
         read_from_dev_done = 1;
     }
+
+
+
+void*
+sim_bar::cmpl_handler()
+{
+    t_read_req rdreq;
+    rorcfs_buffer *buf = NULL;
+    uint32_t *mem;
+    uint32_t *buffer;
+    uint32_t length, byte_count;
+    int buffersize;
+
+    int result;
+    while( (result=read(pipefd[0], &rdreq, sizeof(rdreq))) )
+    {
+        if(result<0)
+        {
+          printf("failed to read from pipe: %d\n", result);
+          break;
+        }
+
+        // break request down into CMPL_Ds with size <= MAX_PAYLOAD
+        // wait for cmpl_done via CMD_CMPL_DONE from sock_monitor
+        // after each packet
+
+        buf = new rorcfs_buffer();
+        if ( buf->connect(m_parent_dev, rdreq.buffer_id) )
+          printf("failed to connect to buffer %ld\n", rdreq.buffer_id);
+        mem = buf->getMem();
+
+        while ( rdreq.length ) {
+
+          if ( rdreq.length>MAX_PAYLOAD ) {
+            byte_count = rdreq.length - MAX_PAYLOAD;
+            length = MAX_PAYLOAD;
+          } else {
+            byte_count = 0;
+            length = rdreq.length;
+          }
+          buffersize = 4*sizeof(uint32_t) + length;
+
+          buffer = (uint32_t *)malloc(buffersize);
+          if(buffer==NULL)
+            perror("failed to alloc CMD_CMPL_TO_DEVICE buffer");
+
+
+          // prepare CMD_CMPL_TO_DEVICE
+          buffer[0] = ((buffersize>>2)<<16) + CMD_CMPL_TO_DEVICE;
+          buffer[1] = msgid;
+          buffer[2] = rdreq.requester_id;
+          buffer[3] = (0<<29) + //cmpl_status
+            (byte_count<<16) + //remaining byte count
+            (rdreq.tag<<8) +
+            (rdreq.lower_addr);
+            memcpy(&(buffer[4]), mem+(rdreq.offset>>2), length);
+
+            pthread_mutex_lock(&m_mtx);
+            {
+                /** send to FLI */
+                result = write(sockfd, buffer, buffersize);
+                free(buffer);
+
+                if ( result!=buffersize )
+                {
+                    printf("CMD_CMPL_TO_DEVICE write failed with %d\n", result);
+                }
+                else
+                {
+                    /** wait for FLI acknowledgement */
+                    while( !cmpl_to_dev_done )
+                    {
+                        usleep(USLEEP_TIME);
+                    }
+                    cmpl_to_dev_done = 0;
+                    printf("cmpl_handler: CMD_CMPL_TO_DEVICE: tag=%x, length=%x, "
+                        "buffer=%ld offset=%lx MP=%x Req:%x\n", rdreq.tag, length,
+                        rdreq.buffer_id, (rdreq.offset>>2), MAX_PAYLOAD, rdreq.length);
+                }
+            }
+            pthread_mutex_unlock(&m_mtx);
+
+          rdreq.length -= length;
+          rdreq.offset += length;
+          rdreq.lower_addr += length;
+          rdreq.lower_addr &= 0x7f; // only lower 6 bit
+        } //while(rdreq.length)
+
+        delete buf;
+
+    } // while(read(pipefd)
+
+    cout << "Pipe has been closed, cmpl_handler stopping." << endl;
+
+    return 0;
+}
