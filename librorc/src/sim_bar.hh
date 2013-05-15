@@ -143,6 +143,18 @@ private:
         uint16_t msgsize
     );
 
+    void
+    doReadFromHost
+    (
+        uint16_t msgsize
+    );
+
+    void
+    doAcknowledgeCompletion
+    (
+        uint16_t msgsize
+    );
+
 };
 
 

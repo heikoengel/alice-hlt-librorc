@@ -430,65 +430,19 @@ sim_bar::sock_monitor()
         switch(tmpvar & 0xffff)
         {
             case CMD_CMPL_TO_HOST:
-                { doCompleteToHost(msgsize); }
+                { doCompleteToHost(msgsize);        }
             break;
 
             case CMD_WRITE_TO_HOST:
-                { doWriteToHost(msgsize); }
+                { doWriteToHost(msgsize);           }
             break;
 
             case CMD_READ_FROM_HOST:
-            {
-                /**
-                 * get offset, read from buffer, send to FLI
-                 * set private variables describing the request
-                 * another thread breaks the request down into
-                 * several CMPL_Ds and waits for CMD_ACK_CMPL
-                 */
-
-                uint64_t addr   = (uint64_t)readDWfromSock(sockfd)<<32;
-                addr           += readDWfromSock(sockfd);
-                uint32_t reqid  = readDWfromSock(sockfd);
-                uint32_t param  = readDWfromSock(sockfd);
-
-                t_read_req rdreq;
-                rdreq.length       = ((param>>16) << 2);
-                rdreq.tag          = ((param>>8) & 0xff);
-                rdreq.byte_enable  = (param & 0xff);
-                rdreq.lower_addr   = (addr & 0xff);
-                rdreq.requester_id = reqid;
-
-                cout << "sock_monitor: CMD_READ_FROM_HOST " << param << endl;
-
-                if( get_offset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
-                {
-                    cout << "Could not find physical address " << addr << endl;
-                }
-                else
-                {
-                    /** push request into pipe */
-                    if
-                    (
-                        sizeof(rdreq)
-                            != write(pipefd[1], &rdreq, sizeof(rdreq))
-                    )
-                    {
-                        cout << "Write to pipe failed with" << endl;
-                    }
-                }
-            }
+                { doReadFromHost(msgsize);          }
             break;
 
             case CMD_ACK_CMPL:
-            {
-                cout << "sock_monitor: CMD_ACK_CMPL" << endl;
-                if (msgsize!=2)
-                {
-                    cout << "Invalid message size for CMD_ACK_CMPL: "
-                         << msgsize << endl;
-                }
-                cmpl_to_dev_done = 1;
-            }
+                { doAcknowledgeCompletion(msgsize); }
             break;
 
             case CMD_ACK_WRITE:
@@ -581,6 +535,66 @@ sim_bar::sock_monitor()
             }
             delete buf;
         }
+    }
+
+    void
+    sim_bar::doReadFromHost
+    (
+        uint16_t msgsize
+    )
+    {
+        /**
+         * get offset, read from buffer, send to FLI
+         * set private variables describing the request
+         * another thread breaks the request down into
+         * several CMPL_Ds and waits for CMD_ACK_CMPL
+         */
+
+        uint64_t addr   = (uint64_t)readDWfromSock(sockfd)<<32;
+        addr           += readDWfromSock(sockfd);
+        uint32_t reqid  = readDWfromSock(sockfd);
+        uint32_t param  = readDWfromSock(sockfd);
+
+        t_read_req rdreq;
+        rdreq.length       = ((param>>16) << 2);
+        rdreq.tag          = ((param>>8) & 0xff);
+        rdreq.byte_enable  = (param & 0xff);
+        rdreq.lower_addr   = (addr & 0xff);
+        rdreq.requester_id = reqid;
+
+        cout << "sock_monitor: CMD_READ_FROM_HOST " << param << endl;
+
+        if( get_offset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
+        {
+            cout << "Could not find physical address " << addr << endl;
+        }
+        else
+        {
+            /** push request into pipe */
+            if
+            (
+                sizeof(rdreq)
+                    != write(pipefd[1], &rdreq, sizeof(rdreq))
+            )
+            {
+                cout << "Write to pipe failed with" << endl;
+            }
+        }
+    }
+
+    void
+    sim_bar::doAcknowledgeCompletion
+    (
+        uint16_t msgsize
+    )
+    {
+        cout << "sock_monitor: CMD_ACK_CMPL" << endl;
+        if (msgsize!=2)
+        {
+            cout << "Invalid message size for CMD_ACK_CMPL: "
+                 << msgsize << endl;
+        }
+        cmpl_to_dev_done = 1;
     }
 
 
