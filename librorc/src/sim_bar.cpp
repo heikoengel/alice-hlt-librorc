@@ -53,11 +53,6 @@ get_offset
     uint64_t *offset
 );
 
-uint32_t
-readDWfromSock
-(
-    int sock
-);
 
 
 sim_bar::sim_bar
@@ -450,23 +445,41 @@ sim_bar::sock_monitor()
             break;
 
             case CMD_ACK_TIME:
-            {
-                if (msgsize!=3)
-                {
-                    cout << "Invalid message size for CMD_ACK_TIME: "
-                         << msgsize << endl;
-                }
-                read_from_dev_data = readDWfromSock(sockfd);
-                read_from_dev_done = 1;
-            }
+                { doAcknowledgeTime(msgsize);       }
             break;
 
             default: break;
-        } /** end of switch */
-    } /** end of while */
+        }
+    }
 
     return NULL;
 }
+
+
+    uint32_t
+    sim_bar::readDWfromSock
+    (
+        int sock
+    )
+    {
+        int result = 0;
+        uint32_t buffer;
+
+        result = read(sock, &buffer, sizeof(uint32_t)); // read 1 DW
+        if (result == 0)
+        {
+            /** terminate if 0 characters received */
+            cout << "rorcfs_bar::readDWfromSock: closing socket" << endl;
+            close(sock);
+        }
+        else if (result!=sizeof(uint32_t))
+        {
+            cout << "ERROR: rorcfs_bar::readDWfromSock returned "
+                 << result << " bytes" << endl;
+        }
+
+        return buffer;
+    }
 
 
     void
@@ -609,29 +622,17 @@ sim_bar::sock_monitor()
     }
 
 
-/** Functions*/
-
-uint32_t
-readDWfromSock
-(
-    int sock
-)
-{
-    int result = 0;
-    uint32_t buffer;
-
-    result = read(sock, &buffer, sizeof(uint32_t)); // read 1 DW
-    if (result == 0)
+    void
+    sim_bar::doAcknowledgeTime
+    (
+        uint16_t msgsize
+    )
     {
-        /** terminate if 0 characters received */
-        cout << "rorcfs_bar::readDWfromSock: closing socket" << endl;
-        close(sock);
+        if (msgsize!=3)
+        {
+            cout << "Invalid message size for CMD_ACK_TIME: "
+                 << msgsize << endl;
+        }
+        read_from_dev_data = readDWfromSock(sockfd);
+        read_from_dev_done = 1;
     }
-    else if (result!=sizeof(uint32_t))
-    {
-        cout << "ERROR: rorcfs_bar::readDWfromSock returned "
-             << result << " bytes" << endl;
-    }
-
-    return buffer;
-}

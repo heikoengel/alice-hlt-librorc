@@ -131,6 +131,12 @@ private:
         return 0;
     }
 
+    uint32_t
+    readDWfromSock
+    (
+        int sock
+    );
+
     void
     doCompleteToHost
     (
@@ -161,6 +167,11 @@ private:
         uint16_t msgsize
     );
 
+    void
+    doAcknowledgeTime
+    (
+        uint16_t msgsize
+    );
 };
 
 
