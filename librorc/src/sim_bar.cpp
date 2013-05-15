@@ -53,6 +53,11 @@ get_offset
     uint64_t *offset
 );
 
+uint32_t
+readDWfromSock
+(
+    int sock
+);
 
 
 sim_bar::sim_bar
@@ -410,4 +415,32 @@ int sim_bar::gettime(struct timeval *tv, struct timezone *tz)
     pthread_mutex_unlock(&m_mtx);
 
     return 0;
+}
+
+
+/** Functions*/
+
+uint32_t
+readDWfromSock
+(
+    int sock
+)
+{
+    int result = 0;
+    uint32_t buffer;
+
+    result = read(sock, &buffer, sizeof(uint32_t)); // read 1 DW
+    if (result == 0)
+    {
+        /** terminate if 0 characters received */
+        cout << "rorcfs_bar::readDWfromSock: closing socket" << endl;
+        close(sock);
+    }
+    else if (result!=sizeof(uint32_t))
+    {
+        cout << "ERROR: rorcfs_bar::readDWfromSock returned "
+             << result << " bytes" << endl;
+    }
+
+    return buffer;
 }

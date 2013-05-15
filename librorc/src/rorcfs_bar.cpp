@@ -24,21 +24,6 @@
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
 
-/** Prototypes **/
-char*
-getChOff
-(
-    unsigned int addr
-);
-
-int
-get_offset
-(
-    uint64_t  phys_addr,
-    uint64_t *buffer_id,
-    uint64_t *offset
-);
-
 
 
 rorcfs_bar::rorcfs_bar

@@ -31,6 +31,22 @@
 #include "rorcfs_device.hh"
 #include "rorcfs_bar.hh"
 
+
+/**
+ * FLI_CMD bit definitions
+ * */
+#define CMD_READ_FROM_DEVICE 1
+#define CMD_WRITE_TO_DEVICE 2
+#define CMD_GET_TIME 3
+#define CMD_CMPL_TO_DEVICE 4
+#define CMD_READ_FROM_HOST 5
+#define CMD_WRITE_TO_HOST 6
+#define CMD_CMPL_TO_HOST 7
+#define CMD_ACK_TIME 8
+#define CMD_ACK_WRITE 9
+#define CMD_ACK_CMPL 10
+
+
 class sim_bar : public rorcfs_bar
 {
 public:
@@ -145,20 +161,5 @@ typedef struct
 	unsigned short len;
 	int id;
 } flicmdT;
-
-
-/**
- * FLI_CMD bit definitions
- * */
-#define CMD_READ_FROM_DEVICE 1
-#define CMD_WRITE_TO_DEVICE 2
-#define CMD_GET_TIME 3
-#define CMD_CMPL_TO_DEVICE 4
-#define CMD_READ_FROM_HOST 5
-#define CMD_WRITE_TO_HOST 6
-#define CMD_CMPL_TO_HOST 7
-#define CMD_ACK_TIME 8
-#define CMD_ACK_WRITE 9
-#define CMD_ACK_CMPL 10
 
 #endif
