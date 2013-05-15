@@ -643,55 +643,65 @@ sim_bar::sock_monitor()
 void*
 sim_bar::cmpl_handler()
 {
-    t_read_req rdreq;
     rorcfs_buffer *buf = NULL;
-    uint32_t *mem;
+
     uint32_t *buffer;
     uint32_t length, byte_count;
     int buffersize;
 
     int result;
+    t_read_req rdreq;
     while( (result=read(pipefd[0], &rdreq, sizeof(rdreq))) )
     {
         if(result<0)
         {
-          printf("failed to read from pipe: %d\n", result);
-          break;
+            printf("failed to read from pipe: %d\n", result);
+            break;
         }
 
-        // break request down into CMPL_Ds with size <= MAX_PAYLOAD
-        // wait for cmpl_done via CMD_CMPL_DONE from sock_monitor
-        // after each packet
+        /**
+         * break request down into CMPL_Ds with size <= MAX_PAYLOAD
+         * wait for cmpl_done via CMD_CMPL_DONE from sock_monitor
+         * after each packet
+         */
 
         buf = new rorcfs_buffer();
         if ( buf->connect(m_parent_dev, rdreq.buffer_id) )
-          printf("failed to connect to buffer %ld\n", rdreq.buffer_id);
-        mem = buf->getMem();
+        {
+            printf("failed to connect to buffer %ld\n", rdreq.buffer_id);
+        }
 
-        while ( rdreq.length ) {
+        uint32_t *mem = buf->getMem();
 
-          if ( rdreq.length>MAX_PAYLOAD ) {
-            byte_count = rdreq.length - MAX_PAYLOAD;
-            length = MAX_PAYLOAD;
-          } else {
-            byte_count = 0;
-            length = rdreq.length;
-          }
-          buffersize = 4*sizeof(uint32_t) + length;
+        while ( rdreq.length )
+        {
+            if( rdreq.length>MAX_PAYLOAD )
+            {
+                byte_count = rdreq.length - MAX_PAYLOAD;
+                length = MAX_PAYLOAD;
+            }
+            else
+            {
+                byte_count = 0;
+                length = rdreq.length;
+            }
+            buffersize = 4*sizeof(uint32_t) + length;
 
-          buffer = (uint32_t *)malloc(buffersize);
-          if(buffer==NULL)
-            perror("failed to alloc CMD_CMPL_TO_DEVICE buffer");
+            buffer = (uint32_t *)malloc(buffersize);
+            if(buffer==NULL)
+            {
+                perror("failed to alloc CMD_CMPL_TO_DEVICE buffer");
+            }
 
+            /** prepare CMD_CMPL_TO_DEVICE */
+            buffer[0] = ((buffersize>>2)<<16) + CMD_CMPL_TO_DEVICE;
+            buffer[1] = msgid;
+            buffer[2] = rdreq.requester_id;
+            buffer[3] =   (0<<29)          /** cmpl_status */
+                        + (byte_count<<16) /** remaining byte count */
+                        + (rdreq.tag<<8)
+                        + (rdreq.lower_addr);
 
-          // prepare CMD_CMPL_TO_DEVICE
-          buffer[0] = ((buffersize>>2)<<16) + CMD_CMPL_TO_DEVICE;
-          buffer[1] = msgid;
-          buffer[2] = rdreq.requester_id;
-          buffer[3] = (0<<29) + //cmpl_status
-            (byte_count<<16) + //remaining byte count
-            (rdreq.tag<<8) +
-            (rdreq.lower_addr);
             memcpy(&(buffer[4]), mem+(rdreq.offset>>2), length);
 
             pthread_mutex_lock(&m_mtx);
@@ -719,15 +729,13 @@ sim_bar::cmpl_handler()
             }
             pthread_mutex_unlock(&m_mtx);
 
-          rdreq.length -= length;
-          rdreq.offset += length;
-          rdreq.lower_addr += length;
-          rdreq.lower_addr &= 0x7f; // only lower 6 bit
-        } //while(rdreq.length)
-
+            rdreq.length -= length;
+            rdreq.offset += length;
+            rdreq.lower_addr += length;
+            rdreq.lower_addr &= 0x7f; // only lower 6 bit
+        }
         delete buf;
-
-    } // while(read(pipefd)
+    }
 
     cout << "Pipe has been closed, cmpl_handler stopping." << endl;
 
