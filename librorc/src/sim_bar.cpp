@@ -649,7 +649,8 @@ sim_bar::cmpl_handler()
     {
         if(result<0)
         {
-            printf("Failed to read from pipe: %d\n", result);
+            cout << "Failed to read from pipe: "
+                 << result << endl;
             break;
         }
 
@@ -662,7 +663,8 @@ sim_bar::cmpl_handler()
         rorcfs_buffer *buf = new rorcfs_buffer();
         if( buf->connect(m_parent_dev, rdreq.buffer_id) )
         {
-            printf("Failed to connect to buffer %ld\n", rdreq.buffer_id);
+            cout << "Failed to connect to buffer "
+                 << rdreq.buffer_id << endl;
         }
 
         uint32_t *mem = buf->getMem();
@@ -704,7 +706,8 @@ sim_bar::cmpl_handler()
                 result = write(sockfd, buffer, buffersize);
                 if( result!=buffersize )
                 {
-                    printf("CMD_CMPL_TO_DEVICE write failed with %d\n", result);
+                    cout << "CMD_CMPL_TO_DEVICE write failed with "
+                         << result;
                 }
                 else
                 {
@@ -714,9 +717,11 @@ sim_bar::cmpl_handler()
                         usleep(USLEEP_TIME);
                     }
                     cmpl_to_dev_done = 0;
-                    printf("cmpl_handler: CMD_CMPL_TO_DEVICE: tag=%x, length=%x, "
-                        "buffer=%ld offset=%lx MP=%x Req:%x\n", rdreq.tag, length,
-                        rdreq.buffer_id, (rdreq.offset>>2), MAX_PAYLOAD, rdreq.length);
+
+                    cout << "cmpl_handler: CMD_CMPL_TO_DEVICE: tag=" << rdreq.tag
+                         << ", length=" << length << "buffer=" << rdreq.buffer_id
+                         << "offset=" << (rdreq.offset>>2) << "MP=" << MAX_PAYLOAD
+                         << "Req:" << rdreq.length << endl;
                 }
             }
             pthread_mutex_unlock(&m_mtx);
