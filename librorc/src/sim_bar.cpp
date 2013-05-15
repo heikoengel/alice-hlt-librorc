@@ -639,12 +639,14 @@ sim_bar::sockMonitor()
             return 1;
         }
 
+        /** Iterate buffers */
         while(buffer != NULL)
         {
-            /** Get SG-List for this buffer */
+            /** Get SG-List for this buffer and ... */
             DMABuffer_SGNode *sglist;
             DMABuffer_getSGList(const DMABuffer *buffer, &sglist);
 
+            /** ... iterate over its complete sglist */
             for
             (
                 DMABuffer_SGNode *sg = sglist;
@@ -652,10 +654,20 @@ sim_bar::sockMonitor()
                 sg = sg->next
             )
             {
-                printf("", sg);
+//                // check if this is the destination segment
+//                if( (desc.addr<=phys_addr) && ((desc.addr+desc.len)>phys_addr) )
+//                {
+//                    //adjust offset
+//                    *offset += (phys_addr - desc.addr);
+//                    *buffer_id = strtoul(namelist[i]->d_name, NULL, 0);
+//                    return 0;
+//                } // dest-segment found
+//                else
+//                {
+//                    *offset += desc.len;
+//                }
             }
 
-            /** Iterate buffer */
             DMABuffer_getNext(buffer, &buffer);
         }
 
