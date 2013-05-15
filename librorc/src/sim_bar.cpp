@@ -418,6 +418,162 @@ int sim_bar::gettime(struct timeval *tv, struct timezone *tz)
 }
 
 
+void*
+sim_bar::sock_monitor()
+{
+    uint32_t tmpvar = 0;
+    while( tmpvar = readDWfromSock(sockfd) )
+    {
+        uint64_t addr    = 0;
+        uint16_t msgsize = (tmpvar >> 16) & 0xffff;
+        msgid            = readDWfromSock(sockfd);
+
+        switch(tmpvar & 0xffff)
+        {
+            case CMD_CMPL_TO_HOST:
+            {
+                if (msgsize!=4)
+                {
+                    printf("Invalid message size for CMD_CMPL_TO_HOST:%d\n", msgsize);
+                }
+                uint32_t param     = readDWfromSock(sockfd);
+                read_from_dev_data = readDWfromSock(sockfd);
+                read_from_dev_done = 1;
+            }
+            break;
+
+            case CMD_WRITE_TO_HOST:
+            {
+                /**
+                 * get_offset, write into buffer
+                 * [addr_high][addr_low][payload]
+                 */
+                uint64_t addr  = (uint64_t)readDWfromSock(sockfd)<<32;
+                addr          += readDWfromSock(sockfd);
+                msgsize       -= 4;
+
+                uint32_t *buffer = (uint32_t *)malloc(msgsize*sizeof(uint32_t));
+                if(!buffer)
+                {
+                    perror("failed to allocate CMD_WRITE_TO_HOST buffer");
+                }
+
+                for(uint64_t i=0; i<msgsize; i++)
+                {
+                    buffer[i] = readDWfromSock(sockfd);
+                }
+
+                uint64_t offset    = 0;
+                uint64_t buffer_id = 0;
+                if( get_offset(addr, &buffer_id, &offset) )
+                {
+                    printf("Could not find physical address %016lx\n", addr);
+                }
+                else
+                {
+                    rorcfs_buffer *buf = new rorcfs_buffer();
+                    if( buf->connect(parent_dev, buffer_id) )
+                    {
+                        perror("failed to connect to buffer");
+                    }
+                    else
+                    {
+                        uint32_t *mem = buf->getMem();
+                        memcpy(mem+(offset>>2), buffer, msgsize*sizeof(uint32_t));
+                        printf("CMD_WRITE_TO_HOST: %d DWs to buf %ld offset %ld\n", msgsize, buffer_id, offset);
+                    }
+                    delete buf;
+                }
+                free(buffer);
+            }
+            break;
+
+            case CMD_READ_FROM_HOST:
+            {
+                /**
+                 * get offset, read from buffer, send to FLI
+                 * set private variables describing the request
+                 * another thread breaks the request down into
+                 * several CMPL_Ds and waits for CMD_ACK_CMPL
+                 */
+
+                addr  = (uint64_t)readDWfromSock(sockfd)<<32;
+                addr += readDWfromSock(sockfd);
+                uint32_t reqid = readDWfromSock(sockfd);
+                uint32_t param = readDWfromSock(sockfd);
+
+                t_read_req rdreq =
+                {
+                    .length       = ((param>>16) << 2),
+                    .tag          = ((param>>8) & 0xff),
+                    .byte_enable  = (param & 0xff),
+                    .lower_addr   = (addr & 0xff),
+                    .requester_id = reqid
+                }
+
+                printf("sock_monitor: CMD_READ_FROM_HOST %08x\n", param);
+
+                if( get_offset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
+                {
+                    printf("Could not find physical address %016lx\n", addr);
+                }
+                else
+                {
+                    /** push request into pipe */
+                    if
+                    (
+                        sizeof(rdreq)
+                            != write(pipefd[1], &rdreq, sizeof(rdreq))
+                    )
+                    {
+                        printf("Write to pipe failed with\n");
+                    }
+                }
+            }
+            break;
+
+            case CMD_ACK_CMPL:
+            {
+                printf("sock_monitor: CMD_ACK_CMPL\n");
+                if (msgsize!=2)
+                {
+                    printf("Invalid message size for CMD_ACK_CMPL:%d\n", msgsize);
+                }
+                cmpl_to_dev_done = 1;
+            }
+            break;
+
+            case CMD_ACK_WRITE:
+            {
+                if (msgsize!=2)
+                {
+                    printf("Invalid message size for CMD_ACK_WRITE:%d\n", msgsize);
+                }
+                write_to_dev_done = 1;
+            }
+            break;
+
+            case CMD_ACK_TIME:
+            {
+                if (msgsize!=3)
+                {
+                    printf("Invalid message size for CMD_ACK_TIME:%d\n", msgsize);
+                }
+                read_from_dev_data = readDWfromSock(sockfd);
+                read_from_dev_done = 1;
+            }
+            break;
+
+            default:
+            break;
+        } /** end of switch */
+    } /** end of while */
+
+    return NULL;
+}
+
+
+
 /** Functions*/
 
 uint32_t
