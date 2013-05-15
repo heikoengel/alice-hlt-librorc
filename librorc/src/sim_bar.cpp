@@ -39,15 +39,6 @@ using namespace std;
 #define USLEEP_TIME 50
 
 
-int
-get_offset
-(
-    uint64_t  phys_addr,
-    uint64_t *buffer_id,
-    uint64_t *offset
-);
-
-
 
 sim_bar::sim_bar
 (
@@ -56,13 +47,8 @@ sim_bar::sim_bar
 )
 : rorcfs_bar(dev, n)
 {
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-//    struct in_addr ipaddr;
-//    int statusFlags;
-
     read_from_dev_done = 0;
-    write_to_dev_done = 0;
+    write_to_dev_done  = 0;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( sockfd < 0 )
@@ -70,14 +56,13 @@ sim_bar::sim_bar
         perror("ERROR opening socket");
     }
 
-    server = gethostbyname(MODELSIM_SERVER);
-//    inet_pton(AF_INET, "10.0.52.10", &ipaddr);
-//    server = gethostbyaddr(&ipaddr, sizeof(ipaddr), AF_INET);
+    struct hostent *server = gethostbyname(MODELSIM_SERVER);
     if( server == NULL )
     {
         perror("ERROR, no sich host");
     }
 
+    struct sockaddr_in serv_addr;
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy( (char *)server->h_addr,
@@ -408,6 +393,7 @@ int sim_bar::gettime(struct timeval *tv, struct timezone *tz)
 }
 
 
+
 void*
 sim_bar::sockMonitor()
 {
@@ -516,7 +502,7 @@ sim_bar::sockMonitor()
 
         uint64_t offset    = 0;
         uint64_t buffer_id = 0;
-        if( get_offset(addr, &buffer_id, &offset) )
+        if( getOffset(addr, &buffer_id, &offset) )
         {
             cout << "Could not find physical address "
                  << addr << endl;
@@ -567,7 +553,7 @@ sim_bar::sockMonitor()
 
         cout << "sock_monitor: CMD_READ_FROM_HOST " << param << endl;
 
-        if( get_offset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
+        if( getOffset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
         {
             cout << "Could not find physical address " << addr << endl;
         }
@@ -632,6 +618,18 @@ sim_bar::sockMonitor()
         read_from_dev_done = 1;
     }
 
+
+    int
+    sim_bar::getOffset
+    (
+        uint64_t  phys_addr,
+        uint64_t *buffer_id,
+        uint64_t *offset
+    )
+    {
+
+        return 1;
+    }
 
 
 void*
@@ -731,16 +729,4 @@ sim_bar::cmplHandler()
     cout << "Pipe has been closed, cmpl_handler stopping." << endl;
 
     return 0;
-}
-
-int
-get_offset
-(
-    uint64_t  phys_addr,
-    uint64_t *buffer_id,
-    uint64_t *offset
-)
-{
-
-return 1;
 }

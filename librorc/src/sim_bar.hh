@@ -172,6 +172,14 @@ private:
     (
         uint16_t msgsize
     );
+
+    int
+    getOffset
+    (
+        uint64_t  phys_addr,
+        uint64_t *buffer_id,
+        uint64_t *offset
+    );
 };
 
 
