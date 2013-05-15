@@ -117,19 +117,31 @@ private:
 
 
 
-    static void *sock_monitor_helper(void * This)
+    static void*
+    sock_monitor_helper(void * This)
     {
         ((sim_bar *)This)->sock_monitor();
         return 0;
     }
 
-    static void *cmpl_handler_helper(void * This)
+    static void*
+    cmpl_handler_helper(void * This)
     {
         ((sim_bar *)This)->cmpl_handler();
         return 0;
     }
 
+    void
+    doCompleteToHost
+    (
+        uint16_t msgsize
+    );
 
+    void
+    doWriteToHost
+    (
+        uint16_t msgsize
+    );
 
 };
 

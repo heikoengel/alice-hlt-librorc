@@ -424,71 +424,17 @@ sim_bar::sock_monitor()
     uint32_t tmpvar = 0;
     while( (tmpvar=readDWfromSock(sockfd)) )
     {
-        uint64_t addr    = 0;
         uint16_t msgsize = (tmpvar >> 16) & 0xffff;
         msgid            = readDWfromSock(sockfd);
 
         switch(tmpvar & 0xffff)
         {
             case CMD_CMPL_TO_HOST:
-            {
-                if (msgsize!=4)
-                {
-                    cout << "Invalid message size for CMD_CMPL_TO_HOST : "
-                         << msgsize << endl;
-                }
-                uint32_t param     = readDWfromSock(sockfd);
-                read_from_dev_data = readDWfromSock(sockfd);
-                read_from_dev_done = 1;
-            }
+                { doCompleteToHost(msgsize); }
             break;
 
             case CMD_WRITE_TO_HOST:
-            {
-                /**
-                 * get_offset, write into buffer
-                 * [addr_high][addr_low][payload]
-                 */
-                uint64_t addr  = (uint64_t)readDWfromSock(sockfd)<<32;
-                addr          += readDWfromSock(sockfd);
-                msgsize       -= 4;
-
-                uint32_t *buffer = (uint32_t *)malloc(msgsize*sizeof(uint32_t));
-                if(!buffer)
-                {
-                    perror("failed to allocate CMD_WRITE_TO_HOST buffer");
-                }
-
-                for(uint64_t i=0; i<msgsize; i++)
-                {
-                    buffer[i] = readDWfromSock(sockfd);
-                }
-
-                uint64_t offset    = 0;
-                uint64_t buffer_id = 0;
-                if( get_offset(addr, &buffer_id, &offset) )
-                {
-                    cout << "Could not find physical address "
-                         << addr << endl;
-                }
-                else
-                {
-                    rorcfs_buffer *buf = new rorcfs_buffer();
-                    if( buf->connect(m_parent_dev, buffer_id) )
-                    {
-                        perror("failed to connect to buffer");
-                    }
-                    else
-                    {
-                        uint32_t *mem = buf->getMem();
-                        memcpy(mem+(offset>>2), buffer, msgsize*sizeof(uint32_t));
-                        cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
-                             << buffer_id << " offset " << offset << endl;
-                    }
-                    delete buf;
-                }
-                free(buffer);
-            }
+                { doWriteToHost(msgsize); }
             break;
 
             case CMD_READ_FROM_HOST:
@@ -500,10 +446,10 @@ sim_bar::sock_monitor()
                  * several CMPL_Ds and waits for CMD_ACK_CMPL
                  */
 
-                addr  = (uint64_t)readDWfromSock(sockfd)<<32;
-                addr += readDWfromSock(sockfd);
-                uint32_t reqid = readDWfromSock(sockfd);
-                uint32_t param = readDWfromSock(sockfd);
+                uint64_t addr   = (uint64_t)readDWfromSock(sockfd)<<32;
+                addr           += readDWfromSock(sockfd);
+                uint32_t reqid  = readDWfromSock(sockfd);
+                uint32_t param  = readDWfromSock(sockfd);
 
                 t_read_req rdreq;
                 rdreq.length       = ((param>>16) << 2);
@@ -575,6 +521,67 @@ sim_bar::sock_monitor()
 
     return NULL;
 }
+
+    void
+    sim_bar::doCompleteToHost
+    (
+        uint16_t msgsize
+    )
+    {
+        if (msgsize!=4)
+        {
+            cout << "Invalid message size for CMD_CMPL_TO_HOST : "
+                 << msgsize << endl;
+        }
+        uint32_t param     = readDWfromSock(sockfd);
+        read_from_dev_data = readDWfromSock(sockfd);
+        read_from_dev_done = 1;
+    }
+
+    void
+    sim_bar::doWriteToHost
+    (
+        uint16_t msgsize
+    )
+    {
+        /**
+         * get_offset, write into buffer
+         * [addr_high][addr_low][payload]
+         */
+        uint64_t addr  = (uint64_t)readDWfromSock(sockfd)<<32;
+        addr          += readDWfromSock(sockfd);
+        msgsize       -= 4;
+
+        uint32_t buffer[msgsize];
+        for(uint64_t i=0; i<msgsize; i++)
+        {
+            buffer[i] = readDWfromSock(sockfd);
+        }
+
+        uint64_t offset    = 0;
+        uint64_t buffer_id = 0;
+        if( get_offset(addr, &buffer_id, &offset) )
+        {
+            cout << "Could not find physical address "
+                 << addr << endl;
+        }
+        else
+        {
+            rorcfs_buffer *buf = new rorcfs_buffer();
+            if( buf->connect(m_parent_dev, buffer_id) )
+            {
+                perror("failed to connect to buffer");
+            }
+            else
+            {
+                uint32_t *mem = buf->getMem();
+                memcpy(mem+(offset>>2), buffer, msgsize*sizeof(uint32_t));
+                cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
+                     << buffer_id << " offset " << offset << endl;
+            }
+            delete buf;
+        }
+    }
 
 
 
