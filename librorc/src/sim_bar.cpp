@@ -422,7 +422,7 @@ void*
 sim_bar::sock_monitor()
 {
     uint32_t tmpvar = 0;
-    while( tmpvar = readDWfromSock(sockfd) )
+    while( (tmpvar=readDWfromSock(sockfd)) )
     {
         uint64_t addr    = 0;
         uint16_t msgsize = (tmpvar >> 16) & 0xffff;
@@ -472,7 +472,7 @@ sim_bar::sock_monitor()
                 else
                 {
                     rorcfs_buffer *buf = new rorcfs_buffer();
-                    if( buf->connect(parent_dev, buffer_id) )
+                    if( buf->connect(m_parent_dev, buffer_id) )
                     {
                         perror("failed to connect to buffer");
                     }
@@ -502,14 +502,12 @@ sim_bar::sock_monitor()
                 uint32_t reqid = readDWfromSock(sockfd);
                 uint32_t param = readDWfromSock(sockfd);
 
-                t_read_req rdreq =
-                {
-                    .length       = ((param>>16) << 2),
-                    .tag          = ((param>>8) & 0xff),
-                    .byte_enable  = (param & 0xff),
-                    .lower_addr   = (addr & 0xff),
-                    .requester_id = reqid
-                }
+                t_read_req rdreq;
+                rdreq.length       = ((param>>16) << 2);
+                rdreq.tag          = ((param>>8) & 0xff);
+                rdreq.byte_enable  = (param & 0xff);
+                rdreq.lower_addr   = (addr & 0xff);
+                rdreq.requester_id = reqid;
 
                 printf("sock_monitor: CMD_READ_FROM_HOST %08x\n", param);
 
