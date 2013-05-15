@@ -645,8 +645,7 @@ sim_bar::cmpl_handler()
 {
     int result;
     t_read_req rdreq;
-
-    while( (result=read(pipefd[0], &rdreq, sizeof(rdreq))) )
+    while( (result=read(pipefd[0], &rdreq, sizeof(t_read_req))) )
     {
         if(result<0)
         {
@@ -663,7 +662,7 @@ sim_bar::cmpl_handler()
         rorcfs_buffer *buf = new rorcfs_buffer();
         if( buf->connect(m_parent_dev, rdreq.buffer_id) )
         {
-            printf("failed to connect to buffer %ld\n", rdreq.buffer_id);
+            printf("Failed to connect to buffer %ld\n", rdreq.buffer_id);
         }
 
         uint32_t *mem = buf->getMem();
