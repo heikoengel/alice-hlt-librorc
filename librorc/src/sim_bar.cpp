@@ -643,14 +643,9 @@ sim_bar::sock_monitor()
 void*
 sim_bar::cmpl_handler()
 {
-    rorcfs_buffer *buf = NULL;
-
-    uint32_t *buffer;
-    uint32_t length, byte_count;
-    int buffersize;
-
     int result;
     t_read_req rdreq;
+
     while( (result=read(pipefd[0], &rdreq, sizeof(rdreq))) )
     {
         if(result<0)
@@ -665,7 +660,7 @@ sim_bar::cmpl_handler()
          * after each packet
          */
 
-        buf = new rorcfs_buffer();
+        rorcfs_buffer *buf = new rorcfs_buffer();
         if ( buf->connect(m_parent_dev, rdreq.buffer_id) )
         {
             printf("failed to connect to buffer %ld\n", rdreq.buffer_id);
@@ -675,6 +670,8 @@ sim_bar::cmpl_handler()
 
         while ( rdreq.length )
         {
+            uint32_t length     = 0;
+            uint32_t byte_count = 0;
             if( rdreq.length>MAX_PAYLOAD )
             {
                 byte_count = rdreq.length - MAX_PAYLOAD;
@@ -685,9 +682,11 @@ sim_bar::cmpl_handler()
                 byte_count = 0;
                 length = rdreq.length;
             }
-            buffersize = 4*sizeof(uint32_t) + length;
 
-            buffer = (uint32_t *)malloc(buffersize);
+            int buffersize
+                = 4*sizeof(uint32_t) + length;
+
+            uint32_t *buffer = (uint32_t *)malloc(buffersize);
             if(buffer==NULL)
             {
                 perror("failed to alloc CMD_CMPL_TO_DEVICE buffer");
@@ -729,10 +728,10 @@ sim_bar::cmpl_handler()
             }
             pthread_mutex_unlock(&m_mtx);
 
-            rdreq.length -= length;
-            rdreq.offset += length;
+            rdreq.length     -= length;
+            rdreq.offset     += length;
             rdreq.lower_addr += length;
-            rdreq.lower_addr &= 0x7f; // only lower 6 bit
+            rdreq.lower_addr &= 0x7f; /** only lower 6 bit */
         }
         delete buf;
     }
