@@ -446,14 +446,7 @@ sim_bar::sock_monitor()
             break;
 
             case CMD_ACK_WRITE:
-            {
-                if (msgsize!=2)
-                {
-                    cout << "Invalid message size for CMD_ACK_WRITE: "
-                         << msgsize << endl;
-                }
-                write_to_dev_done = 1;
-            }
+                { doAcknowledgeWrite(msgsize);      }
             break;
 
             case CMD_ACK_TIME:
@@ -468,13 +461,13 @@ sim_bar::sock_monitor()
             }
             break;
 
-            default:
-            break;
+            default: break;
         } /** end of switch */
     } /** end of while */
 
     return NULL;
 }
+
 
     void
     sim_bar::doCompleteToHost
@@ -491,6 +484,7 @@ sim_bar::sock_monitor()
         read_from_dev_data = readDWfromSock(sockfd);
         read_from_dev_done = 1;
     }
+
 
     void
     sim_bar::doWriteToHost
@@ -537,6 +531,7 @@ sim_bar::sock_monitor()
         }
     }
 
+
     void
     sim_bar::doReadFromHost
     (
@@ -582,6 +577,7 @@ sim_bar::sock_monitor()
         }
     }
 
+
     void
     sim_bar::doAcknowledgeCompletion
     (
@@ -597,6 +593,20 @@ sim_bar::sock_monitor()
         cmpl_to_dev_done = 1;
     }
 
+
+    void
+    sim_bar::doAcknowledgeWrite
+    (
+        uint16_t msgsize
+    )
+    {
+        if (msgsize!=2)
+        {
+            cout << "Invalid message size for CMD_ACK_WRITE: "
+                 << msgsize << endl;
+        }
+        write_to_dev_done = 1;
+    }
 
 
 /** Functions*/

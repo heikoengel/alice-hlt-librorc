@@ -155,6 +155,12 @@ private:
         uint16_t msgsize
     );
 
+    void
+    doAcknowledgeWrite
+    (
+        uint16_t msgsize
+    );
+
 };
 
 
