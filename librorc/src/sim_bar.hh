@@ -100,8 +100,6 @@ public:
         struct timezone *tz
     );
 
-    void *sock_monitor();
-    void *cmpl_handler();
 
 private:
     int sockfd;
@@ -116,17 +114,20 @@ private:
     pthread_t cmpl_handler_p;
 
 
+    void *sockMonitor();
+    void *cmplHandler();
+
     static void*
     sock_monitor_helper(void * This)
     {
-        ((sim_bar *)This)->sock_monitor();
+        ((sim_bar *)This)->sockMonitor();
         return 0;
     }
 
     static void*
     cmpl_handler_helper(void * This)
     {
-        ((sim_bar *)This)->cmpl_handler();
+        ((sim_bar *)This)->cmplHandler();
         return 0;
     }
 

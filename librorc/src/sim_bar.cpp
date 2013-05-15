@@ -38,12 +38,6 @@ using namespace std;
  * */
 #define USLEEP_TIME 50
 
-/** Prototypes **/
-char*
-getChOff
-(
-    unsigned int addr
-);
 
 int
 get_offset
@@ -415,7 +409,7 @@ int sim_bar::gettime(struct timeval *tv, struct timezone *tz)
 
 
 void*
-sim_bar::sock_monitor()
+sim_bar::sockMonitor()
 {
     uint32_t tmpvar = 0;
     while( (tmpvar=readDWfromSock(sockfd)) )
@@ -641,7 +635,7 @@ sim_bar::sock_monitor()
 
 
 void*
-sim_bar::cmpl_handler()
+sim_bar::cmplHandler()
 {
     int result;
     t_read_req rdreq;
@@ -737,4 +731,16 @@ sim_bar::cmpl_handler()
     cout << "Pipe has been closed, cmpl_handler stopping." << endl;
 
     return 0;
+}
+
+int
+get_offset
+(
+    uint64_t  phys_addr,
+    uint64_t *buffer_id,
+    uint64_t *offset
+)
+{
+
+return 1;
 }
