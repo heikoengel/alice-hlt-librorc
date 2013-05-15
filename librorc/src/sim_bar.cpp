@@ -151,7 +151,8 @@ sim_bar::get
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
         buffer[1] = msgid;
         buffer[2] = addr<<2;
-        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
+        /** BAR, BE, length */
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1;
 
         if
         (
