@@ -650,7 +650,7 @@ sim_bar::cmpl_handler()
     {
         if(result<0)
         {
-            printf("failed to read from pipe: %d\n", result);
+            printf("Failed to read from pipe: %d\n", result);
             break;
         }
 
@@ -661,7 +661,7 @@ sim_bar::cmpl_handler()
          */
 
         rorcfs_buffer *buf = new rorcfs_buffer();
-        if ( buf->connect(m_parent_dev, rdreq.buffer_id) )
+        if( buf->connect(m_parent_dev, rdreq.buffer_id) )
         {
             printf("failed to connect to buffer %ld\n", rdreq.buffer_id);
         }
@@ -686,11 +686,7 @@ sim_bar::cmpl_handler()
             int buffersize
                 = 4*sizeof(uint32_t) + length;
 
-            uint32_t *buffer = (uint32_t *)malloc(buffersize);
-            if(buffer==NULL)
-            {
-                perror("failed to alloc CMD_CMPL_TO_DEVICE buffer");
-            }
+            uint32_t buffer[((buffersize/sizeof(uint32_t))+1)];
 
             /** prepare CMD_CMPL_TO_DEVICE */
             buffer[0] = ((buffersize>>2)<<16) + CMD_CMPL_TO_DEVICE;
@@ -707,9 +703,7 @@ sim_bar::cmpl_handler()
             {
                 /** send to FLI */
                 result = write(sockfd, buffer, buffersize);
-                free(buffer);
-
-                if ( result!=buffersize )
+                if( result!=buffersize )
                 {
                     printf("CMD_CMPL_TO_DEVICE write failed with %d\n", result);
                 }
