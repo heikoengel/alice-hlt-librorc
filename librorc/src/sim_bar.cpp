@@ -434,7 +434,8 @@ sim_bar::sock_monitor()
             {
                 if (msgsize!=4)
                 {
-                    printf("Invalid message size for CMD_CMPL_TO_HOST:%d\n", msgsize);
+                    cout << "Invalid message size for CMD_CMPL_TO_HOST : "
+                         << msgsize << endl;
                 }
                 uint32_t param     = readDWfromSock(sockfd);
                 read_from_dev_data = readDWfromSock(sockfd);
@@ -467,7 +468,8 @@ sim_bar::sock_monitor()
                 uint64_t buffer_id = 0;
                 if( get_offset(addr, &buffer_id, &offset) )
                 {
-                    printf("Could not find physical address %016lx\n", addr);
+                    cout << "Could not find physical address "
+                         << addr << endl;
                 }
                 else
                 {
@@ -480,7 +482,8 @@ sim_bar::sock_monitor()
                     {
                         uint32_t *mem = buf->getMem();
                         memcpy(mem+(offset>>2), buffer, msgsize*sizeof(uint32_t));
-                        printf("CMD_WRITE_TO_HOST: %d DWs to buf %ld offset %ld\n", msgsize, buffer_id, offset);
+                        cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
+                             << buffer_id << " offset " << offset << endl;
                     }
                     delete buf;
                 }
@@ -509,11 +512,11 @@ sim_bar::sock_monitor()
                 rdreq.lower_addr   = (addr & 0xff);
                 rdreq.requester_id = reqid;
 
-                printf("sock_monitor: CMD_READ_FROM_HOST %08x\n", param);
+                cout << "sock_monitor: CMD_READ_FROM_HOST " << param << endl;
 
                 if( get_offset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
                 {
-                    printf("Could not find physical address %016lx\n", addr);
+                    cout << "Could not find physical address " << addr << endl;
                 }
                 else
                 {
@@ -524,7 +527,7 @@ sim_bar::sock_monitor()
                             != write(pipefd[1], &rdreq, sizeof(rdreq))
                     )
                     {
-                        printf("Write to pipe failed with\n");
+                        cout << "Write to pipe failed with" << endl;
                     }
                 }
             }
@@ -532,10 +535,11 @@ sim_bar::sock_monitor()
 
             case CMD_ACK_CMPL:
             {
-                printf("sock_monitor: CMD_ACK_CMPL\n");
+                cout << "sock_monitor: CMD_ACK_CMPL" << endl;
                 if (msgsize!=2)
                 {
-                    printf("Invalid message size for CMD_ACK_CMPL:%d\n", msgsize);
+                    cout << "Invalid message size for CMD_ACK_CMPL: "
+                         << msgsize << endl;
                 }
                 cmpl_to_dev_done = 1;
             }
@@ -545,7 +549,8 @@ sim_bar::sock_monitor()
             {
                 if (msgsize!=2)
                 {
-                    printf("Invalid message size for CMD_ACK_WRITE:%d\n", msgsize);
+                    cout << "Invalid message size for CMD_ACK_WRITE: "
+                         << msgsize << endl;
                 }
                 write_to_dev_done = 1;
             }
@@ -555,7 +560,8 @@ sim_bar::sock_monitor()
             {
                 if (msgsize!=3)
                 {
-                    printf("Invalid message size for CMD_ACK_TIME:%d\n", msgsize);
+                    cout << "Invalid message size for CMD_ACK_TIME: "
+                         << msgsize << endl;
                 }
                 read_from_dev_data = readDWfromSock(sockfd);
                 read_from_dev_done = 1;
