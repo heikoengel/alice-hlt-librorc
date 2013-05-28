@@ -245,8 +245,14 @@ init_flash
         return(NULL);
     }
 
-    rorcfs_bar *bar
-        = new rorcfs_bar(dev, 0);
+    #ifdef SIM
+        sim_bar *bar
+            = new sim_bar(dev, 0);
+    #else
+        rorcfs_bar *bar
+            = new rorcfs_bar(dev, 0);
+    #endif
+
     if(bar->init() == -1)
     {
         cout << "BAR0 init failed" << endl;

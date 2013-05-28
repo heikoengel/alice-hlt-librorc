@@ -6,6 +6,7 @@
 
     #include "rorcfs_device.hh"
     #include "rorcfs_bar.hh"
+    #include "sim_bar.hh"
     #include "rorcfs_flash_htg.hh"
     #include "rorcfs_sysmon.hh"
     #include "rorcfs_buffer.hh"

@@ -74,7 +74,11 @@ int main( int argc, char *argv[])
 {
   int result = 0;
   rorcfs_device *dev = NULL;
-  rorcfs_bar *bar1 = NULL;
+  #ifdef SIM
+    sim_bar *bar1 = NULL;
+  #else
+    rorcfs_bar *bar1 = NULL;
+  #endif
   rorcfs_buffer *ebuf = NULL;
   rorcfs_buffer *rbuf = NULL;
   rorcfs_dma_channel *ch = NULL;
@@ -176,7 +180,11 @@ int main( int argc, char *argv[])
       dev->getSlot(),dev->getFunc());
 
   // bind to BAR1
-  bar1 = new rorcfs_bar(dev, 1);
+  #ifdef SIM
+    bar1 = new sim_bar(dev, 1);
+  #else
+    bar1 = new rorcfs_bar(dev, 1);
+  #endif
   if ( bar1->init() == -1 ) {
     printf("ERROR: failed to initialize BAR1.\n");
     goto out;
