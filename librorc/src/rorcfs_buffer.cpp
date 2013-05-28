@@ -81,14 +81,6 @@ rorcfs_buffer::isOvermapped()
 unsigned long
 rorcfs_buffer::getSize()
 {
-    uint64_t m_size = 0;
-
-    if(DMABuffer_getLength(m_buffer, &m_size)!=PDA_SUCCESS)
-    {
-        cout << "Size lookup failed!" << endl;
-        return 0;
-    }
-
     return m_size;
 }
 
@@ -142,7 +134,7 @@ rorcfs_buffer::allocate
 
     m_dmaDirection = dma_direction;
     m_id           = id;
-
+    m_size         = size;
 
     return connect(dev, id);
 }

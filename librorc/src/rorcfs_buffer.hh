@@ -191,6 +191,7 @@ private:
     unsigned long  m_id;
     int            m_dmaDirection;
     unsigned long  m_numberOfScatterGatherEntries;
+    unsigned long  m_size;
 
     DMABuffer*
     getPDABuffer()
