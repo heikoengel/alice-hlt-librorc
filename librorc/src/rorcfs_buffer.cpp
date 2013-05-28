@@ -48,14 +48,7 @@ rorcfs_buffer::rorcfs_buffer()
 
 rorcfs_buffer::~rorcfs_buffer()
 {
-//    if
-//    (
-//        PDA_SUCCESS !=
-//            DMABuffer_free(m_buffer, PDA_DELETE)
-//    )
-//    {
-//        cout << "Buffer freeing failed!" << endl;
-//    }
+
 }
 
 
@@ -118,9 +111,6 @@ rorcfs_buffer::allocate
             return -1;
         }
     }
-
-    cout << "size : " << getSize() << endl;
-
 
     /** Overmap if wanted */
     if(overmap == 1)
