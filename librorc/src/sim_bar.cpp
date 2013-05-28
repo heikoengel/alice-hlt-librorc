@@ -137,7 +137,7 @@ sim_bar::get
         if
         (
             write( sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != buffersize*sizeof(uint32_t)
+                != (size_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
@@ -183,7 +183,7 @@ sim_bar::set
         if
         (
             write( sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != buffersize*sizeof(uint32_t)
+                != (size_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
@@ -236,7 +236,7 @@ sim_bar::memcpy_bar
         if
         (
             write( sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != buffersize*sizeof(uint32_t)
+                != (size_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
@@ -286,7 +286,7 @@ sim_bar::get16
         if
         (
             write(sockfd, buffer, buffersize*sizeof(uint32_t))
-                != buffersize*sizeof(uint32_t)
+                != (size_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
@@ -340,7 +340,8 @@ sim_bar::set16
         if
         (
             write(sockfd, buffer, buffersize*sizeof(uint32_t))
-                != buffersize*sizeof(uint32_t) )
+                != (size_t)(buffersize*sizeof(uint32_t))
+        )
         {
             cout << "ERROR writing to socket" << endl;
         }
@@ -475,7 +476,8 @@ sim_bar::sockMonitor()
             cout << "Invalid message size for CMD_CMPL_TO_HOST : "
                  << msgsize << endl;
         }
-        uint32_t param     = readDWfromSock(sockfd);
+
+        readDWfromSock(sockfd);
         read_from_dev_data = readDWfromSock(sockfd);
         read_from_dev_done = 1;
     }
@@ -628,47 +630,61 @@ sim_bar::sockMonitor()
         uint64_t *offset
     )
     {
-        DMABuffer *buffer;
+        DMABuffer *first_buffer;
 
         if
         (
             PDA_SUCCESS !=
-                PciDevice_getDMABuffer(m_pda_pci_device, 0, &buffer)
+                PciDevice_getDMABuffer(m_pda_pci_device, 0, &first_buffer)
         )
         {
             return 1;
         }
 
         /** Iterate buffers */
-        while(buffer != NULL)
+        *offset = 0;
+        PdaDebugReturnCode ret = PDA_SUCCESS;
+        for
+        (
+            DMABuffer *buffer = first_buffer;
+            buffer != NULL;
+            ret = DMABuffer_getNext(buffer, &buffer)
+        )
         {
-            /** Get SG-List for this buffer and ... */
+            if(ret != PDA_SUCCESS)
+            {
+                return 1;
+            }
             DMABuffer_SGNode *sglist;
-            DMABuffer_getSGList(buffer, &sglist);
 
-//            /** ... iterate over its complete sglist */
-//            for
-//            (
-//                DMABuffer_SGNode *sg = sglist;
-//                sg != NULL;
-//                sg = sg->next
-//            )
-//            {
-//                // check if this is the destination segment
-//                if( (desc.addr<=phys_addr) && ((desc.addr+desc.len)>phys_addr) )
-//                {
-//                    //adjust offset
-//                    *offset += (phys_addr - desc.addr);
-//                    *buffer_id = strtoul(namelist[i]->d_name, NULL, 0);
-//                    return 0;
-//                } // dest-segment found
-//                else
-//                {
-//                    *offset += desc.len;
-//                }
-//            }
+            if( DMABuffer_getSGList(buffer, &sglist ) != PDA_SUCCESS )
+            {
+                return 1;
+            }
 
-            DMABuffer_getNext(buffer, &buffer);
+            /** Iterate sglist entries of the current buffer */
+            for
+            (
+                DMABuffer_SGNode *node = sglist;
+                node != NULL;
+                node = node->next
+            )
+            {
+                if(   ( (uint64_t)(node->d_pointer) <= phys_addr)
+                   && (((uint64_t)(node->d_pointer) + node->length) > phys_addr) )
+                {
+                    *offset += ( phys_addr - (uint64_t)(node->d_pointer) );
+                    if(DMABuffer_getIndex(buffer, buffer_id) != PDA_SUCCESS)
+                    {
+                        return 1;
+                    }
+                    return 0;
+                }
+                else
+                {
+                    *offset += (node->length);
+                }
+            }
         }
 
         return 1;
