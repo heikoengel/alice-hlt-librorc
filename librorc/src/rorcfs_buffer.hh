@@ -193,6 +193,8 @@ private:
     unsigned long  m_numberOfScatterGatherEntries;
     unsigned long  m_size;
 
+    pthread_mutex_t  m_mtx;
+
     DMABuffer*
     getPDABuffer()
     {

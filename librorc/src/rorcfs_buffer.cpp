@@ -113,14 +113,18 @@ rorcfs_buffer::allocate
     }
 
     /** Overmap if wanted */
-    if(overmap == 1)
+    pthread_mutex_lock(&m_mtx);
     {
-        if(PDA_SUCCESS != DMABuffer_overmap(m_buffer) )
+        if(overmap == 1)
         {
-            cout << "Overmapping failed!" << endl;
-            return(-1);
+            if(PDA_SUCCESS != DMABuffer_overmap(m_buffer) )
+            {
+                cout << "Overmapping failed!" << endl;
+                return(-1);
+            }
         }
     }
+    pthread_mutex_unlock(&m_mtx);
 
     m_dmaDirection = dma_direction;
     m_id           = id;
