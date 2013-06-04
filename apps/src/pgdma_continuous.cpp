@@ -76,15 +76,11 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
   int result = 0;
-  rorcfs_device *dev = NULL;
-  #ifdef SIM
-    sim_bar *bar1 = NULL;
-  #else
-    rorcfs_bar *bar1 = NULL;
-  #endif
-  rorcfs_buffer *ebuf = NULL;
-  rorcfs_buffer *rbuf = NULL;
-  rorcfs_dma_channel *ch = NULL;
+  rorcfs_device      *dev  = NULL;
+  librorc_bar        *bar1 = NULL;
+  rorcfs_buffer      *ebuf = NULL;
+  rorcfs_buffer      *rbuf = NULL;
+  rorcfs_dma_channel *ch   = NULL;
 
   struct rorcfs_event_descriptor *reportbuffer = NULL;
   timeval start_time, end_time;
@@ -165,7 +161,7 @@ int main( int argc, char *argv[])
   #ifdef SIM
     bar1 = new sim_bar(dev, 1);
   #else
-    bar1 = new rorcfs_bar(dev, 1);
+    bar1 = new rorc_bar(dev, 1);
   #endif
   if ( bar1->init() == -1 ) {
     printf("ERROR: failed to initialize BAR1.\n");
