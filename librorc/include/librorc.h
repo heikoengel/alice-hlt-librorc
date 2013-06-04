@@ -4,9 +4,11 @@
     #include "librorc_registers.h"
     #include "librorc_defines.hh"
 
-    #include "rorcfs_device.hh"
+    #include "librorc_bar_proto.hh"
     #include "rorcfs_bar.hh"
     #include "sim_bar.hh"
+
+    #include "rorcfs_device.hh"
     #include "rorcfs_flash_htg.hh"
     #include "rorcfs_sysmon.hh"
     #include "rorcfs_buffer.hh"
