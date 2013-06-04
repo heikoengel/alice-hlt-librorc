@@ -26,6 +26,7 @@
 		<Unit filename="apps/src/pgdma_continuous.cpp" />
 		<Unit filename="apps/src/rorctl.cpp" />
 		<Unit filename="librorc/include/librorc.h" />
+		<Unit filename="librorc/src/librorc_bar_proto.hh" />
 		<Unit filename="librorc/src/librorc_defines.hh" />
 		<Unit filename="librorc/src/rorcfs_bar.cpp" />
 		<Unit filename="librorc/src/rorcfs_bar.hh" />
