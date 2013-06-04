@@ -18,7 +18,7 @@ unsigned int
 get
 (
     unsigned long addr
-);
+) = 0;
 
 /**
  * read WORD from BAR address
@@ -30,7 +30,7 @@ unsigned short
 get16
 (
     unsigned long addr
-);
+) = 0;
 
 /**
  * copy buffer range into BAR
@@ -45,7 +45,7 @@ memcpy_bar
     unsigned long addr,
     const void   *source,
     size_t        num
-);
+) = 0;
 
 /**
  * write DWORD to BAR address
@@ -59,7 +59,7 @@ set
 (
     unsigned long addr,
     unsigned int  data
-);
+) = 0;
 
 /**
  * write WORD to BAR address
@@ -72,7 +72,7 @@ set16
 (
     unsigned long  addr,
     unsigned short data
-);
+) = 0;
 
 /**
  * get current time of day
@@ -86,7 +86,7 @@ gettime
 (
     struct timeval *tv,
     struct timezone *tz
-);
+) = 0;
 
 /**
  * initialize BAR mapping: open sysfs file, get file stats,
@@ -97,13 +97,13 @@ gettime
  **/
 virtual
 int
-init();
+init() = 0;
 
 /**
  * get size of mapped BAR. This value is only valid after init()
  * @return size of mapped BAR in (unsigned long) bytes
  **/
-virtual size_t getSize();
+virtual size_t getSize() = 0;
 
 protected:
     rorcfs_device   *m_parent_dev;
