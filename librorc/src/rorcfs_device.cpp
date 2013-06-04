@@ -28,6 +28,7 @@
 #include <pda.h>
 
 #include "rorcfs_bar.hh"
+#include "sim_bar.hh"
 #include "rorcfs_device.hh"
 #include <librorc_registers.h>
 
