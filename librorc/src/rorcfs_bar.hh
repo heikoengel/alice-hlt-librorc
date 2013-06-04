@@ -63,6 +63,15 @@ rorc_bar
 ~rorc_bar();
 
 /**
+ * initialize BAR mapping: open sysfs file, get file stats,
+ * mmap file. This has to be done before using any other
+ * member funtion. This function will fail if the requested
+ * BAR does not exist.
+ * @return 0 on sucess, -1 on errors
+ **/
+int init();
+
+/**
  * read DWORD from BAR address
  * @param addr (unsigned int) aligned address within the
  *              BAR to read from.
@@ -138,26 +147,11 @@ gettime
 );
 
 /**
- * initialize BAR mapping: open sysfs file, get file stats,
- * mmap file. This has to be done before using any other
- * member funtion. This function will fail if the requested
- * BAR does not exist.
- * @return 0 on sucess, -1 on errors
- **/
-int init();
-
-/**
  * get size of mapped BAR. This value is only valid after init()
  * @return size of mapped BAR in (unsigned long) bytes
  **/
 
-size_t
-getSize()
-{
-    return m_size;
-}
-
-protected:
+size_t getSize();
 
 };
 

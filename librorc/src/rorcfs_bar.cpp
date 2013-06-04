@@ -206,3 +206,11 @@ rorc_bar::gettime
 {
     return gettimeofday(tv, tz);
 }
+
+
+
+size_t
+rorc_bar::getSize()
+{
+    return m_size;
+}

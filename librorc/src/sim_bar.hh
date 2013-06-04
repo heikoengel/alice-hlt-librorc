@@ -100,6 +100,8 @@ public:
         struct timezone *tz
     );
 
+    size_t getSize();
+
 
 private:
     int sockfd;

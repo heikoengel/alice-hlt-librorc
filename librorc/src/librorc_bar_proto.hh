@@ -103,12 +103,7 @@ init();
  * get size of mapped BAR. This value is only valid after init()
  * @return size of mapped BAR in (unsigned long) bytes
  **/
-virtual
-size_t
-getSize()
-{
-    return m_size;
-}
+virtual size_t getSize();
 
 protected:
     rorcfs_device   *m_parent_dev;

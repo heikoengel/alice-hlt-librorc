@@ -792,3 +792,11 @@ sim_bar::cmplHandler()
 
     return 0;
 }
+
+
+
+size_t
+sim_bar::getSize()
+{
+    return m_size;
+}
