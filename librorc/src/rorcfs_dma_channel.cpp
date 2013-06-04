@@ -135,8 +135,8 @@ rorcfs_dma_channel::~rorcfs_dma_channel()
 void
 rorcfs_dma_channel::init
 (
-    rorcfs_bar   *dma_bar,
-    unsigned int  channel_number
+    librorc_bar   *dma_bar,
+    unsigned int   channel_number
 )
 {
     m_base    = (channel_number + 1) * RORC_CHANNEL_OFFSET;

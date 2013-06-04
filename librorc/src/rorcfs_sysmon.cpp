@@ -41,7 +41,7 @@ rorcfs_sysmon::~rorcfs_sysmon()
 }
 
 
-int rorcfs_sysmon::init( rorcfs_bar *parent_bar )
+int rorcfs_sysmon::init( librorc_bar *parent_bar )
 {
 	if (parent_bar) {
 		bar = parent_bar;
@@ -138,9 +138,9 @@ int rorcfs_sysmon::i2c_read_mem(
 	unsigned int status;
 
 	// slave address shifted by one, write bit set
-	addr_wr = (slvaddr<<1); 
-	addr_rd = (slvaddr<<1) | 0x01; 
-	
+	addr_wr = (slvaddr<<1);
+	addr_rd = (slvaddr<<1) | 0x01;
+
 	// write addr + write bit to TX register, set STA, set WR
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
 
@@ -203,8 +203,8 @@ int rorcfs_sysmon::i2c_write_mem(
 	unsigned int status;
 
 	// slave address shifted by one, write bit set
-	addr_wr = (slvaddr<<1); 
-	
+	addr_wr = (slvaddr<<1);
+
 	// write addr + write bit to TX register, set STA, set WR
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
 
@@ -254,7 +254,7 @@ int rorcfs_sysmon::i2c_write_mem(
 	return 0;
 }
 
-	
+
 void rorcfs_sysmon::i2c_set_config( unsigned int config )
 {
 	assert(bar!=NULL);

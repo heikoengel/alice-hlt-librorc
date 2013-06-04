@@ -26,7 +26,7 @@
 
 
 
-rorcfs_bar::rorcfs_bar
+rorc_bar::rorc_bar
 (
     rorcfs_device *dev,
     int            n
@@ -43,7 +43,7 @@ rorcfs_bar::rorcfs_bar
 
 
 
-rorcfs_bar::~rorcfs_bar()
+rorc_bar::~rorc_bar()
 {
     pthread_mutex_destroy(&m_mtx);
     /** Further stuff here **/
@@ -57,7 +57,7 @@ rorcfs_bar::~rorcfs_bar()
  * */
 
 int
-rorcfs_bar::init()
+rorc_bar::init()
 {
     m_bar = m_parent_dev->getBarMap(m_number);
 
@@ -80,7 +80,7 @@ rorcfs_bar::init()
  * */
 
 unsigned int
-rorcfs_bar::get
+rorc_bar::get
 (
     unsigned long addr
 )
@@ -109,7 +109,7 @@ rorcfs_bar::get
  * */
 
 void
-rorcfs_bar::set
+rorc_bar::set
 (
     unsigned long addr,
     unsigned int  data
@@ -136,7 +136,7 @@ rorcfs_bar::set
  * */
 
 void
-rorcfs_bar::memcpy_bar
+rorc_bar::memcpy_bar
 (
     unsigned long addr,
     const void   *source,
@@ -152,7 +152,7 @@ rorcfs_bar::memcpy_bar
 
 
 unsigned short
-rorcfs_bar::get16
+rorc_bar::get16
 (
     unsigned long addr
 )
@@ -175,7 +175,7 @@ rorcfs_bar::get16
 
 
 void
-rorcfs_bar::set16
+rorc_bar::set16
 (
     unsigned long  addr,
     unsigned short data
@@ -198,7 +198,7 @@ rorcfs_bar::set16
 
 
 int
-rorcfs_bar::gettime
+rorc_bar::gettime
 (
     struct timeval *tv,
     struct timezone *tz

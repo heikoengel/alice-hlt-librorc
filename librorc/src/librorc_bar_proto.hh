@@ -1,66 +1,11 @@
-/**
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
- * @version 0.2
- * @date 2011-08-16
- *
- * @section LICENSE
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details at
- * http://www.gnu.org/copyleft/gpl.html
- *
- * @section DESCRIPTION
- *
- * The rorc_bar class represents a Base Address Register (BAR) file
- * mapping of the RORCs PCIe address space
- */
-
-#ifndef _RORCLIB_RORCFS_BAR_H
-#define _RORCLIB_RORCFS_BAR_H
-
-#include <pthread.h>
-#include <stdint.h>
-#include <sys/stat.h>
+#ifndef _RORCLIB_LIBRORC_BAR_PROTO_H
+#define _RORCLIB_LIBRORC_BAR_PROTO_H
 
 #include "rorcfs_device.hh"
-#include "librorc_bar_proto.hh"
 
-/**
- * @class rorc_bar
- * @brief Represents a Base Address Register (BAR) file
- * mapping of the RORCs PCIe address space
- *
- * Create a new crorc_bar object after initializing your
- * rorcfs_device instance. <br>Once your rorc_bar instance is
- * initialized (with init()) you can use get() and set() to
- * read from and/or write to the device.
- */
-class rorc_bar : public librorc_bar
+class librorc_bar
 {
 public:
-
-/**
- * Constructor that sets fname accordingly. No mapping is
- * performed at this point.
- * @param dev parent rorcfs_device
- * @param n number of BAR to be mapped [0-6]
- **/
-rorc_bar
-(
-    rorcfs_device *dev,
-    int            n
-);
-
-/**
- * Deconstructor: free fname, unmap BAR, close file
- **/
-~rorc_bar();
 
 /**
  * read DWORD from BAR address
@@ -68,6 +13,7 @@ rorc_bar
  *              BAR to read from.
  * @return data read from BAR[addr]
  **/
+virtual
 unsigned int
 get
 (
@@ -79,6 +25,7 @@ get
  * @param addr within the BAR to read from.
  * @return data read from BAR[addr]
  **/
+virtual
 unsigned short
 get16
 (
@@ -91,6 +38,7 @@ get16
  * @param source pointer to source data field
  * @param num number of bytes to be copied to destination
  * */
+virtual
 void
 memcpy_bar
 (
@@ -105,6 +53,7 @@ memcpy_bar
  *              BAR to write to
  * @param data (unsigned int) data word to be written.
  **/
+virtual
 void
 set
 (
@@ -117,6 +66,7 @@ set
  * @param addr within the BAR to write to
  * @param data (unsigned int) data word to be written.
  **/
+virtual
 void
 set16
 (
@@ -130,6 +80,7 @@ set16
  * @param tz pointer to struct timezone
  * @return return valiue from gettimeof day or zero for FLI simulation
  **/
+virtual
 int
 gettime
 (
@@ -144,13 +95,15 @@ gettime
  * BAR does not exist.
  * @return 0 on sucess, -1 on errors
  **/
-int init();
+virtual
+int
+init();
 
 /**
  * get size of mapped BAR. This value is only valid after init()
  * @return size of mapped BAR in (unsigned long) bytes
  **/
-
+virtual
 size_t
 getSize()
 {
@@ -158,6 +111,12 @@ getSize()
 }
 
 protected:
+    rorcfs_device   *m_parent_dev;
+    PciDevice       *m_pda_pci_device;
+    pthread_mutex_t  m_mtx;
+    int              m_number;
+    uint8_t         *m_bar;
+    size_t           m_size;
 
 };
 

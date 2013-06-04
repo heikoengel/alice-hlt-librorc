@@ -89,7 +89,8 @@ typedef struct PciDevice_struct PciDevice;
 class rorcfs_device
 {
 friend class rorcfs_buffer;
-friend class rorcfs_bar;
+friend class librorc_bar;
+friend class rorc_bar;
 
 public:
     rorcfs_device();

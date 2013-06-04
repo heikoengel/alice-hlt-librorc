@@ -189,7 +189,12 @@ rorcfs_device::printDeviceDescription()
             return;
         }
 
-        rorcfs_bar *bar = new rorcfs_bar(this, 1);
+        #ifdef SIM
+            librorc_bar *bar = new sim_bar(this, 1);
+        #else
+            librorc_bar *bar = new rorc_bar(this, 1);
+        #endif
+
         if ( bar->init() == -1 )
         {
             printf("ERROR: failed to initialize BAR1.\n");

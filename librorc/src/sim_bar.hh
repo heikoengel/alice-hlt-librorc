@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 
 #include "rorcfs_device.hh"
-#include "rorcfs_bar.hh"
+#include "librorc_bar_proto.hh"
 
 
 /**
@@ -47,7 +47,7 @@
 #define CMD_ACK_CMPL 10
 
 
-class sim_bar : public rorcfs_bar
+class sim_bar : public librorc_bar
 {
 public:
     sim_bar

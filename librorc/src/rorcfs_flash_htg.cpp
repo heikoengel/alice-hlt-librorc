@@ -35,7 +35,7 @@ using namespace std;
 
 rorcfs_flash_htg::rorcfs_flash_htg
 (
-    rorcfs_bar             *flashbar,
+    librorc_bar            *flashbar,
     librorc_verbosity_enum  verbose
 )
 {

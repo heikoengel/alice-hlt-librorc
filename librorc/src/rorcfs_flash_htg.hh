@@ -98,7 +98,7 @@ public:
  **/
     rorcfs_flash_htg
     (
-        rorcfs_bar             *flashbar,
+        librorc_bar            *flashbar,
         librorc_verbosity_enum  verbose
     );
 
@@ -326,7 +326,7 @@ public:
     );
 
 private:
-    rorcfs_bar    *bar;
+    librorc_bar    *bar;
     unsigned short read_state;
 };
 

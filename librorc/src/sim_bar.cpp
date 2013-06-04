@@ -28,6 +28,7 @@
 #include <arpa/inet.h>
 #include <pda.h>
 
+#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
@@ -46,8 +47,10 @@ sim_bar::sim_bar
     rorcfs_device *dev,
     int            n
 )
-: rorcfs_bar(dev, n)
+
 {
+    rorc_bar(dev, n);
+
     read_from_dev_done = 0;
     write_to_dev_done  = 0;
 

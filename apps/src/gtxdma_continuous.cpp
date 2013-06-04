@@ -73,15 +73,11 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
   int result = 0;
-  rorcfs_device *dev = NULL;
-  #ifdef SIM
-    sim_bar *bar1 = NULL;
-  #else
-    rorcfs_bar *bar1 = NULL;
-  #endif
-  rorcfs_buffer *ebuf = NULL;
-  rorcfs_buffer *rbuf = NULL;
-  rorcfs_dma_channel *ch = NULL;
+  rorcfs_device      *dev  = NULL;
+  librorc_bar        *bar1 = NULL;
+  rorcfs_buffer      *ebuf = NULL;
+  rorcfs_buffer      *rbuf = NULL;
+  rorcfs_dma_channel *ch   = NULL;
 
   struct rorcfs_event_descriptor *reportbuffer = NULL;
   timeval start_time, end_time;

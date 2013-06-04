@@ -42,7 +42,7 @@ class rorcfs_sysmon
 		 * @param bar parent rorcfs_bar instance
 		 * @return -1 on errors, 0 on success
 		 **/
-		int init( rorcfs_bar *bar );
+		int init( librorc_bar *bar );
 
 		/**
 		 * get PCIe Interface status
@@ -164,7 +164,7 @@ class rorcfs_sysmon
 				 unsigned int config);
 
 	private:
-		 rorcfs_bar *bar;
+		 librorc_bar *bar;
 
 };
 

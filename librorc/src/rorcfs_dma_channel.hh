@@ -65,8 +65,8 @@ public:
     void
     init
     (
-        rorcfs_bar  *dma_bar,
-        unsigned int dma_base
+        librorc_bar  *dma_bar,
+        unsigned int  dma_base
     );
 
     /**
@@ -246,7 +246,7 @@ getBase()
  * @return bound rorcfs_bar
  **/
 
-rorcfs_bar*
+librorc_bar*
 getBar()
 {
     return m_bar;
@@ -484,7 +484,7 @@ private:
     unsigned int m_channel;
     unsigned int m_MaxPayload;
 
-    rorcfs_bar  *m_bar;
+    librorc_bar  *m_bar;
 
     /**
      * This method is the generic version of the
