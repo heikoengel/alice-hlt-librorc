@@ -218,7 +218,7 @@ sim_bar::memcpy_bar
     pthread_mutex_lock(&m_mtx);
     {
         size_t   ndw = num>>2;
-        int32_t  buffersize = 4;
+        int32_t  buffersize = 4 + ndw;
         uint32_t buffer[buffersize];
         buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = msgid;
