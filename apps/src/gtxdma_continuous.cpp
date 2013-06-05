@@ -92,6 +92,8 @@ int main( int argc, char *argv[])
   uint64_t ddlref_size = 0;
 
   int32_t sanity_checks;
+  uint8_t ddl_trn_id = 1;
+  uint32_t ctstw;
 
   // catch CTRL+C for abort
   struct sigaction sigIntHandler;
@@ -145,9 +147,6 @@ int main( int argc, char *argv[])
       goto out;
     }
   }
-
-
-
 
   //allocate shared mem
   shID = shmget(SHM_KEY_OFFSET + ChannelId,
@@ -297,10 +296,43 @@ int main( int argc, char *argv[])
   while( (ch->getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
     usleep(100);
 
+  // clear DIU_IF IFSTW, CTSTW
+  ch->setGTX(RORC_REG_DDL_IFSTW, 0);
+  ch->setGTX(RORC_REG_DDL_CTSTW, 0);
+
+  // send EOBTR to close any open transaction
+  ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+
+  // wait for command transmission status word (CTSTW) from DIU
+  ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
+  while( ctstw == 0xffffffff ) {
+    usleep(100);
+    ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
+  }
+  ddl_trn_id = (ddl_trn_id+2) & 0x0f;
+
+  // TODO: check status
+  printf("DIU CTSTW: %08x\n", ctstw);
+  printf("DIU IFSTW: %08x\n", ch->getGTX(RORC_REG_DDL_IFSTW));
+
+  // clear DIU_IF IFSTW
+  ch->setGTX(RORC_REG_DDL_IFSTW, 0);
+  ch->setGTX(RORC_REG_DDL_CTSTW, 0);
+
   // send RdyRx to SIU
   ch->setGTX(RORC_REG_DDL_CMD, 0x00000014); //RdyRX
 
-  // TODO: wait for DIU status???
+  // wait for command transmission status word (CTSTW) from DIU
+  ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
+  while( ctstw == 0xffffffff ) {
+    usleep(100);
+    ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
+  }
+  ddl_trn_id = (ddl_trn_id+2) & 0x0f;
+
+  // clear DIU_IF IFSTW
+  ch->setGTX(RORC_REG_DDL_IFSTW, 0);
+  ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
   // capture starting time
   gettimeofday(&start_time, 0);
@@ -311,6 +343,7 @@ int main( int argc, char *argv[])
   last_events_received = 0;
 
   sigaction(SIGINT, &sigIntHandler, NULL);
+
   while( !done ) {
 
     // this can be aborted by abort_handler(),
@@ -404,13 +437,17 @@ int main( int argc, char *argv[])
     while(!(ch->getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
       usleep(100);
 
+    // clear DIU_IF IFSTW
+    ch->setGTX(RORC_REG_DDL_IFSTW, 0);
+    ch->setGTX(RORC_REG_DDL_CTSTW, 0);
+
     // Send EOBTR command
     ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
     // wait for command transmission status word (CTST)
     // in response to the EOBTR:
     // STS[7:4]="0000"
-    while(ch->getGTX(RORC_REG_DDL_STS0) & 0xf0)
+    while(ch->getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
       usleep(100);
 
     // disable DIU_IF

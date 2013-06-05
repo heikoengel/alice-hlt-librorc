@@ -255,7 +255,7 @@ void dump_diu_state ( struct rorcfs_dma_channel *ch )
   else printf("PG_OFF");
 
   if ( !(status>>8 & 1) ) { // PG disabled
-    printf("STS0:%08x ", ch->getGTX(RORC_REG_DDL_STS0));
+    printf("CTSTW:%08x ", ch->getGTX(RORC_REG_DDL_CTSTW));
     printf("DEADTIME:%08x ", ch->getGTX(RORC_REG_DDL_DEADTIME));
     printf("EC:%08x ", ch->getGTX(RORC_REG_DDL_EC));
   }
