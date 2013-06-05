@@ -113,8 +113,8 @@ rorcfs_buffer::allocate
     }
 
     /** Overmap if wanted */
-    pthread_mutex_lock(&m_mtx);
-    {
+//    pthread_mutex_lock(&m_mtx);
+//    {
         if(overmap == 1)
         {
             if(PDA_SUCCESS != DMABuffer_overmap(m_buffer) )
@@ -123,8 +123,8 @@ rorcfs_buffer::allocate
                 return(-1);
             }
         }
-    }
-    pthread_mutex_unlock(&m_mtx);
+//    }
+//    pthread_mutex_unlock(&m_mtx);
 
     m_dmaDirection = dma_direction;
     m_id           = id;
