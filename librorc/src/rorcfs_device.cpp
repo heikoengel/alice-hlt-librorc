@@ -57,6 +57,7 @@ rorcfs_device::init
     {
         "10dc beaf", /* CRORC BETA */
         "17aa 1e22", /* Heikos SMBus Controller for modelsim*/
+        "8086 1e22", /* Heikos SMBus Controller for modelsim*/
         NULL         /* Delimiter*/
     };
 
