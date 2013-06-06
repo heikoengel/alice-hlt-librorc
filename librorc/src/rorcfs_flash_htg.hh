@@ -22,7 +22,7 @@
 
 #include "librorc_defines.hh"
 
-#define FLASH_SIZE 33554432
+#define FLASH_SIZE 16777216
 #define FLASH_FILE_SIZE 16777216
 
 
@@ -81,6 +81,9 @@
 /** flash busy flag mask **/
 #define FLASH_PEC_BUSY 1 << 7
 
+/** address bit 23 selects flash chip **/
+#define FLASH_CHIP_SELECT_BIT 23
+
 /**
  * @class rorcfs_flash_htg
  * @brief interface class to the StrataFlash Embedded
@@ -99,6 +102,7 @@ public:
     rorcfs_flash_htg
     (
         librorc_bar            *flashbar,
+        uint64_t                chip_select,
         librorc_verbosity_enum  verbose
     );
 
@@ -116,18 +120,18 @@ public:
     void
     setReadState
     (
-        unsigned short state,
-        unsigned int   addr
+        uint16_t state,
+        uint32_t addr
     );
 
 /**
  * read flash status register
  * @param blkaddr block address
  **/
-    unsigned short
+    uint16_t
     getStatusRegister
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -137,22 +141,21 @@ public:
     void
     clearStatusRegister
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
  * get Manufacturer Code
  * @return manufacturer code
  **/
-    unsigned short
-    getManufacturerCode
-        ();
+    uint16_t
+    getManufacturerCode();
 
 /**
  * get Device ID
  * @return Device ID
  **/
-    unsigned short
+    uint16_t
     getDeviceID();
 
 /**
@@ -161,17 +164,17 @@ public:
  * @return block lock configuration: 0=unlocked,
  * 1=locked but not locked down, 3=locked and locked down
  **/
-    unsigned short
+    uint16_t
     getBlockLockConfiguration
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
  * get Read Configuration Register (RCR)
  * @return Read Configuraion
  **/
-    unsigned short
+    uint16_t
     getReadConfigurationRegister();
 
 /**
@@ -183,18 +186,18 @@ public:
     int
     programWord
     (
-        unsigned int   addr,
-        unsigned short data
+        uint32_t addr,
+        uint16_t data
     );
 
 /** get WORD from flash
  * @param addr address
  * @return data word at specified address
  **/
-    unsigned short
+    uint16_t
     get
     (
-        unsigned int addr
+        uint32_t addr
     );
 
 /**
@@ -207,9 +210,9 @@ public:
     int
     programBuffer
     (
-        unsigned int    addr,
-        unsigned short  length,
-        unsigned short *data
+        uint32_t  addr,
+        uint16_t  length,
+        uint16_t *data
     );
 
 /**
@@ -220,7 +223,7 @@ public:
     int
     eraseBlock
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -230,7 +233,7 @@ public:
     void
     programSuspend
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -240,7 +243,7 @@ public:
     void
     programResume
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -249,7 +252,7 @@ public:
     void
     lockBlock
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -258,7 +261,7 @@ public:
     void
     unlockBlock
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -267,7 +270,7 @@ public:
     void
     setConfigReg
     (
-        unsigned short value
+        uint32_t value
     );
 
 /**
@@ -280,7 +283,7 @@ public:
     int
     blankCheck
     (
-        unsigned int blkaddr
+        uint32_t blkaddr
     );
 
 /**
@@ -288,10 +291,10 @@ public:
  * @param addr address
  * @return associated block address
  * */
-    unsigned int
+    uint32_t
     getBlockAddress
     (
-        unsigned int addr
+        uint32_t addr
     );
 
 /**
@@ -299,10 +302,10 @@ public:
  * @param addr address
  * @return associated bank address
  * */
-    unsigned int
+    uint32_t
     getBankAddress
     (
-        unsigned int addr
+        uint32_t addr
     );
 
     int64_t
@@ -327,7 +330,8 @@ public:
 
 private:
     librorc_bar    *bar;
-    unsigned short read_state;
+    uint16_t    read_state;
+    uint32_t    base_addr;
 };
 
 #endif

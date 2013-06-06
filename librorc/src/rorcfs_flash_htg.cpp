@@ -36,6 +36,7 @@ using namespace std;
 rorcfs_flash_htg::rorcfs_flash_htg
 (
     librorc_bar            *flashbar,
+    uint64_t                chip_select,
     librorc_verbosity_enum  verbose
 )
 {
@@ -44,17 +45,16 @@ rorcfs_flash_htg::rorcfs_flash_htg
         throw 1;
     }
 
+    if(chip_select & 0xfffffffffffffffe)
+    {
+        throw 2;
+    }
+
     bar        = flashbar;
     read_state = 0;
+    base_addr = chip_select << FLASH_CHIP_SELECT_BIT;
 
-    uint16_t status
-        = getStatusRegister(0);
-
-    if(verbose == LIBRORC_VERBOSE_ON)
-    {
-        cout << "Status               : " << hex
-             << setw(4) << status << endl;
-    }
+    uint16_t status = getStatusRegister(0);
 
     if( status != 0x0080 )
     {
@@ -66,19 +66,6 @@ rorcfs_flash_htg::rorcfs_flash_htg
         }
         status = getStatusRegister(0);
     }
-
-    if(verbose == LIBRORC_VERBOSE_ON)
-    {
-        cout << "Status               : " << hex
-             << setw(4) << status << endl;
-        cout << "Manufacturer Code    : " << hex << setw(4)
-             << getManufacturerCode() << endl;
-        cout << "Device ID            : " << hex << setw(4)
-             << getDeviceID() << endl;
-        cout << "Read Config Register : " << hex << setw(4)
-             << getReadConfigurationRegister() << endl;
-    }
-
 }
 
 
@@ -94,20 +81,20 @@ rorcfs_flash_htg::~rorcfs_flash_htg()
 void
 rorcfs_flash_htg::setReadState
 (
-    unsigned short state,
-    unsigned int   addr
+    uint16_t state,
+    uint32_t addr
 )
 {
-    bar->set16(addr, state);
+    bar->set16(base_addr + addr, state);
     read_state = state;
 }
 
 
 
-unsigned short
+uint16_t
 rorcfs_flash_htg::getStatusRegister
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
     if(read_state != FLASH_READ_STATUS)
@@ -115,7 +102,7 @@ rorcfs_flash_htg::getStatusRegister
         setReadState(FLASH_READ_STATUS, blkaddr);
     }
 
-    return bar->get16(blkaddr);
+    return bar->get16(base_addr + blkaddr);
 }
 
 
@@ -123,16 +110,16 @@ rorcfs_flash_htg::getStatusRegister
 void
 rorcfs_flash_htg::clearStatusRegister
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_CLR_STS);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_CLR_STS);
     setReadState(FLASH_READ_ARRAY, blkaddr);
 }
 
 
 
-unsigned short
+uint16_t
 rorcfs_flash_htg::getManufacturerCode()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
@@ -140,12 +127,12 @@ rorcfs_flash_htg::getManufacturerCode()
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
     }
 
-    return bar->get16(0x00);
+    return bar->get16(base_addr + 0x00);
 }
 
 
 
-unsigned short
+uint16_t
 rorcfs_flash_htg::getDeviceID()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
@@ -153,15 +140,15 @@ rorcfs_flash_htg::getDeviceID()
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
     }
 
-    return bar->get16(0x01);
+    return bar->get16(base_addr + 0x01);
 }
 
 
 
-unsigned short
+uint16_t
 rorcfs_flash_htg::getBlockLockConfiguration
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
     if(read_state != FLASH_READ_IDENTIFIER)
@@ -169,12 +156,12 @@ rorcfs_flash_htg::getBlockLockConfiguration
         setReadState(FLASH_READ_IDENTIFIER, blkaddr);
     }
 
-    return bar->get16(blkaddr + 0x02);
+    return bar->get16(base_addr + blkaddr + 0x02);
 }
 
 
 
-unsigned short
+uint16_t
 rorcfs_flash_htg::getReadConfigurationRegister()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
@@ -182,19 +169,22 @@ rorcfs_flash_htg::getReadConfigurationRegister()
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
     }
 
-    return bar->get16(0x05);
+    return bar->get16(base_addr + 0x05);
 }
 
 
 
-unsigned short
+uint16_t
 rorcfs_flash_htg::get
 (
-    unsigned int addr
+    uint32_t addr
 )
 {
-    setReadState(FLASH_READ_ARRAY, addr);
-    return bar->get16(addr);
+    if(read_state != FLASH_READ_ARRAY)
+    {
+        setReadState(FLASH_READ_ARRAY, addr);
+    }
+    return bar->get16(base_addr + addr);
 }
 
 
@@ -202,24 +192,24 @@ rorcfs_flash_htg::get
 int
 rorcfs_flash_htg::programWord
 (
-    unsigned int   addr,
-    unsigned short data
+    uint32_t addr,
+    uint16_t data
 )
 {
-    unsigned short status  = 0;
-    unsigned int   timeout = CFG_FLASH_TIMEOUT;
+    uint16_t status  = 0;
+    uint32_t   timeout = CFG_FLASH_TIMEOUT;
 
     /** word program setup */
-    bar->set16(addr, FLASH_CMD_PROG_SETUP);
+    bar->set16(base_addr + addr, FLASH_CMD_PROG_SETUP);
 
-    bar->set16(addr, data);
+    bar->set16(base_addr + addr, data);
     read_state = FLASH_READ_STATUS;
-    status = bar->get16(addr);
+    status = bar->get16(base_addr + addr);
 
     while( (status & FLASH_PEC_BUSY) == 0)
     {
         usleep(100);
-        status = bar->get16(addr);
+        status = bar->get16(base_addr + addr);
         timeout--;
         if(timeout == 0)
         {
@@ -234,7 +224,7 @@ rorcfs_flash_htg::programWord
     }
     else
     {
-        return -1;
+        return -status;
     }
 }
 
@@ -243,15 +233,15 @@ rorcfs_flash_htg::programWord
 int
 rorcfs_flash_htg::programBuffer
 (
-    unsigned int    addr,
-    unsigned short  length,
-    unsigned short *data
+    uint32_t  addr,
+    uint16_t  length,
+    uint16_t *data
 )
 {
-    int            i;
-    unsigned short status;
-    unsigned int   timeout = CFG_FLASH_TIMEOUT;
-    unsigned int   blkaddr = addr & CFG_FLASH_BLKMASK;
+    int      i;
+    uint16_t status;
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
+    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
 
     /** check if block is locked */
     if( getBlockLockConfiguration(blkaddr) )
@@ -260,77 +250,45 @@ rorcfs_flash_htg::programBuffer
     }
 
     /** write to buffer command */
-    bar->set16(blkaddr, FLASH_CMD_BUFFER_PROG);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BUFFER_PROG);
     read_state = FLASH_READ_STATUS;
 
     /** read status register */
-    status = bar->get16(blkaddr);
+    status = bar->get16(base_addr + blkaddr);
     if( (status & FLASH_PEC_BUSY) == 0)                                           //
     {
         return -1;
     }
 
     /** write word count */
-    bar->set16(blkaddr, length - 1);
+    bar->set16(base_addr + blkaddr, length - 1);
 
-    bar->set16(addr, data[0]);
+    bar->set16(base_addr + addr, data[0]);
 
     for(i=1; i < length; i++)
     {
-        bar->set16(addr + i, data[i]);
+        bar->set16(base_addr + addr + i, data[i]);
     }
 
-    bar->set16(blkaddr, FLASH_CMD_CONFIRM);
-    status = bar->get16(blkaddr);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
+    status = bar->get16(base_addr + blkaddr);
 
     /** Wait while device is busy */
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
-        status = bar->get16(blkaddr);
+        status = bar->get16(base_addr + blkaddr);
         timeout--;
         if(timeout == 0)
         {
-            cout << "programBuffer timed out " << status << endl;
-            return -1;
+            return -status;
         }
     }
 
     /** SR.5 or SR.4 nonzero -> program/erase/sequence error */
     if(status != FLASH_PEC_BUSY)
     {
-        cout << "programBuffer failed: ";
-        switch(status & 0x0030)
-        {
-            case 0x0030:
-            {
-                cout << "Command Sequence Error - command aborted!" << endl;
-            }
-            break;
-
-            case 0x0010:
-            {
-                cout << "Program Error - operation aborted!" << endl;
-                if(status & 0x0002)
-                {
-                    cout << "Block locked during program!" << endl;
-                }
-            }
-            break;
-
-            case 0x0020:
-            {
-                cout << "Erase Error - operation aborted!" << endl;
-            }
-            break;
-
-            default:
-            {
-                cout << "Unknown Error - Software Bug!" << endl;
-            }
-            break;
-        }
-        return -1;
+        return -status;
     }
 
     /** return to ReadArry mode */
@@ -343,29 +301,28 @@ rorcfs_flash_htg::programBuffer
 int
 rorcfs_flash_htg::eraseBlock
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    unsigned short status;
-    unsigned int   timeout = CFG_FLASH_TIMEOUT;
+    uint16_t status;
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
 
     /** erase command */
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
 
     /** confim command */
-    bar->set16(blkaddr, FLASH_CMD_CONFIRM);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
     read_state = FLASH_READ_STATUS;
-    status = bar->get16(blkaddr);
+    status = bar->get16(base_addr + blkaddr);
 
     while( (status & FLASH_PEC_BUSY) == 0)
     {
         usleep(100);
-        status = bar->get16(blkaddr);
+        status = bar->get16(base_addr + blkaddr);
         timeout--;
         if(timeout == 0)
         {
-            cout << "eraseBlock timeout" << endl;
-            return -1;
+            return -status;
         }
     }
 
@@ -376,7 +333,7 @@ rorcfs_flash_htg::eraseBlock
     }
     else
     {
-        return -1;
+        return -status;
     }
 }
 
@@ -385,10 +342,10 @@ rorcfs_flash_htg::eraseBlock
 void
 rorcfs_flash_htg::programSuspend
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_PROG_ERASE_SUSPEND);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_PROG_ERASE_SUSPEND);
 }
 
 
@@ -396,10 +353,10 @@ rorcfs_flash_htg::programSuspend
 void
 rorcfs_flash_htg::programResume
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_CONFIRM);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
 }
 
 
@@ -407,11 +364,11 @@ rorcfs_flash_htg::programResume
 void
 rorcfs_flash_htg::lockBlock
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
 }
 
 
@@ -419,11 +376,11 @@ rorcfs_flash_htg::lockBlock
 void
 rorcfs_flash_htg::unlockBlock
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    bar->set16(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(blkaddr, FLASH_CMD_CONFIRM);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
 }
 
 
@@ -431,11 +388,11 @@ rorcfs_flash_htg::unlockBlock
 void
 rorcfs_flash_htg::setConfigReg
 (
-    unsigned short value
+    uint32_t value
 )
 {
-    bar->set16(value, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(value, FLASH_CMD_CFG_REG_CONFIRM);
+    bar->set16(base_addr + value, FLASH_CMD_BLOCK_LOCK_SETUP);
+    bar->set16(base_addr + value, FLASH_CMD_CFG_REG_CONFIRM);
 }
 
 
@@ -443,32 +400,29 @@ rorcfs_flash_htg::setConfigReg
 int
 rorcfs_flash_htg::blankCheck
 (
-    unsigned int blkaddr
+    uint32_t blkaddr
 )
 {
-    unsigned short status;
-    unsigned int   timeout = CFG_FLASH_TIMEOUT;
+    uint16_t status;
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    bar->set16(blkaddr, FLASH_CMD_BC_SETUP);
-    bar->set16(blkaddr, FLASH_CMD_BC_CONFIRM);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BC_SETUP);
+    bar->set16(base_addr + blkaddr, FLASH_CMD_BC_CONFIRM);
     read_state = FLASH_READ_STATUS;
-    status = bar->get16(blkaddr);
+    status = bar->get16(base_addr + blkaddr);
 
     /** wait for blankCheck to complete */
     while( (status & FLASH_PEC_BUSY) == 0)
     {
         usleep(100);
-        status = bar->get16(blkaddr);
+        status = bar->get16(base_addr + blkaddr);
         timeout--;
         if(timeout == 0)
         {
-            cout << "blankCheck timeout: " << status << endl;
-            return -1;
+            return -status;
         }
     }
     clearStatusRegister(blkaddr);
-    cout << "Blank Check addr " <<  hex << blkaddr
-         << "=" << hex << status;
 
     /**
      * SR5==1: block not empty -> return 0
@@ -479,10 +433,10 @@ rorcfs_flash_htg::blankCheck
 
 
 
-unsigned int
+uint32_t
 rorcfs_flash_htg::getBlockAddress
 (
-    unsigned int addr
+    uint32_t addr
 )
 {
     /** memory organization:
@@ -507,10 +461,10 @@ rorcfs_flash_htg::getBlockAddress
 
 
 
-unsigned int
+uint32_t
 rorcfs_flash_htg::getBankAddress
 (
-    unsigned int addr
+    uint32_t addr
 )
 {
     /** bank 0: 0x000000 - 0x080000 **/
@@ -574,8 +528,8 @@ rorcfs_flash_htg::erase
     librorc_verbosity_enum verbose
 )
 {
-    unsigned int addr = (1<<23); //start address: +16MB
-    int block_count   = (unsigned int)((16<<20)>>17);
+    uint32_t addr = 0;
+    int block_count   = (uint32_t)((16<<20)>>17); // 16MB = full flash size
     for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
     {
         uint64_t current_addr = (i<<16);
@@ -591,9 +545,11 @@ rorcfs_flash_htg::erase
             unlockBlock(current_addr);
         }
 
-        if( eraseBlock(current_addr)<0 )
+        int ret = eraseBlock(current_addr);
+        if( ret < 0 )
         {
-            return -1;
+            cout << "Failed to erase block at addr" << hex << current_addr << endl;
+            return ret;
         }
 
         fflush(stdout);
@@ -636,12 +592,9 @@ rorcfs_flash_htg::flash
         return -1;
     }
 
-    /** Prequesits flash
-     *  start address: +16MB
-     **/
-    uint64_t addr = (1<<23);
+    uint64_t addr = 0;
     uint64_t block_count
-        = (unsigned int)(stat_buf.st_size>>17)+1;
+        = (uint32_t)(stat_buf.st_size>>17)+1;
 
     if(verbose == LIBRORC_VERBOSE_ON)
     {
@@ -680,7 +633,7 @@ rorcfs_flash_htg::flash
     uint16_t *buffer
         = (uint16_t *)malloc(32*sizeof(uint16_t));
 
-    while ( (bytes_read=read(fd, buffer, 32*sizeof(unsigned short))) > 0 )
+    while ( (bytes_read=read(fd, buffer, 32*sizeof(uint16_t))) > 0 )
     {
         if(verbose == LIBRORC_VERBOSE_ON)
         {
@@ -691,10 +644,11 @@ rorcfs_flash_htg::flash
             fflush(stdout);
         }
 
-        if ( programBuffer(addr, bytes_read/2, buffer) < 0 )
+        int ret = programBuffer(addr, bytes_read/2, buffer);
+        if (ret < 0)
         {
             cout << "programBuffer failed, STS: " << hex
-                 << getStatusRegister(addr) << dec << endl;
+                 << ret << dec << endl;
             break;
         }
 
