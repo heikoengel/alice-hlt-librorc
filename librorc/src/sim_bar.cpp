@@ -133,7 +133,6 @@ sim_bar::get
 )
 {
     uint32_t  data = 0;
-    DEBUG_PRINTF("get(0x%lx)\n", addr);
     pthread_mutex_lock(&m_mtx);
     {
         int32_t  buffersize = 4;
@@ -167,6 +166,7 @@ sim_bar::get
         }
     }
     pthread_mutex_unlock(&m_mtx);
+    DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
     return data;
 }
 
@@ -692,7 +692,7 @@ sim_bar::sockMonitor()
                 }
                 else
                 {
-                    *offset += (node->length);
+                    *offset += (node->length)/sizeof(uint64_t);
                 }
             }
         }
