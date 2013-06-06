@@ -46,6 +46,15 @@
 #define CMD_ACK_WRITE 9
 #define CMD_ACK_CMPL 10
 
+#ifdef DEBUG
+    #define DEBUG_PRINTF( ... ) {       \
+      printf( __VA_ARGS__ );           \
+    }
+#else
+#define DEBUG_PRINTF( ... ) {           \
+    }
+#endif
+
 
 class sim_bar : public librorc_bar
 {

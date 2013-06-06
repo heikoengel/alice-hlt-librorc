@@ -54,6 +54,8 @@ sim_bar::sim_bar
     read_from_dev_done = 0;
     write_to_dev_done  = 0;
 
+    pthread_mutex_init(&m_mtx, NULL);
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( sockfd < 0 )
     {
@@ -127,6 +129,7 @@ sim_bar::get
 )
 {
     uint32_t  data = 0;
+    DEBUG_PRINTF("get(0x%lx)\n", addr);
     pthread_mutex_lock(&m_mtx);
     {
         int32_t  buffersize = 4;
