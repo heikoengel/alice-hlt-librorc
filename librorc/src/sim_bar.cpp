@@ -28,7 +28,7 @@
 #include <arpa/inet.h>
 #include <pda.h>
 
-#include "rorcfs_bar.hh"
+//#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
@@ -49,7 +49,13 @@ sim_bar::sim_bar
 )
 
 {
-    rorc_bar(dev, n);
+    m_parent_dev = dev;
+    m_number     = n;
+
+    m_pda_pci_device = dev->getPdaPciDevice();
+
+    /** initialize mutex */
+    pthread_mutex_init(&m_mtx, NULL);
 
     read_from_dev_done = 0;
     write_to_dev_done  = 0;
@@ -160,6 +166,7 @@ sim_bar::get
         }
     }
     pthread_mutex_unlock(&m_mtx);
+    DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
     return data;
 }
 
@@ -218,7 +225,7 @@ sim_bar::memcpy_bar
     pthread_mutex_lock(&m_mtx);
     {
         size_t   ndw = num>>2;
-        int32_t  buffersize = 4;
+        int32_t  buffersize = 4 + ndw;
         uint32_t buffer[buffersize];
         buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = msgid;
@@ -685,7 +692,7 @@ sim_bar::sockMonitor()
                 }
                 else
                 {
-                    *offset += (node->length);
+                    *offset += (node->length)/sizeof(uint64_t);
                 }
             }
         }

@@ -15,8 +15,8 @@ sim: CFLAGS += -DSIM
 sim: BUILD_ID := sim
 sim: subdirs
 
-#sim-debug: CFLAGS += -DSIM -DDEBUG -g -Wall -DFLI_DEBUG
-sim-debug: CFLAGS += -DSIM -DDEBUG -g -Wall
+sim-debug: CFLAGS += -DSIM -DDEBUG -g -Wall -DFLI_DEBUG
+#sim-debug: CFLAGS += -DSIM -DDEBUG -g -Wall
 sim-debug: BUILD_ID := sim-debug
 sim-debug: subdirs
 

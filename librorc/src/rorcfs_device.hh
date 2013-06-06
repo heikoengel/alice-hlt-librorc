@@ -91,6 +91,7 @@ class rorcfs_device
 friend class rorcfs_buffer;
 friend class librorc_bar;
 friend class rorc_bar;
+friend class sim_bar;
 
 public:
     rorcfs_device();
