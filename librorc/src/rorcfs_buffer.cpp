@@ -41,6 +41,7 @@ rorcfs_buffer::rorcfs_buffer()
     m_id                           = 0;
     m_dmaDirection                 = 0;
     m_mem                          = NULL;
+    m_buffer                       = NULL;
     m_numberOfScatterGatherEntries = 0;
 }
 
@@ -149,7 +150,21 @@ rorcfs_buffer::connect
     rorcfs_device *dev,
     unsigned long  id
 )
+
 {
+    /**
+    * Check if m_buffer has been set before by allocate(),
+    * else lookup buffer by dev and id
+    **/
+    if ( !m_buffer )
+    {
+        if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
+        {
+            cout << "Buffer lookup failed!" << endl;
+            return -1;
+        }
+    }
+
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     {
         cout << "Mapping failed!" << endl;
