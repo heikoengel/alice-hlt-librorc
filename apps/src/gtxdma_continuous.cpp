@@ -335,7 +335,8 @@ int main( int argc, char *argv[])
   ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
   // capture starting time
-  gettimeofday(&start_time, 0);
+  bar1->gettime(&start_time, 0);
+
   last_time = start_time;
   cur_time = start_time;
 
@@ -371,7 +372,7 @@ int main( int argc, char *argv[])
       usleep(100);
     }
 
-    gettimeofday(&cur_time, 0);
+    bar1->gettime(&cur_time, 0);
 
     // print status line each second
     if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
@@ -407,7 +408,7 @@ int main( int argc, char *argv[])
   }
 
   // EOR
-  gettimeofday(&end_time, 0);
+  bar1->gettime(&end_time, 0);
 
   // print summary
   printf("%ld Byte / %ld events in %.2f sec"

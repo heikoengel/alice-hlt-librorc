@@ -212,6 +212,7 @@ int main( int argc, char *argv[])
   printf("ReportBuffer:\n");
   //dump_sglist(rbuf);
 
+
   memset(chstats, 0, sizeof(struct ch_stats));
   chstats->index = 0;
   chstats->last_id = -1;
@@ -280,7 +281,7 @@ int main( int argc, char *argv[])
 
 
   // capture starting time
-  gettimeofday(&start_time, 0);
+  bar1->gettime(&start_time, 0);
   last_time = start_time;
   cur_time = start_time;
 
@@ -311,7 +312,7 @@ int main( int argc, char *argv[])
       usleep(100);
     }
 
-    gettimeofday(&cur_time, 0);
+    bar1->gettime(&cur_time, 0);
 
     // print status line each second
     if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
@@ -347,7 +348,7 @@ int main( int argc, char *argv[])
   }
 
   // EOR
-  gettimeofday(&end_time, 0);
+  bar1->gettime(&end_time, 0);
 
   // print summary
   printf("%ld Byte / %ld events in %.2f sec"

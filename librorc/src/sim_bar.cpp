@@ -28,7 +28,7 @@
 #include <arpa/inet.h>
 #include <pda.h>
 
-#include "rorcfs_bar.hh"
+//#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
@@ -49,12 +49,16 @@ sim_bar::sim_bar
 )
 
 {
-    rorc_bar(dev, n);
+    m_parent_dev = dev;
+    m_number     = n;
+
+    m_pda_pci_device = dev->getPdaPciDevice();
+
+    /** initialize mutex */
+    pthread_mutex_init(&m_mtx, NULL);
 
     read_from_dev_done = 0;
     write_to_dev_done  = 0;
-
-    pthread_mutex_init(&m_mtx, NULL);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( sockfd < 0 )
