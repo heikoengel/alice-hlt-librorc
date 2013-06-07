@@ -113,13 +113,12 @@ rorcfs_buffer::allocate
         }
     }
 
-    /** Overmap if wanted */
-
+    /** Wrap map if wanted */
     if(overmap == 1)
     {
-        if(PDA_SUCCESS != DMABuffer_overmap(m_buffer) )
+        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
         {
-            cout << "Overmapping failed!" << endl;
+            cout << "Wrap mapping failed!" << endl;
             return(-1);
         }
     }

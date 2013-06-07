@@ -46,6 +46,7 @@ Value parameters :                                           \n\
   -n [0...255]    Target device ID (get a list with -l).     \n\
   -f <filename>   Filename of the flash file.                \n\
   -v              Be verbose                                 \n\
+  -c              Select Flash Chip [0 or 1]                 \n\
 Instruction parameters :                                     \n\
   -l              List available devices.                    \n\
   -d              Dump device firmware to file.              \n\
@@ -55,7 +56,10 @@ Instruction parameters :                                     \n\
   -e              Erase device flash (caution JTAG programmer\n\
                   needed afterwards)                         \n\
                   Requires value parameters -n               \n\
+  -s              Show flash status                          \n\
 Examples :                                                   \n\
+Show status of Device 0 Flash 0:                             \n\
+  rorctl -n 0 -c 0 -s                                        \n\
 Dump firmware of device 0 to file firmware.bin :             \n\
   rorctl -n 0 -f firmware.bin -d                             \n\
 Program firmware into device 0 from file firmware.bin :      \n\
@@ -74,6 +78,7 @@ List all available devices :                                 \n\
 typedef struct
 {
     uint64_t                device_number;
+    uint64_t                chip_select;
     char                   *filename;
     librorc_verbosity_enum  verbose;
 }confopts;
@@ -82,11 +87,51 @@ typedef struct
 void print_devices();
 
 inline
-rorcfs_flash_htg *
+librorc_flash *
 init_flash
 (
     confopts options
 );
+
+void dump_flash_status ( uint16_t status )
+{
+    if ( status & (1<<7) )
+    {
+        cout << "\tReady" << endl;
+    } else
+    {
+        cout << "\tBusy" << endl;
+    }
+
+    if ( status & (1<<6) ) cout << "\tErase suspended" << endl;
+    else cout << "\tErase in progress or completed" << endl;
+
+    if ( status & (1<<5) ) cout << "\tErase/blank check error" << endl;
+    else cout << "\tErase/blank check sucess" << endl;
+
+    if ( status & (1<<4) ) cout << "\tProgram Error" << endl;
+    else cout << "\tProgram sucess" << endl;
+
+    if ( status & (1<<3) ) cout << "\tVpp invalid, abort" << endl;
+    else cout << "\tVpp OK" << endl;
+
+    if ( status & (1<<2) ) cout << "\tProgram Suspended" << endl;
+    else cout << "\tProgram in progress or completed" << endl;
+
+    if ( status & (1<<1) ) cout << "\tProgram/erase on protected block, abort" << endl;
+    else cout << "\tNo operation to protected block" << endl;
+
+    if ( status & 1 )
+    {
+        if (status & (1<<7)) cout << "\tNot Allowed" << endl;
+        else cout << "\tProgram or erase operation in a bank other than the addressed bank" << endl;
+    }
+    else
+    {
+        if (status & (1<<7)) cout << "\tNo program or erase operation in the device" << endl;
+        else cout << "\tProgram or erase operation in addressed bank" << endl;
+    }
+}
 
 
 
@@ -109,15 +154,16 @@ int main
     confopts options =
     {
         NOT_SET,
+        NOT_SET,
         NULL,
         LIBRORC_VERBOSE_OFF
     };
 
-    rorcfs_flash_htg *flash = NULL;
+    librorc_flash *flash = NULL;
     {
         opterr = 0;
         int c;
-        while((c = getopt(argc, argv, "hvldepn:f:")) != -1)
+        while((c = getopt(argc, argv, "hvldepn:f:c:s")) != -1)
         {
             switch(c)
             {
@@ -153,7 +199,7 @@ int main
                 {
                     cout << "Erasing device!" << endl;
                     flash = init_flash(options);
-                    return( flash->erase(options.verbose) );
+                    return( flash->erase(16<<20, options.verbose) );
                 }
                 break;
 
@@ -175,6 +221,73 @@ int main
                 {
                     options.filename = (char *)malloc(strlen(optarg)+2);
                     sprintf(options.filename, "%s", optarg);
+                }
+                break;
+
+                case 'c':
+                {
+                    options.chip_select = atoi(optarg);
+                }
+                break;
+
+                case 's':
+                {
+                    flash = init_flash(options);
+                    flash->clearStatusRegister(0);
+
+                    // set asynchronous read mode
+                    flash->setConfigReg(0xbddf);
+
+                    uint16_t flashstatus = flash->getStatusRegister(0);
+                    cout << "Status               : " << hex
+                        << setw(4) << flashstatus << endl;
+                    if (flashstatus!=0x0080)
+                    {
+                        dump_flash_status(flashstatus);
+                        flash->clearStatusRegister(0);
+                    }
+
+                    cout << "Manufacturer Code    : " << hex << setw(4)
+                        << flash->getManufacturerCode() << endl;
+                    flashstatus = flash->getStatusRegister(0);
+                    if (flashstatus!=0x0080)
+                    {
+                        cout << "Status : " << hex << setw(4) << flashstatus << endl;
+                        dump_flash_status(flashstatus);
+                        flash->clearStatusRegister(0);
+                    }
+
+                    cout << "Device ID            : " << hex << setw(4)
+                        << flash->getDeviceID() << endl;
+                    flashstatus = flash->getStatusRegister(0);
+                    if (flashstatus!=0x0080)
+                    {
+                        cout << "Status : " << hex << setw(4) << flashstatus << endl;
+                        dump_flash_status(flashstatus);
+                        flash->clearStatusRegister(0);
+                    }
+
+                    cout << "Read Config Register : " << hex << setw(4)
+                        << flash->getReadConfigurationRegister() << endl;
+                    flashstatus = flash->getStatusRegister(0);
+                    if (flashstatus!=0x0080)
+                    {
+                        cout << "Status : " << hex << setw(4) << flashstatus << endl;
+                        dump_flash_status(flashstatus);
+                        flash->clearStatusRegister(0);
+                    }
+
+                    cout << "Unique Device Number : " << hex
+                        << flash->getUniqueDeviceNumber() << endl;
+                    flashstatus = flash->getStatusRegister(0);
+                    if (flashstatus!=0x0080)
+                    {
+                        cout << "Status : " << hex << setw(4) << flashstatus << endl;
+                        dump_flash_status(flashstatus);
+                        flash->clearStatusRegister(0);
+                    }
+
+                    return 0;
                 }
                 break;
 
@@ -224,7 +337,7 @@ print_devices()
 
 
 inline
-rorcfs_flash_htg *
+librorc_flash *
 init_flash
 (
     confopts options
@@ -234,6 +347,13 @@ init_flash
     {
         cout << "Device ID was not given!" << endl;
         return NULL;
+    }
+
+    if(options.chip_select == NOT_SET)
+    {
+        cout << "Flash Chip Select was not given, "
+             << "using default Flash0" << endl;
+        options.chip_select = 0;
     }
 
     rorcfs_device *dev
@@ -259,15 +379,27 @@ init_flash
     }
 
     /** get flash object */
-    rorcfs_flash_htg *flash = NULL;
+    librorc_flash *flash = NULL;
     try
     {
-        flash = new rorcfs_flash_htg(bar, options.verbose);
+        flash = new librorc_flash(bar, options.chip_select, options.verbose);
     }
     catch (int e)
     {
-        cout << "BAR is no CRORC flash."
-             << " Exception Nr. " << e << endl;
+        switch (e)
+        {
+        case 1:
+            cout << "BAR is no CRORC flash.";
+            break;
+
+        case 2:
+            cout << "Illegal flash chip select";
+            break;
+
+        default:
+            cout << "Unknown Exceptoin Nr. " << e << endl;
+            break;
+        }
         return(NULL);
     }
 

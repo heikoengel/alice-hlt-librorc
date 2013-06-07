@@ -162,11 +162,12 @@ sim_bar::get
             data = read_from_dev_data;
             read_from_dev_done = 0;
 
+            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
+
             msgid++;
         }
     }
     pthread_mutex_unlock(&m_mtx);
-    DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
     return data;
 }
 
@@ -206,6 +207,9 @@ sim_bar::set
                 usleep(USLEEP_TIME);
             }
             write_to_dev_done=0;
+
+            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", msgid, addr, data);
+
             msgid++;
         }
     }
@@ -259,6 +263,8 @@ sim_bar::memcpy_bar
                 usleep(USLEEP_TIME);
             }
             write_to_dev_done=0;
+
+            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", msgid, ndw, addr);
             msgid++;
         }
 
@@ -652,7 +658,6 @@ sim_bar::sockMonitor()
         }
 
         /** Iterate buffers */
-        *offset = 0;
         PdaDebugReturnCode ret = PDA_SUCCESS;
         for
         (
@@ -661,6 +666,7 @@ sim_bar::sockMonitor()
             ret = DMABuffer_getNext(buffer, &buffer)
         )
         {
+            *offset = 0;
             if(ret != PDA_SUCCESS)
             {
                 return 1;
@@ -694,6 +700,8 @@ sim_bar::sockMonitor()
                 {
                     *offset += (node->length)/sizeof(uint64_t);
                 }
+
+
             }
         }
 

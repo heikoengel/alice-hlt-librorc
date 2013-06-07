@@ -9,7 +9,7 @@
     #include "sim_bar.hh"
 
     #include "rorcfs_device.hh"
-    #include "rorcfs_flash_htg.hh"
+    #include "librorc_flash.hh"
     #include "rorcfs_sysmon.hh"
     #include "rorcfs_buffer.hh"
     #include "rorcfs_dma_channel.hh"
