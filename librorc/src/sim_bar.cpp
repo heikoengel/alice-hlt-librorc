@@ -28,7 +28,7 @@
 #include <arpa/inet.h>
 #include <pda.h>
 
-#include "rorcfs_bar.hh"
+//#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
@@ -49,7 +49,13 @@ sim_bar::sim_bar
 )
 
 {
-    rorc_bar(dev, n);
+    m_parent_dev = dev;
+    m_number     = n;
+
+    m_pda_pci_device = dev->getPdaPciDevice();
+
+    /** initialize mutex */
+    pthread_mutex_init(&m_mtx, NULL);
 
     read_from_dev_done = 0;
     write_to_dev_done  = 0;
@@ -156,6 +162,8 @@ sim_bar::get
             data = read_from_dev_data;
             read_from_dev_done = 0;
 
+            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
+
             msgid++;
         }
     }
@@ -199,6 +207,9 @@ sim_bar::set
                 usleep(USLEEP_TIME);
             }
             write_to_dev_done=0;
+
+            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", msgid, addr, data);
+
             msgid++;
         }
     }
@@ -252,6 +263,8 @@ sim_bar::memcpy_bar
                 usleep(USLEEP_TIME);
             }
             write_to_dev_done=0;
+
+            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", msgid, ndw, addr);
             msgid++;
         }
 
@@ -645,7 +658,6 @@ sim_bar::sockMonitor()
         }
 
         /** Iterate buffers */
-        *offset = 0;
         PdaDebugReturnCode ret = PDA_SUCCESS;
         for
         (
@@ -654,6 +666,7 @@ sim_bar::sockMonitor()
             ret = DMABuffer_getNext(buffer, &buffer)
         )
         {
+            *offset = 0;
             if(ret != PDA_SUCCESS)
             {
                 return 1;
@@ -685,8 +698,10 @@ sim_bar::sockMonitor()
                 }
                 else
                 {
-                    *offset += (node->length);
+                    *offset += (node->length)/sizeof(uint64_t);
                 }
+
+
             }
         }
 
