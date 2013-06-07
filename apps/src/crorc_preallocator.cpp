@@ -38,6 +38,8 @@
 #include "librorc.h"
 #include "event_handling.h"
 
+#define UINT16_MAX 65535
+
 using namespace std;
 
 /** Buffer Sizes (in Bytes) **/
@@ -77,35 +79,35 @@ alloc_channel
     {
         if ( errno == EEXIST )
         {
-            if ( ebuf->connect(dev, 2*ChannelID) != 0 )
+            if ( ebuf->connect(Dev, 2*ChannelID) != 0 )
             {
                 perror("ERROR: ebuf->connect");
-                abort;
+                abort();
             }
         }
         else
         {
             perror("ERROR: ebuf->allocate");
-            abort;
+            abort();
         }
     }
 
-    /** */ create new DMA report buffer
+    /** create new DMA report buffer */
     rorcfs_buffer *rbuf = new rorcfs_buffer();
     if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )
         {
-            if ( rbuf->connect(dev, 2*ChannelID+1) != 0 )
+            if ( rbuf->connect(Dev, 2*ChannelID+1) != 0 )
             {
                 perror("ERROR: rbuf->connect");
-                abort;
+                abort();
             }
         }
         else
         {
             perror("ERROR: rbuf->allocate");
-            abort;
+            abort();
         }
     }
 }
@@ -122,21 +124,21 @@ int main( int argc, char *argv[])
         { break; }
 
         /** bind to BAR1 */
-        librorc_bar *bar1;
+        librorc_bar *Bar;
         #ifdef SIM
-            bar1 = new sim_bar(dev, 1);
+            Bar = new sim_bar(Dev, 1);
         #else
-            bar1 = new rorc_bar(dev, 1);
+            Bar = new rorc_bar(Dev, 1);
         #endif
-        if( bar1->init() == -1 )
+        if( Bar->init() == -1 )
         {
             printf("ERROR: failed to initialize BAR1.\n");
-            goto out;
+            abort();
         }
 
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
         {
-            int16_t alloc_channel(ChannelId, Bar, Dev)
+            alloc_channel(ChannelId, Bar, Dev);
         }
 
     }
