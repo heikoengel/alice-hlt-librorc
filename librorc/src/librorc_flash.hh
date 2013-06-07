@@ -84,22 +84,35 @@
 /** address bit 23 selects flash chip **/
 #define FLASH_CHIP_SELECT_BIT 23
 
+
+struct flash_architecture
+{
+    uint32_t blkaddr;
+    uint32_t blksize;
+    uint32_t blknum;
+    uint32_t bankaddr;
+    uint32_t banksize;
+    uint32_t banknum;
+};
+
+
 /**
- * @class rorcfs_flash_htg
+ * @class librorc_flash
  * @brief interface class to the StrataFlash Embedded
  * Memory P30-65nm on the HTG board
  **/
-class rorcfs_flash_htg
+class librorc_flash
 {
 public:
 
 /**
  * constructor
- * @param bar rorcfs_bar instance representing the flash
- * @param verbosity
+ * @param flashbar librorc_bar instance representing the flash
+ * @param chip_select flash chip select (0 or 1)
+ * @param verbose verbose level
  * memory
  **/
-    rorcfs_flash_htg
+    librorc_flash
     (
         librorc_bar            *flashbar,
         uint64_t                chip_select,
@@ -109,7 +122,7 @@ public:
 /**
  * deconstructor
  **/
-    ~rorcfs_flash_htg();
+    ~librorc_flash();
 
 /**
  * set read state
@@ -127,6 +140,7 @@ public:
 /**
  * read flash status register
  * @param blkaddr block address
+ * @return status register
  **/
     uint16_t
     getStatusRegister
@@ -172,10 +186,17 @@ public:
 
 /**
  * get Read Configuration Register (RCR)
- * @return Read Configuraion
+ * @return Read Configuraion Register
  **/
     uint16_t
     getReadConfigurationRegister();
+
+/**
+ * get Unique Device Number
+ * @return 64bit device number
+**/
+    uint64_t
+    getUniqueDeviceNumber();
 
 /**
  * Program single Word to destination address
@@ -308,6 +329,12 @@ public:
         uint32_t addr
     );
 
+/**
+ * Dump flash contents to file
+ * @param filename destination filename
+ * @param verbose verbose level
+ * @return -1 on error, 0 on sucess
+ * */
     int64_t
     dump
     (
@@ -315,17 +342,42 @@ public:
         librorc_verbosity_enum  verbose
     );
 
+/**
+ * erase flash
+ * @param verbose verbose level
+ * @return -status on error, 0 on success
+ * */
     int64_t
     erase
     (
+        int64_t                byte_count,
         librorc_verbosity_enum verbose
     );
 
+/**
+ * program flash with binary file
+ * @param filename source file
+ * @param verbose verbose level
+ * @return -1 on error, 0 on success
+ * */
     int64_t
     flash
     (
         char                   *filename,
         librorc_verbosity_enum  verbose
+    );
+
+/**
+ * get Flash Architecture
+ * @param flash address
+ * @param pointer to destination struct
+ * @return 0 on success, -1 on invalid address
+ * */
+    int64_t
+    getFlashArchitecture
+    (
+        uint32_t                   addr,
+        struct flash_architecture *arch
     );
 
 private:

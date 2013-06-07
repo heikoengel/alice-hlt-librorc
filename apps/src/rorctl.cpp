@@ -87,7 +87,7 @@ typedef struct
 void print_devices();
 
 inline
-rorcfs_flash_htg *
+librorc_flash *
 init_flash
 (
     confopts options
@@ -159,7 +159,7 @@ int main
         LIBRORC_VERBOSE_OFF
     };
 
-    rorcfs_flash_htg *flash = NULL;
+    librorc_flash *flash = NULL;
     {
         opterr = 0;
         int c;
@@ -199,7 +199,7 @@ int main
                 {
                     cout << "Erasing device!" << endl;
                     flash = init_flash(options);
-                    return( flash->erase(options.verbose) );
+                    return( flash->erase(16<<20, options.verbose) );
                 }
                 break;
 
@@ -277,6 +277,16 @@ int main
                         flash->clearStatusRegister(0);
                     }
 
+                    cout << "Unique Device Number : " << hex << setw(16)
+                        << flash->getUniqueDeviceNumber() << endl;
+                    flashstatus = flash->getStatusRegister(0);
+                    if (flashstatus!=0x0080)
+                    {
+                        cout << "Status : " << hex << setw(4) << flashstatus << endl;
+                        dump_flash_status(flashstatus);
+                        flash->clearStatusRegister(0);
+                    }
+
                     return 0;
                 }
                 break;
@@ -327,7 +337,7 @@ print_devices()
 
 
 inline
-rorcfs_flash_htg *
+librorc_flash *
 init_flash
 (
     confopts options
@@ -369,10 +379,10 @@ init_flash
     }
 
     /** get flash object */
-    rorcfs_flash_htg *flash = NULL;
+    librorc_flash *flash = NULL;
     try
     {
-        flash = new rorcfs_flash_htg(bar, options.chip_select, options.verbose);
+        flash = new librorc_flash(bar, options.chip_select, options.verbose);
     }
     catch (int e)
     {

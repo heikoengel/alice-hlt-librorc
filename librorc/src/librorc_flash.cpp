@@ -29,11 +29,11 @@
 #include <iomanip>
 
 #include "rorcfs_bar.hh"
-#include "rorcfs_flash_htg.hh"
+#include "librorc_flash.hh"
 
 using namespace std;
 
-rorcfs_flash_htg::rorcfs_flash_htg
+librorc_flash::librorc_flash
 (
     librorc_bar            *flashbar,
     uint64_t                chip_select,
@@ -70,7 +70,7 @@ rorcfs_flash_htg::rorcfs_flash_htg
 
 
 
-rorcfs_flash_htg::~rorcfs_flash_htg()
+librorc_flash::~librorc_flash()
 {
     bar = NULL;
     read_state = 0;
@@ -79,7 +79,7 @@ rorcfs_flash_htg::~rorcfs_flash_htg()
 
 
 void
-rorcfs_flash_htg::setReadState
+librorc_flash::setReadState
 (
     uint16_t state,
     uint32_t addr
@@ -92,7 +92,7 @@ rorcfs_flash_htg::setReadState
 
 
 uint16_t
-rorcfs_flash_htg::getStatusRegister
+librorc_flash::getStatusRegister
 (
     uint32_t blkaddr
 )
@@ -108,7 +108,7 @@ rorcfs_flash_htg::getStatusRegister
 
 
 void
-rorcfs_flash_htg::clearStatusRegister
+librorc_flash::clearStatusRegister
 (
     uint32_t blkaddr
 )
@@ -120,7 +120,7 @@ rorcfs_flash_htg::clearStatusRegister
 
 
 uint16_t
-rorcfs_flash_htg::getManufacturerCode()
+librorc_flash::getManufacturerCode()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
     {
@@ -133,7 +133,7 @@ rorcfs_flash_htg::getManufacturerCode()
 
 
 uint16_t
-rorcfs_flash_htg::getDeviceID()
+librorc_flash::getDeviceID()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
     {
@@ -146,7 +146,7 @@ rorcfs_flash_htg::getDeviceID()
 
 
 uint16_t
-rorcfs_flash_htg::getBlockLockConfiguration
+librorc_flash::getBlockLockConfiguration
 (
     uint32_t blkaddr
 )
@@ -162,7 +162,7 @@ rorcfs_flash_htg::getBlockLockConfiguration
 
 
 uint16_t
-rorcfs_flash_htg::getReadConfigurationRegister()
+librorc_flash::getReadConfigurationRegister()
 {
     if(read_state != FLASH_READ_IDENTIFIER)
     {
@@ -173,9 +173,23 @@ rorcfs_flash_htg::getReadConfigurationRegister()
 }
 
 
+uint64_t librorc_flash::getUniqueDeviceNumber()
+{
+    uint64_t udn = 0;
+    if(read_state != FLASH_READ_IDENTIFIER)
+    {
+        setReadState(FLASH_READ_IDENTIFIER, 0x00);
+    }
+    for ( int i=0; i<4; i++ )
+    {
+        udn += ( bar->get16(base_addr + 0x81 + i) )<<(16*i);
+    }
+    return udn;
+}
+
 
 uint16_t
-rorcfs_flash_htg::get
+librorc_flash::get
 (
     uint32_t addr
 )
@@ -190,7 +204,7 @@ rorcfs_flash_htg::get
 
 
 int
-rorcfs_flash_htg::programWord
+librorc_flash::programWord
 (
     uint32_t addr,
     uint16_t data
@@ -231,7 +245,7 @@ rorcfs_flash_htg::programWord
 
 
 int
-rorcfs_flash_htg::programBuffer
+librorc_flash::programBuffer
 (
     uint32_t  addr,
     uint16_t  length,
@@ -299,7 +313,7 @@ rorcfs_flash_htg::programBuffer
 
 
 int
-rorcfs_flash_htg::eraseBlock
+librorc_flash::eraseBlock
 (
     uint32_t blkaddr
 )
@@ -340,7 +354,7 @@ rorcfs_flash_htg::eraseBlock
 
 
 void
-rorcfs_flash_htg::programSuspend
+librorc_flash::programSuspend
 (
     uint32_t blkaddr
 )
@@ -351,7 +365,7 @@ rorcfs_flash_htg::programSuspend
 
 
 void
-rorcfs_flash_htg::programResume
+librorc_flash::programResume
 (
     uint32_t blkaddr
 )
@@ -362,7 +376,7 @@ rorcfs_flash_htg::programResume
 
 
 void
-rorcfs_flash_htg::lockBlock
+librorc_flash::lockBlock
 (
     uint32_t blkaddr
 )
@@ -374,7 +388,7 @@ rorcfs_flash_htg::lockBlock
 
 
 void
-rorcfs_flash_htg::unlockBlock
+librorc_flash::unlockBlock
 (
     uint32_t blkaddr
 )
@@ -386,7 +400,7 @@ rorcfs_flash_htg::unlockBlock
 
 
 void
-rorcfs_flash_htg::setConfigReg
+librorc_flash::setConfigReg
 (
     uint32_t value
 )
@@ -398,7 +412,7 @@ rorcfs_flash_htg::setConfigReg
 
 
 int
-rorcfs_flash_htg::blankCheck
+librorc_flash::blankCheck
 (
     uint32_t blkaddr
 )
@@ -432,9 +446,46 @@ rorcfs_flash_htg::blankCheck
 }
 
 
+int64_t
+librorc_flash::getFlashArchitecture
+(
+    uint32_t addr,
+    struct flash_architecture *arch
+)
+{
+    struct flash_architecture fa;
+     /** 8Mbit for all Banks */
+    fa.banksize = 0x800000;
+    fa.bankaddr = addr & 0xfff80000;
+    fa.banknum = 15 - (addr >> 19);
+
+    /** check if we are within the 127 main blocks */
+    if( addr <= 0x7effff )
+    {
+        fa.blkaddr = (addr & 0xffff0000);
+        fa.blksize = 0x100000; /** 1Mbit */
+        fa.blknum = 130 - (addr>>16);
+    }
+    /** check if we are at the upper 4 blocks */
+    else if( addr <= 0x7fffff)
+    {
+        fa.blkaddr = (addr & 0xffffc000);
+        fa.blksize = 0x40000; /** 256 kbit */
+        fa.blknum = 3 - ((addr>>14) & 0x03) ;
+    }
+    else
+    {
+        /** invalid flash address */
+        return -1;
+    }
+    *arch = fa;
+    return 0;
+}
+
+
 
 uint32_t
-rorcfs_flash_htg::getBlockAddress
+librorc_flash::getBlockAddress
 (
     uint32_t addr
 )
@@ -462,7 +513,7 @@ rorcfs_flash_htg::getBlockAddress
 
 
 uint32_t
-rorcfs_flash_htg::getBankAddress
+librorc_flash::getBankAddress
 (
     uint32_t addr
 )
@@ -474,7 +525,7 @@ rorcfs_flash_htg::getBankAddress
 
 
 int64_t
-rorcfs_flash_htg::dump
+librorc_flash::dump
 (
     char                   *filename,
     librorc_verbosity_enum  verbose
@@ -523,34 +574,44 @@ rorcfs_flash_htg::dump
 
 
 int64_t
-rorcfs_flash_htg::erase
+librorc_flash::erase
 (
+    int64_t byte_count,
     librorc_verbosity_enum verbose
 )
 {
-    uint32_t addr = 0;
-    int block_count   = (uint32_t)((16<<20)>>17); // 16MB = full flash size
-    for(uint64_t i=(addr>>16); i<((addr>>16)+block_count); i++)
+    while ( byte_count > 0 )
     {
-        uint64_t current_addr = (i<<16);
+        struct flash_architecture arch;
+        uint32_t current_addr = 0;
+
+        if ( getFlashArchitecture(current_addr, &arch) )
+        {
+            cout << "Invalid flash address: "<< current_addr << endl;
+            return -1;
+        }
+
         if(verbose == LIBRORC_VERBOSE_ON)
         {
-            cout << "\rErasing block " << dec << i << " ("
-                 << hex << current_addr << ")...";
+            cout << "\rErasing block " << dec << arch.blknum << " ("
+                 << hex << arch.blkaddr << ")...";
             fflush(stdout);
         }
 
-        if( getBlockLockConfiguration(current_addr) & 0x01 )
+        if( getBlockLockConfiguration(arch.blkaddr) & 0x01 )
         {
-            unlockBlock(current_addr);
+            unlockBlock(arch.blkaddr);
         }
 
-        int ret = eraseBlock(current_addr);
+        int ret = eraseBlock(arch.blkaddr);
         if( ret < 0 )
         {
             cout << "Failed to erase block at addr" << hex << current_addr << endl;
             return ret;
         }
+
+        current_addr += (arch.blksize >> 1);
+        byte_count -= arch.blksize;
 
         fflush(stdout);
     }
@@ -566,7 +627,7 @@ rorcfs_flash_htg::erase
 
 
 int64_t
-rorcfs_flash_htg::flash
+librorc_flash::flash
 (
     char                   *filename,
     librorc_verbosity_enum  verbose
@@ -621,7 +682,7 @@ rorcfs_flash_htg::flash
 	}
 
     /** Erase the flash first */
-    if( erase(verbose)!=0 )
+    if( erase(stat_buf.st_size, verbose)!=0 )
     {
         cout << "CRORC flash erase failed!" << endl;
         return -1;
