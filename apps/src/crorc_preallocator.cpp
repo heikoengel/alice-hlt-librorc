@@ -1,8 +1,8 @@
 /**
  * @file pgdma_continuous.cpp
- * @author Heiko Engel <hengel@cern.ch>
+ * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.1
- * @date 2012-11-14
+ * @date 2013-06-07
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -55,39 +55,59 @@ using namespace std;
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
+int16_t
+alloc_channel
+(
+    uint32_t     ChannelId,
+    librorc_bar *Bar;
+)
+{
+    /** check if requested channel is implemented in firmware */
+    if( ChannelId >= (Bar->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    {
+        printf("ERROR: Requsted channel %d is not implemented in "
+            "firmware - exiting\n", ChannelId);
+        return -1;
+    }
+}
+
 
 int main( int argc, char *argv[])
 {
 
+    for( uint16_t i=0; i<UINT16_MAX; i++)
+    {
+        /** create new device instance */
+        dev = new rorcfs_device();
+        if( dev->init(i) == -1 )
+        {
+            printf("ERROR: failed to initialize device.\n");
+            goto out;
+        }
+
+        /** bind to BAR1 */
+        librorc_bar *bar1;
+        #ifdef SIM
+            bar1 = new sim_bar(dev, 1);
+        #else
+            bar1 = new rorc_bar(dev, 1);
+        #endif
+        if( bar1->init() == -1 )
+        {
+            printf("ERROR: failed to initialize BAR1.\n");
+            goto out;
+        }
+
+        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
+        {
+            int16_t alloc_channel(uint32_t ChannelId, Bar)
+        }
+
+    }
 
 
-  /**  create new device instance */
-  dev = new rorcfs_device();
-  if ( dev->init(0) == -1 ) 
-  {
-    printf("ERROR: failed to initialize device.\n");
-    goto out;
-  }
 
-  // bind to BAR1
-  #ifdef SIM
-    bar1 = new sim_bar(dev, 1);
-  #else
-    bar1 = new rorc_bar(dev, 1);
-  #endif
-  if ( bar1->init() == -1 ) 
-  {
-    printf("ERROR: failed to initialize BAR1.\n");
-    goto out;
-  }
 
-  // check if requested channel is implemented in firmware
-  if ( ChannelId >= (bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff)) 
-  {
-    printf("ERROR: Requsted channel %d is not implemented in "
-        "firmware - exiting\n", ChannelId);
-    goto out;
-  }
 
   // create new DMA event buffer
   ebuf = new rorcfs_buffer();
@@ -122,5 +142,5 @@ int main( int argc, char *argv[])
 
 
 
-  
+
 }
