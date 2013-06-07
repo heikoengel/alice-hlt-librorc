@@ -69,21 +69,56 @@ alloc_channel
             "firmware - exiting\n", ChannelId);
         return -1;
     }
+
+    /** create a new DMA event buffer */
+    rorcfs_buffer *ebuf = new rorcfs_buffer();
+    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
+    {
+        if ( errno == EEXIST )
+        {
+            if ( ebuf->connect(dev, 2*ChannelId) != 0 )
+            {
+                perror("ERROR: ebuf->connect");
+                goto out;
+            }
+        }
+        else
+        {
+            perror("ERROR: ebuf->allocate");
+            goto out;
+        }
+    }
+
+    /** */ create new DMA report buffer
+    rorcfs_buffer *rbuf = new rorcfs_buffer();
+    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
+    {
+        if ( errno == EEXIST )
+        {
+            if ( rbuf->connect(dev, 2*ChannelId+1) != 0 )
+            {
+                perror("ERROR: rbuf->connect");
+                goto out;
+            }
+        }
+        else
+        {
+            perror("ERROR: rbuf->allocate");
+            goto out;
+        }
+    }
 }
 
 
 int main( int argc, char *argv[])
 {
-
+    /** Iterate all Devices*/
     for( uint16_t i=0; i<UINT16_MAX; i++)
     {
         /** create new device instance */
         dev = new rorcfs_device();
         if( dev->init(i) == -1 )
-        {
-            printf("ERROR: failed to initialize device.\n");
-            goto out;
-        }
+        { break; }
 
         /** bind to BAR1 */
         librorc_bar *bar1;
@@ -105,42 +140,5 @@ int main( int argc, char *argv[])
 
     }
 
-
-
-
-
-  // create new DMA event buffer
-  ebuf = new rorcfs_buffer();
-  if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
-        1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
-    if ( errno == EEXIST ) {
-      if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
-        perror("ERROR: ebuf->connect");
-        goto out;
-      }
-    } else {
-      perror("ERROR: ebuf->allocate");
-      goto out;
-    }
-  }
-
-  // create new DMA report buffer
-  rbuf = new rorcfs_buffer();;
-  if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
-        1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
-    if ( errno == EEXIST ) {
-      //printf("INFO: Buffer already exists, trying to connect...\n");
-      if ( rbuf->connect(dev, 2*ChannelId+1) != 0 ) {
-        perror("ERROR: rbuf->connect");
-        goto out;
-      }
-    } else {
-      perror("ERROR: rbuf->allocate");
-      goto out;
-    }
-  }
-
-
-
-
+    return 0;
 }
