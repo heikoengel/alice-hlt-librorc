@@ -42,13 +42,13 @@ using namespace std;
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
-#define EBUFSIZE (((unsigned long)1) << 28)
-#define RBUFSIZE (((unsigned long)1) << 26)
-#define STAT_INTERVAL 1.0
+    #define EBUFSIZE (((unsigned long)1) << 28)
+    #define RBUFSIZE (((unsigned long)1) << 26)
+    #define STAT_INTERVAL 1.0
 #else
-#define EBUFSIZE (((unsigned long)1) << 19)
-#define RBUFSIZE (((unsigned long)1) << 17)
-#define STAT_INTERVAL 0.00001
+    #define EBUFSIZE (((unsigned long)1) << 19)
+    #define RBUFSIZE (((unsigned long)1) << 17)
+    #define STAT_INTERVAL 0.00001
 #endif
 
 
@@ -58,53 +58,54 @@ using namespace std;
 int16_t
 alloc_channel
 (
-    uint32_t     ChannelId,
-    librorc_bar *Bar;
+    uint32_t       ChannelID,
+    librorc_bar   *Bar,
+    rorcfs_device *Dev
 )
 {
     /** check if requested channel is implemented in firmware */
-    if( ChannelId >= (Bar->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if( ChannelID >= (Bar->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-            "firmware - exiting\n", ChannelId);
+            "firmware - exiting\n", ChannelID);
         return -1;
     }
 
     /** create a new DMA event buffer */
     rorcfs_buffer *ebuf = new rorcfs_buffer();
-    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
+    if ( ebuf->allocate(Dev, EBUFSIZE, 2*ChannelID, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )
         {
-            if ( ebuf->connect(dev, 2*ChannelId) != 0 )
+            if ( ebuf->connect(dev, 2*ChannelID) != 0 )
             {
                 perror("ERROR: ebuf->connect");
-                goto out;
+                abort;
             }
         }
         else
         {
             perror("ERROR: ebuf->allocate");
-            goto out;
+            abort;
         }
     }
 
     /** */ create new DMA report buffer
     rorcfs_buffer *rbuf = new rorcfs_buffer();
-    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
+    if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )
         {
-            if ( rbuf->connect(dev, 2*ChannelId+1) != 0 )
+            if ( rbuf->connect(dev, 2*ChannelID+1) != 0 )
             {
                 perror("ERROR: rbuf->connect");
-                goto out;
+                abort;
             }
         }
         else
         {
             perror("ERROR: rbuf->allocate");
-            goto out;
+            abort;
         }
     }
 }
@@ -116,8 +117,8 @@ int main( int argc, char *argv[])
     for( uint16_t i=0; i<UINT16_MAX; i++)
     {
         /** create new device instance */
-        dev = new rorcfs_device();
-        if( dev->init(i) == -1 )
+        rorcfs_device *Dev = new rorcfs_device();
+        if( Dev->init(i) == -1 )
         { break; }
 
         /** bind to BAR1 */
@@ -135,7 +136,7 @@ int main( int argc, char *argv[])
 
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
         {
-            int16_t alloc_channel(uint32_t ChannelId, Bar)
+            int16_t alloc_channel(ChannelId, Bar, Dev)
         }
 
     }
