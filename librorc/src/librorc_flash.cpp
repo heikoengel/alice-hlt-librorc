@@ -454,8 +454,8 @@ librorc_flash::getFlashArchitecture
 )
 {
     struct flash_architecture fa;
-     /** 8Mbit for all Banks */
-    fa.banksize = 0x800000;
+     /** 8Mbit (1MByte) for all Banks */
+    fa.banksize = 0x100000;
     fa.bankaddr = addr & 0xfff80000;
     fa.banknum = 15 - (addr >> 19);
 
@@ -463,15 +463,15 @@ librorc_flash::getFlashArchitecture
     if( addr <= 0x7effff )
     {
         fa.blkaddr = (addr & 0xffff0000);
-        fa.blksize = 0x100000; /** 1Mbit */
+        fa.blksize = 0x20000; /** 1Mbit = 128kByte */
         fa.blknum = 130 - (addr>>16);
     }
     /** check if we are at the upper 4 blocks */
     else if( addr <= 0x7fffff)
     {
         fa.blkaddr = (addr & 0xffffc000);
-        fa.blksize = 0x40000; /** 256 kbit */
-        fa.blknum = 3 - ((addr>>14) & 0x03) ;
+        fa.blksize = 0x8000; /** 256 kbit  = 32kByte*/
+        fa.blknum = 3 - ((addr>>14) & 0x03);
     }
     else
     {
@@ -580,10 +580,16 @@ librorc_flash::erase
     librorc_verbosity_enum verbose
 )
 {
+    if(verbose == LIBRORC_VERBOSE_ON)
+    {
+        cout << "Erasing first " << byte_count << " bytes in the flash." << endl;
+    }
+
+    uint32_t current_addr = 0;
+
     while ( byte_count > 0 )
     {
         struct flash_architecture arch;
-        uint32_t current_addr = 0;
 
         if ( getFlashArchitecture(current_addr, &arch) )
         {
@@ -593,7 +599,7 @@ librorc_flash::erase
 
         if(verbose == LIBRORC_VERBOSE_ON)
         {
-            cout << "\rErasing block " << dec << arch.blknum << " ("
+            cout << "\rErasing block " << dec << arch.blknum << " (0x"
                  << hex << arch.blkaddr << ")...";
             fflush(stdout);
         }
@@ -654,8 +660,6 @@ librorc_flash::flash
     }
 
     uint64_t addr = 0;
-    uint64_t block_count
-        = (uint32_t)(stat_buf.st_size>>17)+1;
 
     if(verbose == LIBRORC_VERBOSE_ON)
     {
@@ -666,10 +670,6 @@ librorc_flash::flash
 
         cout << "Bitfile will be written to Flash starting at addr "
              << addr << endl;
-
-        cout << "Using " << (uint64_t)(block_count) << " Blocks ("
-             << (uint64_t)(addr>>16) << " to "
-             << (uint64_t)((addr>>16)+block_count-1) << ")" << endl;
     }
 
     /** Open the flash file */
@@ -698,8 +698,8 @@ librorc_flash::flash
     {
         if(verbose == LIBRORC_VERBOSE_ON)
         {
-            cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to "
-                 << (uint64_t)addr << " (" << hex << addr << ") : "
+            cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to 0x"
+                 << hex << addr << " : "
                  << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
                  << "% ...";
             fflush(stdout);

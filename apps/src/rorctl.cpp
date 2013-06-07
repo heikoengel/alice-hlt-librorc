@@ -277,7 +277,7 @@ int main
                         flash->clearStatusRegister(0);
                     }
 
-                    cout << "Unique Device Number : " << hex << setw(16)
+                    cout << "Unique Device Number : " << hex
                         << flash->getUniqueDeviceNumber() << endl;
                     flashstatus = flash->getStatusRegister(0);
                     if (flashstatus!=0x0080)
