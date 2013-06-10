@@ -20,6 +20,7 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="apps/src/crorc_preallocator.cpp" />
 		<Unit filename="apps/src/event_handling.h" />
 		<Unit filename="apps/src/gtxdma_continuous.cpp" />
 		<Unit filename="apps/src/helper_functions.h" />
