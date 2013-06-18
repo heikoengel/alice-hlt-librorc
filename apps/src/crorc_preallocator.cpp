@@ -57,12 +57,6 @@ using namespace std;
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
-#ifdef SIM
-    #define BAR sim_bar;
-#else
-    #define BAR rorc_bar;
-#endif
-
 
 int16_t
 alloc_channel
@@ -133,7 +127,13 @@ int main( int argc, char *argv[])
         { break; }
 
         /** bind to BAR1 */
-        librorc_bar *Bar = new BAR(Dev, 1);
+        #ifdef SIM
+            #define BAR sim_bar;
+            librorc_bar *Bar = new sim_bar(Dev, 1);
+        #else
+            #define BAR rorc_bar;
+            librorc_bar *Bar = new rorc_bar(Dev, 1);
+        #endif
         if( Bar->init() == -1 )
         {
             printf("ERROR: failed to initialize BAR1.\n");
