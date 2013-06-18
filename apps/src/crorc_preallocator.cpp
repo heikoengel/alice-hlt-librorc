@@ -57,6 +57,47 @@ using namespace std;
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
+int16_t
+alloc_channel
+(
+    uint32_t       ChannelID,
+    librorc_bar   *Bar,
+    rorcfs_device *Dev
+);
+
+
+
+int main( int argc, char *argv[])
+{
+    /** Iterate all Devices*/
+    for( uint16_t i=0; i<UINT16_MAX; i++)
+    {
+        /** create new device instance */
+        rorcfs_device *Dev = new rorcfs_device();
+        if( Dev->init(i) == -1 )
+            { break; }
+
+        /** bind to BAR1 */
+        #ifdef SIM
+            librorc_bar *Bar = new sim_bar(Dev, 1);
+        #else
+            librorc_bar *Bar = new rorc_bar(Dev, 1);
+        #endif
+        if( Bar->init() == -1 )
+        {
+            printf("ERROR: failed to initialize BAR1.\n");
+            abort();
+        }
+
+        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
+            { alloc_channel(ChannelId, Bar, Dev); }
+
+    }
+
+    return 0;
+}
+
+
 
 int16_t
 alloc_channel
@@ -110,41 +151,6 @@ alloc_channel
             perror("ERROR: rbuf->allocate");
             abort();
         }
-    }
-
-    return 0;
-}
-
-
-int main( int argc, char *argv[])
-{
-    /** Iterate all Devices*/
-    for( uint16_t i=0; i<UINT16_MAX; i++)
-    {
-        /** create new device instance */
-        rorcfs_device *Dev = new rorcfs_device();
-        if( Dev->init(i) == -1 )
-        { break; }
-
-        /** bind to BAR1 */
-        #ifdef SIM
-            #define BAR sim_bar;
-            librorc_bar *Bar = new sim_bar(Dev, 1);
-        #else
-            #define BAR rorc_bar;
-            librorc_bar *Bar = new rorc_bar(Dev, 1);
-        #endif
-        if( Bar->init() == -1 )
-        {
-            printf("ERROR: failed to initialize BAR1.\n");
-            abort();
-        }
-
-        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-        {
-            alloc_channel(ChannelId, Bar, Dev);
-        }
-
     }
 
     return 0;
