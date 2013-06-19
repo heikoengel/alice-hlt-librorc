@@ -173,7 +173,8 @@ librorc_flash::getReadConfigurationRegister()
 }
 
 
-uint64_t librorc_flash::getUniqueDeviceNumber()
+uint64_t
+librorc_flash::getUniqueDeviceNumber()
 {
     uint64_t udn = 0;
     if(read_state != FLASH_READ_IDENTIFIER)
@@ -203,7 +204,7 @@ librorc_flash::get
 
 
 
-int
+int8_t
 librorc_flash::programWord
 (
     uint32_t addr,
@@ -244,7 +245,7 @@ librorc_flash::programWord
 
 
 
-int
+int8_t
 librorc_flash::programBuffer
 (
     uint32_t  addr,
@@ -312,7 +313,7 @@ librorc_flash::programBuffer
 
 
 
-int
+int8_t
 librorc_flash::eraseBlock
 (
     uint32_t blkaddr
@@ -411,7 +412,7 @@ librorc_flash::setConfigReg
 
 
 
-int
+int8_t
 librorc_flash::blankCheck
 (
     uint32_t blkaddr

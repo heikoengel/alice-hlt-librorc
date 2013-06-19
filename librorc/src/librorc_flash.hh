@@ -204,7 +204,7 @@ public:
  * @param data data to be written
  * @return 0 on success, -1 on errors
  **/
-    int
+    int8_t
     programWord
     (
         uint32_t addr,
@@ -228,7 +228,7 @@ public:
  * @param data pointer to data buffer
  * @return 0 on sucess, -1 on errors
  **/
-    int
+    int8_t
     programBuffer
     (
         uint32_t  addr,
@@ -241,7 +241,7 @@ public:
  * @param blkaddr block address
  * @return 0 on sucess, -1 on errors
  **/
-    int
+    int8_t
     eraseBlock
     (
         uint32_t blkaddr
@@ -301,7 +301,7 @@ public:
  * @param blkaddr block address
  * @return -1 on error, 0 on empty, 1 on not empty
  * */
-    int
+    int8_t
     blankCheck
     (
         uint32_t blkaddr
@@ -381,9 +381,9 @@ public:
     );
 
 private:
-    librorc_bar    *bar;
-    uint16_t    read_state;
-    uint32_t    base_addr;
+    librorc_bar *bar;
+    uint16_t     read_state;
+    uint32_t     base_addr;
 };
 
 #endif
