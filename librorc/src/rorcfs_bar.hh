@@ -77,10 +77,10 @@ int init();
  *              BAR to read from.
  * @return data read from BAR[addr]
  **/
-unsigned int
+uint32_t
 get
 (
-    unsigned long addr
+    uint64_t addr
 );
 
 /**
@@ -88,10 +88,10 @@ get
  * @param addr within the BAR to read from.
  * @return data read from BAR[addr]
  **/
-unsigned short
+uint16_t
 get16
 (
-    unsigned long addr
+    uint64_t addr
 );
 
 /**
@@ -103,9 +103,9 @@ get16
 void
 memcpy_bar
 (
-    unsigned long addr,
-    const void   *source,
-    size_t        num
+    uint64_t    addr,
+    const void *source,
+    size_t      num
 );
 
 /**
@@ -117,8 +117,8 @@ memcpy_bar
 void
 set
 (
-    unsigned long addr,
-    unsigned int  data
+    uint64_t addr,
+    uint32_t data
 );
 
 /**
@@ -129,8 +129,8 @@ set
 void
 set16
 (
-    unsigned long  addr,
-    unsigned short data
+    uint64_t addr,
+    uint16_t data
 );
 
 /**
@@ -139,7 +139,7 @@ set16
  * @param tz pointer to struct timezone
  * @return return valiue from gettimeof day or zero for FLI simulation
  **/
-int
+int32_t
 gettime
 (
     struct timeval *tv,
