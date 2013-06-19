@@ -28,7 +28,6 @@
 #include <arpa/inet.h>
 #include <pda.h>
 
-//#include "rorcfs_bar.hh"
 #include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
@@ -45,7 +44,7 @@ using namespace std;
 sim_bar::sim_bar
 (
     rorcfs_device *dev,
-    int            n
+    int32_t        n
 )
 
 {
@@ -126,10 +125,10 @@ sim_bar::init()
 
 
 
-unsigned int
+uint32_t
 sim_bar::get
 (
-    unsigned long addr
+    uint64_t addr
 )
 {
     uint32_t  data = 0;
@@ -176,8 +175,8 @@ sim_bar::get
 void
 sim_bar::set
 (
-    unsigned long addr,
-    unsigned int  data
+    uint64_t addr,
+    uint32_t data
 )
 {
     /** send write command to Modelsim FLI server */
@@ -221,9 +220,9 @@ sim_bar::set
 void
 sim_bar::memcpy_bar
 (
-    unsigned long addr,
-    const void   *source,
-    size_t        num
+    uint64_t    addr,
+    const void *source,
+    size_t      num
 )
 {
     pthread_mutex_lock(&m_mtx);
@@ -274,10 +273,10 @@ sim_bar::memcpy_bar
 
 
 
-unsigned short
+uint16_t
 sim_bar::get16
 (
-    unsigned long addr
+    uint64_t addr
 )
 {
     uint16_t data = 0;
@@ -329,14 +328,14 @@ sim_bar::get16
 void
 sim_bar::set16
 (
-    unsigned long  addr,
-    unsigned short data
+    uint64_t addr,
+    uint16_t data
 )
 {
     /** send write command to Modelsim FLI server */
     pthread_mutex_lock(&m_mtx);
     {
-        int buffersize = 5;
+        uint32_t buffersize = 5;
         uint32_t buffer[buffersize];
         buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = msgid;
@@ -377,7 +376,12 @@ sim_bar::set16
 
 
 
-int sim_bar::gettime(struct timeval *tv, struct timezone *tz)
+int32_t
+sim_bar::gettime
+(
+    struct timeval *tv,
+    struct timezone *tz
+)
 {
     pthread_mutex_lock(&m_mtx);
     {

@@ -62,47 +62,47 @@ public:
     sim_bar
     (
         rorcfs_device *dev,
-        int            n
+        int32_t        n
     );
 
     ~sim_bar();
-    int init();
+    int32_t init();
 
     unsigned int
     get
     (
-        unsigned long addr
+        uint64_t addr
     );
 
     void
     set
     (
-        unsigned long addr,
-        unsigned int  data
+        uint64_t addr,
+        uint32_t data
     );
 
     void
     memcpy_bar
     (
-        unsigned long addr,
-        const void   *source,
-        size_t        num
+        uint64_t    addr,
+        const void *source,
+        size_t      num
     );
 
     unsigned short
     get16
     (
-        unsigned long addr
+        uint64_t addr
     );
 
     void
     set16
     (
-        unsigned long  addr,
-        unsigned short data
+        uint64_t addr,
+        uint16_t data
     );
 
-    int
+    int32_t
     gettime
     (
         struct timeval *tv,
@@ -184,7 +184,7 @@ private:
         uint16_t msgsize
     );
 
-    int
+    int32_t
     getOffset
     (
         uint64_t  phys_addr,
@@ -196,6 +196,7 @@ private:
 
 
 typedef struct
+__attribute__((__packed__))
 {
 	uint64_t buffer_id;
 	uint64_t offset;
@@ -207,20 +208,22 @@ typedef struct
 } t_read_req;
 
 typedef struct
+__attribute__((__packed__))
 {
-	int          wr_ack;
-	unsigned int data;
-	int          id;
+	uint32_t  wr_ack;
+	uint32_t  data;
+	int32_t   id;
 } flimsgT;
 
 typedef struct
+__attribute__((__packed__))
 {
-	unsigned int   addr;
-	unsigned int   bar;
-	unsigned char  byte_enable;
-	unsigned char  type;
-	unsigned short len;
-	int id;
+	uint32_t addr;
+	uint32_t bar;
+	uint8_t  byte_enable;
+	uint8_t  type;
+	uint16_t len;
+	int32_t  id;
 } flicmdT;
 
 #endif
