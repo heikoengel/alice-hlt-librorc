@@ -144,7 +144,7 @@ sim_bar::get
 
         if
         (
-            write( sockfd, buffer, buffersize*sizeof(uint32_t) )
+            write( sockfd, buffer, sizeof(uint32_t)*buffersize )
                 != (ssize_t)(sizeof(uint32_t)*buffersize)
         )
         {
