@@ -78,7 +78,7 @@ public:
      * @return 0 on sucess, -1 on errors, -EFBIG if more
      *               than 2048 sg-entries
      **/
-    int
+    int32_t
     prepareEB
     (
         rorcfs_buffer *buf
@@ -92,7 +92,7 @@ public:
      *                      report destination buffer
      * @return 0 on sucess, -1 on errors
      **/
-    int
+    int32_t
     prepareRB
     (
         rorcfs_buffer *buf
@@ -122,14 +122,14 @@ setEnableRB
  * get Enable Bit of EBDM
  * @return enable bit
  **/
-unsigned int
+uint32_t
 getEnableEB();
 
 /**
  * get Enable Bit of RBDM
  * @return enable bit
  **/
-unsigned int
+uint32_t
 getEnableRB();
 
 /**
@@ -140,14 +140,14 @@ getEnableRB();
 void
 setDMAConfig
 (
-    unsigned int config
+    uint32_t config
 );
 
 /**
  * getDMAConfig
  * @return DMA Packetizer COnfiguration and Status
  **/
-unsigned int
+uint32_t
 getDMAConfig();
 
 /**
@@ -157,7 +157,7 @@ getDMAConfig();
 void
 setMaxPayload
 (
-    int size
+    int32_t size
 );
 
 /**
@@ -171,28 +171,28 @@ setMaxPayload();
  * get maximum payload size from current HW configuration
  * @return maximum payload size in bytes
  **/
-unsigned int
+uint32_t
 getMaxPayload();
 
 /**
  * get number of Scatter Gather entries for the Event buffer
  * @return number of entries
  **/
-unsigned int
+uint32_t
 getEBDMnSGEntries();
 
 /**
  * get number of Scatter Gather entries for the Report buffer
  * @return number of entries
  **/
-unsigned int
+uint32_t
 getRBDMnSGEntries();
 
 /**
  * get DMA Packetizer 'Busy' flag
  * @return 1 if busy, 0 if idle
  **/
-unsigned int
+uint32_t
 getDMABusy();
 
 /**
@@ -201,7 +201,7 @@ getDMABusy();
  * size of the associated DMA buffer.
  * @return buffer size in bytes
  **/
-unsigned long
+uint64_t
 getEBSize();
 
 /**
@@ -209,7 +209,7 @@ getEBSize();
  * should be equal to the sysfs file size and buf->getRBSize()
  * @return buffer size in bytes
  **/
-unsigned long
+uint64_t
 getRBSize();
 
 /**
@@ -221,7 +221,7 @@ getRBSize();
  * @param max_payload maximum payload size to be used (in bytes)
  * @return 0 on sucess, <0 on error
  * */
-int
+int32_t
 configureChannel
 (
     struct rorcfs_buffer *ebuf,
@@ -235,7 +235,7 @@ configureChannel
  * @return channel base address
  **/
 
-unsigned int
+uint64_t
 getBase()
 {
     return m_base;
@@ -263,14 +263,14 @@ getBar()
 void
 setEBOffset
 (
-    unsigned long offset
+    uint64_t offset
 );
 
 /**
  * get current Event Buffer File Offset
  * @return unsigned long offset
  **/
-unsigned long
+uint64_t
 getEBOffset();
 
 /**
@@ -279,14 +279,14 @@ getEBOffset();
 void
 setRBOffset
 (
-    unsigned long offset
+    uint64_t offset
 );
 
 /**
  * get Report Buffer File Offset
  * @return unsigned long offset
  **/
-unsigned long
+uint64_t
 getRBOffset();
 
 /**
@@ -297,8 +297,8 @@ getRBOffset();
 void
 setOffsets
 (
-    unsigned long eboffset,
-    unsigned long rboffset
+    uint64_t eboffset,
+    uint64_t rboffset
 );
 
 /**
@@ -306,7 +306,7 @@ setOffsets
  * DMA destination
  * @return 64bit offset in report buffer file
  **/
-unsigned long
+uint64_t
 getRBDMAOffset();
 
 /**
@@ -314,7 +314,7 @@ getRBDMAOffset();
  * DMA destination
  * @return 64bit offset in event buffer file
  **/
-unsigned long
+uint64_t
 getEBDMAOffset();
 
 /**
@@ -325,8 +325,8 @@ getEBDMAOffset();
 void
 setEBDM
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 );
 
 /**
@@ -334,10 +334,10 @@ setEBDM
  * @param addr address in EBDM component
  * @return data read from EBDM
  **/
-unsigned int
+uint32_t
 getEBDM
 (
-    unsigned int addr
+    uint32_t addr
 );
 
 /**
@@ -348,8 +348,8 @@ getEBDM
 void
 setRBDM
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 );
 
 /**
@@ -357,10 +357,10 @@ setRBDM
  * @param addr address in RBDM component
  * @return data read from RBDM
  **/
-unsigned int
+uint32_t
 getRBDM
 (
-    unsigned int addr
+    uint32_t addr
 );
 
 /**
@@ -371,8 +371,8 @@ getRBDM
 void
 setEBDRAM
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 );
 
 /**
@@ -383,7 +383,7 @@ setEBDRAM
 void
 memcpyEBDRAMentry
 (
-    unsigned int            startaddr,
+    uint32_t                startaddr,
     struct rorcfs_dma_desc *dma_desc
 );
 
@@ -392,10 +392,10 @@ memcpyEBDRAMentry
  * @param addr address in EBDRAM component
  * @return data read from EBDRAM
  **/
-unsigned int
+uint32_t
 getEBDRAM
 (
-    unsigned int addr
+    uint32_t addr
 );
 
 /**
@@ -406,8 +406,8 @@ getEBDRAM
 void
 setRBDRAM
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 );
 
 /**
@@ -418,7 +418,7 @@ setRBDRAM
 void
 memcpyRBDRAMentry
 (
-    unsigned int            startaddr,
+    uint32_t                startaddr,
     struct rorcfs_dma_desc *dma_desc
 );
 
@@ -427,10 +427,10 @@ memcpyRBDRAMentry
  * @param addr address in RBDRAM component
  * @return data read from RBDRAM
  **/
-unsigned int
+uint32_t
 getRBDRAM
 (
-    unsigned int addr
+    uint32_t addr
 );
 
 /**
@@ -441,8 +441,8 @@ getRBDRAM
 void
 setPKT
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 );
 
 /**
@@ -450,10 +450,10 @@ setPKT
  * @param addr address in PKT component
  * @return data read from PKT
  **/
-unsigned int
+uint32_t
 getPKT
 (
-    unsigned int addr
+    uint32_t addr
 );
 
 /**
@@ -464,8 +464,8 @@ getPKT
 void
 setGTX
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 );
 
 /**
@@ -480,9 +480,9 @@ getGTX
 );
 
 private:
-    unsigned int m_base;
-    unsigned int m_channel;
-    unsigned int m_MaxPayload;
+    uint32_t m_base;
+    uint32_t m_channel;
+    uint32_t m_MaxPayload;
 
     librorc_bar  *m_bar;
 
@@ -491,11 +491,11 @@ private:
      * methods to program the sglists into the
      * CRORC bars.
      **/
-    int
+    int32_t
     _prepare
     (
         rorcfs_buffer *buf,
-        unsigned int   flag
+        uint32_t       flag
     );
 
     /**
@@ -506,7 +506,7 @@ private:
     void
     _setMaxPayload
     (
-        int size
+        int32_t size
     );
 };
 

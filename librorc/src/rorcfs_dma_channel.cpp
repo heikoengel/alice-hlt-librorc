@@ -135,8 +135,8 @@ rorcfs_dma_channel::~rorcfs_dma_channel()
 void
 rorcfs_dma_channel::init
 (
-    librorc_bar   *dma_bar,
-    unsigned int   channel_number
+    librorc_bar *dma_bar,
+    uint32_t     channel_number
 )
 {
     m_base    = (channel_number + 1) * RORC_CHANNEL_OFFSET;
@@ -151,11 +151,11 @@ rorcfs_dma_channel::init
  * entries of DMA buffer
  * */
 
-int
+int32_t
 rorcfs_dma_channel::_prepare
 (
     rorcfs_buffer *buf,
-    unsigned int   flag
+    uint32_t       flag
 )
 {
     assert(m_bar!=NULL);
@@ -165,11 +165,15 @@ rorcfs_dma_channel::_prepare
     switch(flag)
     {
         case RORC_REG_RBDM_N_SG_CONFIG:
+        {
             control_flag = 1;
+        }
         break;
 
         case RORC_REG_EBDM_N_SG_CONFIG:
+        {
             control_flag = 0;
+        }
         break;
 
         default:
@@ -183,7 +187,7 @@ rorcfs_dma_channel::_prepare
      * [15:0] : current number of sg entries in RAM
      * [31:16]: maximum number of entries
      **/
-    unsigned int bdcfg = getPKT(flag);
+    uint32_t bdcfg = getPKT(flag);
 
     /** check if buffers SGList fits into DRAM */
     if(buf->getnSGEntries() > (bdcfg >> 16) )
@@ -193,8 +197,8 @@ rorcfs_dma_channel::_prepare
     }
 
     /** retrieve scatter gather list */
-    DMABuffer *pda_dma_buffer = buf->getPDABuffer();
-    DMABuffer_SGNode *sglist  = NULL;
+    DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
+    DMABuffer_SGNode *sglist         = NULL;
     if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
     {
         printf("SG-List fetching failed!\n");
@@ -236,7 +240,7 @@ rorcfs_dma_channel::_prepare
  * entries of DMA buffer
  * */
 
-int
+int32_t
 rorcfs_dma_channel::prepareEB
 (
     rorcfs_buffer *buf
@@ -247,7 +251,7 @@ rorcfs_dma_channel::prepareEB
 
 
 
-int
+int32_t
 rorcfs_dma_channel::prepareRB
 (
     rorcfs_buffer *buf
@@ -266,7 +270,7 @@ rorcfs_dma_channel::prepareRB
  * set of buffers
  * */
 
-int
+int32_t
 rorcfs_dma_channel::configureChannel
 (
     struct rorcfs_buffer *ebuf,
@@ -365,7 +369,7 @@ rorcfs_dma_channel::configureChannel
 void
 rorcfs_dma_channel::setEnableEB
 (
-    int enable
+    int32_t enable
 )
 {
     unsigned int bdcfg = getPKT( RORC_REG_DMA_CTRL );
@@ -381,7 +385,7 @@ rorcfs_dma_channel::setEnableEB
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getEnableEB()
 {
     return (getPKT( RORC_REG_DMA_CTRL ) >> 2 ) & 0x01;
@@ -392,7 +396,7 @@ rorcfs_dma_channel::getEnableEB()
 void
 rorcfs_dma_channel::setEnableRB
 (
-    int enable
+    int32_t enable
 )
 {
     unsigned int bdcfg = getPKT( RORC_REG_DMA_CTRL );
@@ -419,7 +423,7 @@ rorcfs_dma_channel::getEnableRB()
 void
 rorcfs_dma_channel::setDMAConfig
 (
-    unsigned int config
+    uint32_t config
 )
 {
     setPKT(RORC_REG_DMA_CTRL, config);
@@ -427,7 +431,7 @@ rorcfs_dma_channel::setDMAConfig
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getDMAConfig()
 {
     return getPKT(RORC_REG_DMA_CTRL);
@@ -438,7 +442,7 @@ rorcfs_dma_channel::getDMAConfig()
 void
 rorcfs_dma_channel::setMaxPayload
 (
-    int size
+    int32_t size
 )
 {
     _setMaxPayload( size );
@@ -457,7 +461,7 @@ rorcfs_dma_channel::setMaxPayload()
 void
 rorcfs_dma_channel::_setMaxPayload
 (
-    int size
+    int32_t size
 )
 {
     /**
@@ -472,13 +476,15 @@ rorcfs_dma_channel::_setMaxPayload
      */
     assert( size <= MAX_PAYLOAD );
 
-    unsigned int status = getPKT(RORC_REG_DMA_PKT_SIZE);
+    uint32_t status
+        = getPKT(RORC_REG_DMA_PKT_SIZE);
 
     /**
      * MAX_PAYLOAD has to be provided as #DWs
      * -> divide size by 4
      */
-    unsigned int mp_size = size >> 2;
+    uint32_t mp_size
+        = size >> 2;
 
     /** clear current MAX_PAYLOAD setting
      *
@@ -494,7 +500,7 @@ rorcfs_dma_channel::_setMaxPayload
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getMaxPayload()
 {
     assert(m_bar!=NULL);
@@ -513,8 +519,8 @@ rorcfs_dma_channel::getMaxPayload()
 void
 rorcfs_dma_channel::setOffsets
 (
-    unsigned long eboffset,
-    unsigned long rboffset
+    uint64_t eboffset,
+    uint64_t rboffset
 )
 {
     assert(m_bar!=NULL);
@@ -522,11 +528,13 @@ rorcfs_dma_channel::setOffsets
 
     offsets.ebdm_software_read_pointer_low =
         (uint32_t)(eboffset & 0xffffffff);
+
     offsets.ebdm_software_read_pointer_high =
         (uint32_t)(eboffset >> 32 & 0xffffffff);
 
     offsets.rbdm_software_read_pointer_low =
         (uint32_t)(rboffset & 0xffffffff);
+
     offsets.rbdm_software_read_pointer_high =
         (uint32_t)(rboffset >> 32 & 0xffffffff);
 
@@ -544,7 +552,7 @@ rorcfs_dma_channel::setOffsets
 void
 rorcfs_dma_channel::setEBOffset
 (
-    unsigned long offset
+    uint64_t offset
 )
 {
     assert(m_bar!=NULL);
@@ -558,66 +566,76 @@ rorcfs_dma_channel::setEBOffset
 
 
 
-unsigned long
+uint64_t
 rorcfs_dma_channel::getEBOffset()
 {
-    unsigned long offset =
-        ( (unsigned long)getPKT(RORC_REG_EBDM_SW_READ_POINTER_H) << 32);
-    offset += (unsigned long)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
+    uint64_t offset =
+        ( (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_H) << 32);
+
+    offset += (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
+
     return offset;
 }
 
 
 
-unsigned long
+uint64_t
 rorcfs_dma_channel::getEBDMAOffset()
 {
-    unsigned long offset =
-        ( (unsigned long)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32);
-    offset += (unsigned long)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
+    uint64_t offset =
+        ( (uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32);
+
+    offset += (uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
+
     return offset;
 }
 
 void
 rorcfs_dma_channel::setRBOffset
 (
-    unsigned long offset
+    uint64_t offset
 )
 {
     assert(m_bar!=NULL);
-    unsigned int status;
+    uint32_t status;
 
     m_bar->memcpy_bar( (m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
                         &offset, sizeof(offset) );
+
     status = getPKT(RORC_REG_DMA_CTRL);
+
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
 }
 
 
 
-unsigned long
+uint64_t
 rorcfs_dma_channel::getRBOffset()
 {
-    unsigned long offset =
-        ( (unsigned long)getPKT(RORC_REG_RBDM_SW_READ_POINTER_H) << 32);
-    offset += (unsigned long)getPKT(RORC_REG_RBDM_SW_READ_POINTER_L);
+    uint64_t offset =
+        ( (uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_H) << 32);
+
+    offset += (uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_L);
+
     return offset;
 }
 
 
 
-unsigned long
+uint64_t
 rorcfs_dma_channel::getRBDMAOffset()
 {
-    unsigned long offset =
-        ( (unsigned long)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32);
-    offset += (unsigned long)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
+    uint64_t offset =
+        ( (uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32);
+
+    offset += (uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
+
     return offset;
 }
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getEBDMnSGEntries()
 {
     return (getPKT(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff);
@@ -625,7 +643,7 @@ rorcfs_dma_channel::getEBDMnSGEntries()
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getRBDMnSGEntries()
 {
     return (getPKT(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff);
@@ -633,7 +651,7 @@ rorcfs_dma_channel::getRBDMnSGEntries()
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getDMABusy()
 {
     return ( (getPKT(RORC_REG_DMA_CTRL) >> 7) & 0x01);
@@ -641,23 +659,27 @@ rorcfs_dma_channel::getDMABusy()
 
 
 
-unsigned long
+uint64_t
 rorcfs_dma_channel::getEBSize()
 {
-    unsigned long size =
-        ( (unsigned long)getPKT(RORC_REG_EBDM_BUFFER_SIZE_H) << 32);
-    size += (unsigned long)getPKT(RORC_REG_EBDM_BUFFER_SIZE_L);
+    uint64_t size =
+        ( (uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_H) << 32);
+
+    size += (uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_L);
+
     return size;
 }
 
 
 
-unsigned long
+uint64_t
 rorcfs_dma_channel::getRBSize()
 {
-    unsigned long size =
-        ( (unsigned long)getPKT(RORC_REG_RBDM_BUFFER_SIZE_H) << 32);
-    size += (unsigned long)getPKT(RORC_REG_RBDM_BUFFER_SIZE_L);
+    uint64_t size =
+        ( (uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_H) << 32);
+
+    size += (uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_L);
+
     return size;
 }
 
@@ -666,8 +688,8 @@ rorcfs_dma_channel::getRBSize()
 void
 rorcfs_dma_channel::setPKT
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 )
 {
     m_bar->set((m_base + addr), data);
@@ -675,10 +697,10 @@ rorcfs_dma_channel::setPKT
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getPKT
 (
-    unsigned int addr
+    uint32_t addr
 )
 {
     return m_bar->get(m_base+addr);
@@ -689,8 +711,8 @@ rorcfs_dma_channel::getPKT
 void
 rorcfs_dma_channel::setGTX
 (
-    unsigned int addr,
-    unsigned int data
+    uint32_t addr,
+    uint32_t data
 )
 {
     m_bar->set( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
@@ -698,10 +720,10 @@ rorcfs_dma_channel::setGTX
 
 
 
-unsigned int
+uint32_t
 rorcfs_dma_channel::getGTX
 (
-    unsigned int addr
+    uint32_t addr
 )
 {
     return m_bar->get(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
