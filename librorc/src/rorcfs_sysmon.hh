@@ -37,12 +37,14 @@ class rorcfs_sysmon
 		rorcfs_sysmon();
 		~rorcfs_sysmon();
 
+		void wait_for_tip_to_negate();
+
 		/**
 		 * initialize instance
 		 * @param bar parent rorcfs_bar instance
 		 * @return -1 on errors, 0 on success
 		 **/
-		int init( librorc_bar *bar );
+		int32_t init( librorc_bar *bar );
 
 		/**
 		 * get PCIe Interface status
@@ -58,13 +60,13 @@ class rorcfs_sysmon
 		 * pcie_status_q[7:2] <= 6'b0;
 		 * pcie_status_q[1:0] <= pl_sel_link_width;
 		 **/
-		 unsigned int getPCIeStatus();
+		 uint32_t getPCIeStatus();
 
 		 /**
 			* get FPGA Firmware Revision
 			* @return Firmware Revision
 			**/
-		 unsigned int getFwRevision();
+		 uint32_t getFwRevision();
 
 		 /**
 			* get FPGA Firmware Build Date
@@ -72,7 +74,7 @@ class rorcfs_sysmon
 			* year (bits [31:16]), month (bits[15:8]) and
 			* day (bits[7:0]).
 			**/
-		 unsigned int getFwBuildDate();
+		 uint32_t getFwBuildDate();
 
 		 /**
 			* get FPGA unique identifier (Device DNA)
