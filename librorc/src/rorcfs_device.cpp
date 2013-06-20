@@ -46,7 +46,7 @@ rorcfs_device::~rorcfs_device()
 
 
 
-int
+int32_t
 rorcfs_device::init
 (
     int n

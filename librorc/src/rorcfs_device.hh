@@ -107,7 +107,7 @@ public:
  * @return 0 on sucess, -1 on error or if device
  *               does not exist
  **/
-int
+int32_t
 init
 (
     int n = 0

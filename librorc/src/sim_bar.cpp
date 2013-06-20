@@ -193,7 +193,7 @@ sim_bar::set
         if
         (
             write( sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != (size_t)(buffersize*sizeof(uint32_t))
+                != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
