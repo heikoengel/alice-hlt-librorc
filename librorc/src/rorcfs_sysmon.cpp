@@ -37,6 +37,7 @@ rorcfs_sysmon::rorcfs_sysmon()
 }
 
 
+
 rorcfs_sysmon::~rorcfs_sysmon()
 {
 	bar = NULL;
@@ -72,6 +73,7 @@ rorcfs_sysmon::init( librorc_bar *parent_bar )
 }
 
 
+
 uint32_t
 rorcfs_sysmon::getFwRevision()
 {
@@ -80,12 +82,14 @@ rorcfs_sysmon::getFwRevision()
 }
 
 
+
 uint32_t
 rorcfs_sysmon::getFwBuildDate()
 {
 	assert(bar!=NULL);
 	return bar->get(RORC_REG_FIRMWARE_DATE);
 }
+
 
 
 uint32_t
@@ -99,6 +103,8 @@ rorcfs_sysmon::getFanTachValue()
 	return 0;
 }
 
+
+
 double
 rorcfs_sysmon::getFPGATemperature()
 {
@@ -106,6 +112,8 @@ rorcfs_sysmon::getFPGATemperature()
 	uint32_t value = bar->get(RORC_REG_FPGA_TEMPERATURE);
 	return (double)(value*503.975/1024.0 - 273.15);
 }
+
+
 
 double
 rorcfs_sysmon::getVCCINT()
@@ -115,6 +123,8 @@ rorcfs_sysmon::getVCCINT()
 	return (double)(value/1024.0 * 3.0);
 }
 
+
+
 double
 rorcfs_sysmon::getVCCAUX()
 {
@@ -123,17 +133,22 @@ rorcfs_sysmon::getVCCAUX()
 	return (double)(value/1024.0 * 3.0);
 }
 
+
+
 //void rorcfs_sysmon::setIcapDin ( unsigned int dword )
 //{
 //	assert(bar!=NULL);
 //	bar->set(RORC_REG_ICAP_DIN, dword);
 //}
-//
+
+
+
 //void rorcfs_sysmon::setIcapDinReorder ( unsigned int dword )
 //{
 //	assert(bar!=NULL);
 //	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
 //}
+
 
 
 int32_t
@@ -151,6 +166,7 @@ rorcfs_sysmon::i2c_reset()
 	else
 	{ return -1; }
 }
+
 
 
 int32_t
@@ -179,14 +195,9 @@ rorcfs_sysmon::i2c_read_mem
 		return -1;
 	}
 
-	// set mem addr, set WR bit
+	/** set mem addr, set WR bit */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
+	status = wait_for_tip_to_negate();
 
 	/** RxACK from Status should be 0*/
 	if( status & 0x80000000 )
@@ -216,6 +227,8 @@ rorcfs_sysmon::i2c_read_mem
 	*data = (unsigned char)(status&0xff);
 	return 0;
 }
+
+
 
 int
 rorcfs_sysmon::i2c_write_mem
@@ -260,14 +273,14 @@ rorcfs_sysmon::i2c_write_mem
 		return -1;
 	}
 
-	/*// set slave addr + write bit, set STA, set WR
-	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}*/
+//	/** set slave addr + write bit, set STA, set WR */
+//	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+//
+//	status = bar->get(RORC_REG_I2C_OPERATION);
+//	while( status & 0x02000000 ) { // wait for TIP to negate
+//		usleep(100);
+//		status = bar->get(RORC_REG_I2C_OPERATION);
+//	}
 
 	// set WR, set ACK=0 (ACK), set STO, set data
 	bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));

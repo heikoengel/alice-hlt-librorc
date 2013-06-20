@@ -37,8 +37,6 @@ class rorcfs_sysmon
 		rorcfs_sysmon();
 		~rorcfs_sysmon();
 
-		uint32_t wait_for_tip_to_negate();
-
 		/**
 		 * initialize instance
 		 * @param bar parent rorcfs_bar instance
@@ -165,8 +163,10 @@ class rorcfs_sysmon
 		 void i2c_set_config(
 				 unsigned int config);
 
-	private:
-		 librorc_bar *bar;
+	protected:
+        uint32_t wait_for_tip_to_negate();
+
+        librorc_bar *bar;
 
 };
 
