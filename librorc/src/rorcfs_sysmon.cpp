@@ -229,52 +229,38 @@ rorcfs_sysmon::i2c_write_mem
 )
 {
     assert(bar!=NULL);
-    unsigned char addr_wr;
 
 	/** slave address shifted by one, write bit set */
-	addr_wr = (slvaddr<<1);
+	unsigned char addr_wr = (slvaddr<<1);
 
 	/** write addr + write bit to TX register, set STA, set WR */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
 	uint32_t status = wait_for_tip_to_negate();
 
 	/** RxACK from Status should be 0 */
-	if ( status & 0x80000000 )
+	if( status & 0x80000000 )
 	{
 		return -1;
 	}
 
 	/** set mem addr, set WR bit */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
+	status = wait_for_tip_to_negate();
 
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
 
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
-		return -1;
+	/** RxACK from Status should be 0 */
+	if( status & 0x80000000 )
+	{
+        return -1;
 	}
 
 //	/** set slave addr + write bit, set STA, set WR */
 //	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-//
-//	status = bar->get(RORC_REG_I2C_OPERATION);
-//	while( status & 0x02000000 ) { // wait for TIP to negate
-//		usleep(100);
-//		status = bar->get(RORC_REG_I2C_OPERATION);
-//	}
+//	status = wait_for_tip_to_negate();
 
-	// set WR, set ACK=0 (ACK), set STO, set data
+	/** set WR, set ACK=0 (ACK), set STO, set data */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
+	status = wait_for_tip_to_negate();
 
 	return 0;
 }
