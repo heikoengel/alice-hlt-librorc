@@ -139,12 +139,11 @@ class rorcfs_sysmon
          * received data
          * @return 0 on success, -1 on errors
         **/
-        int32_t
+        unsigned char
         i2c_read_mem
         (
             unsigned char slvaddr,
-            unsigned char memaddr,
-            unsigned char *data
+            unsigned char memaddr
         );
 
         /**

@@ -45,32 +45,6 @@ rorcfs_sysmon::~rorcfs_sysmon()
 
 
 
-uint32_t
-rorcfs_sysmon::wait_for_tip_to_negate()
-{
-	uint32_t status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 )
-	{
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	return status;
-}
-
-
-
-void
-rorcfs_sysmon::check_rxack_is_zero( uint32_t status )
-{
-    if( status & 0x80000000 )
-    {
-        throw LIBRORC_SYSMON_ERROR_RXACK;
-    }
-}
-
-
-
 int32_t
 rorcfs_sysmon::init( librorc_bar *parent_bar )
 {
@@ -180,12 +154,11 @@ rorcfs_sysmon::i2c_reset()
 
 
 
-int32_t
+unsigned char
 rorcfs_sysmon::i2c_read_mem
 (
     unsigned char  slvaddr,
-    unsigned char  memaddr,
-    unsigned char *data
+    unsigned char  memaddr
 )
 {
 	assert(bar!=NULL);
@@ -211,8 +184,7 @@ rorcfs_sysmon::i2c_read_mem
 	bar->set(RORC_REG_I2C_OPERATION, 0x00680000);
 	status = wait_for_tip_to_negate();
 
-	*data = (unsigned char)(status&0xff);
-	return 0;
+	return(status & 0xff);
 }
 
 
@@ -245,10 +217,36 @@ rorcfs_sysmon::i2c_write_mem
 
 	/** set WR, set ACK=0 (ACK), set STO, set data */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
-	uint32_t status = wait_for_tip_to_negate();
+	wait_for_tip_to_negate();
 
 	return 0;
 }
+
+
+
+    uint32_t
+    rorcfs_sysmon::wait_for_tip_to_negate()
+    {
+        uint32_t status = bar->get(RORC_REG_I2C_OPERATION);
+        while( status & 0x02000000 )
+        {
+            usleep(100);
+            status = bar->get(RORC_REG_I2C_OPERATION);
+        }
+
+        return status;
+    }
+
+
+
+    void
+    rorcfs_sysmon::check_rxack_is_zero( uint32_t status )
+    {
+        if( status & 0x80000000 )
+        {
+            throw LIBRORC_SYSMON_ERROR_RXACK;
+        }
+    }
 
 
 
