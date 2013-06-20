@@ -249,7 +249,7 @@ sim_bar::memcpy_bar
         if
         (
             write( sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != (size_t)(buffersize*sizeof(uint32_t))
+                != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
@@ -301,7 +301,7 @@ sim_bar::get16
         if
         (
             write(sockfd, buffer, buffersize*sizeof(uint32_t))
-                != (size_t)(buffersize*sizeof(uint32_t))
+                != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
@@ -355,7 +355,7 @@ sim_bar::set16
         if
         (
             write(sockfd, buffer, buffersize*sizeof(uint32_t))
-                != (size_t)(buffersize*sizeof(uint32_t))
+                != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
             cout << "ERROR writing to socket" << endl;
