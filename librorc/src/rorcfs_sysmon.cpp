@@ -220,7 +220,7 @@ rorcfs_sysmon::i2c_read_mem
 
 
 
-int
+int32_t
 rorcfs_sysmon::i2c_write_mem
 (
     unsigned char slvaddr,
@@ -228,28 +228,23 @@ rorcfs_sysmon::i2c_write_mem
     unsigned char data
 )
 {
-	assert(bar!=NULL);
-	unsigned char addr_wr;
-	unsigned int status;
+    assert(bar!=NULL);
+    unsigned char addr_wr;
 
-	// slave address shifted by one, write bit set
+	/** slave address shifted by one, write bit set */
 	addr_wr = (slvaddr<<1);
 
-	// write addr + write bit to TX register, set STA, set WR
+	/** write addr + write bit to TX register, set STA, set WR */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+	uint32_t status = wait_for_tip_to_negate();
 
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
+	/** RxACK from Status should be 0 */
+	if ( status & 0x80000000 )
+	{
 		return -1;
 	}
 
-	// set mem addr, set WR bit
+	/** set mem addr, set WR bit */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
 
 	status = bar->get(RORC_REG_I2C_OPERATION);
