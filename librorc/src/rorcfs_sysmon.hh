@@ -21,7 +21,9 @@
 #ifndef RORCFS_SYSMON_H
 #define RORCFS_SYSMON_H
 
-#define LIBRORC_SYSMON_ERROR_RXACK 20
+#define LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED 1
+#define LIBRORC_SYSMON_ERROR_RXACK              20
+#define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
 
 #include <librorc_registers.h>
 
@@ -127,9 +129,8 @@ class rorcfs_sysmon
 
         /**
          * reset i2c bus
-         * @return 0 on success, -1 on error
         **/
-        int32_t i2c_reset();
+        void i2c_reset();
 
         /**
          * read byte from i2c memory location
@@ -139,11 +140,11 @@ class rorcfs_sysmon
          * received data
          * @return 0 on success, -1 on errors
         **/
-        unsigned char
+        uint8_t
         i2c_read_mem
         (
-            unsigned char slvaddr,
-            unsigned char memaddr
+            uint8_t slvaddr,
+            uint8_t memaddr
         );
 
         /**
@@ -157,9 +158,9 @@ class rorcfs_sysmon
         void
         i2c_write_mem
         (
-            unsigned char slvaddr,
-            unsigned char memaddr,
-            unsigned char data
+            uint8_t slvaddr,
+            uint8_t memaddr,
+            uint8_t data
         );
 
         /**
@@ -176,7 +177,7 @@ class rorcfs_sysmon
         void
         check_rxack_is_zero( uint32_t status );
 
-        librorc_bar *bar;
+        librorc_bar *m_bar;
 };
 
 #endif
