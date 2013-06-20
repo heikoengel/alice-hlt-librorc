@@ -21,6 +21,8 @@
 #ifndef RORCFS_SYSMON_H
 #define RORCFS_SYSMON_H
 
+#define LIBRORC_SYSMON_ERROR_RXACK 20
+
 #include <librorc_registers.h>
 
 /**
@@ -171,6 +173,9 @@ class rorcfs_sysmon
     protected:
 
         uint32_t wait_for_tip_to_negate();
+
+        void
+        check_rxack_is_zero( uint32_t status );
 
         librorc_bar *bar;
 };
