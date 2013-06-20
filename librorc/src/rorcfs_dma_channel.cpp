@@ -42,7 +42,9 @@ using namespace std;
 /** struct holding both read pointers and the
  *  DMA engine configuration register contents
  **/
-struct rorcfs_buffer_software_pointers
+struct
+__attribute__((__packed__))
+rorcfs_buffer_software_pointers
 {
     /** EBDM read pointer low **/
     uint32_t ebdm_software_read_pointer_low;
@@ -61,7 +63,9 @@ struct rorcfs_buffer_software_pointers
 };
 
 /** struct rorcfs_channel_config **/
-struct rorcfs_channel_config
+struct
+__attribute__((__packed__))
+rorcfs_channel_config
 {
     /** EBDM number of sg entries **/
     uint32_t ebdm_n_sg_config;
@@ -87,7 +91,9 @@ struct rorcfs_channel_config
 };
 
 /** struct t_sg_entry_cfg **/
-struct t_sg_entry_cfg
+struct
+__attribute__((__packed__))
+t_sg_entry_cfg
 {
     /** lower part of sg address **/
     uint32_t sg_addr_low;
