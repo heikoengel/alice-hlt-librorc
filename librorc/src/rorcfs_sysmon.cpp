@@ -29,7 +29,7 @@
 #include "rorcfs_bar.hh"
 #include "rorcfs_sysmon.hh"
 
-
+//TODO: get rid of all the asserts here
 
 rorcfs_sysmon::rorcfs_sysmon()
 {
@@ -44,7 +44,7 @@ rorcfs_sysmon::~rorcfs_sysmon()
 
 
 
-void
+uint32_t
 rorcfs_sysmon::wait_for_tip_to_negate()
 {
 	uint32_t status = bar->get(RORC_REG_I2C_OPERATION);
@@ -53,6 +53,8 @@ rorcfs_sysmon::wait_for_tip_to_negate()
 		usleep(100);
 		status = bar->get(RORC_REG_I2C_OPERATION);
 	}
+
+	return status;
 }
 
 
@@ -138,18 +140,13 @@ int32_t
 rorcfs_sysmon::i2c_reset()
 {
 	assert(bar!=NULL);
-	unsigned int status;
-
 	bar->set(RORC_REG_I2C_OPERATION, 0x00040000);
 
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) /** wait for TIP to negate */
-	{
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
+    uint32_t status
+        = wait_for_tip_to_negate();
 
-	if ( status & 0x00ff0000 ) /** read back not only zeros */
+    /** read back not only zeros */
+	if ( status & 0x00ff0000 )
 	{ return 0; }
 	else
 	{ return -1; }
@@ -166,7 +163,6 @@ rorcfs_sysmon::i2c_read_mem
 {
 	assert(bar!=NULL);
 	unsigned char addr_wr, addr_rd;
-	uint32_t status;
 
 	/** slave address shifted by one, write bit set */
 	addr_wr = (slvaddr<<1);
@@ -174,14 +170,9 @@ rorcfs_sysmon::i2c_read_mem
 
 	/** write addr + write bit to TX register, set STA, set WR */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) /** wait for TIP to negate */
-	{
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
+	uint32_t status = wait_for_tip_to_negate();
 
-	//RxACK from Status should be 0
+	/** RxACK from Status should be 0 */
 	if( status & 0x80000000 )
 	{
 		*data = (unsigned char)(status>>24);
@@ -197,8 +188,9 @@ rorcfs_sysmon::i2c_read_mem
 		status = bar->get(RORC_REG_I2C_OPERATION);
 	}
 
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
+	/** RxACK from Status should be 0*/
+	if( status & 0x80000000 )
+	{
 		*data = (unsigned char)(status>>24);
 		return -1;
 	}
@@ -225,10 +217,13 @@ rorcfs_sysmon::i2c_read_mem
 	return 0;
 }
 
-int rorcfs_sysmon::i2c_write_mem(
-		unsigned char slvaddr,
-		unsigned char memaddr,
-		unsigned char data)
+int
+rorcfs_sysmon::i2c_write_mem
+(
+    unsigned char slvaddr,
+    unsigned char memaddr,
+    unsigned char data
+)
 {
 	assert(bar!=NULL);
 	unsigned char addr_wr;

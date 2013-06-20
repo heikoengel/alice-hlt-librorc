@@ -37,7 +37,7 @@ class rorcfs_sysmon
 		rorcfs_sysmon();
 		~rorcfs_sysmon();
 
-		void wait_for_tip_to_negate();
+		uint32_t wait_for_tip_to_negate();
 
 		/**
 		 * initialize instance
