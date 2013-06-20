@@ -232,17 +232,11 @@ rorcfs_sysmon::i2c_write_mem
 
 	/** write addr + write bit to TX register, set STA, set WR */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-	uint32_t status = wait_for_tip_to_negate();
-
-	/** RxACK from Status should be 0 */
-    check_rxack_is_zero( status );
+	check_rxack_is_zero( wait_for_tip_to_negate() );
 
 	/** set mem addr, set WR bit */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
-	status = wait_for_tip_to_negate();
-
-	/** RxACK from Status should be 0 */
-	check_rxack_is_zero( status );
+	check_rxack_is_zero( wait_for_tip_to_negate() );
 
 
 //	/** set slave addr + write bit, set STA, set WR */
@@ -251,7 +245,7 @@ rorcfs_sysmon::i2c_write_mem
 
 	/** set WR, set ACK=0 (ACK), set STO, set data */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
-	status = wait_for_tip_to_negate();
+	uint32_t status = wait_for_tip_to_negate();
 
 	return 0;
 }
