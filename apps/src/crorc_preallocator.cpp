@@ -1,5 +1,5 @@
 /**
- * @file pgdma_continuous.cpp
+ * @file crorc_preallocator.cpp
  * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.1
  * @date 2013-06-07
@@ -17,7 +17,9 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @brief
- * Open DMA Channel sourced by PatternGenerator
+ * Allocate memory for all crorcs in the system. This is especially
+ * needed to allocate during the early boot phase to get a low amount
+ * of SG-List entries.
  *
  **/
 
