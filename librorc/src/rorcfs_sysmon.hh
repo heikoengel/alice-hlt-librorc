@@ -154,7 +154,7 @@ class rorcfs_sysmon
          * received data
          * @return 0 on success, -1 on errors
         **/
-        int32_t
+        void
         i2c_write_mem
         (
             unsigned char slvaddr,

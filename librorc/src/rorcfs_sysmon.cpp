@@ -189,7 +189,7 @@ rorcfs_sysmon::i2c_read_mem
 
 
 
-int32_t
+void
 rorcfs_sysmon::i2c_write_mem
 (
     unsigned char slvaddr,
@@ -218,8 +218,6 @@ rorcfs_sysmon::i2c_write_mem
 	/** set WR, set ACK=0 (ACK), set STO, set data */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
 	wait_for_tip_to_negate();
-
-	return 0;
 }
 
 
