@@ -82,12 +82,12 @@ rorcfs_buffer();
  *                   RORCFS_DMA_TO_DEVICE, RORCFS_DMA_BIDIRECTIONAL
  * @return 0 on sucess, -1 on error
  **/
-int
+int32_t
 allocate
 (
     rorcfs_device *dev,
-    unsigned long  size,
-    unsigned long  id,
+    uint64_t       size,
+    uint64_t       id,
     int            overmap,
     int            dma_direction
 );
@@ -97,7 +97,8 @@ allocate
  * attaced DMA buffers
  * @return 0 on sucess, <0 on error ( use perror() )
  **/
-int deallocate();
+int32_t
+deallocate();
 
 /**
  * Connect to an existing buffer
@@ -105,11 +106,11 @@ int deallocate();
  * @param id buffer ID of exisiting buffer
  * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
  **/
-int
+int32_t
 connect
 (
     rorcfs_device *dev,
-    unsigned long  id
+    uint64_t  id
 );
 
 /**
@@ -117,7 +118,8 @@ connect
  * @return unsigned long Buffer-ID
  **/
 
-unsigned long getID()
+uint64_t
+getID()
 {
     return m_id;
 }
@@ -128,7 +130,7 @@ unsigned long getID()
  **/
 
 // TODO : boolean
-int isOvermapped();
+int32_t isOvermapped();
 
 /**
  * Get physical Buffer size in bytes. Requested buffer
@@ -137,14 +139,17 @@ int isOvermapped();
  * @return number of bytes allocated as Buffer
  **/
 
-unsigned long getSize();
+uint64_t
+getSize();
 
-unsigned long getPhysicalSize()
+uint64_t
+getPhysicalSize()
 {
     return getSize();
 }
 
-unsigned long getMappingSize()
+uint64_t
+getMappingSize()
 {
     if(isOvermapped() == 1)
     {
@@ -153,45 +158,52 @@ unsigned long getMappingSize()
     return getSize();
 }
 
+
+
 /**
  * get memory buffer
  * @return pointer to mmap'ed buffer memory
  **/
-
-unsigned int *getMem()
+uint32_t *
+getMem()
 {
     return m_mem;
 }
+
+
 
 /**
  * Get number of scatter-gather entries for the Buffer
  * @return (unsigned long) number of entries
  **/
-
-unsigned long getnSGEntries()
+uint64_t
+getnSGEntries()
 {
     return m_numberOfScatterGatherEntries;
 }
+
+
 
 /**
  * Get the maximum number of report buffer entries in the RB
  * @return maximum number of report buffer entries
  **/
-unsigned long getMaxRBEntries()
+uint64_t
+getMaxRBEntries()
 {
     return (getSize()/sizeof(struct rorcfs_event_descriptor) );
 }
 
 
 private:
-    PciDevice     *m_device;
-    DMABuffer     *m_buffer;
+    PciDevice *m_device;
+    DMABuffer *m_buffer;
 
-    unsigned int  *m_mem;
-    unsigned long  m_id;
-    int            m_dmaDirection;
-    unsigned long  m_numberOfScatterGatherEntries;
-    unsigned long  m_size;
+    uint32_t  *m_mem;
+    uint64_t   m_id;
+    int32_t    m_dmaDirection;
+    uint64_t   m_numberOfScatterGatherEntries;
+    uint64_t   m_size;
 
     pthread_mutex_t  m_mtx;
 
