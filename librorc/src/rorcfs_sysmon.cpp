@@ -199,30 +199,20 @@ rorcfs_sysmon::i2c_read_mem
 	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
 	status = wait_for_tip_to_negate();
 
-	/** RxACK from Status should be 0*/
+	/** RxACK from Status should be 0 */
 	if( status & 0x80000000 )
 	{
 		*data = (unsigned char)(status>>24);
 		return -1;
 	}
 
-	// set slave addr + read bit, set STA, set WR
+	/** set slave addr + read bit, set STA, set WR */
 	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_rd<<8)) );
+	status = wait_for_tip_to_negate();
 
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	// set RD, set ACK=1 (NACK), set STO
+	/** set RD, set ACK=1 (NACK), set STO */
 	bar->set(RORC_REG_I2C_OPERATION, 0x00680000);
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
+	status = wait_for_tip_to_negate();
 
 	*data = (unsigned char)(status&0xff);
 	return 0;
