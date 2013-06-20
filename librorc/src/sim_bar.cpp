@@ -134,7 +134,7 @@ sim_bar::get
     uint32_t  data = 0;
     pthread_mutex_lock(&m_mtx);
     {
-        int32_t  buffersize = 4;
+        uint32_t buffersize = 4;
         uint32_t buffer[buffersize];
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
         buffer[1] = msgid;
@@ -145,7 +145,7 @@ sim_bar::get
         if
         (
             write( sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != (size_t)(buffersize*sizeof(uint32_t))
+                != (ssize_t)(sizeof(uint32_t)*buffersize)
         )
         {
             cout << "ERROR writing to socket" << endl;
