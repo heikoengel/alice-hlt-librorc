@@ -54,7 +54,7 @@ class rorc_bar : public librorc_bar
         rorc_bar
         (
             rorcfs_device *dev,
-            int            n
+            int32_t        n
         );
 
         /**
@@ -69,7 +69,7 @@ class rorc_bar : public librorc_bar
          * BAR does not exist.
          * @return 0 on sucess, -1 on errors
          **/
-        int init();
+        int32_t init();
 
         /**
          * read DWORD from BAR address
