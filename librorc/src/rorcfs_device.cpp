@@ -176,15 +176,15 @@ rorcfs_device::printDeviceDescription()
     uint8_t     bus_id      = 0;
     uint8_t     device_id   = 0;
     uint8_t     function_id = 0;
-    /**TODO : this isn't right!!!*/
-    const char *description = (char*)malloc(1024 * sizeof(char));
+    char        description_buffer[1024];
 
+        const char *description = (const char *)description_buffer;
         PdaDebugReturnCode ret = PDA_SUCCESS;
         ret += PciDevice_getDomainID(m_device, &domain_id);
         ret += PciDevice_getBusID(m_device, &bus_id);
         ret += PciDevice_getDeviceID(m_device, &device_id);
         ret += PciDevice_getFunctionID(m_device, &function_id);
-        ret += PciDevice_getDescription(m_device, &description);
+        ret += PciDevice_getDescription(m_device, &description );
 
         if( ret != PDA_SUCCESS )
         {
@@ -203,8 +203,7 @@ rorcfs_device::printDeviceDescription()
             return;
         }
 
-    printf("Device [%u] %04x:%02x:%02x.%x : %s (firmware date: %08x)", m_number,
-            domain_id, bus_id, device_id, function_id, description, bar->get(RORC_REG_FIRMWARE_DATE));
-
-    //free(description);
+    printf("Device [%u] %04x:%02x:%02x.%x : %s (firmware date: %08x, revision: %08x)",
+            m_number, domain_id, bus_id, device_id, function_id, description,
+            bar->get(RORC_REG_FIRMWARE_DATE), bar->get(RORC_REG_FIRMWARE_REVISION) );
 }
