@@ -24,16 +24,26 @@ using namespace std;
 
 #define slvaddr 0x50
 
+//TODO : thorw errors!
+
 void qsfp_set_page0(struct rorcfs_sysmon *sm)
 {
-  uint8_t data_r;
-  // check page
-  if ( sm->i2c_read_mem(slvaddr, 127, &data_r)<0 )
-    printf("failed to read from i2c: %02x (%08x)\n",
-        data_r, hextobin(data_r));
-  else
-    if ( data_r!=0 ) //page0 not selected
-      sm->i2c_write_mem(slvaddr, 127, 0);
+    uint8_t data_r;
+
+    try
+    {
+        data_r = sm->i2c_read_mem(slvaddr, 127);
+    }
+    catch(...)
+    {
+        cout << "Failed to read from i2c!" << endl;
+        return;
+    }
+
+    if( data_r!=0 )
+    {
+        sm->i2c_write_mem(slvaddr, 127, 0);
+    }
 }
 
 
