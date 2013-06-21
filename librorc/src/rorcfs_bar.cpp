@@ -29,7 +29,7 @@
 rorc_bar::rorc_bar
 (
     rorcfs_device *dev,
-    int            n
+    int32_t        n
 )
 {
     m_parent_dev = dev;
