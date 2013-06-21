@@ -83,8 +83,6 @@ int main(int argc, char **argv)
 
     if ( bar1->init() == -1 )
     {
-        printf("BAR1 init failed - check lspci if more "
-        "than one device is bound to rorcfs\n");
         goto out;
     }
 
@@ -114,7 +112,7 @@ int main(int argc, char **argv)
         goto out;
     }
 
-    /** Printout the stuff */
+    /** Printout revision, date, and serial number */
     cout << "CRORC FPGA" << endl
          << "Firmware Rev. : " << hex << fwrev  << dec << endl
          << "Firmware Date : " << hex << fwdate << dec << endl
@@ -125,10 +123,14 @@ int main(int argc, char **argv)
       "Serial Number: 0x%016lx\n",
       fwrev, fwdate, device_serial);
 
-  // read Voltages, Temperature
-  printf("Temperature:   %.1f °C\n", sm->getFPGATemperature());
-  printf("FPGA VCCINT:   %.2f V\n", sm->getVCCINT());
-  printf("FPGA VCCAUX:   %.2f V\n", sm->getVCCAUX());
+    /** Print Voltages, Temperature */
+    cout << "Temperature   : " << sm->getFPGATemperature() << "°C" << endl
+         << "FPGA VCCINT   : " << sm->getVCCINT() << "V" << endl
+         << "FPGA VCCAUX   : " << sm->getVCCAUX() << "V" << endl;
+
+    printf("Temperature:   %.1f °C\n", sm->getFPGATemperature());
+    printf("FPGA VCCINT:   %.2f V\n", sm->getVCCINT());
+    printf("FPGA VCCAUX:   %.2f V\n", sm->getVCCAUX());
 
   // read reported PCIe link width/speed
   status = bar1->get(RORC_REG_PCIE_CTRL);
