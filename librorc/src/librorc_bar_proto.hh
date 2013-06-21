@@ -101,7 +101,7 @@ init() = 0;
 
 /**
  * get size of mapped BAR. This value is only valid after init()
- * @return size of mapped BAR in (unsigned long) bytes
+ * @return size of mapped BAR in bytes
  **/
 virtual size_t getSize() = 0;
 
