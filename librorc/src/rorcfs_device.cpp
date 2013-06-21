@@ -49,7 +49,7 @@ rorcfs_device::~rorcfs_device()
 int32_t
 rorcfs_device::init
 (
-    int n
+    int32_t n
 )
 {
     /** A list of PCI ID to which PDA has to attach. */

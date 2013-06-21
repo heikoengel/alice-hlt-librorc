@@ -378,7 +378,7 @@ rorcfs_dma_channel::setEnableEB
     int32_t enable
 )
 {
-    unsigned int bdcfg = getPKT( RORC_REG_DMA_CTRL );
+    uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
     if(enable)
     {
         setPKT(RORC_REG_DMA_CTRL, ( bdcfg | (1 << 2) ) );
@@ -405,7 +405,7 @@ rorcfs_dma_channel::setEnableRB
     int32_t enable
 )
 {
-    unsigned int bdcfg = getPKT( RORC_REG_DMA_CTRL );
+    uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
     if(enable)
     {
         setPKT(RORC_REG_DMA_CTRL, ( bdcfg | (1 << 3) ) );
@@ -512,7 +512,7 @@ rorcfs_dma_channel::getMaxPayload()
     assert(m_bar!=NULL);
 
     /** RORC_REG_DMA_CTRL = {max_rd_req, max_payload} */
-    unsigned int status = getPKT(RORC_REG_DMA_PKT_SIZE);
+    uint32_t status = getPKT(RORC_REG_DMA_PKT_SIZE);
 
     status &= 0xffff;
     status = status << 2;
@@ -562,11 +562,11 @@ rorcfs_dma_channel::setEBOffset
 )
 {
     assert(m_bar!=NULL);
-    unsigned int status;
 
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_SW_READ_POINTER_L,
                       &offset, sizeof(offset) );
-    status = getPKT(RORC_REG_DMA_CTRL);
+
+    uint32_t status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
 }
 

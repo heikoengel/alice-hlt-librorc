@@ -110,7 +110,7 @@ public:
 int32_t
 init
 (
-    int n = 0
+    int32_t n = 0
 );
 
 /**
