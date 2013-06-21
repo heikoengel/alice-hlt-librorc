@@ -67,17 +67,23 @@ void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
 
 void qsfp_print_part_number(struct rorcfs_sysmon *sm)
 {
-  uint8_t data_r, i;
-  // get PartNumber
-  printf("\tPart Number:\t");
-  for (i=168;i<=183;i++) {
-    if ( sm->i2c_read_mem(slvaddr, i, &data_r)<0 )
-      printf("failed to read from i2c: %02x (%08x)\n",
-          data_r, hextobin(data_r));
-    else
-      printf("%c", data_r);
-  }
-  printf("\n");
+    /**  get PartNumber */
+    printf("\tPart Number:\t");
+
+    uint8_t data_r;
+    for(uint8_t i=168; i<=183; i++)
+    {
+        try
+        { data_r = sm->i2c_read_mem(slvaddr, i); }
+        catch(...)
+        {
+            cout << "Failed to read from i2c!" << endl;
+            return;
+        }
+
+        printf("%c", data_r);
+    }
+    printf("\n");
 }
 
 void qsfp_print_temp(struct rorcfs_sysmon *sm)
