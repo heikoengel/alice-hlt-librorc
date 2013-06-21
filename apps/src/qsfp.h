@@ -20,6 +20,8 @@
 #ifndef QSFP_H
 #define QSFP_H
 
+using namespace std;
+
 #define slvaddr 0x50
 
 int hextobin(unsigned char data)
@@ -39,7 +41,7 @@ void qsfp_set_page0(struct rorcfs_sysmon *sm)
   uint8_t data_r;
   // check page
   if ( sm->i2c_read_mem(slvaddr, 127, &data_r)<0 )
-    printf("failed to read from i2c: %02x (%08x)\n", 
+    printf("failed to read from i2c: %02x (%08x)\n",
         data_r, hextobin(data_r));
   else
     if ( data_r!=0 ) //page0 not selected
@@ -54,7 +56,7 @@ void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
   printf("\tVendor Name:\t");
   for (i=148;i<=163;i++) {
     if ( sm->i2c_read_mem(slvaddr, i, &data_r)<0 )
-      printf("failed to read from i2c: %02x (%08x)\n", 
+      printf("failed to read from i2c: %02x (%08x)\n",
           data_r, hextobin(data_r));
     else
       printf("%c", data_r);
@@ -70,7 +72,7 @@ void qsfp_print_part_number(struct rorcfs_sysmon *sm)
   printf("\tPart Number:\t");
   for (i=168;i<=183;i++) {
     if ( sm->i2c_read_mem(slvaddr, i, &data_r)<0 )
-      printf("failed to read from i2c: %02x (%08x)\n", 
+      printf("failed to read from i2c: %02x (%08x)\n",
           data_r, hextobin(data_r));
     else
       printf("%c", data_r);
@@ -80,22 +82,26 @@ void qsfp_print_part_number(struct rorcfs_sysmon *sm)
 
 void qsfp_print_temp(struct rorcfs_sysmon *sm)
 {
-  uint8_t data_r;
-  uint32_t temp;
-  // read Temperature
-  if ( sm->i2c_read_mem(slvaddr, 23, &data_r)<0 )
-    printf("failed to read from i2c: %02x (%08x)\n", 
-        data_r, hextobin(data_r));
-  else {
-    temp = data_r;
-    if ( sm->i2c_read_mem(slvaddr, 22, &data_r)<0 )
-      printf("failed to read from i2c: %02x (%08x)\n", 
-          data_r, hextobin(data_r));
-    else {
-      temp += ((uint32_t)data_r<<8);
-      printf("\tTemperature:\t%.2f °C\n", ((float)temp/256));
+    uint8_t data_r;
+    try
+    { data_r = sm->i2c_read_mem(slvaddr, 23); }
+    catch(...)
+    {
+        cout << "Failed to read from i2c!" << endl;
+        return;
     }
-  }
+
+    uint32_t temp = data_r;
+    try
+    { data_r = sm->i2c_read_mem(slvaddr, 22); }
+    catch(...)
+    {
+        cout << "Failed to read from i2c!" << endl;
+        return;
+    }
+
+    temp += ((uint32_t)data_r<<8);
+    printf("\tTemperature:\t%.2f °C\n", ((float)temp/256));
 }
 
 

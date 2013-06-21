@@ -42,50 +42,60 @@ extern "C"{
 
 int main(int argc, char **argv)
 {
-  rorcfs_device *dev = NULL;
-  rorcfs_bar *bar1 = NULL;
-  rorcfs_sysmon *sm = NULL;
-  rorcfs_dma_channel *ch = NULL;
+    rorcfs_device      *dev  = NULL;
+    librorc_bar        *bar1 = NULL;
+    rorcfs_sysmon      *sm   = NULL;
+    //rorcfs_dma_channel *ch   = NULL;
 
-  struct pci_access *pacc = NULL;
-  struct pci_dev *pdev = NULL;
-  uint64_t device_serial = 0;
-  uint8_t *devserptr = (uint8_t *)&device_serial;
+    struct    pci_access *pacc = NULL;
+    struct    pci_dev *pdev    = NULL;
+    uint64_t  device_serial    = 0;
+    uint8_t  *devserptr        = (uint8_t *)&device_serial;
 
-  uint32_t ddrctrl, fwrev, fwdate;
-  uint32_t status;
-  uint32_t qsfp_ctrl, fanctrl;
-  int i;
+    uint32_t ddrctrl, fwrev, fwdate;
+    uint32_t status;
+    uint32_t qsfp_ctrl, fanctrl;
+    int i;
 
-  // create new device class
-  dev = new rorcfs_device();	
-  if ( dev->init(0) == -1 ) {
-    printf("failed to initialize device 0 - "
+    /** create new device object */
+    dev = new rorcfs_device();
+    if ( dev->init(0) == -1 )
+    {
+        printf("failed to initialize device 0 - "
         "is the board detected with lspci?\n");
-    goto out;
-  }
+        goto out;
+    }
 
-  // bind to BAR1
-  bar1 = new rorcfs_bar(dev, 1);
-  if ( bar1->init() == -1 ) {
-    printf("BAR1 init failed - check lspci if more "
+    /** bind to BAR1 */
+    #ifdef SIM
+        bar1 = new sim_bar(dev, 1);
+    #else
+        bar1 = new rorc_bar(dev, 1);
+    #endif
+
+    if ( bar1->init() == -1 )
+    {
+        printf("BAR1 init failed - check lspci if more "
         "than one device is bound to rorcfs\n");
-    goto out;
-  }
+        goto out;
+    }
 
-  sm = new rorcfs_sysmon();
-  if ( sm->init(bar1) == -1 ) {
-    printf("Sysmon init failed\n");
-    goto out;
-  }
+    /** instantiate a new sysmon */
+    sm = new rorcfs_sysmon();
+    if ( sm->init(bar1) == -1 )
+    {
+        printf("Sysmon init failed\n");
+        goto out;
+    }
 
-  // read device DNA, Firmware date & rev.
-  pacc = pci_alloc();		/* Get the pci_access structure */
-  pci_init(pacc);		/* Initialize the PCI library */
-  pci_scan_bus(pacc);		/* We want to get the list of devices */
-  pdev = pci_get_dev(pacc, 0, dev->getBus(), 
-      dev->getSlot(), dev->getFunc());
-  pci_read_block(pdev, 0x104, devserptr, 8);
+    /** read device DNA, Firmware date & rev */
+    pacc = pci_alloc();		  /* Get the pci_access structure */
+    pci_init(pacc);		      /* Initialize the PCI library */
+    pci_scan_bus(pacc);		  /* We want to get the list of devices */
+    pdev
+        = pci_get_dev(pacc, 0, dev->getBus(),
+            dev->getSlot(), dev->getFunc());
+    pci_read_block(pdev, 0x104, devserptr, 8);
 
   fwrev = sm->getFwRevision();
   if ( fwrev==0xffffffff ) {
@@ -105,7 +115,7 @@ int main(int argc, char **argv)
 
   printf("\n-=== FPGA ===-\n"
       "Firmware Rev.  %08x\nFirmare Date:  %08x\n"
-      "Serial Number: 0x%016lx\n", 
+      "Serial Number: 0x%016lx\n",
       fwrev, fwdate, device_serial);
 
   // read Voltages, Temperature
@@ -117,9 +127,9 @@ int main(int argc, char **argv)
   status = bar1->get(RORC_REG_PCIE_CTRL);
   if ((status>>3 & 0x3)!=3 || !(status>>5 & 0x01)) {
     printf(" WARNING: FPGA reports unexpexted PCIe link parameters:\n");
-    printf("reported PCIe Link width: %d lanes (expected 8)\n", 
+    printf("reported PCIe Link width: %d lanes (expected 8)\n",
         (1<<(status>>3 & 0x3)));
-    printf("reported PCIe Link Gen: %d (expected 2)\n", 
+    printf("reported PCIe Link Gen: %d (expected 2)\n",
         (1<<(status>>5 & 0x01)));
   } else
     printf("Detected as:   PCIe Gen2 x8\n");
@@ -135,16 +145,16 @@ int main(int argc, char **argv)
   else if ( !(fanctrl & (1<<29)) )
     printf("WARNING: fan seems to be stopped!");
   else
-    printf("Fan:           %.1f RPM\n", 
+    printf("Fan:           %.1f RPM\n",
         15/((fanctrl & 0x1fffffff)*0.000000004));
 
-  // read QSFP CTRL 
+  // read QSFP CTRL
   printf("\n-=== QSFPs ===-\n");
   qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
   for(i=0;i<3;i++) {
     printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
-    printf("QSFP %d LED0: %d, LED1: %d\n", i, 
-        ((~qsfp_ctrl)>>(8*i) & 0x01), 
+    printf("QSFP %d LED0: %d, LED1: %d\n", i,
+        ((~qsfp_ctrl)>>(8*i) & 0x01),
         ((~qsfp_ctrl)>>(8*i+1) & 0x01));
 
     //TODO: read module temp & model
