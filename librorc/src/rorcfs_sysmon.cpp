@@ -83,10 +83,15 @@ uint32_t
 rorcfs_sysmon::getFanTachValue()
 {
 	assert(m_bar!=NULL);
-//	unsigned int rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
+//	uint32_t rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
 //	if ( rpm_raw==0 )
-//		return 0;
-//	else return (unsigned int)(750000000/rpm_raw);
+//	{
+//        return 0;
+//	}
+//	else
+//	{
+//        return (unsigned int)(750000000/rpm_raw);
+//    }
 	return 0;
 }
 
@@ -122,7 +127,7 @@ rorcfs_sysmon::getVCCAUX()
 
 
 
-//void rorcfs_sysmon::setIcapDin ( unsigned int dword )
+//void rorcfs_sysmon::setIcapDin ( uint32_t dword )
 //{
 //	assert(m_bar!=NULL);
 //	bar->set(RORC_REG_ICAP_DIN, dword);
@@ -130,7 +135,7 @@ rorcfs_sysmon::getVCCAUX()
 
 
 
-//void rorcfs_sysmon::setIcapDinReorder ( unsigned int dword )
+//void rorcfs_sysmon::setIcapDinReorder ( uint32_t )
 //{
 //	assert(m_bar!=NULL);
 //	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
@@ -249,7 +254,7 @@ rorcfs_sysmon::i2c_write_mem
 
 
 
-void rorcfs_sysmon::i2c_set_config( unsigned int config )
+void rorcfs_sysmon::i2c_set_config( uint32_t config )
 {
 	assert(m_bar!=NULL);
 	m_bar->set(RORC_REG_I2C_CONFIG, config);

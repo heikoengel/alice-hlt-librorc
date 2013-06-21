@@ -56,11 +56,11 @@ sim_bar::sim_bar
     /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
 
-    read_from_dev_done = 0;
-    write_to_dev_done  = 0;
+    m_read_from_dev_done = 0;
+    m_write_to_dev_done  = 0;
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if( sockfd < 0 )
+    m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if( m_sockfd < 0 )
     {
         perror("ERROR opening socket");
     }
@@ -79,7 +79,7 @@ sim_bar::sim_bar
            server->h_length
          );
     serv_addr.sin_port = htons(2000);
-    if( 0 > connect(sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) )
+    if( 0 > connect(m_sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) )
     {
         perror("ERROR connecting");
     }
@@ -88,7 +88,7 @@ sim_bar::sim_bar
      *  pipefd[0]: read end
      *  pipefd[1]: write end
      */
-    if( pipe(pipefd) == -1 )
+    if( pipe(m_pipefd) == -1 )
     {
         perror("Failed to create PIPE");
     }
@@ -98,18 +98,18 @@ sim_bar::sim_bar
 
     /** watch incoming packets */
     pthread_create(&sock_mon_p, NULL, sock_monitor_helper, this);
-    msgid = 0;
+    m_msgid = 0;
 }
 
 
 
 sim_bar::~sim_bar()
 {
-    close(pipefd[0]);
-    close(pipefd[1]);
+    close(m_pipefd[0]);
+    close(m_pipefd[1]);
     pthread_cancel(sock_mon_p);
     pthread_cancel(cmpl_handler_p);
-    close(sockfd);
+    close(m_sockfd);
 
     pthread_mutex_destroy(&m_mtx);
     /** Further stuff here **/
@@ -137,14 +137,14 @@ sim_bar::get
         uint32_t buffersize = 4;
         uint32_t buffer[buffersize];
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
-        buffer[1] = msgid;
+        buffer[1] = m_msgid;
         buffer[2] = addr<<2;
         /** BAR, BE, length */
         buffer[3] = (m_number<<24) + (0x0f<<16) + 1;
 
         if
         (
-            write( sockfd, buffer, sizeof(uint32_t)*buffersize )
+            write( m_sockfd, buffer, sizeof(uint32_t)*buffersize )
                 != (ssize_t)(sizeof(uint32_t)*buffersize)
         )
         {
@@ -153,17 +153,17 @@ sim_bar::get
         else
         {
             /** wait for completion */
-            while( !read_from_dev_done )
+            while( !m_read_from_dev_done )
             {
                 usleep(USLEEP_TIME);
             }
 
-            data = read_from_dev_data;
-            read_from_dev_done = 0;
+            data = m_read_from_dev_data;
+            m_read_from_dev_done = 0;
 
             DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
 
-            msgid++;
+            m_msgid++;
         }
     }
     pthread_mutex_unlock(&m_mtx);
@@ -185,14 +185,14 @@ sim_bar::set
         int32_t  buffersize = 5;
         uint32_t buffer[buffersize];
         buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
-        buffer[1] = msgid;
+        buffer[1] = m_msgid;
         buffer[2] = addr<<2;
         buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
         buffer[4] = data;
 
         if
         (
-            write( sockfd, buffer, buffersize*sizeof(uint32_t) )
+            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
                 != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
@@ -201,15 +201,15 @@ sim_bar::set
         else
         {
             /** wait for FLI acknowledgement */
-            while( !write_to_dev_done )
+            while( !m_write_to_dev_done )
             {
                 usleep(USLEEP_TIME);
             }
-            write_to_dev_done=0;
+            m_write_to_dev_done=0;
 
             DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", msgid, addr, data);
 
-            msgid++;
+            m_msgid++;
         }
     }
     pthread_mutex_unlock(&m_mtx);
@@ -231,7 +231,7 @@ sim_bar::memcpy_bar
         int32_t  buffersize = 4 + ndw;
         uint32_t buffer[buffersize];
         buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
-        buffer[1] = msgid;
+        buffer[1] = m_msgid;
         buffer[2] = addr<<2;
         if( ndw > 1 )
         {
@@ -248,7 +248,7 @@ sim_bar::memcpy_bar
 
         if
         (
-            write( sockfd, buffer, buffersize*sizeof(uint32_t) )
+            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
                 != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
@@ -257,14 +257,14 @@ sim_bar::memcpy_bar
         else
         {
             /** wait for FLI acknowledgement */
-            while( !write_to_dev_done )
+            while( !m_write_to_dev_done )
             {
                 usleep(USLEEP_TIME);
             }
-            write_to_dev_done=0;
+            m_write_to_dev_done=0;
 
             DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", msgid, ndw, addr);
-            msgid++;
+            m_msgid++;
         }
 
     }
@@ -285,7 +285,7 @@ sim_bar::get16
         int32_t  buffersize = 4;
         uint32_t buffer[buffersize];
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
-        buffer[1] = msgid;
+        buffer[1] = m_msgid;
         buffer[2] = (addr<<1) & ~(0x03);
         if ( addr & 0x01 )
         {
@@ -300,7 +300,7 @@ sim_bar::get16
 
         if
         (
-            write(sockfd, buffer, buffersize*sizeof(uint32_t))
+            write(m_sockfd, buffer, buffersize*sizeof(uint32_t))
                 != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
@@ -309,13 +309,13 @@ sim_bar::get16
         else
         {
             /** wait for FLI completion */
-            while( !read_from_dev_done )
+            while( !m_read_from_dev_done )
             {
                 usleep(USLEEP_TIME);
             }
-            data = read_from_dev_data & 0xffff;
-            read_from_dev_done = 0;
-            msgid++;
+            data = m_read_from_dev_data & 0xffff;
+            m_read_from_dev_done = 0;
+            m_msgid++;
         }
     }
     pthread_mutex_unlock(&m_mtx);
@@ -338,7 +338,7 @@ sim_bar::set16
         uint32_t buffersize = 5;
         uint32_t buffer[buffersize];
         buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
-        buffer[1] = msgid;
+        buffer[1] = m_msgid;
         buffer[2] = (addr<<1) & ~(0x03);
         if ( addr & 0x01 )
         {
@@ -354,7 +354,7 @@ sim_bar::set16
 
         if
         (
-            write(sockfd, buffer, buffersize*sizeof(uint32_t))
+            write(m_sockfd, buffer, buffersize*sizeof(uint32_t))
                 != (ssize_t)(buffersize*sizeof(uint32_t))
         )
         {
@@ -363,12 +363,12 @@ sim_bar::set16
         else
         {
             /** wait for FLI acknowledgement */
-            while( !write_to_dev_done )
+            while( !m_write_to_dev_done )
             {
                 usleep(USLEEP_TIME);
             }
-            write_to_dev_done=0;
-            msgid++;
+            m_write_to_dev_done=0;
+            m_msgid++;
         }
     }
     pthread_mutex_unlock(&m_mtx);
@@ -388,26 +388,26 @@ sim_bar::gettime
         int32_t  buffersize = 2;
         uint32_t buffer[buffersize];
         buffer[0] = (2<<16) + CMD_GET_TIME;
-        buffer[1] = msgid;
+        buffer[1] = m_msgid;
 
-        if( 0 > write(sockfd, &buffer, buffersize*sizeof(uint32_t)) )
+        if( 0 > write(m_sockfd, &buffer, buffersize*sizeof(uint32_t)) )
         {
             cout << "ERROR writing to socket" << endl;
         }
 
         /** wait for FLI completion */
-        while( !read_from_dev_done )
+        while( !m_read_from_dev_done )
         {
             usleep(USLEEP_TIME);
         }
 
-        uint32_t data = read_from_dev_data;
-        read_from_dev_done = 0;
+        uint32_t data = m_read_from_dev_data;
+        m_read_from_dev_done = 0;
 
         /** mti_Now is in [ps] */
         tv->tv_sec  = (data/1000/1000/1000/1000);
         tv->tv_usec = (data/1000/1000)%1000000;
-        msgid++;
+        m_msgid++;
     }
     pthread_mutex_unlock(&m_mtx);
 
@@ -420,10 +420,10 @@ void*
 sim_bar::sockMonitor()
 {
     uint32_t tmpvar = 0;
-    while( (tmpvar=readDWfromSock(sockfd)) )
+    while( (tmpvar=readDWfromSock(m_sockfd)) )
     {
         uint16_t msgsize = (tmpvar >> 16) & 0xffff;
-        msgid            = readDWfromSock(sockfd);
+        m_msgid          = readDWfromSock(m_sockfd);
 
         switch(tmpvar & 0xffff)
         {
@@ -496,9 +496,9 @@ sim_bar::sockMonitor()
                  << msgsize << endl;
         }
 
-        readDWfromSock(sockfd);
-        read_from_dev_data = readDWfromSock(sockfd);
-        read_from_dev_done = 1;
+        readDWfromSock(m_sockfd);
+        m_read_from_dev_data = readDWfromSock(m_sockfd);
+        m_read_from_dev_done = 1;
     }
 
 
@@ -512,14 +512,14 @@ sim_bar::sockMonitor()
          * get_offset, write into buffer
          * [addr_high][addr_low][payload]
          */
-        uint64_t addr  = (uint64_t)readDWfromSock(sockfd)<<32;
-        addr          += readDWfromSock(sockfd);
+        uint64_t addr  = (uint64_t)readDWfromSock(m_sockfd)<<32;
+        addr          += readDWfromSock(m_sockfd);
         msgsize       -= 4;
 
         uint32_t buffer[msgsize];
         for(uint64_t i=0; i<msgsize; i++)
         {
-            buffer[i] = readDWfromSock(sockfd);
+            buffer[i] = readDWfromSock(m_sockfd);
         }
 
         uint64_t offset    = 0;
@@ -561,10 +561,10 @@ sim_bar::sockMonitor()
          * several CMPL_Ds and waits for CMD_ACK_CMPL
          */
 
-        uint64_t addr   = (uint64_t)readDWfromSock(sockfd)<<32;
-        addr           += readDWfromSock(sockfd);
-        uint32_t reqid  = readDWfromSock(sockfd);
-        uint32_t param  = readDWfromSock(sockfd);
+        uint64_t addr   = (uint64_t)readDWfromSock(m_sockfd)<<32;
+        addr           += readDWfromSock(m_sockfd);
+        uint32_t reqid  = readDWfromSock(m_sockfd);
+        uint32_t param  = readDWfromSock(m_sockfd);
 
         t_read_req rdreq;
         rdreq.length       = ((param>>16) << 2);
@@ -585,7 +585,7 @@ sim_bar::sockMonitor()
             if
             (
                 sizeof(rdreq)
-                    != write(pipefd[1], &rdreq, sizeof(rdreq))
+                    != write(m_pipefd[1], &rdreq, sizeof(rdreq))
             )
             {
                 cout << "Write to pipe failed with" << endl;
@@ -606,7 +606,7 @@ sim_bar::sockMonitor()
             cout << "Invalid message size for CMD_ACK_CMPL: "
                  << msgsize << endl;
         }
-        cmpl_to_dev_done = 1;
+        m_cmpl_to_dev_done = 1;
     }
 
 
@@ -621,7 +621,7 @@ sim_bar::sockMonitor()
             cout << "Invalid message size for CMD_ACK_WRITE: "
                  << msgsize << endl;
         }
-        write_to_dev_done = 1;
+        m_write_to_dev_done = 1;
     }
 
 
@@ -636,8 +636,8 @@ sim_bar::sockMonitor()
             cout << "Invalid message size for CMD_ACK_TIME: "
                  << msgsize << endl;
         }
-        read_from_dev_data = readDWfromSock(sockfd);
-        read_from_dev_done = 1;
+        m_read_from_dev_data = readDWfromSock(m_sockfd);
+        m_read_from_dev_done = 1;
     }
 
 
@@ -716,7 +716,7 @@ void*
 sim_bar::cmplHandler()
 {
     t_read_req rdreq;
-    while( int result = read(pipefd[0], &rdreq, sizeof(t_read_req)) )
+    while( int result = read(m_pipefd[0], &rdreq, sizeof(t_read_req)) )
     {
         if(result<0)
         {
@@ -762,7 +762,7 @@ sim_bar::cmplHandler()
 
             /** prepare CMD_CMPL_TO_DEVICE */
             buffer[0] = ((buffersize>>2)<<16) + CMD_CMPL_TO_DEVICE;
-            buffer[1] = msgid;
+            buffer[1] = m_msgid;
             buffer[2] = rdreq.requester_id;
             buffer[3] =   (0<<29)          /** cmpl_status */
                         + (byte_count<<16) /** remaining byte count */
@@ -774,7 +774,7 @@ sim_bar::cmplHandler()
             pthread_mutex_lock(&m_mtx);
             {
                 /** send to FLI */
-                result = write(sockfd, buffer, buffersize);
+                result = write(m_sockfd, buffer, buffersize);
                 if( result!=buffersize )
                 {
                     cout << "CMD_CMPL_TO_DEVICE write failed with "
@@ -783,11 +783,11 @@ sim_bar::cmplHandler()
                 else
                 {
                     /** wait for FLI acknowledgement */
-                    while( !cmpl_to_dev_done )
+                    while( !m_cmpl_to_dev_done )
                     {
                         usleep(USLEEP_TIME);
                     }
-                    cmpl_to_dev_done = 0;
+                    m_cmpl_to_dev_done = 0;
 
                     cout << "cmpl_handler: CMD_CMPL_TO_DEVICE: tag=" << rdreq.tag
                          << ", length=" << length << "buffer=" << rdreq.buffer_id

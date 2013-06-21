@@ -115,7 +115,7 @@ class rorcfs_sysmon
          * use this function to write already reordered
          * (*.bin-file) contents to the ICAP interface.
         **/
-        //void setIcapDin( unsigned int dword );
+        //void setIcapDin( uint32_t dword );
 
         /**
          * write to ICAP Interface and do the bit reordering
@@ -125,7 +125,7 @@ class rorcfs_sysmon
          * (*.bit-files) to ICAP and do the reordering
          * in the FPGA.
         **/
-        //void setIcapDinReorder( unsigned int dword );
+        //void setIcapDinReorder( uint32_t dword );
 
         /**
          * reset i2c bus

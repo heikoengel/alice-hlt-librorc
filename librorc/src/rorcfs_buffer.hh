@@ -88,8 +88,8 @@ class rorcfs_buffer
             rorcfs_device *dev,
             uint64_t       size,
             uint64_t       id,
-            int            overmap,
-            int            dma_direction
+            int32_t        overmap,
+            int32_t        dma_direction
         );
 
         /**

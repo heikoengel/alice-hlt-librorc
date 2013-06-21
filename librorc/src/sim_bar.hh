@@ -58,139 +58,139 @@
 
 class sim_bar : public librorc_bar
 {
-public:
-    sim_bar
-    (
-        rorcfs_device *dev,
-        int32_t        n
-    );
+    public:
+        sim_bar
+        (
+            rorcfs_device *dev,
+            int32_t        n
+        );
 
-    ~sim_bar();
-    int32_t init();
+        ~sim_bar();
+        int32_t init();
 
-    unsigned int
-    get
-    (
-        uint64_t addr
-    );
+        unsigned int
+        get
+        (
+            uint64_t addr
+        );
 
-    void
-    set
-    (
-        uint64_t addr,
-        uint32_t data
-    );
+        void
+        set
+        (
+            uint64_t addr,
+            uint32_t data
+        );
 
-    void
-    memcpy_bar
-    (
-        uint64_t    addr,
-        const void *source,
-        size_t      num
-    );
+        void
+        memcpy_bar
+        (
+            uint64_t    addr,
+            const void *source,
+            size_t      num
+        );
 
-    unsigned short
-    get16
-    (
-        uint64_t addr
-    );
+        unsigned short
+        get16
+        (
+            uint64_t addr
+        );
 
-    void
-    set16
-    (
-        uint64_t addr,
-        uint16_t data
-    );
+        void
+        set16
+        (
+            uint64_t addr,
+            uint16_t data
+        );
 
-    int32_t
-    gettime
-    (
-        struct timeval *tv,
-        struct timezone *tz
-    );
+        int32_t
+        gettime
+        (
+            struct timeval *tv,
+            struct timezone *tz
+        );
 
-    size_t getSize();
-
-
-private:
-    int sockfd;
-    int pipefd[2];
-    int msgid;
-    uint32_t read_from_dev_data;
-    uint32_t read_from_dev_done;
-    uint32_t write_to_dev_done;
-    uint32_t cmpl_to_dev_done;
-
-    pthread_t sock_mon_p;
-    pthread_t cmpl_handler_p;
+        size_t getSize();
 
 
-    void *sockMonitor();
-    void *cmplHandler();
+    private:
+        int      m_sockfd;
+        int      m_pipefd[2];
+        int      m_msgid;
+        uint32_t m_read_from_dev_data;
+        uint32_t m_read_from_dev_done;
+        uint32_t m_write_to_dev_done;
+        uint32_t m_cmpl_to_dev_done;
 
-    static void*
-    sock_monitor_helper(void * This)
-    {
-        ((sim_bar *)This)->sockMonitor();
-        return 0;
-    }
+        pthread_t sock_mon_p;
+        pthread_t cmpl_handler_p;
 
-    static void*
-    cmpl_handler_helper(void * This)
-    {
-        ((sim_bar *)This)->cmplHandler();
-        return 0;
-    }
 
-    uint32_t
-    readDWfromSock
-    (
-        int sock
-    );
+        void *sockMonitor();
+        void *cmplHandler();
 
-    void
-    doCompleteToHost
-    (
-        uint16_t msgsize
-    );
+        static void*
+        sock_monitor_helper(void * This)
+        {
+            ((sim_bar *)This)->sockMonitor();
+            return 0;
+        }
 
-    void
-    doWriteToHost
-    (
-        uint16_t msgsize
-    );
+        static void*
+        cmpl_handler_helper(void * This)
+        {
+            ((sim_bar *)This)->cmplHandler();
+            return 0;
+        }
 
-    void
-    doReadFromHost
-    (
-        uint16_t msgsize
-    );
+        uint32_t
+        readDWfromSock
+        (
+            int sock
+        );
 
-    void
-    doAcknowledgeCompletion
-    (
-        uint16_t msgsize
-    );
+        void
+        doCompleteToHost
+        (
+            uint16_t msgsize
+        );
 
-    void
-    doAcknowledgeWrite
-    (
-        uint16_t msgsize
-    );
+        void
+        doWriteToHost
+        (
+            uint16_t msgsize
+        );
 
-    void
-    doAcknowledgeTime
-    (
-        uint16_t msgsize
-    );
+        void
+        doReadFromHost
+        (
+            uint16_t msgsize
+        );
 
-    int32_t
-    getOffset
-    (
-        uint64_t  phys_addr,
-        uint64_t *buffer_id,
-        uint64_t *offset
-    );
+        void
+        doAcknowledgeCompletion
+        (
+            uint16_t msgsize
+        );
+
+        void
+        doAcknowledgeWrite
+        (
+            uint16_t msgsize
+        );
+
+        void
+        doAcknowledgeTime
+        (
+            uint16_t msgsize
+        );
+
+        int32_t
+        getOffset
+        (
+            uint64_t  phys_addr,
+            uint64_t *buffer_id,
+            uint64_t *offset
+        );
 };
 
 
