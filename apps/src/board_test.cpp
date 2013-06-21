@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     rorcfs_device      *dev  = NULL;
     librorc_bar        *bar1 = NULL;
     rorcfs_sysmon      *sm   = NULL;
-    //rorcfs_dma_channel *ch   = NULL;
 
     struct    pci_access *pacc = NULL;
     struct    pci_dev *pdev    = NULL;
@@ -102,31 +101,32 @@ int main(int argc, char **argv)
     }
 
     /** read device DNA, Firmware date & rev */
-    pacc = pci_alloc();		  /* Get the pci_access structure */
-    pci_init(pacc);		      /* Initialize the PCI library */
-    pci_scan_bus(pacc);		  /* We want to get the list of devices */
-    pdev
-        = pci_get_dev(pacc, 0, dev->getBus(),
-            dev->getSlot(), dev->getFunc());
+    pacc = pci_alloc();		  /** Get the pci_access structure */
+    pci_init(pacc);		      /** Initialize the PCI library */
+    pci_scan_bus(pacc);		  /** We want to get the list of devices */
+    pdev = pci_get_dev(pacc, 0, dev->getBus(), dev->getSlot(), dev->getFunc());
     pci_read_block(pdev, 0x104, devserptr, 8);
 
-  fwrev = sm->getFwRevision();
-  if ( fwrev==0xffffffff ) {
-    printf("Reading FW-Revision returned -1. This is likely a "
-        "PCIe access problem. Check lspci if the device is up and "
-        "the BARs are enabled\n");
-    goto out;
-  }
+    fwrev = sm->getFwRevision();
+    if( fwrev==0xffffffff )
+    {
+        cout << "Reading FW-Revision returned -1. This is likely a "
+             << "PCIe access problem. Check lspci if the device is "
+             << "up and the BARs are enabled" << endl;
+        goto out;
+    }
 
-  fwdate = sm->getFwBuildDate();
-  if ( fwdate==0xffffffff ) {
-    printf("Reading FW-Date returned -1. This is likely a "
-        "PCIe access problem. Check lspci if the device is up and "
-        "the BARs are enabled\n");
-    goto out;
-  }
+    fwdate = sm->getFwBuildDate();
+    if( fwdate==0xffffffff )
+    {
+        cout << "Reading FW-Date returned -1. This is likely a "
+             << "PCIe access problem. Check lspci if the device is up"
+             << "and the BARs are enabled" << endl;
+        goto out;
+    }
 
-  printf("\n-=== FPGA ===-\n"
+    /** Printout the stuff */
+    printf("\n-=== FPGA ===-\n"
       "Firmware Rev.  %08x\nFirmare Date:  %08x\n"
       "Serial Number: 0x%016lx\n",
       fwrev, fwdate, device_serial);
@@ -193,7 +193,7 @@ out:
   exit(EXIT_SUCCESS);
 }
 
-
+//TODO :  MOVE to sysmon soon! ________________________________________________________
 
 void qsfp_set_page0(struct rorcfs_sysmon *sm)
 {
@@ -216,6 +216,7 @@ void qsfp_set_page0(struct rorcfs_sysmon *sm)
 }
 
 
+
 void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
 {
     cout << "Vendor Name: ";
@@ -235,6 +236,7 @@ void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
     }
     cout << endl;
 }
+
 
 
 void qsfp_print_part_number(struct rorcfs_sysmon *sm)
