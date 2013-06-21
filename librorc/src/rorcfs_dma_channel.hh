@@ -59,14 +59,14 @@ class rorcfs_dma_channel
 
         /**
          * initialize DMA base address within BAR
-         * @param dma_base unsigned int base address
+         * @param dma_base -> base address
          * @param dma_bar according instance of rorcfs_bar
          **/
         void
         init
         (
-            librorc_bar  *dma_bar,
-            unsigned int  dma_base
+            librorc_bar *dma_bar,
+            uint32_t     dma_base
         );
 
         /**
@@ -105,7 +105,7 @@ class rorcfs_dma_channel
         void
         setEnableEB
         (
-            int enable
+            int32_t enable
         );
 
         /**
@@ -115,7 +115,7 @@ class rorcfs_dma_channel
         void
         setEnableRB
         (
-            int enable
+            int32_t enable
         );
 
         /**
@@ -476,7 +476,7 @@ class rorcfs_dma_channel
         unsigned int
         getGTX
         (
-            unsigned int addr
+            uint32_t addr
         );
 
     protected:
@@ -500,7 +500,7 @@ class rorcfs_dma_channel
         );
 
         /**
-         * setMaxPayload( int size ) and setMaxPayload()
+         * setMaxPayload() and setMaxPayload()
          * are wrappers around _setMaxPayload and should
          * be called instead
          **/
