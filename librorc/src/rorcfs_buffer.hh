@@ -115,7 +115,7 @@ class rorcfs_buffer
 
         /**
          * get Buffer-ID
-         * @return unsigned long Buffer-ID
+         * @return Buffer-ID
          **/
         uint64_t
         getID()
@@ -165,7 +165,7 @@ class rorcfs_buffer
 
         /**
          * Get number of scatter-gather entries for the Buffer
-         * @return (unsigned long) number of entries
+         * @return number of sg-entries
          **/
         uint64_t
         getnSGEntries()
