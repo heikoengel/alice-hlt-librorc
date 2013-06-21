@@ -28,22 +28,22 @@ struct
 __attribute__((__packed__))
 rorcfs_event_descriptor
 {
-    unsigned long offset;
-    unsigned int reported_event_size;
-    unsigned int calc_event_size;
-    unsigned long dummy; //do not use!
-    unsigned long dummy2; //do not use!
+    uint64_t offset;
+    uint32_t reported_event_size;
+    uint32_t calc_event_size;
+    uint64_t dummy;   /** do not use! */
+    uint64_t dummy2;  /** do not use! */
 };
 #endif
 
 //#if DMA_MODE==128
 //struct rorcfs_event_descriptor
 //{
-//    unsigned long offset;
-//    unsigned long length;
-//    unsigned int reported_event_size;
-//    unsigned int calc_event_size;
-//    unsigned long dummy; //do not use!
+//    uint64_t offset;
+//    uint64_t length;
+//    uint32_t reported_event_size;
+//    uint32_t calc_event_size;
+//    uint64_t dummy; /** do not use! */
 //};
 //#endif
 
@@ -61,7 +61,7 @@ typedef struct DMABuffer_struct DMABuffer;
  **/
 class rorcfs_buffer
 {
-friend class rorcfs_dma_channel;
+    friend class rorcfs_dma_channel;
 
 public:
 rorcfs_buffer();
