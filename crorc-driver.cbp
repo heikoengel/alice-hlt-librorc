@@ -27,7 +27,6 @@
 		<Unit filename="apps/src/gtxdma_continuous.cpp" />
 		<Unit filename="apps/src/helper_functions.h" />
 		<Unit filename="apps/src/pgdma_continuous.cpp" />
-		<Unit filename="apps/src/qsfp.h" />
 		<Unit filename="apps/src/rorctl.cpp" />
 		<Unit filename="librorc/include/librorc.h" />
 		<Unit filename="librorc/src/librorc_bar_proto.hh" />
