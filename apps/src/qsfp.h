@@ -24,18 +24,6 @@ using namespace std;
 
 #define slvaddr 0x50
 
-int hextobin(unsigned char data)
-{
-  int data_bin = 0;
-  int i;
-  for(i=0;i<8;i++) {
-    if(data & (1<<i))
-      data_bin|=(1<<(4*i));
-  }
-  return data_bin;
-}
-
-
 void qsfp_set_page0(struct rorcfs_sysmon *sm)
 {
   uint8_t data_r;
@@ -51,26 +39,30 @@ void qsfp_set_page0(struct rorcfs_sysmon *sm)
 
 void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
 {
-  uint8_t data_r, i;
-  // get vendor name
-  printf("\tVendor Name:\t");
-  for (i=148;i<=163;i++) {
-    if ( sm->i2c_read_mem(slvaddr, i, &data_r)<0 )
-      printf("failed to read from i2c: %02x (%08x)\n",
-          data_r, hextobin(data_r));
-    else
-      printf("%c", data_r);
-  }
-  printf("\n");
+    cout << "Vendor Name: ";
+
+    uint8_t data_r;
+    //TODO this is redundant
+    for(uint8_t i=148; i<=163; i++)
+    {
+        try
+        { data_r = sm->i2c_read_mem(slvaddr, i); }
+        catch(...)
+        {
+            cout << "Failed to read from i2c!" << endl;
+            return;
+        }
+        cout << (char)data_r;
+    }
+    cout << endl;
 }
 
 
 void qsfp_print_part_number(struct rorcfs_sysmon *sm)
 {
-    /**  get PartNumber */
-    printf("\tPart Number:\t");
+    cout << "Part Number: ";
 
-    uint8_t data_r;
+    uint8_t data_r = 0;
     for(uint8_t i=168; i<=183; i++)
     {
         try
@@ -80,11 +72,12 @@ void qsfp_print_part_number(struct rorcfs_sysmon *sm)
             cout << "Failed to read from i2c!" << endl;
             return;
         }
-
-        printf("%c", data_r);
+        cout << (char)data_r;
     }
-    printf("\n");
+    cout << endl;
 }
+
+
 
 void qsfp_print_temp(struct rorcfs_sysmon *sm)
 {
