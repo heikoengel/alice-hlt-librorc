@@ -51,11 +51,11 @@ void qsfp_print_vendor_name(struct rorcfs_sysmon *sm);
 void qsfp_print_part_number(struct rorcfs_sysmon *sm);
 void qsfp_print_temp(struct rorcfs_sysmon *sm);
 
-
+uint32_t PcieNumberOfLanes(librorc_bar *bar1);
+uint32_t PcieGeneration(librorc_bar *bar1);
 
 int main(int argc, char **argv)
 {
-    rorcfs_device *dev           = NULL;
     librorc_bar   *bar1          = NULL;
     rorcfs_sysmon *sm            = NULL;
     uint64_t       device_serial = 0;
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     int i;
 
     /** create new device object */
-    dev = new rorcfs_device();
+    rorcfs_device *dev = new rorcfs_device();
     if ( dev->init(0) == -1 )
     {
         printf("failed to initialize device 0 - "
@@ -132,17 +132,27 @@ int main(int argc, char **argv)
     printf("FPGA VCCINT:   %.2f V\n", sm->getVCCINT());
     printf("FPGA VCCAUX:   %.2f V\n", sm->getVCCAUX());
 
-  // read reported PCIe link width/speed
-  status = bar1->get(RORC_REG_PCIE_CTRL);
-  if ((status>>3 & 0x3)!=3 || !(status>>5 & 0x01)) {
-    printf(" WARNING: FPGA reports unexpexted PCIe link parameters:\n");
-    printf("reported PCIe Link width: %d lanes (expected 8)\n",
-        (1<<(status>>3 & 0x3)));
-    printf("reported PCIe Link Gen: %d (expected 2)\n",
-        (1<<(status>>5 & 0x01)));
-  } else
-    printf("Detected as:   PCIe Gen2 x8\n");
+    /** print and check reported PCIe link width/speed */
+    cout << "Detected as:   PCIe Gen" << PcieGeneration(bar1)
+         << " x" << PcieNumberOfLanes(bar1) << endl;
+    if( (PcieGeneration(bar1)!=2) || (PcieNumberOfLanes(bar1)!=8) )
+    {
+        cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl;
+    }
 
+    status = bar1->get(RORC_REG_PCIE_CTRL);
+    if ((status>>3 & 0x3)!=3 || !(status>>5 & 0x01))
+    {
+        printf(" WARNING: FPGA reports unexpexted PCIe link parameters:\n");
+        printf("reported PCIe Link width: %d lanes (expected 8)\n", (1<<(status>>3 & 0x3)));
+        printf("reported PCIe Link Gen: %d (expected 2)\n", (1<<(status>>5 & 0x01)));
+    }
+    else
+    {
+        printf("Detected as:   PCIe Gen2 x8\n");
+    }
+
+    //DONE
   // check if system clock is running
   ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
   printf("SysClk locked: %d\n", (ddrctrl>>3)&1);
@@ -190,6 +200,8 @@ out:
 }
 
 //TODO :  MOVE to sysmon soon! ________________________________________________________
+
+//QSFP
 
 void qsfp_set_page0(struct rorcfs_sysmon *sm)
 {
@@ -279,3 +291,28 @@ void qsfp_print_temp(struct rorcfs_sysmon *sm)
     temp += ((uint32_t)data_r<<8);
     printf("\tTemperature:\t%.2f °C\n", ((float)temp/256));
 }
+
+//PCI
+
+uint32_t
+PcieNumberOfLanes
+(
+    librorc_bar *bar1
+)
+{
+    uint32_t status = bar1->get(RORC_REG_PCIE_CTRL);
+    return(1<<(status>>3 & 0x3));
+}
+
+
+
+uint32_t
+PcieGeneration
+(
+    librorc_bar *bar1
+)
+{
+    uint32_t status = bar1->get(RORC_REG_PCIE_CTRL);
+    return(1<<(status>>3 & 0x3));
+}
+
