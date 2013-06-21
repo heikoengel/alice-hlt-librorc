@@ -24,94 +24,9 @@ using namespace std;
 
 #define SLVADDR 0x50
 
-//TODO : thorw errors!
-
-void qsfp_set_page0(struct rorcfs_sysmon *sm)
-{
-    uint8_t data_r;
-
-    try
-    {
-        data_r = sm->i2c_read_mem(SLVADDR, 127);
-    }
-    catch(...)
-    {
-        cout << "Failed to read from i2c!" << endl;
-        return;
-    }
-
-    if( data_r!=0 )
-    {
-        sm->i2c_write_mem(SLVADDR, 127, 0);
-    }
-}
+//TODO : throw errors!
 
 
-void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
-{
-    cout << "Vendor Name: ";
-
-    uint8_t data_r;
-    //TODO this is redundant
-    for(uint8_t i=148; i<=163; i++)
-    {
-        try
-        { data_r = sm->i2c_read_mem(SLVADDR, i); }
-        catch(...)
-        {
-            cout << "Failed to read from i2c!" << endl;
-            return;
-        }
-        cout << (char)data_r;
-    }
-    cout << endl;
-}
-
-
-void qsfp_print_part_number(struct rorcfs_sysmon *sm)
-{
-    cout << "Part Number: ";
-
-    uint8_t data_r = 0;
-    for(uint8_t i=168; i<=183; i++)
-    {
-        try
-        { data_r = sm->i2c_read_mem(SLVADDR, i); }
-        catch(...)
-        {
-            cout << "Failed to read from i2c!" << endl;
-            return;
-        }
-        cout << (char)data_r;
-    }
-    cout << endl;
-}
-
-
-
-void qsfp_print_temp(struct rorcfs_sysmon *sm)
-{
-    uint8_t data_r;
-    try
-    { data_r = sm->i2c_read_mem(SLVADDR, 23); }
-    catch(...)
-    {
-        cout << "Failed to read from i2c!" << endl;
-        return;
-    }
-
-    uint32_t temp = data_r;
-    try
-    { data_r = sm->i2c_read_mem(SLVADDR, 22); }
-    catch(...)
-    {
-        cout << "Failed to read from i2c!" << endl;
-        return;
-    }
-
-    temp += ((uint32_t)data_r<<8);
-    printf("\tTemperature:\t%.2f °C\n", ((float)temp/256));
-}
 
 
 #endif
