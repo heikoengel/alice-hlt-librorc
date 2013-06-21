@@ -55,14 +55,10 @@ void qsfp_print_temp(struct rorcfs_sysmon *sm);
 
 int main(int argc, char **argv)
 {
-    rorcfs_device      *dev  = NULL;
-    librorc_bar        *bar1 = NULL;
-    rorcfs_sysmon      *sm   = NULL;
-
-    struct    pci_access *pacc = NULL;
-    struct    pci_dev *pdev    = NULL;
-    uint64_t  device_serial    = 0;
-    uint8_t  *devserptr        = (uint8_t *)&device_serial;
+    rorcfs_device *dev           = NULL;
+    librorc_bar   *bar1          = NULL;
+    rorcfs_sysmon *sm            = NULL;
+    uint64_t       device_serial = 0;
 
     uint32_t ddrctrl, fwrev, fwdate;
     uint32_t status;
@@ -100,13 +96,6 @@ int main(int argc, char **argv)
         goto out;
     }
 
-    /** read device DNA, Firmware date & rev */
-    pacc = pci_alloc();		  /** Get the pci_access structure */
-    pci_init(pacc);		      /** Initialize the PCI library */
-    pci_scan_bus(pacc);		  /** We want to get the list of devices */
-    pdev = pci_get_dev(pacc, 0, dev->getBus(), dev->getSlot(), dev->getFunc());
-    pci_read_block(pdev, 0x104, devserptr, 8);
-
     fwrev = sm->getFwRevision();
     if( fwrev==0xffffffff )
     {
@@ -126,7 +115,12 @@ int main(int argc, char **argv)
     }
 
     /** Printout the stuff */
-    printf("\n-=== FPGA ===-\n"
+    cout << "CRORC FPGA" << endl
+         << "Firmware Rev. : " << hex << fwrev  << dec << endl
+         << "Firmware Date : " << hex << fwdate << dec << endl
+         << "Serial Number : " << hex << device_serial << dec << endl;
+
+    printf("CRORC FPGA:\n"
       "Firmware Rev.  %08x\nFirmare Date:  %08x\n"
       "Serial Number: 0x%016lx\n",
       fwrev, fwdate, device_serial);
