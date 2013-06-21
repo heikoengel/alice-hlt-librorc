@@ -465,10 +465,9 @@ sim_bar::sockMonitor()
         int sock
     )
     {
-        int result = 0;
         uint32_t buffer;
 
-        result = read(sock, &buffer, sizeof(uint32_t)); // read 1 DW
+        int result = read(sock, &buffer, sizeof(uint32_t)); /** read 1 DW */
         if (result == 0)
         {
             /** terminate if 0 characters received */
@@ -716,9 +715,8 @@ sim_bar::sockMonitor()
 void*
 sim_bar::cmplHandler()
 {
-    int result;
     t_read_req rdreq;
-    while( (result=read(pipefd[0], &rdreq, sizeof(t_read_req))) )
+    while( int result = read(pipefd[0], &rdreq, sizeof(t_read_req)) )
     {
         if(result<0)
         {
@@ -757,7 +755,7 @@ sim_bar::cmplHandler()
                 length = rdreq.length;
             }
 
-            int buffersize
+            int32_t buffersize
                 = 4*sizeof(uint32_t) + length;
 
             uint32_t buffer[((buffersize/sizeof(uint32_t))+1)];

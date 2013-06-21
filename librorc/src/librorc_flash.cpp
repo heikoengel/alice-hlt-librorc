@@ -176,15 +176,17 @@ librorc_flash::getReadConfigurationRegister()
 uint64_t
 librorc_flash::getUniqueDeviceNumber()
 {
-    uint64_t udn = 0;
     if(read_state != FLASH_READ_IDENTIFIER)
     {
         setReadState(FLASH_READ_IDENTIFIER, 0x00);
     }
-    for ( int i=0; i<4; i++ )
+
+    uint64_t udn = 0;
+    for ( int32_t i=0; i<4; i++ )
     {
         udn += ( bar->get16(base_addr + 0x81 + i) )<<(16*i);
     }
+
     return udn;
 }
 
@@ -253,12 +255,8 @@ librorc_flash::programBuffer
     uint16_t *data
 )
 {
-    int      i;
-    uint16_t status;
-    uint32_t timeout = CFG_FLASH_TIMEOUT;
-    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
-
     /** check if block is locked */
+    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
     if( getBlockLockConfiguration(blkaddr) )
     {
         unlockBlock(blkaddr);
@@ -269,7 +267,7 @@ librorc_flash::programBuffer
     read_state = FLASH_READ_STATUS;
 
     /** read status register */
-    status = bar->get16(base_addr + blkaddr);
+    uint16_t status = bar->get16(base_addr + blkaddr);
     if( (status & FLASH_PEC_BUSY) == 0)                                           //
     {
         return -1;
@@ -277,10 +275,8 @@ librorc_flash::programBuffer
 
     /** write word count */
     bar->set16(base_addr + blkaddr, length - 1);
-
     bar->set16(base_addr + addr, data[0]);
-
-    for(i=1; i < length; i++)
+    for(uint16_t i=1; i < length; i++)
     {
         bar->set16(base_addr + addr + i, data[i]);
     }
@@ -289,6 +285,7 @@ librorc_flash::programBuffer
     status = bar->get16(base_addr + blkaddr);
 
     /** Wait while device is busy */
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
@@ -610,7 +607,7 @@ librorc_flash::erase
             unlockBlock(arch.blkaddr);
         }
 
-        int ret = eraseBlock(arch.blkaddr);
+        uint8_t ret = eraseBlock(arch.blkaddr);
         if( ret < 0 )
         {
             cout << "Failed to erase block at addr" << hex << current_addr << endl;
@@ -706,7 +703,7 @@ librorc_flash::flash
             fflush(stdout);
         }
 
-        int ret = programBuffer(addr, bytes_read/2, buffer);
+        int8_t ret = programBuffer(addr, bytes_read/2, buffer);
         if (ret < 0)
         {
             cout << "programBuffer failed, STS: " << hex
