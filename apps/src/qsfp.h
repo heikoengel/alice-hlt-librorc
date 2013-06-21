@@ -22,7 +22,7 @@
 
 using namespace std;
 
-#define slvaddr 0x50
+#define SLVADDR 0x50
 
 //TODO : thorw errors!
 
@@ -32,7 +32,7 @@ void qsfp_set_page0(struct rorcfs_sysmon *sm)
 
     try
     {
-        data_r = sm->i2c_read_mem(slvaddr, 127);
+        data_r = sm->i2c_read_mem(SLVADDR, 127);
     }
     catch(...)
     {
@@ -42,7 +42,7 @@ void qsfp_set_page0(struct rorcfs_sysmon *sm)
 
     if( data_r!=0 )
     {
-        sm->i2c_write_mem(slvaddr, 127, 0);
+        sm->i2c_write_mem(SLVADDR, 127, 0);
     }
 }
 
@@ -56,7 +56,7 @@ void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
     for(uint8_t i=148; i<=163; i++)
     {
         try
-        { data_r = sm->i2c_read_mem(slvaddr, i); }
+        { data_r = sm->i2c_read_mem(SLVADDR, i); }
         catch(...)
         {
             cout << "Failed to read from i2c!" << endl;
@@ -76,7 +76,7 @@ void qsfp_print_part_number(struct rorcfs_sysmon *sm)
     for(uint8_t i=168; i<=183; i++)
     {
         try
-        { data_r = sm->i2c_read_mem(slvaddr, i); }
+        { data_r = sm->i2c_read_mem(SLVADDR, i); }
         catch(...)
         {
             cout << "Failed to read from i2c!" << endl;
@@ -93,7 +93,7 @@ void qsfp_print_temp(struct rorcfs_sysmon *sm)
 {
     uint8_t data_r;
     try
-    { data_r = sm->i2c_read_mem(slvaddr, 23); }
+    { data_r = sm->i2c_read_mem(SLVADDR, 23); }
     catch(...)
     {
         cout << "Failed to read from i2c!" << endl;
@@ -102,7 +102,7 @@ void qsfp_print_temp(struct rorcfs_sysmon *sm)
 
     uint32_t temp = data_r;
     try
-    { data_r = sm->i2c_read_mem(slvaddr, 22); }
+    { data_r = sm->i2c_read_mem(SLVADDR, 22); }
     catch(...)
     {
         cout << "Failed to read from i2c!" << endl;
