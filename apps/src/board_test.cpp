@@ -46,13 +46,15 @@ using namespace std;
 
 
 
-void qsfp_set_page0(struct rorcfs_sysmon *sm);
-void qsfp_print_vendor_name(struct rorcfs_sysmon *sm);
-void qsfp_print_part_number(struct rorcfs_sysmon *sm);
-void qsfp_print_temp(struct rorcfs_sysmon *sm);
+void     qsfp_set_page0(struct rorcfs_sysmon *sm);
+void     qsfp_print_vendor_name(struct rorcfs_sysmon *sm);
+void     qsfp_print_part_number(struct rorcfs_sysmon *sm);
+void     qsfp_print_temp(struct rorcfs_sysmon *sm);
 
-uint32_t PcieNumberOfLanes(librorc_bar *bar1);
-uint32_t PcieGeneration(librorc_bar *bar1);
+uint32_t pcieNumberOfLanes(librorc_bar *bar1);
+uint32_t pcieGeneration(librorc_bar *bar1);
+
+bool     systemClockIsRunning(librorc_bar *bar1);
 
 int main(int argc, char **argv)
 {
@@ -133,12 +135,10 @@ int main(int argc, char **argv)
     printf("FPGA VCCAUX:   %.2f V\n", sm->getVCCAUX());
 
     /** print and check reported PCIe link width/speed */
-    cout << "Detected as:   PCIe Gen" << PcieGeneration(bar1)
-         << " x" << PcieNumberOfLanes(bar1) << endl;
-    if( (PcieGeneration(bar1)!=2) || (PcieNumberOfLanes(bar1)!=8) )
-    {
-        cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl;
-    }
+    cout << "Detected as:   PCIe Gen" << pcieGeneration(bar1)
+         << " x" << pcieNumberOfLanes(bar1) << endl;
+    if( (pcieGeneration(bar1)!=2) || (pcieNumberOfLanes(bar1)!=8) )
+    { cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl; }
 
     status = bar1->get(RORC_REG_PCIE_CTRL);
     if ((status>>3 & 0x3)!=3 || !(status>>5 & 0x01))
@@ -152,11 +152,13 @@ int main(int argc, char **argv)
         printf("Detected as:   PCIe Gen2 x8\n");
     }
 
-    //DONE
-  // check if system clock is running
-  ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
-  printf("SysClk locked: %d\n", (ddrctrl>>3)&1);
+    /** check if system clock is running */
+    cout << "SysClk locked: " << systemClockIsRunning(bar1) << endl;
 
+    ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
+    printf("SysClk locked: %d\n", (ddrctrl>>3)&1);
+
+    //DONE
   // check if fan is running
   fanctrl = bar1->get(RORC_REG_FAN_CTRL);
   if ( !(fanctrl & (1<<31)) )
@@ -295,7 +297,7 @@ void qsfp_print_temp(struct rorcfs_sysmon *sm)
 //PCI
 
 uint32_t
-PcieNumberOfLanes
+pcieNumberOfLanes
 (
     librorc_bar *bar1
 )
@@ -307,7 +309,7 @@ PcieNumberOfLanes
 
 
 uint32_t
-PcieGeneration
+pcieGeneration
 (
     librorc_bar *bar1
 )
@@ -316,3 +318,18 @@ PcieGeneration
     return(1<<(status>>5 & 0x01));
 }
 
+//system
+
+
+bool
+systemClockIsRunning
+(
+    librorc_bar *bar1
+)
+{
+    uint32_t ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
+    if( ((ddrctrl>>3)&1) == 1 )
+    { return true; }
+    else
+    { return false; }
+}
