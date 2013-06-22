@@ -124,9 +124,9 @@ int main(int argc, char **argv)
       fwrev, fwdate, device_serial);
 
     /** Print Voltages, Temperature */
-    cout << "Temperature   : " << sm->getFPGATemperature() << "°C" << endl
-         << "FPGA VCCINT   : " << sm->getVCCINT() << "V" << endl
-         << "FPGA VCCAUX   : " << sm->getVCCAUX() << "V" << endl;
+    cout << "Temperature   : " << sm->getFPGATemperature() << " °C" << endl
+         << "FPGA VCCINT   : " << sm->getVCCINT() << " V" << endl
+         << "FPGA VCCAUX   : " << sm->getVCCAUX() << " V" << endl;
 
     printf("Temperature:   %.1f °C\n", sm->getFPGATemperature());
     printf("FPGA VCCINT:   %.2f V\n", sm->getVCCINT());
@@ -313,6 +313,6 @@ PcieGeneration
 )
 {
     uint32_t status = bar1->get(RORC_REG_PCIE_CTRL);
-    return(1<<(status>>3 & 0x3));
+    return(1<<(status>>5 & 0x01));
 }
 
