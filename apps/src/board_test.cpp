@@ -29,17 +29,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <getopt.h>
-extern "C"{
-#include <pci/pci.h>
-}
 
 #include "librorc.h"
 
 using namespace std;
 
-
 #ifndef RORC_REG_DDR3_CTRL
-#define RORC_REG_DDR3_CTRL 0
+    #define RORC_REG_DDR3_CTRL 0
 #endif
 
 #define SLVADDR 0x50
@@ -55,6 +51,10 @@ uint32_t pcieNumberOfLanes(librorc_bar *bar1);
 uint32_t pcieGeneration(librorc_bar *bar1);
 
 bool     systemClockIsRunning(librorc_bar *bar1);
+bool     systemFanIsEnabled(librorc_bar *bar1);
+bool     systemFanIsRunning(librorc_bar *bar1);
+double   systemFanSpeed(librorc_bar *bar1);
+
 
 int main(int argc, char **argv)
 {
@@ -152,23 +152,35 @@ int main(int argc, char **argv)
         printf("Detected as:   PCIe Gen2 x8\n");
     }
 
-    /** check if system clock is running */
+    /** Check if system clock is running */
     cout << "SysClk locked: " << systemClockIsRunning(bar1) << endl;
 
     ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
     printf("SysClk locked: %d\n", (ddrctrl>>3)&1);
 
-    //DONE
-  // check if fan is running
-  fanctrl = bar1->get(RORC_REG_FAN_CTRL);
-  if ( !(fanctrl & (1<<31)) )
-    printf("WARNING: fan seems to be disabled!");
-  else if ( !(fanctrl & (1<<29)) )
-    printf("WARNING: fan seems to be stopped!");
-  else
-    printf("Fan:           %.1f RPM\n",
-        15/((fanctrl & 0x1fffffff)*0.000000004));
+    /** Check if fan is running */
+    cout << "Fan speed : " << systemFanSpeed(bar1) << " rpm" << endl;
+    if( systemFanIsEnabled(bar1) == false)
+    {
+        cout << "WARNING: fan seems to be disabled!" << endl;
+    }
 
+    if( systemFanIsRunning(bar1) == false)
+    {
+        cout << "WARNING: fan seems to be stopped!" << endl;
+    }
+
+    fanctrl = bar1->get(RORC_REG_FAN_CTRL);
+    if ( !(fanctrl & (1<<31)) )
+    printf("WARNING: fan seems to be disabled!");
+    else if ( !(fanctrl & (1<<29)) )
+    printf("WARNING: fan seems to be stopped!");
+    else
+    printf("Fan:           %.1f RPM\n",
+    15/((fanctrl & 0x1fffffff)*0.000000004));
+
+
+//DONE
   // read QSFP CTRL
   printf("\n-=== QSFPs ===-\n");
   qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
@@ -318,9 +330,9 @@ pcieGeneration
     return(1<<(status>>5 & 0x01));
 }
 
+
+
 //system
-
-
 bool
 systemClockIsRunning
 (
@@ -332,4 +344,46 @@ systemClockIsRunning
     { return true; }
     else
     { return false; }
+}
+
+
+
+bool
+systemFanIsEnabled
+(
+    librorc_bar *bar1
+)
+{
+    uint32_t fanctrl = bar1->get(RORC_REG_FAN_CTRL);
+    if ( !(fanctrl & (1<<31)) )
+    { return false; }
+    else
+    { return true; }
+}
+
+
+
+bool
+systemFanIsRunning
+(
+    librorc_bar *bar1
+)
+{
+    uint32_t fanctrl = bar1->get(RORC_REG_FAN_CTRL);
+    if( !(fanctrl & (1<<29)) )
+    { return false; }
+    else
+    { return true; }
+}
+
+
+
+double
+systemFanSpeed
+(
+    librorc_bar *bar1
+)
+{
+    uint32_t fanctrl = bar1->get(RORC_REG_FAN_CTRL);
+    return 15/((fanctrl & 0x1fffffff)*0.000000004);
 }
