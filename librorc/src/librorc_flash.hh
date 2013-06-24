@@ -79,9 +79,6 @@
 /** Timeout Value for waiting for SR7=1: 10 seconds **/
 #define CFG_FLASH_TIMEOUT 0x0010000
 
-/** bit mask for flash memory blocks **/
-#define CFG_FLASH_BLKMASK 0xffff0000
-
 
 /** flash busy flag mask **/
 #define FLASH_PEC_BUSY 1 << 7
@@ -364,7 +361,6 @@ public:
 
 private:
     librorc_bar *bar;
-    uint16_t     read_state;
     uint32_t     base_addr;
 };
 

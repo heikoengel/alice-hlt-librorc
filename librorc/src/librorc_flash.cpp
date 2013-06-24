@@ -72,7 +72,6 @@ librorc_flash::librorc_flash
 librorc_flash::~librorc_flash()
 {
     bar = NULL;
-    read_state = 0;
 }
 
 
@@ -231,40 +230,54 @@ librorc_flash::programBuffer
     uint16_t *data
 )
 {
-    /** check if block is locked */
-    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
-    if( getBlockLockConfiguration(blkaddr) )
+    /** get current block address */
+    struct flash_architecture arch;
+    if ( getFlashArchitecture(addr, &arch) )
     {
-        unlockBlock(blkaddr);
+        cout << "Invalid flash address: "<< hex << addr << endl;
+        return -1;
+    }
+
+    /** check if block is locked */
+    if( getBlockLockConfiguration(arch.blkaddr) )
+    {
+        /** try to unlock block */
+        int32_t ret = unlockBlock(arch.blkaddr) ;
+        if ( ret < 0 )
+        {
+            cout << "Failed to unlock block at addr" << hex 
+                 << arch.blkaddr << endl;
+            return ret;
+        }
     }
 
     /** write to buffer command */
-    sendCommand(blkaddr, FLASH_CMD_BUFFER_PROG);
+    sendCommand(arch.blkaddr, FLASH_CMD_BUFFER_PROG);
 
     /** read status register */
-    uint16_t status = getStatusRegister(blkaddr);
+    uint16_t status = getStatusRegister(arch.blkaddr);
     if( (status & FLASH_PEC_BUSY) == 0)
     {
         return -1;
     }
 
     /** write word count */
-    bar->set16(base_addr + blkaddr, length - 1);
+    bar->set16(base_addr + arch.blkaddr, length - 1);
 
     for(int32_t i=0; i < length; i++)
     {
         bar->set16(base_addr + addr + i, data[i]);
     }
 
-    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
-    status = getStatusRegister(blkaddr);
+    sendCommand(arch.blkaddr, FLASH_CMD_CONFIRM);
+    status = getStatusRegister(arch.blkaddr);
 
     /** Wait while device is busy */
     uint32_t timeout = CFG_FLASH_TIMEOUT;
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
-        status = getStatusRegister(blkaddr);
+        status = getStatusRegister(arch.blkaddr);
         timeout--;
         if(timeout == 0)
         {
