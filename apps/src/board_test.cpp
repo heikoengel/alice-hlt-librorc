@@ -46,20 +46,28 @@ using namespace std;
 
 
 
-void qsfp_set_page0_and_config
+void
+qsfp_set_page0_and_config
 (
     struct rorcfs_sysmon *sm,
     uint32_t index
 );
 
 
-void qsfp_print_vendor_name
+void
+qsfpPrintVendorName
 (
     rorcfs_sysmon *sm,
     uint32_t       index
 );
 
-void        qsfp_print_part_number(struct rorcfs_sysmon *sm);
+void
+qsfpPrintPartNumber
+(
+    rorcfs_sysmon *sm,
+    uint32_t index
+);
+
 void        qsfp_print_temp(struct rorcfs_sysmon *sm);
 
 uint32_t    pcieNumberOfLanes(librorc_bar *bar1);
@@ -73,8 +81,6 @@ double      systemFanSpeed(librorc_bar *bar1);
 
 int main(int argc, char **argv)
 {
-    uint32_t qsfp_ctrl;
-
     /** create new device object */
     rorcfs_device *dev = new rorcfs_device();
     if ( dev->init(0) == -1 )
@@ -156,13 +162,11 @@ int main(int argc, char **argv)
     }
 
 //DONE
-  // read QSFP CTRL
+    /** Show QSFP status */
     cout << "QSFPs" << endl;
-
-    qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-
-    for(uint32_t i=0;i<3;i++)
+    for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
+        uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
         printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
         printf("QSFP %d LED0: %d, LED1: %d\n", i,
         ((~qsfp_ctrl)>>(8*i) & 0x01),
@@ -174,16 +178,11 @@ int main(int argc, char **argv)
             printf("Checking QSFP%d i2c access:\n", i);
 
             qsfp_set_page0_and_config(sm, i);
-            qsfp_print_vendor_name(sm, i);
-            qsfp_print_part_number(sm);
+            qsfpPrintVendorName(sm, i);
+            qsfpPrintPartNumber(sm, i);
             qsfp_print_temp(sm);
         }
         printf("\n");
-    }
-
-    for(uint8_t i; i<LIBRORC_MAX_QSFP; i++)
-    {
-
     }
 
     exit(EXIT_SUCCESS);
@@ -193,7 +192,8 @@ int main(int argc, char **argv)
 
 //QSFP
 
-void qsfp_set_page0_and_config
+void
+qsfp_set_page0_and_config
 (
     struct rorcfs_sysmon *sm,
     uint32_t index
@@ -221,7 +221,8 @@ void qsfp_set_page0_and_config
 
 
 
-void qsfp_print_vendor_name
+void
+qsfpPrintVendorName
 (
     rorcfs_sysmon *sm,
     uint32_t       index
@@ -247,7 +248,12 @@ void qsfp_print_vendor_name
 
 
 
-void qsfp_print_part_number(struct rorcfs_sysmon *sm)
+void
+qsfpPrintPartNumber
+(
+    rorcfs_sysmon *sm,
+    uint32_t       index
+)
 {
     cout << "Part Number: ";
 
