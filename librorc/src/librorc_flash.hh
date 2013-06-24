@@ -28,16 +28,53 @@
 
 //TODO : refine this into an enum ...
 /** Read array mode **/
-#define FLASH_READ_ARRAY 0x00ff
+#define FLASH_CMD_READ_ARRAY 0xffff
+
+/** Some Intel CFI chips support 0xF0 command instead of 0xFF as
+ * reset/read array command **/
+#define FLASH_CMD_RESET 0xf0f0
 
 /** Read identifier mode **/
-#define FLASH_READ_IDENTIFIER 0x0090
+#define FLASH_CMD_READ_IDENTIFIER 0x9090
 
 /** Read status mode **/
-#define FLASH_READ_STATUS 0x0070
+#define FLASH_CMD_READ_STATUS 0x7070
 
 /** Read CFI mode **/
-#define FLASH_READ_CFI 0x0098
+#define FLASH_CMD_READ_CFI 0x9898
+/** Block erase setup **/
+#define FLASH_CMD_BLOCK_ERASE_SETUP 0x2020
+
+/** confirm **/
+#define FLASH_CMD_CONFIRM 0xd0d0
+
+/** program/erase/suspend **/
+#define FLASH_CMD_PROG_ERASE_SUSPEND 0xb0b0
+
+/** block lock setup **/
+#define FLASH_CMD_BLOCK_LOCK_SETUP 0x6060
+
+/** block lock confirm **/
+#define FLASH_CMD_BLOCK_LOCK_CONFIRM 0x0101
+
+/** buffer progam **/
+#define FLASH_CMD_BUFFER_PROG 0xe8e8
+
+/** program setup **/
+#define FLASH_CMD_PROG_SETUP 0x4040
+
+/** configuration confirm **/
+#define FLASH_CMD_CFG_REG_CONFIRM 0x0303
+
+/** clear status **/
+#define FLASH_CMD_CLR_STS 0x5050
+
+/** BC setup **/
+#define FLASH_CMD_BC_SETUP 0xbcbc
+
+/** BC setup **/
+#define FLASH_CMD_BC_CONFIRM 0xcbcb
+
 
 /** Timeout Value for waiting for SR7=1: 10 seconds **/
 #define CFG_FLASH_TIMEOUT 0x0010000
@@ -45,38 +82,6 @@
 /** bit mask for flash memory blocks **/
 #define CFG_FLASH_BLKMASK 0xffff0000
 
-/** Block erase setup **/
-#define FLASH_CMD_BLOCK_ERASE_SETUP 0x0020
-
-/** confirm **/
-#define FLASH_CMD_CONFIRM 0x00d0
-
-/** program/erase/suspend **/
-#define FLASH_CMD_PROG_ERASE_SUSPEND 0x00b0
-
-/** block lock setup **/
-#define FLASH_CMD_BLOCK_LOCK_SETUP 0x0060
-
-/** block lock confirm **/
-#define FLASH_CMD_BLOCK_LOCK_CONFIRM 0x0001
-
-/** buffer progam **/
-#define FLASH_CMD_BUFFER_PROG 0x00e8
-
-/** program setup **/
-#define FLASH_CMD_PROG_SETUP 0x0040
-
-/** configuration confirm **/
-#define FLASH_CMD_CFG_REG_CONFIRM 0x0003
-
-/** clear status **/
-#define FLASH_CMD_CLR_STS 0x0050
-
-/** BC setup **/
-#define FLASH_CMD_BC_SETUP 0x00bc
-
-/** BC setup **/
-#define FLASH_CMD_BC_CONFIRM 0x00cb
 
 /** flash busy flag mask **/
 #define FLASH_PEC_BUSY 1 << 7
@@ -126,15 +131,14 @@ public:
 
 /**
  * set read state
- * @param state one of FLASH_READ_ARRAY, FLASH_READ_IDENTIFIER,
- * FLASH_READ_STATUS, FLASH_READ_CFI
+ * @param cmd command to be sent
  * @param addr address
  **/
     void
-    setReadState
+    sendCommand
     (
-        uint16_t state,
-        uint32_t addr
+        uint32_t addr,
+        uint16_t cmd
     );
 
 /**
@@ -199,17 +203,16 @@ public:
     getUniqueDeviceNumber();
 
 /**
- * Program single Word to destination address
- * @param addr address to be written to
- * @param data data to be written
- * @return 0 on success, -1 on errors
+ * Reset Block: 
+ * Clear Status, Read Status, set Read Array mode
+ * @param blkaddr block address
+ * @return status register
  **/
-    int
-    programWord
+    uint16_t resetBlock 
     (
-        uint32_t addr,
-        uint16_t data
+        uint32_t blkaddr
     );
+
 
 /** get WORD from flash
  * @param addr address
@@ -228,7 +231,7 @@ public:
  * @param data pointer to data buffer
  * @return 0 on sucess, -1 on errors
  **/
-    int
+    int64_t
     programBuffer
     (
         uint32_t  addr,
@@ -241,7 +244,7 @@ public:
  * @param blkaddr block address
  * @return 0 on sucess, -1 on errors
  **/
-    int
+    int64_t
     eraseBlock
     (
         uint32_t blkaddr
@@ -270,7 +273,7 @@ public:
 /**
  * Lock Block
  **/
-    void
+    int64_t
     lockBlock
     (
         uint32_t blkaddr
@@ -279,7 +282,7 @@ public:
 /**
  * unlock Block
  **/
-    void
+    int64_t
     unlockBlock
     (
         uint32_t blkaddr
@@ -301,33 +304,12 @@ public:
  * @param blkaddr block address
  * @return -1 on error, 0 on empty, 1 on not empty
  * */
-    int
+    int64_t
     blankCheck
     (
         uint32_t blkaddr
     );
 
-/**
- * get Block Address
- * @param addr address
- * @return associated block address
- * */
-    uint32_t
-    getBlockAddress
-    (
-        uint32_t addr
-    );
-
-/**
- * get Bank Address
- * @param addr address
- * @return associated bank address
- * */
-    uint32_t
-    getBankAddress
-    (
-        uint32_t addr
-    );
 
 /**
  * Dump flash contents to file

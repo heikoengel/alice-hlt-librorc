@@ -79,14 +79,13 @@ librorc_flash::~librorc_flash()
 
 
 void
-librorc_flash::setReadState
+librorc_flash::sendCommand
 (
-    uint16_t state,
-    uint32_t addr
+    uint32_t addr,
+    uint16_t cmd
 )
 {
-    bar->set16(base_addr + addr, state);
-    read_state = state;
+    bar->set16(base_addr + addr, cmd);
 }
 
 
@@ -97,11 +96,7 @@ librorc_flash::getStatusRegister
     uint32_t blkaddr
 )
 {
-    if(read_state != FLASH_READ_STATUS)
-    {
-        setReadState(FLASH_READ_STATUS, blkaddr);
-    }
-
+    sendCommand(blkaddr, FLASH_CMD_READ_STATUS);
     return bar->get16(base_addr + blkaddr);
 }
 
@@ -113,8 +108,7 @@ librorc_flash::clearStatusRegister
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CLR_STS);
-    setReadState(FLASH_READ_ARRAY, blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_CLR_STS);
 }
 
 
@@ -122,12 +116,15 @@ librorc_flash::clearStatusRegister
 uint16_t
 librorc_flash::getManufacturerCode()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
 
-    return bar->get16(base_addr + 0x00);
+    /** get code */
+    uint16_t code = bar->get16(base_addr + 0x00);
+
+    /** return into read array mode */
+    resetBlock(0);
+
+    return code;
 }
 
 
@@ -135,12 +132,16 @@ librorc_flash::getManufacturerCode()
 uint16_t
 librorc_flash::getDeviceID()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    /** send read id code command */
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
 
-    return bar->get16(base_addr + 0x01);
+    /** get ID */
+    uint16_t id = bar->get16(base_addr + 0x01);
+
+    /** return into read array mode */
+    resetBlock(0);
+
+    return id;
 }
 
 
@@ -151,12 +152,13 @@ librorc_flash::getBlockLockConfiguration
     uint32_t blkaddr
 )
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, blkaddr);
-    }
+    sendCommand(blkaddr, FLASH_CMD_READ_IDENTIFIER);
+    uint16_t cfg = bar->get16(base_addr + blkaddr + 0x02);
 
-    return bar->get16(base_addr + blkaddr + 0x02);
+    /** return into read array mode */
+    resetBlock(0);
+
+    return cfg;
 }
 
 
@@ -164,26 +166,28 @@ librorc_flash::getBlockLockConfiguration
 uint16_t
 librorc_flash::getReadConfigurationRegister()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
+    uint16_t rcr = bar->get16(base_addr + 0x05);
 
-    return bar->get16(base_addr + 0x05);
+    /** return into read array mode */
+    resetBlock(0);
+
+    return rcr;
 }
 
 
 uint64_t librorc_flash::getUniqueDeviceNumber()
 {
     uint64_t udn = 0;
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
     for ( int i=0; i<4; i++ )
     {
         udn += ( bar->get16(base_addr + 0x81 + i) )<<(16*i);
     }
+
+    /** return into read array mode */
+    resetBlock(0);
+
     return udn;
 }
 
@@ -194,57 +198,31 @@ librorc_flash::get
     uint32_t addr
 )
 {
-    if(read_state != FLASH_READ_ARRAY)
-    {
-        setReadState(FLASH_READ_ARRAY, addr);
-    }
     return bar->get16(base_addr + addr);
 }
 
 
-
-int
-librorc_flash::programWord
+uint16_t librorc_flash::resetBlock
 (
-    uint32_t addr,
-    uint16_t data
+    uint32_t blkaddr
 )
 {
-    uint16_t status  = 0;
-    uint32_t   timeout = CFG_FLASH_TIMEOUT;
+    /** Send Clear Status Command **/
+    clearStatusRegister(blkaddr);
+    clearStatusRegister(blkaddr);
 
-    /** word program setup */
-    bar->set16(base_addr + addr, FLASH_CMD_PROG_SETUP);
+    /** Sample the Status **/
+    uint16_t status = getStatusRegister(blkaddr);
 
-    bar->set16(base_addr + addr, data);
-    read_state = FLASH_READ_STATUS;
-    status = bar->get16(base_addr + addr);
-
-    while( (status & FLASH_PEC_BUSY) == 0)
-    {
-        usleep(100);
-        status = bar->get16(base_addr + addr);
-        timeout--;
-        if(timeout == 0)
-        {
-            return -1;
-        }
-    }
-
-    if(status == FLASH_PEC_BUSY)
-    {
-        clearStatusRegister(addr);
-        return 0;
-    }
-    else
-    {
-        return -status;
-    }
+    sendCommand(blkaddr, FLASH_CMD_RESET);
+    sendCommand(blkaddr, FLASH_CMD_READ_ARRAY);
+    
+    return status;
 }
 
 
 
-int
+int64_t
 librorc_flash::programBuffer
 (
     uint32_t  addr,
@@ -264,12 +242,11 @@ librorc_flash::programBuffer
     }
 
     /** write to buffer command */
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BUFFER_PROG);
-    read_state = FLASH_READ_STATUS;
+    sendCommand(blkaddr, FLASH_CMD_BUFFER_PROG);
 
     /** read status register */
-    status = bar->get16(base_addr + blkaddr);
-    if( (status & FLASH_PEC_BUSY) == 0)                                           //
+    status = getStatusRegister(blkaddr);
+    if( (status & FLASH_PEC_BUSY) == 0)
     {
         return -1;
     }
@@ -277,21 +254,19 @@ librorc_flash::programBuffer
     /** write word count */
     bar->set16(base_addr + blkaddr, length - 1);
 
-    bar->set16(base_addr + addr, data[0]);
-
-    for(i=1; i < length; i++)
+    for(i=0; i < length; i++)
     {
         bar->set16(base_addr + addr + i, data[i]);
     }
 
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
-    status = bar->get16(base_addr + blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
+    status = getStatusRegister(blkaddr);
 
     /** Wait while device is busy */
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
-        status = bar->get16(base_addr + blkaddr);
+        status = getStatusRegister(blkaddr);
         timeout--;
         if(timeout == 0)
         {
@@ -305,14 +280,12 @@ librorc_flash::programBuffer
         return -status;
     }
 
-    /** return to ReadArry mode */
-    setReadState(FLASH_READ_ARRAY, blkaddr);
     return 0;
 }
 
 
 
-int
+int64_t
 librorc_flash::eraseBlock
 (
     uint32_t blkaddr
@@ -322,17 +295,16 @@ librorc_flash::eraseBlock
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
     /** erase command */
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
 
     /** confim command */
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
-    read_state = FLASH_READ_STATUS;
-    status = bar->get16(base_addr + blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
+    status = getStatusRegister(blkaddr);
 
     while( (status & FLASH_PEC_BUSY) == 0)
     {
         usleep(100);
-        status = bar->get16(base_addr + blkaddr);
+        status = getStatusRegister(blkaddr);
         timeout--;
         if(timeout == 0)
         {
@@ -340,15 +312,10 @@ librorc_flash::eraseBlock
         }
     }
 
-    if(status == FLASH_PEC_BUSY)
-    {
-        clearStatusRegister(blkaddr);
-        return 0;
-    }
-    else
-    {
-        return -status;
-    }
+    /** return into read array mode */
+    resetBlock(blkaddr);
+
+    return 0;
 }
 
 
@@ -359,7 +326,7 @@ librorc_flash::programSuspend
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_PROG_ERASE_SUSPEND);
+    sendCommand(blkaddr, FLASH_CMD_PROG_ERASE_SUSPEND);
 }
 
 
@@ -370,31 +337,80 @@ librorc_flash::programResume
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
 }
 
 
 
-void
+int64_t
 librorc_flash::lockBlock
 (
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
+
+    /** clear any latched status register contents */
+    clearStatusRegister(blkaddr);
+
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
+
+    /** wait for unlock to complete */
+    uint16_t status = getStatusRegister(blkaddr);
+    while( (status & FLASH_PEC_BUSY) == 0)
+    {
+        usleep(100);
+        status = getStatusRegister(blkaddr);
+        timeout--;
+        if(timeout == 0)
+        {
+            return -status;
+        }
+    }
+    clearStatusRegister(blkaddr);
+
+    /** return into read array mode */
+    resetBlock(blkaddr);
+
+    return 0;
 }
 
 
 
-void
+int64_t
 librorc_flash::unlockBlock
 (
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
+
+    /** clear any latched status register contents */
+    clearStatusRegister(blkaddr);
+
+    /** unlock block */
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
+
+    /** wait for unlock to complete */
+    uint16_t status = getStatusRegister(blkaddr);
+    while( (status & FLASH_PEC_BUSY) == 0)
+    {
+        usleep(100);
+        status = getStatusRegister(blkaddr);
+        timeout--;
+        if(timeout == 0)
+        {
+            return -status;
+        }
+    }
+    clearStatusRegister(blkaddr);
+
+    /** return into read array mode */
+    resetBlock(blkaddr);
+
+    return 0;
 }
 
 
@@ -411,7 +427,7 @@ librorc_flash::setConfigReg
 
 
 
-int
+int64_t
 librorc_flash::blankCheck
 (
     uint32_t blkaddr
@@ -420,9 +436,8 @@ librorc_flash::blankCheck
     uint16_t status;
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BC_SETUP);
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BC_CONFIRM);
-    read_state = FLASH_READ_STATUS;
+    sendCommand(blkaddr, FLASH_CMD_BC_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_BC_CONFIRM);
     status = bar->get16(base_addr + blkaddr);
 
     /** wait for blankCheck to complete */
@@ -480,46 +495,6 @@ librorc_flash::getFlashArchitecture
     }
     *arch = fa;
     return 0;
-}
-
-
-
-uint32_t
-librorc_flash::getBlockAddress
-(
-    uint32_t addr
-)
-{
-    /** memory organization:
-     * block 130: 0x000000 - 0x00ffff
-     * block 129: 0x001000 - 0x01ffff
-     * ....
-     * block 4: 0x7e0000 - 0x7effff
-     * block 3: 0x7f0000 - 0x7f3fff
-     * block 2: 0x7f4000 - 0x7f7fff
-     * block 1: 0x7f8000 - 0x7fbfff
-     * block 0: 0x7fc000 - 0x7fffff
-     * */
-    if(addr <= 0x7effff)
-    {
-        return (addr & 0xffff0000);
-    }
-    else
-    {
-        return (addr & 0xffffc000);
-    }
-}
-
-
-
-uint32_t
-librorc_flash::getBankAddress
-(
-    uint32_t addr
-)
-{
-    /** bank 0: 0x000000 - 0x080000 **/
-    return(addr & 0xff800000);
 }
 
 
