@@ -107,8 +107,8 @@ uint32_t msgid;
 // DMA Monitor globals
 int rx_frame64, rx_frame32=0, rx_dvld=0;
 int rx_ndw = 0;
-unsigned long rx_data = 0;
-unsigned long rx_addr = 0;
+uint64_t rx_data = 0;
+uint64_t rx_addr = 0;
 uint8_t *buffer_ptr;
 uint32_t *buffer;
 int buffer_size;
@@ -473,7 +473,7 @@ void dump_sockcmd(uint32_t *buf, uint32_t len)
 static void trn_monitor( void *arg )
 {
   inst_rec *ip = (inst_rec *)arg;
-  unsigned long rx_trem;
+  uint64_t rx_trem;
   uint32_t tmp32;
   int result;
   uint32_t *lbuf;
@@ -655,7 +655,7 @@ static void trn_monitor( void *arg )
 
             // get lower 64bit of trn_td
             rx_data = slv2ulong_low(ip->td);
-            buffer[3] = ((unsigned long)rx_data>>32); // addr_low
+            buffer[3] = ((uint64_t)rx_data>>32); // addr_low
             // first DW
             buffer[4] = (uint32_t)(byte_reorder(rx_data) >> 32);
 
@@ -719,12 +719,15 @@ static void trn_monitor( void *arg )
             buffer[0] = (6<<16) + CMD_READ_FROM_HOST;
             buffer[1] = msgid;
             buffer[2] = 0x00000000;
-            buffer[3] = (rx_addr & 0xffffffff);
+            buffer[3] = ((rx_addr>>32) & 0xffffffff);
             // requesterID
             buffer[4] = ( (slv2ulong_high(ip->td)>>16) & 0x0000ffff );
             // params: 16b length, 8b tag, 8b BE
             buffer[5] = (rx_ndw<<16) + 
               ( slv2ulong_high(ip->td) & 0x0000ffff );
+
+            fli_debug("CMD_READ_FROM_HOST: %08x, addr=%08x\n", 
+                buffer[5], buffer[3]);
 
             // send request to host
             dump_sockcmd(buffer, buffer_size);
@@ -877,7 +880,7 @@ int init_sockets(char *hostname, int port, int *sd_srv, int *sd_srv_acc)
   memset(&sin, 0, sizeof(sin));               // Clear Structure
   sin.sin_family = AF_INET;                   // Specify Address format
   sin.sin_addr.s_addr = INADDR_ANY;
-  sin.sin_port = htons((unsigned short)port); // set port number
+  sin.sin_port = htons((uint16_t)port); // set port number
 
   // bind the socket to the port number 
   if (bind(*sd_srv, (struct sockaddr *) &sin, sizeof(sin)) == -1) {
