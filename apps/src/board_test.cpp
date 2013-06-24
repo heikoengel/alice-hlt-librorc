@@ -68,7 +68,12 @@ qsfpPrintPartNumber
     uint32_t index
 );
 
-void        qsfp_print_temp(struct rorcfs_sysmon *sm);
+void
+qsfpPrintTemperature
+(
+    struct rorcfs_sysmon *sm,
+    uint32_t              index
+);
 
 uint32_t    pcieNumberOfLanes(librorc_bar *bar1);
 uint32_t    pcieGeneration(librorc_bar *bar1);
@@ -180,9 +185,9 @@ int main(int argc, char **argv)
             qsfp_set_page0_and_config(sm, i);
             qsfpPrintVendorName(sm, i);
             qsfpPrintPartNumber(sm, i);
-            qsfp_print_temp(sm);
+            qsfpPrintTemperature(sm, i);
         }
-        printf("\n");
+        cout << endl;
     }
 
     exit(EXIT_SUCCESS);
@@ -274,7 +279,12 @@ qsfpPrintPartNumber
 
 
 
-void qsfp_print_temp(struct rorcfs_sysmon *sm)
+void
+qsfpPrintTemperature
+(
+    struct rorcfs_sysmon *sm,
+    uint32_t              index
+)
 {
     uint8_t data_r;
     try
