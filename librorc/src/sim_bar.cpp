@@ -161,7 +161,7 @@ sim_bar::get
             data = m_read_from_dev_data;
             m_read_from_dev_done = 0;
 
-            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", msgid, addr, data);
+            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", m_msgid, addr, data);
 
             m_msgid++;
         }
@@ -207,7 +207,7 @@ sim_bar::set
             }
             m_write_to_dev_done=0;
 
-            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", msgid, addr, data);
+            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", m_msgid, addr, data);
 
             m_msgid++;
         }
@@ -263,7 +263,7 @@ sim_bar::memcpy_bar
             }
             m_write_to_dev_done=0;
 
-            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", msgid, ndw, addr);
+            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, addr);
             m_msgid++;
         }
 
