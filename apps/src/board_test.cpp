@@ -180,9 +180,8 @@ int main(int argc, char **argv)
         //TODO: read module temp & model
         if((~qsfp_ctrl)>>(8*i+2) & 0x01)
         {
-            printf("Checking QSFP%d i2c access:\n", i);
+            cout << "Checking QSFP" << i << " i2c access:" << endl;
 
-            qsfp_set_page0_and_config(sm, i);
             qsfpPrintVendorName(sm, i);
             qsfpPrintPartNumber(sm, i);
             qsfpPrintTemperature(sm, i);
@@ -233,6 +232,8 @@ qsfpPrintVendorName
     uint32_t       index
 )
 {
+    qsfp_set_page0_and_config(sm, index);
+
     cout << "Vendor Name: ";
 
     uint8_t data_r;
@@ -260,6 +261,8 @@ qsfpPrintPartNumber
     uint32_t       index
 )
 {
+    qsfp_set_page0_and_config(sm, index);
+
     cout << "Part Number: ";
 
     uint8_t data_r = 0;
@@ -286,6 +289,8 @@ qsfpPrintTemperature
     uint32_t              index
 )
 {
+    qsfp_set_page0_and_config(sm, index);
+
     uint8_t data_r;
     try
     { data_r = sm->i2c_read_mem(SLVADDR, 23); }
