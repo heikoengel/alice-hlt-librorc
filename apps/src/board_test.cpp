@@ -49,10 +49,17 @@ using namespace std;
 void
 qsfp_set_page0_and_config
 (
-    struct rorcfs_sysmon *sm,
+    rorcfs_sysmon *sm,
     uint32_t index
 );
 
+bool
+qsfpIsPresent
+(
+    rorcfs_sysmon *sm,
+    librorc_bar   *bar1,
+    uint32_t       index
+);
 
 void
 qsfpPrintVendorName
@@ -172,13 +179,13 @@ int main(int argc, char **argv)
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
         uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-        printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
+        cout << "QSFP " << i << " present: " << qsfpIsPresent(sm, bar1, i) << endl;
+
         printf("QSFP %d LED0: %d, LED1: %d\n", i,
         ((~qsfp_ctrl)>>(8*i) & 0x01),
         ((~qsfp_ctrl)>>(8*i+1) & 0x01));
 
-        //TODO: read module temp & model
-        if((~qsfp_ctrl)>>(8*i+2) & 0x01)
+        if( qsfpIsPresent(sm, bar1, i) )
         {
             cout << "Checking QSFP" << i << " i2c access:" << endl;
 
@@ -199,7 +206,7 @@ int main(int argc, char **argv)
 void
 qsfp_set_page0_and_config
 (
-    struct rorcfs_sysmon *sm,
+    rorcfs_sysmon *sm,
     uint32_t index
 )
 {
@@ -221,6 +228,26 @@ qsfp_set_page0_and_config
     }
 
     sm->i2c_set_config(0x01f30081 | ((1<<index)<<8));
+}
+
+
+
+bool
+qsfpIsPresent
+(
+    rorcfs_sysmon *sm,
+    librorc_bar   *bar1,
+    uint32_t       index
+)
+{
+    uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
+
+    if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
+    {
+        return true;
+    }
+
+    return false;
 }
 
 
