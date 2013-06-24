@@ -14,10 +14,10 @@ public:
  * @return data read from BAR[addr]
  **/
 virtual
-unsigned int
+uint32_t
 get
 (
-    unsigned long addr
+    uint64_t addr
 ) = 0;
 
 /**
@@ -26,10 +26,10 @@ get
  * @return data read from BAR[addr]
  **/
 virtual
-unsigned short
+uint16_t
 get16
 (
-    unsigned long addr
+    uint64_t addr
 ) = 0;
 
 /**
@@ -42,9 +42,9 @@ virtual
 void
 memcpy_bar
 (
-    unsigned long addr,
-    const void   *source,
-    size_t        num
+    uint64_t    addr,
+    const void *source,
+    size_t      num
 ) = 0;
 
 /**
@@ -57,8 +57,8 @@ virtual
 void
 set
 (
-    unsigned long addr,
-    unsigned int  data
+    uint64_t addr,
+    uint32_t data
 ) = 0;
 
 /**
@@ -70,8 +70,8 @@ virtual
 void
 set16
 (
-    unsigned long  addr,
-    unsigned short data
+    uint64_t addr,
+    uint16_t data
 ) = 0;
 
 /**
@@ -81,7 +81,7 @@ set16
  * @return return valiue from gettimeof day or zero for FLI simulation
  **/
 virtual
-int
+int32_t
 gettime
 (
     struct timeval *tv,
@@ -96,12 +96,12 @@ gettime
  * @return 0 on sucess, -1 on errors
  **/
 virtual
-int
+int32_t
 init() = 0;
 
 /**
  * get size of mapped BAR. This value is only valid after init()
- * @return size of mapped BAR in (unsigned long) bytes
+ * @return size of mapped BAR in bytes
  **/
 virtual size_t getSize() = 0;
 
@@ -109,7 +109,7 @@ protected:
     rorcfs_device   *m_parent_dev;
     PciDevice       *m_pda_pci_device;
     pthread_mutex_t  m_mtx;
-    int              m_number;
+    int32_t          m_number;
     uint8_t         *m_bar;
     size_t           m_size;
 

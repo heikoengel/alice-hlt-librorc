@@ -402,6 +402,9 @@ init_flash
         }
         return(NULL);
     }
+  
+    // set asynchronous read mode
+    flash->setConfigReg(0xbddf);
 
     return(flash);
 }

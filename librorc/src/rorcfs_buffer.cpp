@@ -54,7 +54,7 @@ rorcfs_buffer::~rorcfs_buffer()
 
 
 
-int
+int32_t
 rorcfs_buffer::isOvermapped()
 {
     void *map_two = NULL;
@@ -72,7 +72,7 @@ rorcfs_buffer::isOvermapped()
 
 
 
-unsigned long
+uint64_t
 rorcfs_buffer::getSize()
 {
     return m_size;
@@ -80,14 +80,14 @@ rorcfs_buffer::getSize()
 
 
 
-int
+int32_t
 rorcfs_buffer::allocate
 (
     rorcfs_device *dev,
-    unsigned long  size,
-    unsigned long  id,
-    int            overmap,
-    int            dma_direction
+    uint64_t       size,
+    uint64_t       id,
+    int32_t        overmap,
+    int32_t        dma_direction
 )
 {
     m_device =
@@ -132,7 +132,7 @@ rorcfs_buffer::allocate
 
 
 
-int
+int32_t
 rorcfs_buffer::deallocate()
 {
     return 0;
@@ -140,18 +140,18 @@ rorcfs_buffer::deallocate()
 
 
 
-int
+int32_t
 rorcfs_buffer::connect
 (
     rorcfs_device *dev,
-    unsigned long  id
+    uint64_t  id
 )
 
 {
     /**
-    * Check if m_buffer has been set before by allocate(),
-    * else lookup buffer by dev and id
-    **/
+     * Check if m_buffer has been set before by allocate(),
+     * else lookup buffer by dev and id
+     **/
     if ( !m_buffer )
     {
         if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )

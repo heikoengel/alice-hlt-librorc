@@ -1,5 +1,5 @@
 /**
- * @file pgdma_continuous.cpp
+ * @file crorc_preallocator.cpp
  * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.1
  * @date 2013-06-07
@@ -17,7 +17,9 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @brief
- * Open DMA Channel sourced by PatternGenerator
+ * Allocate memory for all crorcs in the system. This is especially
+ * needed to allocate during the early boot phase to get a low amount
+ * of SG-List entries.
  *
  **/
 
@@ -57,11 +59,46 @@ using namespace std;
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
-#ifdef SIM
-    #define BAR sim_bar;
-#else
-    #define BAR rorc_bar;
-#endif
+int16_t
+alloc_channel
+(
+    uint32_t       ChannelID,
+    librorc_bar   *Bar,
+    rorcfs_device *Dev
+);
+
+
+
+int main( int argc, char *argv[])
+{
+    /** Iterate all Devices*/
+    for( uint16_t i=0; i<UINT16_MAX; i++)
+    {
+        /** create new device instance */
+        rorcfs_device *Dev = new rorcfs_device();
+        if( Dev->init(i) == -1 )
+            { break; }
+
+        /** bind to BAR1 */
+        #ifdef SIM
+            librorc_bar *Bar = new sim_bar(Dev, 1);
+        #else
+            librorc_bar *Bar = new rorc_bar(Dev, 1);
+        #endif
+        if( Bar->init() == -1 )
+        {
+            printf("ERROR: failed to initialize BAR1.\n");
+            abort();
+        }
+
+        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
+            { alloc_channel(ChannelId, Bar, Dev); }
+
+    }
+
+    return 0;
+}
+
 
 
 int16_t
@@ -116,35 +153,6 @@ alloc_channel
             perror("ERROR: rbuf->allocate");
             abort();
         }
-    }
-
-    return 0;
-}
-
-
-int main( int argc, char *argv[])
-{
-    /** Iterate all Devices*/
-    for( uint16_t i=0; i<UINT16_MAX; i++)
-    {
-        /** create new device instance */
-        rorcfs_device *Dev = new rorcfs_device();
-        if( Dev->init(i) == -1 )
-        { break; }
-
-        /** bind to BAR1 */
-        librorc_bar *Bar = new BAR(Dev, 1);
-        if( Bar->init() == -1 )
-        {
-            printf("ERROR: failed to initialize BAR1.\n");
-            abort();
-        }
-
-        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-        {
-            alloc_channel(ChannelId, Bar, Dev);
-        }
-
     }
 
     return 0;

@@ -231,7 +231,7 @@ public:
  * @param data pointer to data buffer
  * @return 0 on sucess, -1 on errors
  **/
-    int64_t
+    int32_t
     programBuffer
     (
         uint32_t  addr,
@@ -244,7 +244,7 @@ public:
  * @param blkaddr block address
  * @return 0 on sucess, -1 on errors
  **/
-    int64_t
+    int32_t
     eraseBlock
     (
         uint32_t blkaddr
@@ -273,7 +273,7 @@ public:
 /**
  * Lock Block
  **/
-    int64_t
+    int32_t
     lockBlock
     (
         uint32_t blkaddr
@@ -282,7 +282,7 @@ public:
 /**
  * unlock Block
  **/
-    int64_t
+    int32_t
     unlockBlock
     (
         uint32_t blkaddr
@@ -304,7 +304,7 @@ public:
  * @param blkaddr block address
  * @return -1 on error, 0 on empty, 1 on not empty
  * */
-    int64_t
+    int32_t
     blankCheck
     (
         uint32_t blkaddr
@@ -317,7 +317,7 @@ public:
  * @param verbose verbose level
  * @return -1 on error, 0 on sucess
  * */
-    int64_t
+    int32_t
     dump
     (
         char                   *filename,
@@ -329,7 +329,7 @@ public:
  * @param verbose verbose level
  * @return -status on error, 0 on success
  * */
-    int64_t
+    int32_t
     erase
     (
         int64_t                byte_count,
@@ -342,7 +342,7 @@ public:
  * @param verbose verbose level
  * @return -1 on error, 0 on success
  * */
-    int64_t
+    int32_t
     flash
     (
         char                   *filename,
@@ -355,7 +355,7 @@ public:
  * @param pointer to destination struct
  * @return 0 on success, -1 on invalid address
  * */
-    int64_t
+    int32_t
     getFlashArchitecture
     (
         uint32_t                   addr,
@@ -363,9 +363,9 @@ public:
     );
 
 private:
-    librorc_bar    *bar;
-    uint16_t    read_state;
-    uint32_t    base_addr;
+    librorc_bar *bar;
+    uint16_t     read_state;
+    uint32_t     base_addr;
 };
 
 #endif

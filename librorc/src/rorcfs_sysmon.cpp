@@ -29,234 +29,233 @@
 #include "rorcfs_bar.hh"
 #include "rorcfs_sysmon.hh"
 
+//TODO: get rid of this init-function -> move to constructor
+//TODO: get rid of all the asserts here
+//TODO: move external interface to CaMeLcAsE
+
 rorcfs_sysmon::rorcfs_sysmon()
 {
-	bar = NULL;
+	m_bar = NULL;
 }
+
 
 
 rorcfs_sysmon::~rorcfs_sysmon()
 {
-	bar = NULL;
+	m_bar = NULL;
 }
 
 
-int rorcfs_sysmon::init( librorc_bar *parent_bar )
+
+int32_t
+rorcfs_sysmon::init( librorc_bar *parent_bar )
 {
-	if (parent_bar) {
-		bar = parent_bar;
+    if (parent_bar)
+	{
+		m_bar = parent_bar;
 		return 0;
-	} else
-		return -1;
+	}
+
+    return -1;
 }
 
 
-unsigned int rorcfs_sysmon::getFwRevision()
+
+uint32_t
+rorcfs_sysmon::getFwRevision()
 {
-	assert(bar!=NULL);
-	return bar->get(RORC_REG_FIRMWARE_REVISION);
+	assert(m_bar!=NULL);
+	return m_bar->get(RORC_REG_FIRMWARE_REVISION);
 }
 
 
-unsigned int rorcfs_sysmon::getFwBuildDate()
+
+uint32_t
+rorcfs_sysmon::getFwBuildDate()
 {
-	assert(bar!=NULL);
-	return bar->get(RORC_REG_FIRMWARE_DATE);
+	assert(m_bar!=NULL);
+	return m_bar->get(RORC_REG_FIRMWARE_DATE);
 }
 
 
-unsigned int rorcfs_sysmon::getFanTachValue()
+
+uint32_t
+rorcfs_sysmon::getFanTachValue()
 {
-	assert(bar!=NULL);
-	/*unsigned int rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
-	if ( rpm_raw==0 )
-		return 0;
-	else return (unsigned int)(750000000/rpm_raw);*/
+	assert(m_bar!=NULL);
+//	uint32_t rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
+//	if ( rpm_raw==0 )
+//	{
+//        return 0;
+//	}
+//	else
+//	{
+//        return (unsigned int)(750000000/rpm_raw);
+//    }
 	return 0;
 }
 
-double rorcfs_sysmon::getFPGATemperature()
+
+
+double
+rorcfs_sysmon::getFPGATemperature()
 {
-	assert(bar!=NULL);
-	unsigned int value = bar->get(RORC_REG_FPGA_TEMPERATURE);
+	assert(m_bar!=NULL);
+	uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
 	return (double)(value*503.975/1024.0 - 273.15);
 }
 
-double rorcfs_sysmon::getVCCINT()
+
+
+double
+rorcfs_sysmon::getVCCINT()
 {
-	assert(bar!=NULL);
-	unsigned int value = bar->get(RORC_REG_FPGA_VCCINT);
+	assert(m_bar!=NULL);
+	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
 	return (double)(value/1024.0 * 3.0);
 }
 
-double rorcfs_sysmon::getVCCAUX()
+
+
+double
+rorcfs_sysmon::getVCCAUX()
 {
-	assert(bar!=NULL);
-	unsigned int value = bar->get(RORC_REG_FPGA_VCCAUX);
+	assert(m_bar!=NULL);
+	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
 	return (double)(value/1024.0 * 3.0);
 }
 
-/*void rorcfs_sysmon::setIcapDin ( unsigned int dword )
+
+
+//void rorcfs_sysmon::setIcapDin ( uint32_t dword )
+//{
+//	assert(m_bar!=NULL);
+//	bar->set(RORC_REG_ICAP_DIN, dword);
+//}
+
+
+
+//void rorcfs_sysmon::setIcapDinReorder ( uint32_t )
+//{
+//	assert(m_bar!=NULL);
+//	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
+//}
+
+
+
+void
+rorcfs_sysmon::i2c_reset()
 {
-	assert(bar!=NULL);
-	bar->set(RORC_REG_ICAP_DIN, dword);
-}
+	assert(m_bar!=NULL);
+	m_bar->set(RORC_REG_I2C_OPERATION, 0x00040000);
 
-void rorcfs_sysmon::setIcapDinReorder ( unsigned int dword )
-{
-	assert(bar!=NULL);
-	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
-}*/
+    uint32_t status
+        = wait_for_tip_to_negate();
 
-
-int rorcfs_sysmon::i2c_reset()
-{
-	assert(bar!=NULL);
-	unsigned int status;
-
-	bar->set(RORC_REG_I2C_OPERATION, 0x00040000);
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
+    /** read back not only zeros */
+	if ( !(status & 0x00ff0000) )
+	{
+        throw LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED;
 	}
-	if ( status & 0x00ff0000 ) //read back not only zeros
-		return 0;
-	else
-		return -1;
-}
-
-
-int rorcfs_sysmon::i2c_read_mem(
-		unsigned char slvaddr,
-		unsigned char memaddr,
-		unsigned char *data)
-{
-	assert(bar!=NULL);
-	unsigned char addr_wr, addr_rd;
-	unsigned int status;
-
-	// slave address shifted by one, write bit set
-	addr_wr = (slvaddr<<1);
-	addr_rd = (slvaddr<<1) | 0x01;
-
-	// write addr + write bit to TX register, set STA, set WR
-	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
-		*data = (unsigned char)(status>>24);
-		return -1;
-	}
-
-	// set mem addr, set WR bit
-	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
-		*data = (unsigned char)(status>>24);
-		return -1;
-	}
-
-	// set slave addr + read bit, set STA, set WR
-	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_rd<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	// set RD, set ACK=1 (NACK), set STO
-	bar->set(RORC_REG_I2C_OPERATION, 0x00680000);
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	*data = (unsigned char)(status&0xff);
-	return 0;
-}
-
-int rorcfs_sysmon::i2c_write_mem(
-		unsigned char slvaddr,
-		unsigned char memaddr,
-		unsigned char data)
-{
-	assert(bar!=NULL);
-	unsigned char addr_wr;
-	unsigned int status;
-
-	// slave address shifted by one, write bit set
-	addr_wr = (slvaddr<<1);
-
-	// write addr + write bit to TX register, set STA, set WR
-	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
-		return -1;
-	}
-
-	// set mem addr, set WR bit
-	bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	//RxACK from Status should be 0
-	if ( status & 0x80000000 ) {
-		return -1;
-	}
-
-	/*// set slave addr + write bit, set STA, set WR
-	bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}*/
-
-	// set WR, set ACK=0 (ACK), set STO, set data
-	bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
-
-	status = bar->get(RORC_REG_I2C_OPERATION);
-	while( status & 0x02000000 ) { // wait for TIP to negate
-		usleep(100);
-		status = bar->get(RORC_REG_I2C_OPERATION);
-	}
-
-	return 0;
 }
 
 
-void rorcfs_sysmon::i2c_set_config( unsigned int config )
+
+uint8_t
+rorcfs_sysmon::i2c_read_mem
+(
+    uint8_t slvaddr,
+    uint8_t memaddr
+)
 {
-	assert(bar!=NULL);
-	bar->set(RORC_REG_I2C_CONFIG, config);
+	assert(m_bar!=NULL);
+
+	/** slave address shifted by one, write bit set */
+	uint8_t addr_wr = (slvaddr<<1);
+	uint8_t addr_rd = (slvaddr<<1) | 0x01;
+
+	/** write addr + write bit to TX register, set STA, set WR */
+	m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+	check_rxack_is_zero( wait_for_tip_to_negate() );
+
+	/** set mem addr, set WR bit */
+	m_bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
+	check_rxack_is_zero( wait_for_tip_to_negate() );
+
+	/** set slave addr + read bit, set STA, set WR */
+	m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_rd<<8)) );
+	uint32_t status = wait_for_tip_to_negate();
+
+	/** set RD, set ACK=1 (NACK), set STO */
+	m_bar->set(RORC_REG_I2C_OPERATION, 0x00680000);
+	status = wait_for_tip_to_negate();
+
+	return(status & 0xff);
+}
+
+
+
+void
+rorcfs_sysmon::i2c_write_mem
+(
+    uint8_t slvaddr,
+    uint8_t memaddr,
+    uint8_t data
+)
+{
+    assert(m_bar!=NULL);
+
+	/** slave address shifted by one, write bit set */
+	uint8_t addr_wr = (slvaddr<<1);
+
+	/** write addr + write bit to TX register, set STA, set WR */
+	m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+	check_rxack_is_zero( wait_for_tip_to_negate() );
+
+	/** set mem addr, set WR bit */
+	m_bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
+	check_rxack_is_zero( wait_for_tip_to_negate() );
+
+
+//	/** set slave addr + write bit, set STA, set WR */
+//	m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+//	status = wait_for_tip_to_negate();
+
+	/** set WR, set ACK=0 (ACK), set STO, set data */
+	m_bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
+	wait_for_tip_to_negate();
+}
+
+
+
+    uint32_t
+    rorcfs_sysmon::wait_for_tip_to_negate()
+    {
+        uint32_t status = m_bar->get(RORC_REG_I2C_OPERATION);
+        while( status & 0x02000000 )
+        {
+            usleep(100);
+            status = m_bar->get(RORC_REG_I2C_OPERATION);
+        }
+
+        return status;
+    }
+
+
+
+    void
+    rorcfs_sysmon::check_rxack_is_zero( uint32_t status )
+    {
+        if( status & 0x80000000 )
+        {
+            throw LIBRORC_SYSMON_ERROR_RXACK;
+        }
+    }
+
+
+
+void rorcfs_sysmon::i2c_set_config( uint32_t config )
+{
+	assert(m_bar!=NULL);
+	m_bar->set(RORC_REG_I2C_CONFIG, config);
 }

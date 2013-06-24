@@ -51,7 +51,6 @@ librorc_flash::librorc_flash
     }
 
     bar        = flashbar;
-    read_state = 0;
     base_addr = chip_select << FLASH_CHIP_SELECT_BIT;
 
     uint16_t status = getStatusRegister(0);
@@ -176,7 +175,8 @@ librorc_flash::getReadConfigurationRegister()
 }
 
 
-uint64_t librorc_flash::getUniqueDeviceNumber()
+uint64_t
+librorc_flash::getUniqueDeviceNumber()
 {
     uint64_t udn = 0;
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
@@ -202,7 +202,8 @@ librorc_flash::get
 }
 
 
-uint16_t librorc_flash::resetBlock
+uint16_t 
+librorc_flash::resetBlock
 (
     uint32_t blkaddr
 )
@@ -222,7 +223,7 @@ uint16_t librorc_flash::resetBlock
 
 
 
-int64_t
+int32_t
 librorc_flash::programBuffer
 (
     uint32_t  addr,
@@ -230,12 +231,8 @@ librorc_flash::programBuffer
     uint16_t *data
 )
 {
-    int      i;
-    uint16_t status;
-    uint32_t timeout = CFG_FLASH_TIMEOUT;
-    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
-
     /** check if block is locked */
+    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
     if( getBlockLockConfiguration(blkaddr) )
     {
         unlockBlock(blkaddr);
@@ -245,7 +242,7 @@ librorc_flash::programBuffer
     sendCommand(blkaddr, FLASH_CMD_BUFFER_PROG);
 
     /** read status register */
-    status = getStatusRegister(blkaddr);
+    uint16_t status = getStatusRegister(blkaddr);
     if( (status & FLASH_PEC_BUSY) == 0)
     {
         return -1;
@@ -254,7 +251,7 @@ librorc_flash::programBuffer
     /** write word count */
     bar->set16(base_addr + blkaddr, length - 1);
 
-    for(i=0; i < length; i++)
+    for(int32_t i=0; i < length; i++)
     {
         bar->set16(base_addr + addr + i, data[i]);
     }
@@ -263,6 +260,7 @@ librorc_flash::programBuffer
     status = getStatusRegister(blkaddr);
 
     /** Wait while device is busy */
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
@@ -285,7 +283,7 @@ librorc_flash::programBuffer
 
 
 
-int64_t
+int32_t
 librorc_flash::eraseBlock
 (
     uint32_t blkaddr
@@ -342,7 +340,7 @@ librorc_flash::programResume
 
 
 
-int64_t
+int32_t
 librorc_flash::lockBlock
 (
     uint32_t blkaddr
@@ -378,7 +376,7 @@ librorc_flash::lockBlock
 
 
 
-int64_t
+int32_t
 librorc_flash::unlockBlock
 (
     uint32_t blkaddr
@@ -427,7 +425,7 @@ librorc_flash::setConfigReg
 
 
 
-int64_t
+int32_t
 librorc_flash::blankCheck
 (
     uint32_t blkaddr
@@ -461,7 +459,7 @@ librorc_flash::blankCheck
 }
 
 
-int64_t
+int32_t
 librorc_flash::getFlashArchitecture
 (
     uint32_t addr,
@@ -499,7 +497,7 @@ librorc_flash::getFlashArchitecture
 
 
 
-int64_t
+int32_t
 librorc_flash::dump
 (
     char                   *filename,
@@ -548,7 +546,7 @@ librorc_flash::dump
 
 
 
-int64_t
+int32_t
 librorc_flash::erase
 (
     int64_t byte_count,
@@ -561,6 +559,7 @@ librorc_flash::erase
     }
 
     uint32_t current_addr = 0;
+    int32_t  status;
 
     while ( byte_count > 0 )
     {
@@ -579,16 +578,25 @@ librorc_flash::erase
             fflush(stdout);
         }
 
-        if( getBlockLockConfiguration(arch.blkaddr) & 0x01 )
+        /** check if block is locked */
+        if( getBlockLockConfiguration(arch.blkaddr) )
         {
-            unlockBlock(arch.blkaddr);
+            /** try to unlock block */
+            status = unlockBlock(arch.blkaddr) ;
+            if ( status < 0 )
+            {
+                cout << "Failed to unlock block at addr" << hex 
+                     << arch.blkaddr << endl;
+                return status;
+            }
         }
 
-        int ret = eraseBlock(arch.blkaddr);
-        if( ret < 0 )
+        /** erase block */
+        status = eraseBlock(arch.blkaddr);
+        if( status < 0 )
         {
-            cout << "Failed to erase block at addr" << hex << current_addr << endl;
-            return ret;
+            cout << "Failed to erase block at addr" << hex << arch.blkaddr << endl;
+            return status;
         }
 
         current_addr += (arch.blksize >> 1);
@@ -607,7 +615,7 @@ librorc_flash::erase
 
 
 
-int64_t
+int32_t
 librorc_flash::flash
 (
     char                   *filename,
@@ -648,7 +656,7 @@ librorc_flash::flash
     }
 
     /** Open the flash file */
-    int fd = open(filename, O_RDONLY);
+    int32_t fd = open(filename, O_RDONLY);
     if(fd == -1)
 	{
         cout << "failed to open input file "
@@ -680,7 +688,7 @@ librorc_flash::flash
             fflush(stdout);
         }
 
-        int ret = programBuffer(addr, bytes_read/2, buffer);
+        int32_t ret = programBuffer(addr, bytes_read/2, buffer);
         if (ret < 0)
         {
             cout << "programBuffer failed, STS: " << hex

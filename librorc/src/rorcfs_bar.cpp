@@ -29,7 +29,7 @@
 rorc_bar::rorc_bar
 (
     rorcfs_device *dev,
-    int            n
+    int32_t        n
 )
 {
     m_parent_dev = dev;
@@ -56,7 +56,7 @@ rorc_bar::~rorc_bar()
  * Initialize and mmap BAR
  * */
 
-int
+int32_t
 rorc_bar::init()
 {
     m_bar = m_parent_dev->getBarMap(m_number);
@@ -79,16 +79,16 @@ rorc_bar::init()
  * @return value read from BAR
  * */
 
-unsigned int
+uint32_t
 rorc_bar::get
 (
-    unsigned long addr
+    uint64_t addr
 )
 {
     assert( m_bar != NULL );
 
-    unsigned int *bar = (unsigned int *)m_bar;
-    unsigned int result;
+    uint32_t *bar = (uint32_t *)m_bar;
+    uint32_t result;
     if( (addr << 2) < m_size)
     {
         result = bar[addr];
@@ -111,12 +111,12 @@ rorc_bar::get
 void
 rorc_bar::set
 (
-    unsigned long addr,
-    unsigned int  data
+    uint64_t addr,
+    uint32_t data
 )
 {
+    uint32_t *bar = (uint32_t *)m_bar;
     assert( m_bar != NULL );
-    unsigned int *bar = (unsigned int *)m_bar;
     if( (addr << 2) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
@@ -138,9 +138,9 @@ rorc_bar::set
 void
 rorc_bar::memcpy_bar
 (
-    unsigned long addr,
-    const void   *source,
-    size_t        num
+    uint64_t    addr,
+    const void *source,
+    size_t      num
 )
 {
     pthread_mutex_lock(&m_mtx);
@@ -154,13 +154,14 @@ rorc_bar::memcpy_bar
 unsigned short
 rorc_bar::get16
 (
-    unsigned long addr
+    uint64_t addr
 )
 {
-    unsigned short *sbar;
-    sbar = (unsigned short*)m_bar;
-    unsigned short result;
+    uint16_t *sbar;
+    sbar = (uint16_t *)m_bar;
     assert( sbar != NULL );
+
+    uint64_t result;
     if( (addr << 1) < m_size)
     {
         result = sbar[addr];
@@ -177,12 +178,12 @@ rorc_bar::get16
 void
 rorc_bar::set16
 (
-    unsigned long  addr,
-    unsigned short data
+    uint64_t addr,
+    uint16_t data
 )
 {
-    unsigned short *sbar;
-    sbar = (unsigned short*)m_bar;
+    uint16_t *sbar;
+    sbar = (uint16_t *)m_bar;
 
     assert( sbar != NULL );
     if( (addr << 1) < m_size)
@@ -197,7 +198,7 @@ rorc_bar::set16
 
 
 
-int
+int32_t
 rorc_bar::gettime
 (
     struct timeval *tv,

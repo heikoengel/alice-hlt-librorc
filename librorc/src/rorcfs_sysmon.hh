@@ -21,6 +21,10 @@
 #ifndef RORCFS_SYSMON_H
 #define RORCFS_SYSMON_H
 
+#define LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED 1
+#define LIBRORC_SYSMON_ERROR_RXACK              20
+#define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
+
 #include <librorc_registers.h>
 
 /**
@@ -33,139 +37,147 @@
  **/
 class rorcfs_sysmon
 {
-	public:
-		rorcfs_sysmon();
-		~rorcfs_sysmon();
+    public:
+        rorcfs_sysmon();
+        ~rorcfs_sysmon();
 
-		/**
-		 * initialize instance
-		 * @param bar parent rorcfs_bar instance
-		 * @return -1 on errors, 0 on success
-		 **/
-		int init( librorc_bar *bar );
+        /**
+         * initialize instance
+         * @param bar parent rorcfs_bar instance
+         * @return -1 on errors, 0 on success
+        **/
+        int32_t init( librorc_bar *bar );
 
-		/**
-		 * get PCIe Interface status
-		 * @return PCIe status consisting of:
-		 * pcie_status_q[31:26] <= pl_ltssm_state;
-		 * pcie_status_q[25:23] <= pl_initial_link_width;
-		 * pcie_status_q[22:20] <= pl_lane_reversal_mode;
-		 * pcie_status_q[19] <= pl_link_gen2_capable;
-		 * pcie_status_q[18] <= pl_link_partner_gen2_supported;
-		 * pcie_status_q[17] <= pl_link_upcfg_capable;
-		 * pcie_status_q[16:9] <= 7'b0;
-		 * pcie_status_q[8] <= pl_sel_link_rate;
-		 * pcie_status_q[7:2] <= 6'b0;
-		 * pcie_status_q[1:0] <= pl_sel_link_width;
-		 **/
-		 unsigned int getPCIeStatus();
+        /**
+         * get PCIe Interface status
+         * @return PCIe status consisting of:
+         * pcie_status_q[31:26] <= pl_ltssm_state;
+         * pcie_status_q[25:23] <= pl_initial_link_width;
+         * pcie_status_q[22:20] <= pl_lane_reversal_mode;
+         * pcie_status_q[19] <= pl_link_gen2_capable;
+         * pcie_status_q[18] <= pl_link_partner_gen2_supported;
+         * pcie_status_q[17] <= pl_link_upcfg_capable;
+         * pcie_status_q[16:9] <= 7'b0;
+         * pcie_status_q[8] <= pl_sel_link_rate;
+         * pcie_status_q[7:2] <= 6'b0;
+         * pcie_status_q[1:0] <= pl_sel_link_width;
+        **/
+        uint32_t getPCIeStatus();
 
-		 /**
-			* get FPGA Firmware Revision
-			* @return Firmware Revision
-			**/
-		 unsigned int getFwRevision();
+        /**
+         * get FPGA Firmware Revision
+         * @return Firmware Revision
+        **/
+        uint32_t getFwRevision();
 
-		 /**
-			* get FPGA Firmware Build Date
-			* @return Firmware Build Date as combination of
-			* year (bits [31:16]), month (bits[15:8]) and
-			* day (bits[7:0]).
-			**/
-		 unsigned int getFwBuildDate();
+        /**
+         * get FPGA Firmware Build Date
+         * @return Firmware Build Date as combination of
+         * year (bits [31:16]), month (bits[15:8]) and
+         * day (bits[7:0]).
+        **/
+        uint32_t getFwBuildDate();
 
-		 /**
-			* get FPGA unique identifier (Device DNA)
-			* @return 64bit Device DNA
-			**/
-		 unsigned long getDeviceDNA();
+        /**
+         * get FPGA unique identifier (Device DNA)
+         * @return 64bit Device DNA
+        **/
+        uint64_t getDeviceDNA();
 
-		 /**
-			* get Fan Tach Value
-			* @return RPMs of the FPGA Fan
-			**/
-		 unsigned int getFanTachValue();
+        /**
+         * get Fan Tach Value
+         * @return RPMs of the FPGA Fan
+        **/
+        uint32_t getFanTachValue();
 
-		 /**
-			* get FPGA Temperature
-			* @return FPGA temperature in degree celsius
-			**/
-		 double getFPGATemperature();
+        /**
+         * get FPGA Temperature
+         * @return FPGA temperature in degree celsius
+        **/
+        double getFPGATemperature();
 
-		 /**
-			* get FPGA VCC_INT Voltage
-			* @return VCCINT in Volts
-			**/
-		 double getVCCINT();
+        /**
+         * get FPGA VCC_INT Voltage
+         * @return VCCINT in Volts
+        **/
+        double getVCCINT();
 
-		 /**
-			* get FPGA VCC_AUX Voltage
-			* @return VCCAUX in Volts
-			**/
-		 double getVCCAUX();
+        /**
+         * get FPGA VCC_AUX Voltage
+         * @return VCCAUX in Volts
+        **/
+        double getVCCAUX();
 
-		 /**
-			* write to ICAP Interface
-			* @param dword bit-reordered configuration word
-			*
-			* use this function to write already reordered
-			* (*.bin-file) contents to the ICAP interface.
-			**/
-		 //void setIcapDin( unsigned int dword );
+        /**
+         * write to ICAP Interface
+         * @param dword bit-reordered configuration word
+         *
+         * use this function to write already reordered
+         * (*.bin-file) contents to the ICAP interface.
+        **/
+        //void setIcapDin( uint32_t dword );
 
-		 /**
-			* write to ICAP Interface and do the bit reordering
-			* @param dword not reordered configuration word
-			*
-			* use this function to write non-reordered
-			* (*.bit-files) to ICAP and do the reordering
-			* in the FPGA.
-			**/
-		 //void setIcapDinReorder( unsigned int dword );
+        /**
+         * write to ICAP Interface and do the bit reordering
+         * @param dword not reordered configuration word
+         *
+         * use this function to write non-reordered
+         * (*.bit-files) to ICAP and do the reordering
+         * in the FPGA.
+        **/
+        //void setIcapDinReorder( uint32_t dword );
 
-		 /**
-			* reset i2c bus
-			* @return 0 on sucess, -1 on error
-			**/
-		 int i2c_reset();
+        /**
+         * reset i2c bus
+        **/
+        void i2c_reset();
 
-		 /**
-			* read byte from i2c memory location
-			* @param slvaddr slave address
-			* @param memaddr memory address
-			* @param data pointer to unsigned char for
-			* received data
-			* @return 0 on success, -1 on errors
-			**/
-		 int i2c_read_mem(
-				 unsigned char slvaddr,
-				 unsigned char memaddr,
-				 unsigned char *data);
+        /**
+         * read byte from i2c memory location
+         * @param slvaddr slave address
+         * @param memaddr memory address
+         * @param data pointer to unsigned char for
+         * received data
+         * @return 0 on success, -1 on errors
+        **/
+        uint8_t
+        i2c_read_mem
+        (
+            uint8_t slvaddr,
+            uint8_t memaddr
+        );
 
-		 /**
-			* read byte from i2c memory location
-			* @param slvaddr slave address
-			* @param memaddr memory address
-			* @param data pointer to unsigned char for
-			* received data
-			* @return 0 on success, -1 on errors
-			**/
-		 int i2c_write_mem(
-				 unsigned char slvaddr,
-				 unsigned char memaddr,
-				 unsigned char data);
+        /**
+         * read byte from i2c memory location
+         * @param slvaddr slave address
+         * @param memaddr memory address
+         * @param data pointer to unsigned char for
+         * received data
+         * @return 0 on success, -1 on errors
+        **/
+        void
+        i2c_write_mem
+        (
+            uint8_t slvaddr,
+            uint8_t memaddr,
+            uint8_t data
+        );
 
-		 /**
-			* i2c_set_config
-			* @param config i2c configuration consisting of
-			* prescaler (31:16) and ctrl (7:0)
-			**/
-		 void i2c_set_config(
-				 unsigned int config);
+        /**
+         * i2c_set_config
+         * @param config i2c configuration consisting of
+         * prescaler (31:16) and ctrl (7:0)
+        **/
+        void i2c_set_config(uint32_t config);
 
-	private:
-		 librorc_bar *bar;
+    protected:
 
+        uint32_t wait_for_tip_to_negate();
+
+        void
+        check_rxack_is_zero( uint32_t status );
+
+        librorc_bar *m_bar;
 };
 
 #endif

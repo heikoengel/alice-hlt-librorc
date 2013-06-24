@@ -43,115 +43,115 @@
  */
 class rorc_bar : public librorc_bar
 {
-public:
+    public:
 
-/**
- * Constructor that sets fname accordingly. No mapping is
- * performed at this point.
- * @param dev parent rorcfs_device
- * @param n number of BAR to be mapped [0-6]
- **/
-rorc_bar
-(
-    rorcfs_device *dev,
-    int            n
-);
+        /**
+         * Constructor that sets fname accordingly. No mapping is
+         * performed at this point.
+         * @param dev parent rorcfs_device
+         * @param n number of BAR to be mapped [0-6]
+         **/
+        rorc_bar
+        (
+            rorcfs_device *dev,
+            int32_t        n
+        );
 
-/**
- * Deconstructor: free fname, unmap BAR, close file
- **/
-~rorc_bar();
+        /**
+         * Deconstructor: free fname, unmap BAR, close file
+         **/
+        ~rorc_bar();
 
-/**
- * initialize BAR mapping: open sysfs file, get file stats,
- * mmap file. This has to be done before using any other
- * member funtion. This function will fail if the requested
- * BAR does not exist.
- * @return 0 on sucess, -1 on errors
- **/
-int init();
+        /**
+         * initialize BAR mapping: open sysfs file, get file stats,
+         * mmap file. This has to be done before using any other
+         * member funtion. This function will fail if the requested
+         * BAR does not exist.
+         * @return 0 on sucess, -1 on errors
+         **/
+        int32_t init();
 
-/**
- * read DWORD from BAR address
- * @param addr (unsigned int) aligned address within the
- *              BAR to read from.
- * @return data read from BAR[addr]
- **/
-unsigned int
-get
-(
-    unsigned long addr
-);
+        /**
+         * read DWORD from BAR address
+         * @param addr (unsigned int) aligned address within the
+         *              BAR to read from.
+         * @return data read from BAR[addr]
+         **/
+        uint32_t
+        get
+        (
+            uint64_t addr
+        );
 
-/**
- * read WORD from BAR address
- * @param addr within the BAR to read from.
- * @return data read from BAR[addr]
- **/
-unsigned short
-get16
-(
-    unsigned long addr
-);
+        /**
+         * read WORD from BAR address
+         * @param addr within the BAR to read from.
+         * @return data read from BAR[addr]
+         **/
+        uint16_t
+        get16
+        (
+            uint64_t addr
+        );
 
-/**
- * copy buffer range into BAR
- * @param addr address in current BAR
- * @param source pointer to source data field
- * @param num number of bytes to be copied to destination
- * */
-void
-memcpy_bar
-(
-    unsigned long addr,
-    const void   *source,
-    size_t        num
-);
+        /**
+         * copy buffer range into BAR
+         * @param addr address in current BAR
+         * @param source pointer to source data field
+         * @param num number of bytes to be copied to destination
+         * */
+        void
+        memcpy_bar
+        (
+            uint64_t    addr,
+            const void *source,
+            size_t      num
+        );
 
-/**
- * write DWORD to BAR address
- * @param addr (unsigned int) aligned address within the
- *              BAR to write to
- * @param data (unsigned int) data word to be written.
- **/
-void
-set
-(
-    unsigned long addr,
-    unsigned int  data
-);
+        /**
+         * write DWORD to BAR address
+         * @param addr (unsigned int) aligned address within the
+         *              BAR to write to
+         * @param data (unsigned int) data word to be written.
+         **/
+        void
+        set
+        (
+            uint64_t addr,
+            uint32_t data
+        );
 
-/**
- * write WORD to BAR address
- * @param addr within the BAR to write to
- * @param data (unsigned int) data word to be written.
- **/
-void
-set16
-(
-    unsigned long  addr,
-    unsigned short data
-);
+        /**
+         * write WORD to BAR address
+         * @param addr within the BAR to write to
+         * @param data (unsigned int) data word to be written.
+         **/
+        void
+        set16
+        (
+            uint64_t addr,
+            uint16_t data
+        );
 
-/**
- * get current time of day
- * @param tv pointer to struct timeval
- * @param tz pointer to struct timezone
- * @return return valiue from gettimeof day or zero for FLI simulation
- **/
-int
-gettime
-(
-    struct timeval *tv,
-    struct timezone *tz
-);
+        /**
+         * get current time of day
+         * @param tv pointer to struct timeval
+         * @param tz pointer to struct timezone
+         * @return return valiue from gettimeof day or zero for FLI simulation
+         **/
+        int32_t
+        gettime
+        (
+            struct timeval *tv,
+            struct timezone *tz
+        );
 
-/**
- * get size of mapped BAR. This value is only valid after init()
- * @return size of mapped BAR in (unsigned long) bytes
- **/
+        /**
+         * get size of mapped BAR. This value is only valid after init()
+         * @return size of mapped BAR in bytes
+         **/
 
-size_t getSize();
+        size_t getSize();
 
 };
 
