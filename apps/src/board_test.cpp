@@ -19,9 +19,12 @@
  * */
 
 #include <iostream>
+#include <iomanip>
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 #include <fcntl.h>
 #include <stdint.h>
 #include <errno.h>
@@ -116,9 +119,9 @@ int main(int argc, char **argv)
 
     /** Printout revision, date, and serial number */
     cout << "CRORC FPGA" << endl
-         << "Firmware Rev. : " << hex << fwrev  << dec << endl
-         << "Firmware Date : " << hex << fwdate << dec << endl
-         << "Serial Number : " << hex << device_serial << dec << endl;
+         << "Firmware Rev. : " << hex << setprecision(8) << fwrev  << dec << endl
+         << "Firmware Date : " << hex << setprecision(8) << fwdate << dec << endl
+         << "Serial Number : " << hex << showbase << device_serial << dec << endl;
 
     printf("CRORC FPGA:\n"
       "Firmware Rev.  %08x\nFirmare Date:  %08x\n"
