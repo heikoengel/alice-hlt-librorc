@@ -56,9 +56,16 @@ qsfp_set_page0_and_config
 bool
 qsfpIsPresent
 (
-    rorcfs_sysmon *sm,
     librorc_bar   *bar1,
     uint32_t       index
+);
+
+bool
+qsfpLEDIsOn
+(
+    librorc_bar   *bar1,
+    uint32_t       qsfp_index,
+    uint32_t       LED_index
 );
 
 void
@@ -82,13 +89,13 @@ qsfpPrintTemperature
     uint32_t              index
 );
 
-uint32_t    pcieNumberOfLanes(librorc_bar *bar1);
-uint32_t    pcieGeneration(librorc_bar *bar1);
 
-bool        systemClockIsRunning(librorc_bar *bar1);
-bool        systemFanIsEnabled(librorc_bar *bar1);
-bool        systemFanIsRunning(librorc_bar *bar1);
-double      systemFanSpeed(librorc_bar *bar1);
+uint32_t pcieNumberOfLanes(librorc_bar *bar1);
+uint32_t pcieGeneration(librorc_bar *bar1);
+bool     systemClockIsRunning(librorc_bar *bar1);
+bool     systemFanIsEnabled(librorc_bar *bar1);
+bool     systemFanIsRunning(librorc_bar *bar1);
+double   systemFanSpeed(librorc_bar *bar1);
 
 
 int main(int argc, char **argv)
@@ -173,19 +180,15 @@ int main(int argc, char **argv)
         cout << "WARNING: fan seems to be stopped!" << endl;
     }
 
-//DONE
     /** Show QSFP status */
     cout << "QSFPs" << endl;
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
-        uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-        cout << "QSFP " << i << " present: " << qsfpIsPresent(sm, bar1, i) << endl;
+        cout << "QSFP " << i << " present: " << qsfpIsPresent(bar1, i) << endl;
+        cout << "QSFP " << i << " LED0 : " << qsfpLEDIsOn(bar1, i, 0)
+                             << " LED1 : " << qsfpLEDIsOn(bar1, i, 0) << endl;
 
-        printf("QSFP %d LED0: %d, LED1: %d\n", i,
-        ((~qsfp_ctrl)>>(8*i) & 0x01),
-        ((~qsfp_ctrl)>>(8*i+1) & 0x01));
-
-        if( qsfpIsPresent(sm, bar1, i) )
+        if( qsfpIsPresent(bar1, i) )
         {
             cout << "Checking QSFP" << i << " i2c access:" << endl;
 
@@ -193,7 +196,9 @@ int main(int argc, char **argv)
             qsfpPrintPartNumber(sm, i);
             qsfpPrintTemperature(sm, i);
         }
+
         cout << endl;
+        cout << "-------------------------------------" << endl;
     }
 
     exit(EXIT_SUCCESS);
@@ -235,7 +240,6 @@ qsfp_set_page0_and_config
 bool
 qsfpIsPresent
 (
-    rorcfs_sysmon *sm,
     librorc_bar   *bar1,
     uint32_t       index
 )
@@ -243,6 +247,26 @@ qsfpIsPresent
     uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
 
     if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
+    {
+        return true;
+    }
+
+    return false;
+}
+
+
+
+bool
+qsfpLEDIsOn
+(
+    librorc_bar   *bar1,
+    uint32_t       qsfp_index,
+    uint32_t       LED_index
+)
+{
+    uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
+
+    if( ((~qsfp_ctrl)>>(8*qsfp_index+LED_index) & 0x01) == 1 )
     {
         return true;
     }
