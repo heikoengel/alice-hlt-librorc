@@ -42,21 +42,26 @@ using namespace std;
 #endif
 
 #define SLVADDR 0x50
+#define LIBRORC_MAX_QSFP 3
 
 
 
-void     qsfp_set_page0(struct rorcfs_sysmon *sm);
-void     qsfp_print_vendor_name(struct rorcfs_sysmon *sm);
-void     qsfp_print_part_number(struct rorcfs_sysmon *sm);
-void     qsfp_print_temp(struct rorcfs_sysmon *sm);
+void        qsfp_set_page0_and_config
+            (
+                struct rorcfs_sysmon *sm,
+                uint32_t index
+            );
+void        qsfp_print_vendor_name(struct rorcfs_sysmon *sm);
+void        qsfp_print_part_number(struct rorcfs_sysmon *sm);
+void        qsfp_print_temp(struct rorcfs_sysmon *sm);
 
-uint32_t pcieNumberOfLanes(librorc_bar *bar1);
-uint32_t pcieGeneration(librorc_bar *bar1);
+uint32_t    pcieNumberOfLanes(librorc_bar *bar1);
+uint32_t    pcieGeneration(librorc_bar *bar1);
 
-bool     systemClockIsRunning(librorc_bar *bar1);
-bool     systemFanIsEnabled(librorc_bar *bar1);
-bool     systemFanIsRunning(librorc_bar *bar1);
-double   systemFanSpeed(librorc_bar *bar1);
+bool        systemClockIsRunning(librorc_bar *bar1);
+bool        systemFanIsEnabled(librorc_bar *bar1);
+bool        systemFanIsRunning(librorc_bar *bar1);
+double      systemFanSpeed(librorc_bar *bar1);
 
 
 int main(int argc, char **argv)
@@ -90,7 +95,9 @@ int main(int argc, char **argv)
     rorcfs_sysmon *sm = new rorcfs_sysmon();
     if ( sm->init(bar1) == -1 )
     {
-        printf("Sysmon init failed\n");
+        cout << "Sysmon init failed!" << endl;
+        delete bar1;
+        delete dev;
         abort();
     }
 
@@ -120,17 +127,17 @@ int main(int argc, char **argv)
          << "FPGA VCCAUX   : " << sm->getVCCAUX() << " V" << endl;
 
     /** print and check reported PCIe link width/speed */
-    cout << "Detected as:   PCIe Gen" << pcieGeneration(bar1)
+    cout << "Detected as   : PCIe Gen" << pcieGeneration(bar1)
          << " x" << pcieNumberOfLanes(bar1) << endl;
 
     if( (pcieGeneration(bar1)!=2) || (pcieNumberOfLanes(bar1)!=8) )
     { cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl; }
 
     /** Check if system clock is running */
-    cout << "SysClk locked: " << systemClockIsRunning(bar1) << endl;
+    cout << "SysClk locked : " << systemClockIsRunning(bar1) << endl;
 
     /** Check if fan is running */
-    cout << "Fan speed : " << systemFanSpeed(bar1) << " rpm" << endl;
+    cout << "Fan speed     : " << systemFanSpeed(bar1) << " rpm" << endl;
     if( systemFanIsEnabled(bar1) == false)
     {
         cout << "WARNING: fan seems to be disabled!" << endl;
@@ -143,34 +150,43 @@ int main(int argc, char **argv)
 
 //DONE
   // read QSFP CTRL
-  printf("\n-=== QSFPs ===-\n");
-  qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-  for(int i=0;i<3;i++) {
-    printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
-    printf("QSFP %d LED0: %d, LED1: %d\n", i,
+    cout << "QSFPs" << endl;
+
+    qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
+
+    for(int i=0;i<3;i++)
+    {
+        printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
+        printf("QSFP %d LED0: %d, LED1: %d\n", i,
         ((~qsfp_ctrl)>>(8*i) & 0x01),
         ((~qsfp_ctrl)>>(8*i+1) & 0x01));
 
-    //TODO: read module temp & model
-    if((~qsfp_ctrl)>>(8*i+2) & 0x01) {
-      printf("Checking QSFP%d i2c access:\n", i);
-      sm->i2c_set_config(0x01f30081 | ((1<<i)<<8));
-      qsfp_set_page0(sm);
-      qsfp_print_vendor_name(sm);
-      qsfp_print_part_number(sm);
-      qsfp_print_temp(sm);
-    }
-    printf("\n");
-  }
+        //TODO: read module temp & model
+        if((~qsfp_ctrl)>>(8*i+2) & 0x01)
+        {
+            printf("Checking QSFP%d i2c access:\n", i);
 
-  exit(EXIT_SUCCESS);
+            qsfp_set_page0_and_config(sm, i);
+            qsfp_print_vendor_name(sm);
+            qsfp_print_part_number(sm);
+            qsfp_print_temp(sm);
+        }
+        printf("\n");
+    }
+
+    for(uint8_t i; i<LIBRORC_MAX_QSFP; i++)
+    {
+
+    }
+
+    exit(EXIT_SUCCESS);
 }
 
 //TODO :  MOVE to sysmon soon! ________________________________________________________
 
 //QSFP
 
-void qsfp_set_page0(struct rorcfs_sysmon *sm)
+void qsfp_set_page0_and_config(struct rorcfs_sysmon *sm, uint32_t index)
 {
     uint8_t data_r;
 
@@ -188,6 +204,8 @@ void qsfp_set_page0(struct rorcfs_sysmon *sm)
     {
         sm->i2c_write_mem(SLVADDR, 127, 0);
     }
+
+    sm->i2c_set_config(0x01f30081 | ((1<<index)<<8));
 }
 
 
