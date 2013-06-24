@@ -59,8 +59,6 @@ rorcfs_sysmon::~rorcfs_sysmon()
 uint32_t
 rorcfs_sysmon::getFwRevision()
 {
-	assert(m_bar!=NULL);
-
 	uint32_t firmware_revision
         = m_bar->get(RORC_REG_FIRMWARE_REVISION);
 
@@ -77,8 +75,6 @@ rorcfs_sysmon::getFwRevision()
 uint32_t
 rorcfs_sysmon::getFwBuildDate()
 {
-	assert(m_bar!=NULL);
-
     uint32_t date
         = m_bar->get(RORC_REG_FIRMWARE_DATE);
 
@@ -95,7 +91,6 @@ rorcfs_sysmon::getFwBuildDate()
 uint32_t
 rorcfs_sysmon::getFanTachValue()
 {
-	assert(m_bar!=NULL);
 //	uint32_t rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
 //	if ( rpm_raw==0 )
 //	{
@@ -113,7 +108,6 @@ rorcfs_sysmon::getFanTachValue()
 double
 rorcfs_sysmon::getFPGATemperature()
 {
-	assert(m_bar!=NULL);
 	uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
 	return (double)(value*503.975/1024.0 - 273.15);
 }
@@ -123,7 +117,6 @@ rorcfs_sysmon::getFPGATemperature()
 double
 rorcfs_sysmon::getVCCINT()
 {
-	assert(m_bar!=NULL);
 	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
 	return (double)(value/1024.0 * 3.0);
 }
@@ -133,7 +126,6 @@ rorcfs_sysmon::getVCCINT()
 double
 rorcfs_sysmon::getVCCAUX()
 {
-	assert(m_bar!=NULL);
 	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
 	return (double)(value/1024.0 * 3.0);
 }
@@ -142,7 +134,6 @@ rorcfs_sysmon::getVCCAUX()
 
 //void rorcfs_sysmon::setIcapDin ( uint32_t dword )
 //{
-//	assert(m_bar!=NULL);
 //	bar->set(RORC_REG_ICAP_DIN, dword);
 //}
 
@@ -150,7 +141,6 @@ rorcfs_sysmon::getVCCAUX()
 
 //void rorcfs_sysmon::setIcapDinReorder ( uint32_t )
 //{
-//	assert(m_bar!=NULL);
 //	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
 //}
 
@@ -159,7 +149,6 @@ rorcfs_sysmon::getVCCAUX()
 void
 rorcfs_sysmon::i2c_reset()
 {
-	assert(m_bar!=NULL);
 	m_bar->set(RORC_REG_I2C_OPERATION, 0x00040000);
 
     uint32_t status
@@ -181,8 +170,6 @@ rorcfs_sysmon::i2c_read_mem
     uint8_t memaddr
 )
 {
-	assert(m_bar!=NULL);
-
 	/** slave address shifted by one, write bit set */
 	uint8_t addr_wr = (slvaddr<<1);
 	uint8_t addr_rd = (slvaddr<<1) | 0x01;
@@ -216,8 +203,6 @@ rorcfs_sysmon::i2c_write_mem
     uint8_t data
 )
 {
-    assert(m_bar!=NULL);
-
 	/** slave address shifted by one, write bit set */
 	uint8_t addr_wr = (slvaddr<<1);
 
@@ -269,6 +254,5 @@ rorcfs_sysmon::i2c_write_mem
 
 void rorcfs_sysmon::i2c_set_config( uint32_t config )
 {
-	assert(m_bar!=NULL);
 	m_bar->set(RORC_REG_I2C_CONFIG, config);
 }
