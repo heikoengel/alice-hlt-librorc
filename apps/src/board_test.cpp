@@ -61,14 +61,7 @@ double   systemFanSpeed(librorc_bar *bar1);
 
 int main(int argc, char **argv)
 {
-    librorc_bar   *bar1          = NULL;
-    rorcfs_sysmon *sm            = NULL;
-    uint64_t       device_serial = 0;
-
-    uint32_t ddrctrl, fwrev, fwdate;
-    uint32_t status;
-    uint32_t qsfp_ctrl, fanctrl;
-    int i;
+    uint32_t qsfp_ctrl;
 
     /** create new device object */
     rorcfs_device *dev = new rorcfs_device();
@@ -76,10 +69,11 @@ int main(int argc, char **argv)
     {
         printf("failed to initialize device 0 - "
         "is the board detected with lspci?\n");
-        goto out;
+        abort();
     }
 
     /** bind to BAR1 */
+    librorc_bar *bar1 = NULL;
     #ifdef SIM
         bar1 = new sim_bar(dev, 1);
     #else
@@ -88,78 +82,52 @@ int main(int argc, char **argv)
 
     if ( bar1->init() == -1 )
     {
-        goto out;
+        delete dev;
+        abort();
     }
 
     /** instantiate a new sysmon */
-    sm = new rorcfs_sysmon();
+    rorcfs_sysmon *sm = new rorcfs_sysmon();
     if ( sm->init(bar1) == -1 )
     {
         printf("Sysmon init failed\n");
-        goto out;
-    }
-
-    fwrev = sm->getFwRevision();
-    if( fwrev==0xffffffff )
-    {
-        cout << "Reading FW-Revision returned -1. This is likely a "
-             << "PCIe access problem. Check lspci if the device is "
-             << "up and the BARs are enabled" << endl;
-        goto out;
-    }
-
-    fwdate = sm->getFwBuildDate();
-    if( fwdate==0xffffffff )
-    {
-        cout << "Reading FW-Date returned -1. This is likely a "
-             << "PCIe access problem. Check lspci if the device is up"
-             << "and the BARs are enabled" << endl;
-        goto out;
+        abort();
     }
 
     /** Printout revision, date, and serial number */
-    cout << "CRORC FPGA" << endl
-         << "Firmware Rev. : " << hex << setprecision(8) << fwrev  << dec << endl
-         << "Firmware Date : " << hex << setprecision(8) << fwdate << dec << endl
-         << "Serial Number : " << hex << showbase << device_serial << dec << endl;
-
-    printf("CRORC FPGA:\n"
-      "Firmware Rev.  %08x\nFirmare Date:  %08x\n"
-      "Serial Number: 0x%016lx\n",
-      fwrev, fwdate, device_serial);
+    uint64_t device_serial = 0;
+    try
+    {
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setprecision(8) << sm->getFwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setprecision(8) << sm->getFwBuildDate() << dec << endl
+             << "Serial Number : " << hex << showbase << device_serial << dec << endl;
+    }
+    catch(...)
+    {
+        cout << "Reading Date returned wrong. This is likely a "
+             << "PCIe access problem. Check lspci if the device is up"
+             << "and the BARs are enabled" << endl;
+        delete sm;
+        delete bar1;
+        delete dev;
+        abort();
+    }
 
     /** Print Voltages, Temperature */
     cout << "Temperature   : " << sm->getFPGATemperature() << " °C" << endl
          << "FPGA VCCINT   : " << sm->getVCCINT() << " V" << endl
          << "FPGA VCCAUX   : " << sm->getVCCAUX() << " V" << endl;
 
-    printf("Temperature:   %.1f °C\n", sm->getFPGATemperature());
-    printf("FPGA VCCINT:   %.2f V\n", sm->getVCCINT());
-    printf("FPGA VCCAUX:   %.2f V\n", sm->getVCCAUX());
-
     /** print and check reported PCIe link width/speed */
     cout << "Detected as:   PCIe Gen" << pcieGeneration(bar1)
          << " x" << pcieNumberOfLanes(bar1) << endl;
+
     if( (pcieGeneration(bar1)!=2) || (pcieNumberOfLanes(bar1)!=8) )
     { cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl; }
 
-    status = bar1->get(RORC_REG_PCIE_CTRL);
-    if ((status>>3 & 0x3)!=3 || !(status>>5 & 0x01))
-    {
-        printf(" WARNING: FPGA reports unexpexted PCIe link parameters:\n");
-        printf("reported PCIe Link width: %d lanes (expected 8)\n", (1<<(status>>3 & 0x3)));
-        printf("reported PCIe Link Gen: %d (expected 2)\n", (1<<(status>>5 & 0x01)));
-    }
-    else
-    {
-        printf("Detected as:   PCIe Gen2 x8\n");
-    }
-
     /** Check if system clock is running */
     cout << "SysClk locked: " << systemClockIsRunning(bar1) << endl;
-
-    ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
-    printf("SysClk locked: %d\n", (ddrctrl>>3)&1);
 
     /** Check if fan is running */
     cout << "Fan speed : " << systemFanSpeed(bar1) << " rpm" << endl;
@@ -173,21 +141,11 @@ int main(int argc, char **argv)
         cout << "WARNING: fan seems to be stopped!" << endl;
     }
 
-    fanctrl = bar1->get(RORC_REG_FAN_CTRL);
-    if ( !(fanctrl & (1<<31)) )
-    printf("WARNING: fan seems to be disabled!");
-    else if ( !(fanctrl & (1<<29)) )
-    printf("WARNING: fan seems to be stopped!");
-    else
-    printf("Fan:           %.1f RPM\n",
-    15/((fanctrl & 0x1fffffff)*0.000000004));
-
-
 //DONE
   // read QSFP CTRL
   printf("\n-=== QSFPs ===-\n");
   qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-  for(i=0;i<3;i++) {
+  for(int i=0;i<3;i++) {
     printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
     printf("QSFP %d LED0: %d, LED1: %d\n", i,
         ((~qsfp_ctrl)>>(8*i) & 0x01),
@@ -204,14 +162,6 @@ int main(int argc, char **argv)
     }
     printf("\n");
   }
-
-
-
-out:
-  if (bar1)
-    delete bar1;
-  if (dev)
-    delete dev;
 
   exit(EXIT_SUCCESS);
 }

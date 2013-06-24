@@ -65,7 +65,16 @@ uint32_t
 rorcfs_sysmon::getFwRevision()
 {
 	assert(m_bar!=NULL);
-	return m_bar->get(RORC_REG_FIRMWARE_REVISION);
+
+	uint32_t firmware_revision
+        = m_bar->get(RORC_REG_FIRMWARE_REVISION);
+
+	if(firmware_revision == 0xffffffff)
+    {
+        throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
+    }
+
+	return firmware_revision;
 }
 
 
@@ -74,7 +83,16 @@ uint32_t
 rorcfs_sysmon::getFwBuildDate()
 {
 	assert(m_bar!=NULL);
-	return m_bar->get(RORC_REG_FIRMWARE_DATE);
+
+    uint32_t date
+        = m_bar->get(RORC_REG_FIRMWARE_DATE);
+
+	if(date == 0xffffffff)
+    {
+        throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
+    }
+
+	return date;
 }
 
 
@@ -91,7 +109,7 @@ rorcfs_sysmon::getFanTachValue()
 //	else
 //	{
 //        return (unsigned int)(750000000/rpm_raw);
-//    }
+//  }
 	return 0;
 }
 
