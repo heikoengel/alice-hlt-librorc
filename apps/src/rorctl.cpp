@@ -57,6 +57,7 @@ Instruction parameters :                                     \n\
                   needed afterwards)                         \n\
                   Requires value parameters -n               \n\
   -s              Show flash status                          \n\
+  -r              Reset Flash                                \n\
 Examples :                                                   \n\
 Show status of Device 0 Flash 0:                             \n\
   rorctl -n 0 -c 0 -s                                        \n\
@@ -163,7 +164,7 @@ int main
     {
         opterr = 0;
         int c;
-        while((c = getopt(argc, argv, "hvldepn:f:c:s")) != -1)
+        while((c = getopt(argc, argv, "hvldepn:f:c:sr")) != -1)
         {
             switch(c)
             {
@@ -192,6 +193,14 @@ int main
                     cout << "Dumping device to file!" << endl;
                     flash = init_flash(options);
                     return( flash->dump(options.filename, options.verbose) );
+                }
+                break;
+
+                case 'r':
+                {
+                    cout << "Resetting Flash!" << endl;
+                    flash = init_flash(options);
+                    return(0);
                 }
                 break;
 
@@ -234,9 +243,6 @@ int main
                 {
                     flash = init_flash(options);
                     flash->clearStatusRegister(0);
-
-                    // set asynchronous read mode
-                    flash->setConfigReg(0xbddf);
 
                     uint16_t flashstatus = flash->getStatusRegister(0);
                     cout << "Status               : " << hex
@@ -401,6 +407,15 @@ init_flash
             break;
         }
         return(NULL);
+    }
+  
+    // set asynchronous read mode
+    flash->setConfigReg(0xbddf);
+
+    uint16_t status = flash->resetChip();
+    if ( status )
+    {
+        cout << "resetChip failed: " << hex << status << endl;
     }
 
     return(flash);

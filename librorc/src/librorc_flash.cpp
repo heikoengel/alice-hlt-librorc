@@ -51,7 +51,6 @@ librorc_flash::librorc_flash
     }
 
     bar        = flashbar;
-    read_state = 0;
     base_addr = chip_select << FLASH_CHIP_SELECT_BIT;
 
     uint16_t status = getStatusRegister(0);
@@ -73,20 +72,18 @@ librorc_flash::librorc_flash
 librorc_flash::~librorc_flash()
 {
     bar = NULL;
-    read_state = 0;
 }
 
 
 
 void
-librorc_flash::setReadState
+librorc_flash::sendCommand
 (
-    uint16_t state,
-    uint32_t addr
+    uint32_t addr,
+    uint16_t cmd
 )
 {
-    bar->set16(base_addr + addr, state);
-    read_state = state;
+    bar->set16(base_addr + addr, cmd);
 }
 
 
@@ -97,12 +94,8 @@ librorc_flash::getStatusRegister
     uint32_t blkaddr
 )
 {
-    if(read_state != FLASH_READ_STATUS)
-    {
-        setReadState(FLASH_READ_STATUS, blkaddr);
-    }
-
-    return bar->get16(base_addr + blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_READ_STATUS);
+    return get(blkaddr);
 }
 
 
@@ -113,8 +106,7 @@ librorc_flash::clearStatusRegister
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CLR_STS);
-    setReadState(FLASH_READ_ARRAY, blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_CLR_STS);
 }
 
 
@@ -122,12 +114,15 @@ librorc_flash::clearStatusRegister
 uint16_t
 librorc_flash::getManufacturerCode()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
 
-    return bar->get16(base_addr + 0x00);
+    /** get code */
+    uint16_t code = get(0x00);
+
+    /** return into read array mode */
+    resetBlock(0);
+
+    return code;
 }
 
 
@@ -135,12 +130,16 @@ librorc_flash::getManufacturerCode()
 uint16_t
 librorc_flash::getDeviceID()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    /** send read id code command */
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
 
-    return bar->get16(base_addr + 0x01);
+    /** get ID */
+    uint16_t id = get(0x01);
+
+    /** return into read array mode */
+    resetBlock(0);
+
+    return id;
 }
 
 
@@ -151,12 +150,13 @@ librorc_flash::getBlockLockConfiguration
     uint32_t blkaddr
 )
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, blkaddr);
-    }
+    sendCommand(blkaddr, FLASH_CMD_READ_IDENTIFIER);
+    uint16_t cfg = get(blkaddr + 0x02);
 
-    return bar->get16(base_addr + blkaddr + 0x02);
+    /** return into read array mode */
+    resetBlock(0);
+
+    return cfg;
 }
 
 
@@ -164,28 +164,28 @@ librorc_flash::getBlockLockConfiguration
 uint16_t
 librorc_flash::getReadConfigurationRegister()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
-    {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
-    }
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
+    uint16_t rcr = get(0x05);
 
-    return bar->get16(base_addr + 0x05);
+    /** return into read array mode */
+    resetBlock(0);
+
+    return rcr;
 }
 
 
 uint64_t
 librorc_flash::getUniqueDeviceNumber()
 {
-    if(read_state != FLASH_READ_IDENTIFIER)
+    uint64_t udn = 0;
+    sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
+    for ( int i=0; i<4; i++ )
     {
-        setReadState(FLASH_READ_IDENTIFIER, 0x00);
+        udn += ( get(0x81 + i) )<<(16*i);
     }
 
-    uint64_t udn = 0;
-    for ( int32_t i=0; i<4; i++ )
-    {
-        udn += ( bar->get16(base_addr + 0x81 + i) )<<(16*i);
-    }
+    /** return into read array mode */
+    resetBlock(0);
 
     return udn;
 }
@@ -197,102 +197,130 @@ librorc_flash::get
     uint32_t addr
 )
 {
-    if(read_state != FLASH_READ_ARRAY)
-    {
-        setReadState(FLASH_READ_ARRAY, addr);
-    }
     return bar->get16(base_addr + addr);
 }
 
 
-
-int8_t
-librorc_flash::programWord
+uint16_t 
+librorc_flash::resetBlock
 (
-    uint32_t addr,
-    uint16_t data
+    uint32_t blkaddr
 )
 {
-    uint16_t status  = 0;
-    uint32_t   timeout = CFG_FLASH_TIMEOUT;
+    /** Send Clear Status Command **/
+    clearStatusRegister(blkaddr);
+    clearStatusRegister(blkaddr);
 
-    /** word program setup */
-    bar->set16(base_addr + addr, FLASH_CMD_PROG_SETUP);
+    /** Sample the Status **/
+    uint16_t status = getStatusRegister(blkaddr);
 
-    bar->set16(base_addr + addr, data);
-    read_state = FLASH_READ_STATUS;
-    status = bar->get16(base_addr + addr);
-
-    while( (status & FLASH_PEC_BUSY) == 0)
-    {
-        usleep(100);
-        status = bar->get16(base_addr + addr);
-        timeout--;
-        if(timeout == 0)
-        {
-            return -1;
-        }
-    }
-
-    if(status == FLASH_PEC_BUSY)
-    {
-        clearStatusRegister(addr);
-        return 0;
-    }
-    else
-    {
-        return -status;
-    }
+    sendCommand(blkaddr, FLASH_CMD_RESET);
+    sendCommand(blkaddr, FLASH_CMD_READ_ARRAY);
+    
+    return status;
 }
 
 
+uint16_t
+librorc_flash::resetChip()
+{
+    uint32_t blkaddr = 0;
+    struct flash_architecture arch;
 
-int8_t
+    /** iterate over all blocks */
+    while( getFlashArchitecture(blkaddr, &arch) == 0 )
+    {
+        uint16_t status = resetBlock(blkaddr);
+        if ( !(status & FLASH_PEC_BUSY) )
+        {
+            cout << "resetBlock failed, Block "
+                 << arch.blknum << " is busy." << endl;
+            return status;
+        }
+        blkaddr += (arch.blksize >> 1);
+    }
+    return 0;
+}
+
+
+int32_t
 librorc_flash::programBuffer
 (
     uint32_t  addr,
     uint16_t  length,
-    uint16_t *data
+    uint16_t *data,
+    librorc_verbosity_enum verbose
 )
 {
-    /** check if block is locked */
-    uint32_t blkaddr = addr & CFG_FLASH_BLKMASK;
-    if( getBlockLockConfiguration(blkaddr) )
-    {
-        unlockBlock(blkaddr);
-    }
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    /** write to buffer command */
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BUFFER_PROG);
-    read_state = FLASH_READ_STATUS;
-
-    /** read status register */
-    uint16_t status = bar->get16(base_addr + blkaddr);
-    if( (status & FLASH_PEC_BUSY) == 0)                                           //
+    /** get current block address */
+    struct flash_architecture arch;
+    if ( getFlashArchitecture(addr, &arch) )
     {
+        cout << "Invalid flash address: "<< hex << addr << endl;
         return -1;
     }
 
+    /** check if block is locked */
+    if( getBlockLockConfiguration(arch.blkaddr) )
+    {
+        /** try to unlock block */
+        int32_t ret = unlockBlock(arch.blkaddr) ;
+        if ( ret < 0 )
+        {
+            cout << "Failed to unlock block at addr" << hex 
+                 << arch.blkaddr << endl;
+            return ret;
+        }
+    }
+
+    /** send write buffer command */
+    sendCommand(arch.blkaddr, FLASH_CMD_BUFFER_PROG);
+
+    /** wait for buffer to become available */
+    uint16_t status = get(arch.blkaddr);
+    while( !(status & FLASH_PEC_BUSY) )
+    {
+        usleep(100);
+        status = get(arch.blkaddr);
+        timeout--;
+        if(timeout == 0)
+        {
+            if ( verbose==LIBRORC_VERBOSE_ON )
+            {
+                cout << "programBuffer: Timeout waiting for buffer!" 
+                     << endl;
+            }
+            return -status;
+        }
+    }
+
     /** write word count */
-    bar->set16(base_addr + blkaddr, length - 1);
-    bar->set16(base_addr + addr, data[0]);
-    for(uint16_t i=1; i < length; i++)
+    bar->set16(base_addr + arch.blkaddr, length - 1);
+
+    for(int32_t i=0; i < length; i++)
     {
         bar->set16(base_addr + addr + i, data[i]);
     }
 
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
-    status = bar->get16(base_addr + blkaddr);
+    /** send write confirm command */
+    sendCommand(arch.blkaddr, FLASH_CMD_CONFIRM);
 
     /** Wait while device is busy */
-    uint32_t timeout = CFG_FLASH_TIMEOUT;
-    while( !(status & FLASH_PEC_BUSY) )
+    timeout = CFG_FLASH_TIMEOUT;
+    status = get(arch.blkaddr);
+    while( (status & FLASH_PEC_BUSY) == 0 )
     {
         usleep(100);
-        status = bar->get16(base_addr + blkaddr);
+        status = get(arch.blkaddr);
         timeout--;
         if(timeout == 0)
         {
+            if ( verbose==LIBRORC_VERBOSE_ON )
+            {
+                cout << "programBuffer: Timeout waiting for busy!" << endl;
+            }
             return -status;
         }
     }
@@ -300,17 +328,23 @@ librorc_flash::programBuffer
     /** SR.5 or SR.4 nonzero -> program/erase/sequence error */
     if(status != FLASH_PEC_BUSY)
     {
+        if ( verbose==LIBRORC_VERBOSE_ON )
+        {
+            cout << "programBuffer: program/erase sequence error: " 
+                 << hex << status << endl;
+        }
         return -status;
     }
 
-    /** return to ReadArry mode */
-    setReadState(FLASH_READ_ARRAY, blkaddr);
+    /** return to read array mode */
+    resetBlock(arch.blkaddr);
+
     return 0;
 }
 
 
 
-int8_t
+int32_t
 librorc_flash::eraseBlock
 (
     uint32_t blkaddr
@@ -320,17 +354,16 @@ librorc_flash::eraseBlock
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
     /** erase command */
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
 
     /** confim command */
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
-    read_state = FLASH_READ_STATUS;
-    status = bar->get16(base_addr + blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
 
-    while( (status & FLASH_PEC_BUSY) == 0)
+    status = get(blkaddr);
+    while( (status & FLASH_PEC_BUSY) == 0 || status==0xffff)
     {
         usleep(100);
-        status = bar->get16(base_addr + blkaddr);
+        status = get(blkaddr);
         timeout--;
         if(timeout == 0)
         {
@@ -338,15 +371,10 @@ librorc_flash::eraseBlock
         }
     }
 
-    if(status == FLASH_PEC_BUSY)
-    {
-        clearStatusRegister(blkaddr);
-        return 0;
-    }
-    else
-    {
-        return -status;
-    }
+    /** return into read array mode */
+    resetBlock(blkaddr);
+
+    return 0;
 }
 
 
@@ -357,7 +385,7 @@ librorc_flash::programSuspend
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_PROG_ERASE_SUSPEND);
+    sendCommand(blkaddr, FLASH_CMD_PROG_ERASE_SUSPEND);
 }
 
 
@@ -368,31 +396,80 @@ librorc_flash::programResume
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
 }
 
 
 
-void
+int32_t
 librorc_flash::lockBlock
 (
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
+
+    /** clear any latched status register contents */
+    clearStatusRegister(blkaddr);
+
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_LOCK_CONFIRM);
+
+    /** wait for unlock to complete */
+    uint16_t status = getStatusRegister(blkaddr);
+    while( (status & FLASH_PEC_BUSY) == 0)
+    {
+        usleep(100);
+        status = getStatusRegister(blkaddr);
+        timeout--;
+        if(timeout == 0)
+        {
+            return -status;
+        }
+    }
+    clearStatusRegister(blkaddr);
+
+    /** return into read array mode */
+    resetBlock(blkaddr);
+
+    return 0;
 }
 
 
 
-void
+int32_t
 librorc_flash::unlockBlock
 (
     uint32_t blkaddr
 )
 {
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(base_addr + blkaddr, FLASH_CMD_CONFIRM);
+    uint32_t timeout = CFG_FLASH_TIMEOUT;
+
+    /** clear any latched status register contents */
+    clearStatusRegister(blkaddr);
+
+    /** unlock block */
+    sendCommand(blkaddr, FLASH_CMD_BLOCK_LOCK_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_CONFIRM);
+
+    /** wait for unlock to complete */
+    uint16_t status = getStatusRegister(blkaddr);
+    while( (status & FLASH_PEC_BUSY) == 0)
+    {
+        usleep(100);
+        status = getStatusRegister(blkaddr);
+        timeout--;
+        if(timeout == 0)
+        {
+            return -status;
+        }
+    }
+    clearStatusRegister(blkaddr);
+
+    /** return into read array mode */
+    resetBlock(blkaddr);
+
+    return 0;
 }
 
 
@@ -409,7 +486,7 @@ librorc_flash::setConfigReg
 
 
 
-int8_t
+int32_t
 librorc_flash::blankCheck
 (
     uint32_t blkaddr
@@ -418,16 +495,15 @@ librorc_flash::blankCheck
     uint16_t status;
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BC_SETUP);
-    bar->set16(base_addr + blkaddr, FLASH_CMD_BC_CONFIRM);
-    read_state = FLASH_READ_STATUS;
-    status = bar->get16(base_addr + blkaddr);
+    sendCommand(blkaddr, FLASH_CMD_BC_SETUP);
+    sendCommand(blkaddr, FLASH_CMD_BC_CONFIRM);
+    status = get(blkaddr);
 
     /** wait for blankCheck to complete */
     while( (status & FLASH_PEC_BUSY) == 0)
     {
         usleep(100);
-        status = bar->get16(base_addr + blkaddr);
+        status = get(blkaddr);
         timeout--;
         if(timeout == 0)
         {
@@ -444,7 +520,7 @@ librorc_flash::blankCheck
 }
 
 
-int64_t
+int32_t
 librorc_flash::getFlashArchitecture
 (
     uint32_t addr,
@@ -482,47 +558,7 @@ librorc_flash::getFlashArchitecture
 
 
 
-uint32_t
-librorc_flash::getBlockAddress
-(
-    uint32_t addr
-)
-{
-    /** memory organization:
-     * block 130: 0x000000 - 0x00ffff
-     * block 129: 0x001000 - 0x01ffff
-     * ....
-     * block 4: 0x7e0000 - 0x7effff
-     * block 3: 0x7f0000 - 0x7f3fff
-     * block 2: 0x7f4000 - 0x7f7fff
-     * block 1: 0x7f8000 - 0x7fbfff
-     * block 0: 0x7fc000 - 0x7fffff
-     * */
-    if(addr <= 0x7effff)
-    {
-        return (addr & 0xffff0000);
-    }
-    else
-    {
-        return (addr & 0xffffc000);
-    }
-}
-
-
-
-uint32_t
-librorc_flash::getBankAddress
-(
-    uint32_t addr
-)
-{
-    /** bank 0: 0x000000 - 0x080000 **/
-    return(addr & 0xff800000);
-}
-
-
-
-int64_t
+int32_t
 librorc_flash::dump
 (
     char                   *filename,
@@ -571,7 +607,7 @@ librorc_flash::dump
 
 
 
-int64_t
+int32_t
 librorc_flash::erase
 (
     int64_t byte_count,
@@ -584,6 +620,7 @@ librorc_flash::erase
     }
 
     uint32_t current_addr = 0;
+    int32_t  status;
 
     while ( byte_count > 0 )
     {
@@ -602,16 +639,26 @@ librorc_flash::erase
             fflush(stdout);
         }
 
-        if( getBlockLockConfiguration(arch.blkaddr) & 0x01 )
+        /** check if block is locked */
+        if( getBlockLockConfiguration(arch.blkaddr) )
         {
-            unlockBlock(arch.blkaddr);
+            /** try to unlock block */
+            status = unlockBlock(arch.blkaddr) ;
+            if ( status < 0 )
+            {
+                cout << "Failed to unlock block at addr" << hex 
+                     << arch.blkaddr << endl;
+                return status;
+            }
         }
 
-        uint8_t ret = eraseBlock(arch.blkaddr);
-        if( ret < 0 )
+        /** erase block */
+        status = eraseBlock(arch.blkaddr);
+        if( status < 0 )
         {
-            cout << "Failed to erase block at addr" << hex << current_addr << endl;
-            return ret;
+            cout << "Failed to erase block at addr" << hex 
+                 << arch.blkaddr << ": " << -status << endl;
+            return status;
         }
 
         current_addr += (arch.blksize >> 1);
@@ -622,7 +669,7 @@ librorc_flash::erase
 
     if(verbose == LIBRORC_VERBOSE_ON)
     {
-        cout << endl << "Erase complete!" << endl;
+        cout << "Erase complete!" << endl;
     }
 
     return 0;
@@ -630,7 +677,7 @@ librorc_flash::erase
 
 
 
-int64_t
+int32_t
 librorc_flash::flash
 (
     char                   *filename,
@@ -671,7 +718,7 @@ librorc_flash::flash
     }
 
     /** Open the flash file */
-    int fd = open(filename, O_RDONLY);
+    int32_t fd = open(filename, O_RDONLY);
     if(fd == -1)
 	{
         cout << "failed to open input file "
@@ -703,11 +750,11 @@ librorc_flash::flash
             fflush(stdout);
         }
 
-        int8_t ret = programBuffer(addr, bytes_read/2, buffer);
+        int32_t ret = programBuffer(addr, bytes_read/2, buffer, verbose);
         if (ret < 0)
         {
             cout << "programBuffer failed, STS: " << hex
-                 << ret << dec << endl;
+                 << -ret << dec << endl;
             break;
         }
 
