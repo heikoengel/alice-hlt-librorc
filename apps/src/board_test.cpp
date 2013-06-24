@@ -124,8 +124,10 @@ int main(int argc, char **argv)
     }
 
     /** instantiate a new sysmon */
-    rorcfs_sysmon *sm = new rorcfs_sysmon();
-    if ( sm->init(bar1) == -1 )
+    rorcfs_sysmon *sm;
+    try
+    { sm = new rorcfs_sysmon(bar1); }
+    catch(...)
     {
         cout << "Sysmon init failed!" << endl;
         delete bar1;

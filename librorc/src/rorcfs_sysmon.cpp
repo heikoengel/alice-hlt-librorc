@@ -33,9 +33,18 @@
 //TODO: get rid of all the asserts here
 //TODO: move external interface to CaMeLcAsE
 
-rorcfs_sysmon::rorcfs_sysmon()
+rorcfs_sysmon::rorcfs_sysmon
+(
+librorc_bar *parent_bar
+)
 {
 	m_bar = NULL;
+    if( !parent_bar )
+	{
+		throw LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED;
+	}
+
+    m_bar = parent_bar;
 }
 
 
@@ -43,20 +52,6 @@ rorcfs_sysmon::rorcfs_sysmon()
 rorcfs_sysmon::~rorcfs_sysmon()
 {
 	m_bar = NULL;
-}
-
-
-
-int32_t
-rorcfs_sysmon::init( librorc_bar *parent_bar )
-{
-    if (parent_bar)
-	{
-		m_bar = parent_bar;
-		return 0;
-	}
-
-    return -1;
 }
 
 

@@ -21,10 +21,11 @@
 #ifndef RORCFS_SYSMON_H
 #define RORCFS_SYSMON_H
 
-#define LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED 1
+#define LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED  1
 #define LIBRORC_SYSMON_ERROR_PCI_PROBLEM         5
 #define LIBRORC_SYSMON_ERROR_RXACK              20
 #define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
+#define LIBRORC_SYSMON_ERROR_I2C_READ_FAILED    40
 
 #include <librorc_registers.h>
 
@@ -39,15 +40,8 @@
 class rorcfs_sysmon
 {
     public:
-        rorcfs_sysmon();
+        rorcfs_sysmon(librorc_bar *parent_bar);
         ~rorcfs_sysmon();
-
-        /**
-         * initialize instance
-         * @param bar parent rorcfs_bar instance
-         * @return -1 on errors, 0 on success
-        **/
-        int32_t init( librorc_bar *bar );
 
         /**
          * get PCIe Interface status
