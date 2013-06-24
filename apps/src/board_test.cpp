@@ -46,12 +46,19 @@ using namespace std;
 
 
 
-void        qsfp_set_page0_and_config
-            (
-                struct rorcfs_sysmon *sm,
-                uint32_t index
-            );
-void        qsfp_print_vendor_name(struct rorcfs_sysmon *sm);
+void qsfp_set_page0_and_config
+(
+    struct rorcfs_sysmon *sm,
+    uint32_t index
+);
+
+
+void qsfp_print_vendor_name
+(
+    rorcfs_sysmon *sm,
+    uint32_t       index
+);
+
 void        qsfp_print_part_number(struct rorcfs_sysmon *sm);
 void        qsfp_print_temp(struct rorcfs_sysmon *sm);
 
@@ -154,7 +161,7 @@ int main(int argc, char **argv)
 
     qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
 
-    for(int i=0;i<3;i++)
+    for(uint32_t i=0;i<3;i++)
     {
         printf("QSFP %d present: %d\n", i, ((~qsfp_ctrl)>>(8*i+2) & 0x01));
         printf("QSFP %d LED0: %d, LED1: %d\n", i,
@@ -167,7 +174,7 @@ int main(int argc, char **argv)
             printf("Checking QSFP%d i2c access:\n", i);
 
             qsfp_set_page0_and_config(sm, i);
-            qsfp_print_vendor_name(sm);
+            qsfp_print_vendor_name(sm, i);
             qsfp_print_part_number(sm);
             qsfp_print_temp(sm);
         }
@@ -186,7 +193,11 @@ int main(int argc, char **argv)
 
 //QSFP
 
-void qsfp_set_page0_and_config(struct rorcfs_sysmon *sm, uint32_t index)
+void qsfp_set_page0_and_config
+(
+    struct rorcfs_sysmon *sm,
+    uint32_t index
+)
 {
     uint8_t data_r;
 
@@ -210,7 +221,11 @@ void qsfp_set_page0_and_config(struct rorcfs_sysmon *sm, uint32_t index)
 
 
 
-void qsfp_print_vendor_name(struct rorcfs_sysmon *sm)
+void qsfp_print_vendor_name
+(
+    rorcfs_sysmon *sm,
+    uint32_t       index
+)
 {
     cout << "Vendor Name: ";
 
