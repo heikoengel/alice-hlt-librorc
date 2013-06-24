@@ -210,6 +210,13 @@ public:
         uint32_t blkaddr
     );
 
+/**
+ * Reset Chip: 
+ * iterate over all blocks
+ * @return 0 on sucess, status register on error
+ **/
+    uint16_t resetChip ();
+
 
 /** get WORD from flash
  * @param addr address
@@ -233,7 +240,8 @@ public:
     (
         uint32_t  addr,
         uint16_t  length,
-        uint16_t *data
+        uint16_t *data,
+        librorc_verbosity_enum verbose
     );
 
 /**
