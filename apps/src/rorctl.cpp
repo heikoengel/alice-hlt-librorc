@@ -160,7 +160,8 @@ int main
 
                 case 'm':
                 {
-                    cout << "Monitor Device " << options.device_number;
+                    cout << "Monitor Device " << options.device_number
+                         << endl << endl;
                     return( showDeviceMonitor(options.dev) );
                 }
                 break;
