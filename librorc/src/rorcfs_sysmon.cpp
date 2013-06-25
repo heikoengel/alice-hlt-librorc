@@ -86,20 +86,7 @@ rorcfs_sysmon::FwBuildDate()
 
 
 
-uint32_t
-rorcfs_sysmon::FanTachValue()
-{
-//	uint32_t rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
-//	if ( rpm_raw==0 )
-//	{
-//        return 0;
-//	}
-//	else
-//	{
-//        return (unsigned int)(750000000/rpm_raw);
-//  }
-	return 0;
-}
+/** SYSTEM Monitoring *********************************************/
 
 
 
@@ -143,7 +130,54 @@ rorcfs_sysmon::VCCAUX()
 //}
 
 
-//QSFP
+
+bool
+rorcfs_sysmon::systemClockIsRunning()
+{
+    uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
+    if( ((ddrctrl>>3)&1) == 1 )
+    { return true; }
+    else
+    { return false; }
+}
+
+
+
+bool
+rorcfs_sysmon::systemFanIsEnabled()
+{
+    uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+    if ( !(fanctrl & (1<<31)) )
+    { return false; }
+    else
+    { return true; }
+}
+
+
+
+bool
+rorcfs_sysmon::systemFanIsRunning()
+{
+    uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+    if( !(fanctrl & (1<<29)) )
+    { return false; }
+    else
+    { return true; }
+}
+
+
+
+double
+rorcfs_sysmon::systemFanSpeed()
+{
+    uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+    return 15/((fanctrl & 0x1fffffff)*0.000000004);
+}
+
+
+
+/** QSFP Monitoring ***********************************************/
+
 
 
 bool

@@ -37,65 +37,8 @@
 
 using namespace std;
 
-void
-qsfp_set_page0_and_config
-(
-    rorcfs_sysmon *sm,
-    uint32_t index
-);
-
-string*
-qsfp_i2c_string_readout
-(
-    rorcfs_sysmon *sm,
-    uint8_t        start,
-    uint8_t        end
-);
-
-bool
-qsfpIsPresent
-(
-    librorc_bar   *bar1,
-    uint32_t       index
-);
-
-bool
-qsfpLEDIsOn
-(
-    librorc_bar   *bar1,
-    uint32_t       qsfp_index,
-    uint32_t       LED_index
-);
-
-string*
-qsfpVendorName
-(
-    rorcfs_sysmon *sm,
-    uint32_t       index
-);
-
-string*
-qsfpPartNumber
-(
-    rorcfs_sysmon *sm,
-    uint32_t index
-);
-
-float
-qsfpTemperature
-(
-    struct rorcfs_sysmon *sm,
-    uint32_t              index
-);
-
-
 uint32_t pcieNumberOfLanes(librorc_bar *bar1);
 uint32_t pcieGeneration(librorc_bar *bar1);
-bool     systemClockIsRunning(librorc_bar *bar1);
-bool     systemFanIsEnabled(librorc_bar *bar1);
-bool     systemFanIsRunning(librorc_bar *bar1);
-double   systemFanSpeed(librorc_bar *bar1);
-
 
 int main(int argc, char **argv)
 {
@@ -165,16 +108,16 @@ int main(int argc, char **argv)
     { cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl; }
 
     /** Check if system clock is running */
-    cout << "SysClk locked : " << systemClockIsRunning(bar1) << endl;
+    cout << "SysClk locked : " << sm->systemClockIsRunning() << endl;
 
     /** Check if fan is running */
-    cout << "Fan speed     : " << systemFanSpeed(bar1) << " rpm" << endl;
-    if( systemFanIsEnabled(bar1) == false)
+    cout << "Fan speed     : " << sm->systemFanSpeed() << " rpm" << endl;
+    if( sm->systemFanIsEnabled() == false)
     {
         cout << "WARNING: fan seems to be disabled!" << endl;
     }
 
-    if( systemFanIsRunning(bar1) == false)
+    if( sm->systemFanIsRunning() == false)
     {
         cout << "WARNING: fan seems to be stopped!" << endl;
     }
@@ -210,10 +153,6 @@ int main(int argc, char **argv)
     exit(EXIT_SUCCESS);
 }
 
-//TODO :  MOVE to sysmon soon! ________________________________________________________
-
-
-
 //PCI
 
 uint32_t
@@ -238,60 +177,3 @@ pcieGeneration
     return(1<<(status>>5 & 0x01));
 }
 
-
-
-//system
-bool
-systemClockIsRunning
-(
-    librorc_bar *bar1
-)
-{
-    uint32_t ddrctrl = bar1->get(RORC_REG_DDR3_CTRL);
-    if( ((ddrctrl>>3)&1) == 1 )
-    { return true; }
-    else
-    { return false; }
-}
-
-
-
-bool
-systemFanIsEnabled
-(
-    librorc_bar *bar1
-)
-{
-    uint32_t fanctrl = bar1->get(RORC_REG_FAN_CTRL);
-    if ( !(fanctrl & (1<<31)) )
-    { return false; }
-    else
-    { return true; }
-}
-
-
-
-bool
-systemFanIsRunning
-(
-    librorc_bar *bar1
-)
-{
-    uint32_t fanctrl = bar1->get(RORC_REG_FAN_CTRL);
-    if( !(fanctrl & (1<<29)) )
-    { return false; }
-    else
-    { return true; }
-}
-
-
-
-double
-systemFanSpeed
-(
-    librorc_bar *bar1
-)
-{
-    uint32_t fanctrl = bar1->get(RORC_REG_FAN_CTRL);
-    return 15/((fanctrl & 0x1fffffff)*0.000000004);
-}

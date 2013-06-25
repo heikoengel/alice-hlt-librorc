@@ -97,12 +97,6 @@ class rorcfs_sysmon
         uint64_t DeviceDNA();
 
         /**
-         * get Fan Tach Value
-         * @return RPMs of the FPGA Fan
-        **/
-        uint32_t FanTachValue();
-
-        /**
          * get FPGA Temperature
          * @return FPGA temperature in degree celsius
         **/
@@ -119,6 +113,11 @@ class rorcfs_sysmon
          * @return VCCAUX in Volts
         **/
         double VCCAUX();
+
+        bool   systemClockIsRunning();
+        bool   systemFanIsEnabled();
+        bool   systemFanIsRunning();
+        double systemFanSpeed();
 
         bool
         qsfpIsPresent
