@@ -27,6 +27,23 @@
 #define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
 #define LIBRORC_SYSMON_ERROR_I2C_READ_FAILED    40
 
+#ifndef RORC_REG_DDR3_CTRL
+    #define RORC_REG_DDR3_CTRL 0
+#endif
+
+#define SLVADDR          0x50
+#define LIBRORC_MAX_QSFP 3
+
+
+#include <iostream>
+#include <iomanip>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+using namespace std;
+
 #include <librorc_registers.h>
 
 /**
@@ -57,13 +74,13 @@ class rorcfs_sysmon
          * pcie_status_q[7:2] <= 6'b0;
          * pcie_status_q[1:0] <= pl_sel_link_width;
         **/
-        uint32_t getPCIeStatus();
+        uint32_t PCIeStatus();
 
         /**
          * get FPGA Firmware Revision
          * @return Firmware Revision
         **/
-        uint32_t getFwRevision();
+        uint32_t FwRevision();
 
         /**
          * get FPGA Firmware Build Date
@@ -71,37 +88,64 @@ class rorcfs_sysmon
          * year (bits [31:16]), month (bits[15:8]) and
          * day (bits[7:0]).
         **/
-        uint32_t getFwBuildDate();
+        uint32_t FwBuildDate();
 
-        /**
-         * get FPGA unique identifier (Device DNA)
-         * @return 64bit Device DNA
-        **/
-        uint64_t getDeviceDNA();
-
-        /**
-         * get Fan Tach Value
-         * @return RPMs of the FPGA Fan
-        **/
-        uint32_t getFanTachValue();
+        uint32_t pcieNumberOfLanes();
+        uint32_t pcieGeneration();
 
         /**
          * get FPGA Temperature
          * @return FPGA temperature in degree celsius
         **/
-        double getFPGATemperature();
+        double FPGATemperature();
 
         /**
          * get FPGA VCC_INT Voltage
          * @return VCCINT in Volts
         **/
-        double getVCCINT();
+        double VCCINT();
 
         /**
          * get FPGA VCC_AUX Voltage
          * @return VCCAUX in Volts
         **/
-        double getVCCAUX();
+        double VCCAUX();
+
+        bool   systemClockIsRunning();
+        bool   systemFanIsEnabled();
+        bool   systemFanIsRunning();
+        double systemFanSpeed();
+
+        bool
+        qsfpIsPresent
+        (
+            uint32_t index
+        );
+
+        bool
+        qsfpLEDIsOn
+        (
+            uint32_t qsfp_index,
+            uint32_t LED_index
+        );
+
+        string*
+        qsfpVendorName
+        (
+            uint32_t index
+        );
+
+        string*
+        qsfpPartNumber
+        (
+            uint32_t index
+        );
+
+        float
+        qsfpTemperature
+        (
+            uint32_t index
+        );
 
         /**
          * write to ICAP Interface
@@ -121,6 +165,10 @@ class rorcfs_sysmon
          * in the FPGA.
         **/
         //void setIcapDinReorder( uint32_t dword );
+
+
+
+    protected:
 
         /**
          * reset i2c bus
@@ -165,12 +213,27 @@ class rorcfs_sysmon
         **/
         void i2c_set_config(uint32_t config);
 
-    protected:
-
         uint32_t wait_for_tip_to_negate();
 
         void
-        check_rxack_is_zero( uint32_t status );
+        check_rxack_is_zero
+        (
+            uint32_t status
+        );
+
+        string*
+        qsfp_i2c_string_readout
+        (
+            uint8_t start,
+            uint8_t end
+        );
+
+
+        void
+        qsfp_set_page0_and_config
+        (
+            uint32_t index
+        );
 
         librorc_bar *m_bar;
 };
