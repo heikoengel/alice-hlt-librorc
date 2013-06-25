@@ -145,19 +145,15 @@ uint64_t  getBarSize(uint8_t n);
 
 /**
  * print PCI Device-Description
- * @return uint8 Domain-ID
- * @return uint8 Bus-ID
- * @return uint8 Device-ID
- * @return uint8 Function-ID
- * @return uint8 Description
  **/
 void      printDeviceDescription();
 
-/**
- * get PCI-Device
- * @return uint8 m-device
- **/
 private:
+
+    /**
+     * get PCI-Device
+     * @return uint8 PCI-Device-Pointer
+     **/
     PciDevice *getPdaPciDevice()
     {
         return(m_device);
