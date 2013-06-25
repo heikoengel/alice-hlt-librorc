@@ -37,9 +37,6 @@
 
 using namespace std;
 
-uint32_t pcieNumberOfLanes(librorc_bar *bar1);
-uint32_t pcieGeneration(librorc_bar *bar1);
-
 int main(int argc, char **argv)
 {
     /** create new device object */
@@ -101,10 +98,10 @@ int main(int argc, char **argv)
          << "FPGA VCCAUX   : " << sm->VCCAUX() << " V"  << endl;
 
     /** Print and check reported PCIe link width/speed */
-    cout << "Detected as   : PCIe Gen" << pcieGeneration(bar1)
-         << " x" << pcieNumberOfLanes(bar1) << endl;
+    cout << "Detected as   : PCIe Gen" << sm->pcieGeneration()
+         << " x" << sm->pcieNumberOfLanes() << endl;
 
-    if( (pcieGeneration(bar1)!=2) || (pcieNumberOfLanes(bar1)!=8) )
+    if( (sm->pcieGeneration()!=2) || (sm->pcieNumberOfLanes()!=8) )
     { cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl; }
 
     /** Check if system clock is running */
@@ -152,28 +149,3 @@ int main(int argc, char **argv)
 
     exit(EXIT_SUCCESS);
 }
-
-//PCI
-
-uint32_t
-pcieNumberOfLanes
-(
-    librorc_bar *bar1
-)
-{
-    uint32_t status = bar1->get(RORC_REG_PCIE_CTRL);
-    return(1<<(status>>3 & 0x3));
-}
-
-
-
-uint32_t
-pcieGeneration
-(
-    librorc_bar *bar1
-)
-{
-    uint32_t status = bar1->get(RORC_REG_PCIE_CTRL);
-    return(1<<(status>>5 & 0x01));
-}
-

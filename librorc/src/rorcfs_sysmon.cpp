@@ -29,7 +29,7 @@
 #include "rorcfs_bar.hh"
 #include "rorcfs_sysmon.hh"
 
-//TODO: move external interface to CaMeLcAsE
+
 
 rorcfs_sysmon::rorcfs_sysmon
 (
@@ -51,6 +51,10 @@ rorcfs_sysmon::~rorcfs_sysmon()
 {
 	m_bar = NULL;
 }
+
+
+
+/** Firmware ******************************************************/
 
 
 
@@ -82,6 +86,28 @@ rorcfs_sysmon::FwBuildDate()
     }
 
 	return date;
+}
+
+
+
+/** PCI ***********************************************************/
+
+
+
+uint32_t
+rorcfs_sysmon::pcieNumberOfLanes()
+{
+    uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
+    return(1<<(status>>3 & 0x3));
+}
+
+
+
+uint32_t
+rorcfs_sysmon::pcieGeneration()
+{
+    uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
+    return(1<<(status>>5 & 0x01));
 }
 
 

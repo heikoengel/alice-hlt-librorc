@@ -90,11 +90,8 @@ class rorcfs_sysmon
         **/
         uint32_t FwBuildDate();
 
-        /**
-         * get FPGA unique identifier (Device DNA)
-         * @return 64bit Device DNA
-        **/
-        uint64_t DeviceDNA();
+        uint32_t pcieNumberOfLanes();
+        uint32_t pcieGeneration();
 
         /**
          * get FPGA Temperature
