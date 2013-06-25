@@ -74,7 +74,7 @@ class sim_bar : public librorc_bar
          * performed at this point.
          * @param dev parent rorcfs_device
          * @param n number of BAR to be mapped [0-6]
-         **/
+         */
         sim_bar
         (
             rorcfs_device *dev,
@@ -83,7 +83,7 @@ class sim_bar : public librorc_bar
 
         /**
          * Deconstructor: free fname, unmap BAR, close file
-         **/
+         */
         ~sim_bar();
 
         /**
@@ -92,7 +92,7 @@ class sim_bar : public librorc_bar
          * member function. This function will fail if the requested
          * BAR does not exist
          * @return 0 on sucess, -1 on errors
-         **/
+         */
         int32_t init();
 
         /**
@@ -100,7 +100,7 @@ class sim_bar : public librorc_bar
          * @param addr (unsigned int) aligned address within the
          *              BAR to read from.
          * @return data read from BAR[addr]
-         **/
+         */
         unsigned int
         get
         (
@@ -112,7 +112,7 @@ class sim_bar : public librorc_bar
          * @param addr (unsigned int) aligned address within the
          *              BAR to write to
          * @param data (unsigned int) data word to be written.
-         **/
+         */
         void
         set
         (
@@ -125,7 +125,7 @@ class sim_bar : public librorc_bar
          * @param addr address in current BAR
          * @param source pointer to source data field
          * @param num number of bytes to be copied to destination
-         * */
+         */
         void
         memcpy_bar
         (
@@ -139,7 +139,7 @@ class sim_bar : public librorc_bar
          * @param addr (unsigned int) aligned address within the
          *              BAR to read from.
          * @return data read from BAR[addr]
-         **/
+         */
         unsigned short
         get16
         (
@@ -150,7 +150,7 @@ class sim_bar : public librorc_bar
          * write WORD to BAR address
          * @param addr within the BAR to write to
          * @param data (unsigned int) data word to be written.
-         **/
+         */
         void
         set16
         (
@@ -163,7 +163,7 @@ class sim_bar : public librorc_bar
          * @param tv pointer to struct timeval
          * @param tz pointer to struct timezone
          * @return return valiue from gettimeof day or zero for FLI simulation
-         **/
+         */
         int32_t
         gettime
         (
@@ -174,7 +174,7 @@ class sim_bar : public librorc_bar
         /**
          * get size of mapped BAR. This value is only valid after init()
          * @return size of mapped BAR in bytes
-         **/
+         */
         size_t getSize();
 
 
@@ -182,7 +182,7 @@ class sim_bar : public librorc_bar
 
         /**
          * Initialize member variables
-         **/
+         */
         int      m_sockfd;
         int      m_pipefd[2];
         int32_t  m_msgid;
@@ -264,8 +264,11 @@ class sim_bar : public librorc_bar
 };
 
 
-
+/**
+ * A structure to represent FLI read request
+ */
 typedef struct
+
 __attribute__((__packed__))
 {
 	uint64_t buffer_id;
@@ -277,6 +280,9 @@ __attribute__((__packed__))
 	uint32_t requester_id;
 } t_read_req;
 
+/**
+ * A structure to represent FLI Messaging
+ */
 typedef struct
 __attribute__((__packed__))
 {
@@ -285,6 +291,9 @@ __attribute__((__packed__))
 	int32_t   id;
 } flimsgT;
 
+/**
+ * A structure to represent FLI Command
+ */
 typedef struct
 __attribute__((__packed__))
 {
