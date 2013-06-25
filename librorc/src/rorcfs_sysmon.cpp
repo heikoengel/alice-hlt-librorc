@@ -55,7 +55,7 @@ rorcfs_sysmon::~rorcfs_sysmon()
 
 
 uint32_t
-rorcfs_sysmon::getFwRevision()
+rorcfs_sysmon::FwRevision()
 {
 	uint32_t firmware_revision
         = m_bar->get(RORC_REG_FIRMWARE_REVISION);
@@ -71,7 +71,7 @@ rorcfs_sysmon::getFwRevision()
 
 
 uint32_t
-rorcfs_sysmon::getFwBuildDate()
+rorcfs_sysmon::FwBuildDate()
 {
     uint32_t date
         = m_bar->get(RORC_REG_FIRMWARE_DATE);
@@ -87,7 +87,7 @@ rorcfs_sysmon::getFwBuildDate()
 
 
 uint32_t
-rorcfs_sysmon::getFanTachValue()
+rorcfs_sysmon::FanTachValue()
 {
 //	uint32_t rpm_raw = bar->get(RORC_REG_FPGA_FAN_TACH_VALUE);
 //	if ( rpm_raw==0 )
@@ -104,7 +104,7 @@ rorcfs_sysmon::getFanTachValue()
 
 
 double
-rorcfs_sysmon::getFPGATemperature()
+rorcfs_sysmon::FPGATemperature()
 {
 	uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
 	return (double)(value*503.975/1024.0 - 273.15);
@@ -113,7 +113,7 @@ rorcfs_sysmon::getFPGATemperature()
 
 
 double
-rorcfs_sysmon::getVCCINT()
+rorcfs_sysmon::VCCINT()
 {
 	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
 	return (double)(value/1024.0 * 3.0);
@@ -122,7 +122,7 @@ rorcfs_sysmon::getVCCINT()
 
 
 double
-rorcfs_sysmon::getVCCAUX()
+rorcfs_sysmon::VCCAUX()
 {
 	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
 	return (double)(value/1024.0 * 3.0);
@@ -211,11 +211,6 @@ rorcfs_sysmon::i2c_write_mem
 	/** set mem addr, set WR bit */
 	m_bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
 	check_rxack_is_zero( wait_for_tip_to_negate() );
-
-
-//	/** set slave addr + write bit, set STA, set WR */
-//	m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-//	status = wait_for_tip_to_negate();
 
 	/** set WR, set ACK=0 (ACK), set STO, set data */
 	m_bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));

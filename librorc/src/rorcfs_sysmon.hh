@@ -57,13 +57,13 @@ class rorcfs_sysmon
          * pcie_status_q[7:2] <= 6'b0;
          * pcie_status_q[1:0] <= pl_sel_link_width;
         **/
-        uint32_t getPCIeStatus();
+        uint32_t PCIeStatus();
 
         /**
          * get FPGA Firmware Revision
          * @return Firmware Revision
         **/
-        uint32_t getFwRevision();
+        uint32_t FwRevision();
 
         /**
          * get FPGA Firmware Build Date
@@ -71,37 +71,37 @@ class rorcfs_sysmon
          * year (bits [31:16]), month (bits[15:8]) and
          * day (bits[7:0]).
         **/
-        uint32_t getFwBuildDate();
+        uint32_t FwBuildDate();
 
         /**
          * get FPGA unique identifier (Device DNA)
          * @return 64bit Device DNA
         **/
-        uint64_t getDeviceDNA();
+        uint64_t DeviceDNA();
 
         /**
          * get Fan Tach Value
          * @return RPMs of the FPGA Fan
         **/
-        uint32_t getFanTachValue();
+        uint32_t FanTachValue();
 
         /**
          * get FPGA Temperature
          * @return FPGA temperature in degree celsius
         **/
-        double getFPGATemperature();
+        double FPGATemperature();
 
         /**
          * get FPGA VCC_INT Voltage
          * @return VCCINT in Volts
         **/
-        double getVCCINT();
+        double VCCINT();
 
         /**
          * get FPGA VCC_AUX Voltage
          * @return VCCAUX in Volts
         **/
-        double getVCCAUX();
+        double VCCAUX();
 
         /**
          * write to ICAP Interface
@@ -167,10 +167,14 @@ class rorcfs_sysmon
 
     protected:
 
-        uint32_t wait_for_tip_to_negate();
+        uint32_t
+        wait_for_tip_to_negate();
 
         void
-        check_rxack_is_zero( uint32_t status );
+        check_rxack_is_zero
+        (
+            uint32_t status
+        );
 
         librorc_bar *m_bar;
 };
