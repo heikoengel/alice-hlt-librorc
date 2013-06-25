@@ -143,14 +143,12 @@ int main(int argc, char **argv)
         abort();
     }
 
-    /** Printout revision, date, and serial number */
-    uint64_t device_serial = 0;
+    /** Printout revision and  date */
     try
     {
         cout << "CRORC FPGA" << endl
              << "Firmware Rev. : " << hex << setprecision(8) << sm->getFwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setprecision(8) << sm->getFwBuildDate() << dec << endl
-             << "Serial Number : " << hex << showbase << device_serial << dec << endl;
+             << "Firmware Date : " << hex << setprecision(8) << sm->getFwBuildDate() << dec << endl;
     }
     catch(...)
     {
@@ -163,12 +161,12 @@ int main(int argc, char **argv)
         abort();
     }
 
-    /** Print Voltages, Temperature */
+    /** Print Voltages and Temperature */
     cout << "Temperature   : " << sm->getFPGATemperature() << " °C" << endl
          << "FPGA VCCINT   : " << sm->getVCCINT() << " V" << endl
          << "FPGA VCCAUX   : " << sm->getVCCAUX() << " V" << endl;
 
-    /** print and check reported PCIe link width/speed */
+    /** Print and check reported PCIe link width/speed */
     cout << "Detected as   : PCIe Gen" << pcieGeneration(bar1)
          << " x" << pcieNumberOfLanes(bar1) << endl;
 
