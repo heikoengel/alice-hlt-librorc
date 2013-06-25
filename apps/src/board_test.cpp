@@ -37,6 +37,14 @@
 
 using namespace std;
 
+void
+showDeviceMonitor
+(
+    rorcfs_device *dev
+);
+
+
+
 int main(int argc, char **argv)
 {
     /** create new device object */
@@ -48,6 +56,21 @@ int main(int argc, char **argv)
         abort();
     }
 
+    showDeviceMonitor(dev);
+
+    delete dev;
+
+    exit(EXIT_SUCCESS);
+}
+
+
+
+void
+showDeviceMonitor
+(
+    rorcfs_device *dev
+)
+{
     /** bind to BAR1 */
     librorc_bar *bar1 = NULL;
     #ifdef SIM
@@ -58,7 +81,6 @@ int main(int argc, char **argv)
 
     if ( bar1->init() == -1 )
     {
-        delete dev;
         abort();
     }
 
@@ -70,7 +92,6 @@ int main(int argc, char **argv)
     {
         cout << "Sysmon init failed!" << endl;
         delete bar1;
-        delete dev;
         abort();
     }
 
@@ -88,7 +109,6 @@ int main(int argc, char **argv)
              << "and the BARs are enabled" << endl;
         delete sm;
         delete bar1;
-        delete dev;
         abort();
     }
 
@@ -146,6 +166,4 @@ int main(int argc, char **argv)
 
     cout << endl;
     cout << "-------------------------------------" << endl;
-
-    exit(EXIT_SUCCESS);
 }
