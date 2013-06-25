@@ -186,17 +186,24 @@ int main(int argc, char **argv)
     cout << "QSFPs" << endl;
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
-        cout << "QSFP " << i << " present: " << qsfpIsPresent(bar1, i) << endl;
-        cout << "QSFP " << i << " LED0 : " << qsfpLEDIsOn(bar1, i, 0)
-                             << " LED1 : " << qsfpLEDIsOn(bar1, i, 0) << endl;
+        cout << "QSFP " << i << " present: " << qsfpIsPresent(bar1, i)  << endl;
+        cout << "QSFP " << i << " LED0 : "   << qsfpLEDIsOn(bar1, i, 0)
+                             << " LED1 : "   << qsfpLEDIsOn(bar1, i, 0) << endl;
 
         if( qsfpIsPresent(bar1, i) )
         {
             cout << "Checking QSFP" << i << " i2c access:" << endl;
 
-            cout << "Vendor Name : " << qsfpVendorName(sm, i)  << endl;
-            cout << "Part Number : " << qsfpPartNumber(sm, i)  << endl;
-            cout << "Temperature : " << qsfpTemperature(sm, i) << "°C" << endl;
+            try
+            {
+                cout << "Vendor Name : " << qsfpVendorName(sm, i)  << endl;
+                cout << "Part Number : " << qsfpPartNumber(sm, i)  << endl;
+                cout << "Temperature : " << qsfpTemperature(sm, i) << "°C" << endl;
+            }
+            catch(...)
+            {
+                cout << "QSFP readout failed!" << endl;
+            }
         }
 
         cout << endl;
