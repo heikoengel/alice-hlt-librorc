@@ -194,6 +194,9 @@ int main(int argc, char **argv)
     cout << "QSFPs" << endl;
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
+        cout << endl;
+        cout << "-------------------------------------" << endl;
+
         cout << "QSFP " << i << " present: " << qsfpIsPresent(bar1, i)  << endl;
         cout << "QSFP " << i << " LED0 : "   << qsfpLEDIsOn(bar1, i, 0)
                              << " LED1 : "   << qsfpLEDIsOn(bar1, i, 0) << endl;
@@ -213,10 +216,10 @@ int main(int argc, char **argv)
                 cout << "QSFP readout failed!" << endl;
             }
         }
-
-        cout << endl;
-        cout << "-------------------------------------" << endl;
     }
+
+    cout << endl;
+    cout << "-------------------------------------" << endl;
 
     exit(EXIT_SUCCESS);
 }
