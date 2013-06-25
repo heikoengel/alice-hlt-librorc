@@ -82,7 +82,7 @@ qsfpPrintPartNumber
     uint32_t index
 );
 
-void
+float
 qsfpPrintTemperature
 (
     struct rorcfs_sysmon *sm,
@@ -196,7 +196,9 @@ int main(int argc, char **argv)
 
             qsfpPrintVendorName(sm, i);
             qsfpPrintPartNumber(sm, i);
+
             qsfpPrintTemperature(sm, i);
+            cout << "Temperature: " << qsfpPrintTemperature(sm, i) << "°C" << endl;
         }
 
         cout << endl;
@@ -209,34 +211,6 @@ int main(int argc, char **argv)
 //TODO :  MOVE to sysmon soon! ________________________________________________________
 
 //QSFP
-
-void
-qsfp_set_page0_and_config
-(
-    rorcfs_sysmon *sm,
-    uint32_t index
-)
-{
-    uint8_t data_r;
-
-    try
-    {
-        data_r = sm->i2c_read_mem(SLVADDR, 127);
-    }
-    catch(...)
-    {
-        cout << "Failed to read from i2c!" << endl;
-        return;
-    }
-
-    if( data_r!=0 )
-    {
-        sm->i2c_write_mem(SLVADDR, 127, 0);
-    }
-
-    sm->i2c_set_config(0x01f30081 | ((1<<index)<<8));
-}
-
 
 
 bool
@@ -335,7 +309,7 @@ qsfpPrintPartNumber
 
 
 
-void
+float
 qsfpPrintTemperature
 (
     struct rorcfs_sysmon *sm,
@@ -345,26 +319,44 @@ qsfpPrintTemperature
     qsfp_set_page0_and_config(sm, index);
 
     uint8_t data_r;
-    try
-    { data_r = sm->i2c_read_mem(SLVADDR, 23); }
-    catch(...)
-    {
-        cout << "Failed to read from i2c!" << endl;
-        return;
-    }
+    data_r = sm->i2c_read_mem(SLVADDR, 23);
 
     uint32_t temp = data_r;
-    try
-    { data_r = sm->i2c_read_mem(SLVADDR, 22); }
-    catch(...)
-    {
-        cout << "Failed to read from i2c!" << endl;
-        return;
-    }
+    data_r = sm->i2c_read_mem(SLVADDR, 22);
 
     temp += ((uint32_t)data_r<<8);
-    printf("\tTemperature:\t%.2f °C\n", ((float)temp/256));
+
+    return ((float)temp/256);
 }
+
+
+
+    void
+    qsfp_set_page0_and_config
+    (
+        rorcfs_sysmon *sm,
+        uint32_t index
+    )
+    {
+        uint8_t data_r;
+
+        try
+        {
+            data_r = sm->i2c_read_mem(SLVADDR, 127);
+        }
+        catch(...)
+        {
+            cout << "Failed to read from i2c!" << endl;
+            return;
+        }
+
+        if( data_r!=0 )
+        {
+            sm->i2c_write_mem(SLVADDR, 127, 0);
+        }
+
+        sm->i2c_set_config( 0x01f30081 | ((1<<index)<<8) );
+    }
 
 //PCI
 
