@@ -147,7 +147,6 @@ class rorcfs_sysmon
             uint32_t index
         );
 
-//_________________________________________________________________________________
         /**
          * write to ICAP Interface
          * @param dword bit-reordered configuration word
@@ -166,6 +165,10 @@ class rorcfs_sysmon
          * in the FPGA.
         **/
         //void setIcapDinReorder( uint32_t dword );
+
+
+
+    protected:
 
         /**
          * reset i2c bus
@@ -210,10 +213,7 @@ class rorcfs_sysmon
         **/
         void i2c_set_config(uint32_t config);
 
-    protected:
-
-        uint32_t
-        wait_for_tip_to_negate();
+        uint32_t wait_for_tip_to_negate();
 
         void
         check_rxack_is_zero
