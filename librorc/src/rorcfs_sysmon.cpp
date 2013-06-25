@@ -29,13 +29,11 @@
 #include "rorcfs_bar.hh"
 #include "rorcfs_sysmon.hh"
 
-//TODO: get rid of this init-function -> move to constructor
-//TODO: get rid of all the asserts here
 //TODO: move external interface to CaMeLcAsE
 
 rorcfs_sysmon::rorcfs_sysmon
 (
-librorc_bar *parent_bar
+    librorc_bar *parent_bar
 )
 {
 	m_bar = NULL;
