@@ -27,6 +27,23 @@
 #define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
 #define LIBRORC_SYSMON_ERROR_I2C_READ_FAILED    40
 
+#ifndef RORC_REG_DDR3_CTRL
+    #define RORC_REG_DDR3_CTRL 0
+#endif
+
+#define SLVADDR          0x50
+#define LIBRORC_MAX_QSFP 3
+
+
+#include <iostream>
+#include <iomanip>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+using namespace std;
+
 #include <librorc_registers.h>
 
 /**
@@ -103,6 +120,38 @@ class rorcfs_sysmon
         **/
         double VCCAUX();
 
+        bool
+        qsfpIsPresent
+        (
+            uint32_t index
+        );
+
+        bool
+        qsfpLEDIsOn
+        (
+            uint32_t qsfp_index,
+            uint32_t LED_index
+        );
+
+        string*
+        qsfpVendorName
+        (
+            uint32_t index
+        );
+
+        string*
+        qsfpPartNumber
+        (
+            uint32_t index
+        );
+
+        float
+        qsfpTemperature
+        (
+            uint32_t index
+        );
+
+//_________________________________________________________________________________
         /**
          * write to ICAP Interface
          * @param dword bit-reordered configuration word
@@ -174,6 +223,20 @@ class rorcfs_sysmon
         check_rxack_is_zero
         (
             uint32_t status
+        );
+
+        string*
+        qsfp_i2c_string_readout
+        (
+            uint8_t start,
+            uint8_t end
+        );
+
+
+        void
+        qsfp_set_page0_and_config
+        (
+            uint32_t index
         );
 
         librorc_bar *m_bar;

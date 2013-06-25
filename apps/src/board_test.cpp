@@ -37,15 +37,6 @@
 
 using namespace std;
 
-#ifndef RORC_REG_DDR3_CTRL
-    #define RORC_REG_DDR3_CTRL 0
-#endif
-
-#define SLVADDR          0x50
-#define LIBRORC_MAX_QSFP 3
-
-
-
 void
 qsfp_set_page0_and_config
 (
@@ -194,19 +185,19 @@ int main(int argc, char **argv)
     {
         cout << endl << "-------------------------------------" << endl << endl;
 
-        cout << "QSFP " << i << " present: " << qsfpIsPresent(bar1, i)  << endl;
-        cout << "QSFP " << i << " LED0 : "   << qsfpLEDIsOn(bar1, i, 0)
-                             << " LED1 : "   << qsfpLEDIsOn(bar1, i, 0) << endl;
+        cout << "QSFP " << i << " present: " << sm->qsfpIsPresent(i)  << endl;
+        cout << "QSFP " << i << " LED0 : "   << sm->qsfpLEDIsOn(i, 0)
+                             << " LED1 : "   << sm->qsfpLEDIsOn(i, 1) << endl;
 
-        if( qsfpIsPresent(bar1, i) )
+        if( sm->qsfpIsPresent(i) )
         {
             cout << "Checking QSFP" << i << " i2c access:" << endl;
 
             try
             {
-                cout << "Vendor Name : " << qsfpVendorName(sm, i)  << endl;
-                cout << "Part Number : " << qsfpPartNumber(sm, i)  << endl;
-                cout << "Temperature : " << qsfpTemperature(sm, i) << "°C" << endl;
+                cout << "Vendor Name : " << sm->qsfpVendorName(i)  << endl;
+                cout << "Part Number : " << sm->qsfpPartNumber(i)  << endl;
+                cout << "Temperature : " << sm->qsfpTemperature(i) << "°C" << endl;
             }
             catch(...)
             {
@@ -223,142 +214,7 @@ int main(int argc, char **argv)
 
 //TODO :  MOVE to sysmon soon! ________________________________________________________
 
-//QSFP
 
-
-bool
-qsfpIsPresent
-(
-    librorc_bar   *bar1,
-    uint32_t       index
-)
-{
-    uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-
-    if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
-    {
-        return true;
-    }
-
-    return false;
-}
-
-
-
-bool
-qsfpLEDIsOn
-(
-    librorc_bar   *bar1,
-    uint32_t       qsfp_index,
-    uint32_t       LED_index
-)
-{
-    uint32_t qsfp_ctrl = bar1->get(RORC_REG_QSFP_CTRL);
-
-    if( ((~qsfp_ctrl)>>(8*qsfp_index+LED_index) & 0x01) == 1 )
-    {
-        return true;
-    }
-
-    return false;
-}
-
-
-
-string*
-qsfpVendorName
-(
-    rorcfs_sysmon *sm,
-    uint32_t       index
-)
-{
-    qsfp_set_page0_and_config(sm, index);
-    return( qsfp_i2c_string_readout(sm, 148, 163) );
-}
-
-
-
-string*
-qsfpPartNumber
-(
-    rorcfs_sysmon *sm,
-    uint32_t       index
-)
-{
-    qsfp_set_page0_and_config(sm, index);
-    return( qsfp_i2c_string_readout(sm, 168, 183) );
-}
-
-
-
-    string*
-    qsfp_i2c_string_readout
-    (
-        rorcfs_sysmon *sm,
-        uint8_t        start,
-        uint8_t        end
-    )
-    {
-        string *readout = new string();
-        uint8_t data_r = 0;
-        for(uint8_t i=start; i<=end; i++)
-        {
-            data_r = sm->i2c_read_mem(SLVADDR, i);
-            readout += (char)data_r;
-        }
-        return readout;
-    }
-
-
-
-float
-qsfpTemperature
-(
-    struct rorcfs_sysmon *sm,
-    uint32_t              index
-)
-{
-    qsfp_set_page0_and_config(sm, index);
-
-    uint8_t data_r;
-    data_r = sm->i2c_read_mem(SLVADDR, 23);
-
-    uint32_t temp = data_r;
-    data_r = sm->i2c_read_mem(SLVADDR, 22);
-
-    temp += ((uint32_t)data_r<<8);
-
-    return ((float)temp/256);
-}
-
-
-
-    void
-    qsfp_set_page0_and_config
-    (
-        rorcfs_sysmon *sm,
-        uint32_t index
-    )
-    {
-        uint8_t data_r;
-
-        try
-        {
-            data_r = sm->i2c_read_mem(SLVADDR, 127);
-        }
-        catch(...)
-        {
-            cout << "Failed to read from i2c!" << endl;
-            return;
-        }
-
-        if( data_r!=0 )
-        {
-            sm->i2c_write_mem(SLVADDR, 127, 0);
-        }
-
-        sm->i2c_set_config( 0x01f30081 | ((1<<index)<<8) );
-    }
 
 //PCI
 
