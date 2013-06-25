@@ -82,61 +82,30 @@ typedef struct
     uint64_t                chip_select;
     char                   *filename;
     librorc_verbosity_enum  verbose;
+    rorcfs_device          *dev;
 }confopts;
 
 /** Function signatures */
 void print_devices();
 
 inline
-librorc_flash *
+librorc_flash*
 init_flash
 (
     confopts options
 );
 
-void dump_flash_status ( uint16_t status )
-{
-    if ( status & (1<<7) )
-    {
-        cout << "\tReady" << endl;
-    } else
-    {
-        cout << "\tBusy" << endl;
-    }
+int
+showDeviceMonitor
+(
+    rorcfs_device *dev
+);
 
-    if ( status & (1<<6) ) cout << "\tErase suspended" << endl;
-    else cout << "\tErase in progress or completed" << endl;
-
-    if ( status & (1<<5) ) cout << "\tErase/blank check error" << endl;
-    else cout << "\tErase/blank check sucess" << endl;
-
-    if ( status & (1<<4) ) cout << "\tProgram Error" << endl;
-    else cout << "\tProgram sucess" << endl;
-
-    if ( status & (1<<3) ) cout << "\tVpp invalid, abort" << endl;
-    else cout << "\tVpp OK" << endl;
-
-    if ( status & (1<<2) ) cout << "\tProgram Suspended" << endl;
-    else cout << "\tProgram in progress or completed" << endl;
-
-    if ( status & (1<<1) ) cout << "\tProgram/erase on protected block, abort" << endl;
-    else cout << "\tNo operation to protected block" << endl;
-
-    if ( status & 1 )
-    {
-        if (status & (1<<7)) cout << "\tNot Allowed" << endl;
-        else cout << "\tProgram or erase operation in a bank other than the addressed bank" << endl;
-    }
-    else
-    {
-        if (status & (1<<7)) cout << "\tNo program or erase operation in the device" << endl;
-        else cout << "\tProgram or erase operation in addressed bank" << endl;
-    }
-}
-
-
-
-/*----------------------------------------------------------*/
+void
+dump_flash_status
+(
+    uint16_t status
+);
 
 
 
@@ -157,14 +126,15 @@ int main
         NOT_SET,
         NOT_SET,
         NULL,
-        LIBRORC_VERBOSE_OFF
+        LIBRORC_VERBOSE_OFF,
+        NULL
     };
 
     librorc_flash *flash = NULL;
     {
         opterr = 0;
         int c;
-        while((c = getopt(argc, argv, "hvldepn:f:c:sr")) != -1)
+        while((c = getopt(argc, argv, "hvlmdepn:f:c:sr")) != -1)
         {
             switch(c)
             {
@@ -185,6 +155,13 @@ int main
                 {
                     print_devices();
                     return(0);
+                }
+                break;
+
+                case 'm':
+                {
+                    cout << "Monitor Device " << options.device_number;
+                    return( showDeviceMonitor(options.dev) );
                 }
                 break;
 
@@ -223,6 +200,14 @@ int main
                 case 'n':
                 {
                     options.device_number = atoi(optarg);
+                    try
+                    { options.dev = new rorcfs_device(0); }
+                    catch(...)
+                    {
+                        cout << "failed to initialize device 0 -"
+                             << " is the board detected with lspci?" << endl;
+                        abort();
+                    }
                 }
                 break;
 
@@ -314,6 +299,11 @@ ret_main:
         free(options.filename);
     }
 
+    if(options.dev != NULL)
+    {
+        delete options.dev;
+    }
+
     return -1;
 }
 
@@ -359,20 +349,11 @@ init_flash
         options.chip_select = 0;
     }
 
-    rorcfs_device *dev;
-    try{ dev = new rorcfs_device(options.device_number); }
-    catch(...)
-    {
-        cout << "Failed to initialize device "
-             << options.device_number << endl;
-        return(NULL);
-    }
-
     librorc_bar *bar;
     #ifdef SIM
-        bar = new sim_bar(dev, 0);
+        bar = new sim_bar(options.dev, 0);
     #else
-        bar = new rorc_bar(dev, 0);
+        bar = new rorc_bar(options.dev, 0);
     #endif
 
     if(bar->init() == -1)
@@ -416,4 +397,166 @@ init_flash
     }
 
     return(flash);
+}
+
+
+
+int
+showDeviceMonitor
+(
+    rorcfs_device *dev
+)
+{
+    if(dev == NULL)
+    {
+        cout << "Device ID was not given!" << endl;
+        return -1;
+    }
+
+    /** bind to BAR1 */
+    librorc_bar *bar1 = NULL;
+    #ifdef SIM
+        bar1 = new sim_bar(dev, 1);
+    #else
+        bar1 = new rorc_bar(dev, 1);
+    #endif
+
+    if ( bar1->init() == -1 )
+    {
+        return -1;
+    }
+
+    /** instantiate a new sysmon */
+    rorcfs_sysmon *sm;
+    try
+    { sm = new rorcfs_sysmon(bar1); }
+    catch(...)
+    {
+        cout << "Sysmon init failed!" << endl;
+        delete bar1;
+        abort();
+    }
+
+    /** Printout revision and date */
+    try
+    {
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setprecision(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setprecision(8) << sm->FwBuildDate() << dec << endl;
+    }
+    catch(...)
+    {
+        cout << "Reading Date returned wrong. This is likely a "
+             << "PCIe access problem. Check lspci if the device is up"
+             << "and the BARs are enabled" << endl;
+        delete sm;
+        delete bar1;
+        abort();
+    }
+
+    /** Print Voltages and Temperature */
+    cout << "Temperature   : " << sm->FPGATemperature() << " °C" << endl
+         << "FPGA VCCINT   : " << sm->VCCINT() << " V"  << endl
+         << "FPGA VCCAUX   : " << sm->VCCAUX() << " V"  << endl;
+
+    /** Print and check reported PCIe link width/speed */
+    cout << "Detected as   : PCIe Gen" << sm->pcieGeneration()
+         << " x" << sm->pcieNumberOfLanes() << endl;
+
+    if( (sm->pcieGeneration()!=2) || (sm->pcieNumberOfLanes()!=8) )
+    { cout << " WARNING: FPGA reports unexpexted PCIe link parameters!" << endl; }
+
+    /** Check if system clock is running */
+    cout << "SysClk locked : " << sm->systemClockIsRunning() << endl;
+
+    /** Check if fan is running */
+    cout << "Fan speed     : " << sm->systemFanSpeed() << " rpm" << endl;
+    if( sm->systemFanIsEnabled() == false)
+    {
+        cout << "WARNING: fan seems to be disabled!" << endl;
+    }
+
+    if( sm->systemFanIsRunning() == false)
+    {
+        cout << "WARNING: fan seems to be stopped!" << endl;
+    }
+
+    /** Show QSFP status */
+    cout << "QSFPs" << endl << endl;
+    for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
+    {
+        cout << endl << "-------------------------------------" << endl << endl;
+        try
+        {
+            cout << "QSFP " << i << " present: " << sm->qsfpIsPresent(i)  << endl;
+            cout << "QSFP " << i << " LED0 : "   << sm->qsfpLEDIsOn(i, 0)
+                                 << " LED1 : "   << sm->qsfpLEDIsOn(i, 1) << endl;
+
+            if( sm->qsfpIsPresent(i) )
+            {
+                cout << "Checking QSFP"  << i << " i2c access:"    << endl;
+                cout << "Vendor Name : " << sm->qsfpVendorName(i)  << endl;
+                cout << "Part Number : " << sm->qsfpPartNumber(i)  << endl;
+                cout << "Temperature : " << sm->qsfpTemperature(i) << "°C" << endl;
+            }
+        }
+        catch(...)
+        {
+            cout << "QSFP readout failed!" << endl;
+        }
+    }
+
+    cout << endl;
+    cout << "-------------------------------------" << endl;
+
+    delete sm;
+    delete bar1;
+
+    return EXIT_SUCCESS;
+}
+
+
+
+void
+dump_flash_status
+(
+    uint16_t status
+)
+{
+    if ( status & (1<<7) )
+    {
+        cout << "\tReady" << endl;
+    } else
+    {
+        cout << "\tBusy" << endl;
+    }
+
+    if ( status & (1<<6) ) cout << "\tErase suspended" << endl;
+    else cout << "\tErase in progress or completed" << endl;
+
+    if ( status & (1<<5) ) cout << "\tErase/blank check error" << endl;
+    else cout << "\tErase/blank check sucess" << endl;
+
+    if ( status & (1<<4) ) cout << "\tProgram Error" << endl;
+    else cout << "\tProgram sucess" << endl;
+
+    if ( status & (1<<3) ) cout << "\tVpp invalid, abort" << endl;
+    else cout << "\tVpp OK" << endl;
+
+    if ( status & (1<<2) ) cout << "\tProgram Suspended" << endl;
+    else cout << "\tProgram in progress or completed" << endl;
+
+    if ( status & (1<<1) ) cout << "\tProgram/erase on protected block, abort" << endl;
+    else cout << "\tNo operation to protected block" << endl;
+
+    if ( status & 1 )
+    {
+        if (status & (1<<7)) cout << "\tNot Allowed" << endl;
+        else cout << "\tProgram or erase operation in a bank other than the addressed bank" << endl;
+    }
+    else
+    {
+        if (status & (1<<7)) cout << "\tNo program or erase operation in the device" << endl;
+        else cout << "\tProgram or erase operation in addressed bank" << endl;
+    }
 }
