@@ -83,7 +83,7 @@ qsfpPrintPartNumber
 );
 
 float
-qsfpPrintTemperature
+qsfpTemperature
 (
     struct rorcfs_sysmon *sm,
     uint32_t              index
@@ -197,8 +197,7 @@ int main(int argc, char **argv)
             qsfpPrintVendorName(sm, i);
             qsfpPrintPartNumber(sm, i);
 
-            qsfpPrintTemperature(sm, i);
-            cout << "Temperature: " << qsfpPrintTemperature(sm, i) << "°C" << endl;
+            cout << "Temperature: " << qsfpTemperature(sm, i) << "°C" << endl;
         }
 
         cout << endl;
@@ -310,7 +309,7 @@ qsfpPrintPartNumber
 
 
 float
-qsfpPrintTemperature
+qsfpTemperature
 (
     struct rorcfs_sysmon *sm,
     uint32_t              index
