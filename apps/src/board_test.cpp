@@ -41,7 +41,7 @@ using namespace std;
     #define RORC_REG_DDR3_CTRL 0
 #endif
 
-#define SLVADDR 0x50
+#define SLVADDR          0x50
 #define LIBRORC_MAX_QSFP 3
 
 
@@ -69,14 +69,14 @@ qsfpLEDIsOn
 );
 
 void
-qsfpPrintVendorName
+qsfpVendorName
 (
     rorcfs_sysmon *sm,
     uint32_t       index
 );
 
-void
-qsfpPrintPartNumber
+string*
+qsfpPartNumber
 (
     rorcfs_sysmon *sm,
     uint32_t index
@@ -194,10 +194,11 @@ int main(int argc, char **argv)
         {
             cout << "Checking QSFP" << i << " i2c access:" << endl;
 
-            qsfpPrintVendorName(sm, i);
-            qsfpPrintPartNumber(sm, i);
+            qsfpVendorName(sm, i);
 
-            cout << "Temperature: " << qsfpTemperature(sm, i) << "°C" << endl;
+            cout << "Vendor Name : ";
+            cout << "Part Number : " << qsfpPartNumber(sm, i)  << endl;
+            cout << "Temperature : " << qsfpTemperature(sm, i) << "°C" << endl;
         }
 
         cout << endl;
@@ -252,15 +253,13 @@ qsfpLEDIsOn
 
 
 void
-qsfpPrintVendorName
+qsfpVendorName
 (
     rorcfs_sysmon *sm,
     uint32_t       index
 )
 {
     qsfp_set_page0_and_config(sm, index);
-
-    cout << "Vendor Name: ";
 
     uint8_t data_r;
     //TODO this is redundant
@@ -280,8 +279,8 @@ qsfpPrintVendorName
 
 
 
-void
-qsfpPrintPartNumber
+string*
+qsfpPartNumber
 (
     rorcfs_sysmon *sm,
     uint32_t       index
@@ -289,21 +288,14 @@ qsfpPrintPartNumber
 {
     qsfp_set_page0_and_config(sm, index);
 
-    cout << "Part Number: ";
-
+    string *number = new string();
     uint8_t data_r = 0;
     for(uint8_t i=168; i<=183; i++)
     {
-        try
-        { data_r = sm->i2c_read_mem(SLVADDR, i); }
-        catch(...)
-        {
-            cout << "Failed to read from i2c!" << endl;
-            return;
-        }
-        cout << (char)data_r;
+        data_r = sm->i2c_read_mem(SLVADDR, i);
+        number += (char)data_r;
     }
-    cout << endl;
+    return number;
 }
 
 
