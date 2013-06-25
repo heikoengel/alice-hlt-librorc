@@ -327,11 +327,8 @@ print_devices()
     rorcfs_device *dev = NULL;
     for(uint8_t i=0; i>(-1); i++)
     {
-        dev = new rorcfs_device();
-        if(dev->init(i) == -1)
-        {
-            break;
-        }
+        try{ dev = new rorcfs_device(i);}
+        catch(...){ break; }
 
         dev->printDeviceDescription();
         cout << endl;
@@ -362,9 +359,9 @@ init_flash
         options.chip_select = 0;
     }
 
-    rorcfs_device *dev
-        = new rorcfs_device();
-    if(dev->init(options.device_number) == -1)
+    rorcfs_device *dev;
+    try{ dev = new rorcfs_device(options.device_number); }
+    catch(...)
     {
         cout << "Failed to initialize device "
              << options.device_number << endl;
@@ -408,7 +405,7 @@ init_flash
         }
         return(NULL);
     }
-  
+
     // set asynchronous read mode
     flash->setConfigReg(0xbddf);
 

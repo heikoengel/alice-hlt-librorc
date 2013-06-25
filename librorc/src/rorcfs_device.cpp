@@ -34,22 +34,9 @@
 
 using namespace std;
 
-rorcfs_device::rorcfs_device()
-{
-}
-
-
-
-rorcfs_device::~rorcfs_device()
-{
-}
-
-
-
-int32_t
-rorcfs_device::init
+rorcfs_device::rorcfs_device
 (
-    int32_t n
+    int32_t device_index
 )
 {
     /** A list of PCI ID to which PDA has to attach. */
@@ -63,22 +50,19 @@ rorcfs_device::init
 
     /** The device operator manages all devices with the given IDs. */
     if( (m_dop = DeviceOperator_new(pci_ids) ) == NULL)
-    {
-        cout << "Unable to get device-operator!" << endl;
-        return -1;
-    }
+    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
 
-    /** Get a device object device n in the list. */
-    m_device = NULL;
-    if(DeviceOperator_getPciDevice(m_dop, &m_device, n) != PDA_SUCCESS)
-    {
-        cout << "Can't get device!" << endl;
-        return -1;
-    }
+    /** Get a device object device from the list. */
+    if(DeviceOperator_getPciDevice(m_dop, &m_device, device_index) != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
 
-    m_number = n;
+    m_number = device_index;
+}
 
-    return 0;
+
+
+rorcfs_device::~rorcfs_device()
+{
 }
 
 

@@ -48,11 +48,13 @@ showDeviceMonitor
 int main(int argc, char **argv)
 {
     /** create new device object */
-    rorcfs_device *dev = new rorcfs_device();
-    if ( dev->init(0) == -1 )
+    rorcfs_device *dev;
+    try
+    { dev = new rorcfs_device(0); }
+    catch(...)
     {
-        printf("failed to initialize device 0 - "
-        "is the board detected with lspci?\n");
+        cout << "failed to initialize device 0 -"
+             << " is the board detected with lspci?" << endl;
         abort();
     }
 
@@ -152,7 +154,7 @@ showDeviceMonitor
 
             if( sm->qsfpIsPresent(i) )
             {
-                cout << "Checking QSFP" << i << " i2c access:" << endl;
+                cout << "Checking QSFP"  << i << " i2c access:"    << endl;
                 cout << "Vendor Name : " << sm->qsfpVendorName(i)  << endl;
                 cout << "Part Number : " << sm->qsfpPartNumber(i)  << endl;
                 cout << "Temperature : " << sm->qsfpTemperature(i) << "°C" << endl;

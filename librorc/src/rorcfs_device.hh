@@ -69,6 +69,8 @@
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
+#define LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED  1
+
 /** conditional debug printout command **/
 #ifdef DEBUG
     #define librorc_debug(fmt, args ...) printf(fmt, ## args)
@@ -94,24 +96,8 @@ friend class rorc_bar;
 friend class sim_bar;
 
 public:
-    rorcfs_device();
+    rorcfs_device(int32_t device_index);
     ~rorcfs_device();
-
-/**
- * Initialize device. This has to be done before using
- * any other member funtion.
- * @param n device-number to be used. n is the n-th directory
- *                  in /sys/module/rorcfs/drivers/pci:rorcfs/ with name
- *                  0000:[Bus-ID]:[Slot-ID].[Function-ID] as returned by
- *                  scandir() with alphasort().
- * @return 0 on sucess, -1 on error or if device
- *               does not exist
- **/
-int32_t
-init
-(
-    int32_t n = 0
-);
 
 /**
  * get PCIe Bus-ID

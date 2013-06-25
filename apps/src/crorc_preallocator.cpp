@@ -75,9 +75,10 @@ int main( int argc, char *argv[])
     for( uint16_t i=0; i<UINT16_MAX; i++)
     {
         /** create new device instance */
-        rorcfs_device *Dev = new rorcfs_device();
-        if( Dev->init(i) == -1 )
-            { break; }
+        rorcfs_device *Dev;
+
+        try{ Dev = new rorcfs_device(i); }
+        catch(...){ break; }
 
         /** bind to BAR1 */
         #ifdef SIM
