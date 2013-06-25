@@ -5,6 +5,7 @@
 		<Option title="crorc-driver" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
+		<Option virtualFolders="apps/src/;" />
 		<Build>
 			<Target title="Debug">
 				<Option output="bin/Debug/crorc-driver" prefix_auto="1" extension_auto="1" />
@@ -42,8 +43,9 @@
 		<Unit filename="librorc/src/rorcfs_device.hh" />
 		<Unit filename="librorc/src/rorcfs_dma_channel.cpp" />
 		<Unit filename="librorc/src/rorcfs_dma_channel.hh" />
-		<Unit filename="librorc/src/rorcfs_flash_htg.hh" />
-		<Unit filename="librorc/src/rorcfs_sysmon.cpp" />
+		<Unit filename="librorc/src/rorcfs_sysmon.cpp">
+			<Option virtualFolder="apps/src/" />
+		</Unit>
 		<Unit filename="librorc/src/rorcfs_sysmon.hh" />
 		<Unit filename="librorc/src/sim_bar.cpp" />
 		<Unit filename="librorc/src/sim_bar.hh" />

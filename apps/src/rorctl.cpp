@@ -482,7 +482,7 @@ showDeviceMonitor
     }
 
     /** Show QSFP status */
-    cout << "QSFPs" << endl << endl;
+    cout << endl << "QSFPs" << endl;
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
         cout << endl << "-------------------------------------" << endl << endl;
