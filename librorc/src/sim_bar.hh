@@ -271,13 +271,13 @@ typedef struct
 
 __attribute__((__packed__))
 {
-	uint64_t buffer_id;
-	uint64_t offset;
-	uint16_t length;
-	uint8_t  tag;
-	uint8_t  lower_addr;
-	uint8_t  byte_enable;
-	uint32_t requester_id;
+	uint64_t buffer_id;     /**< Buffer-ID*/
+	uint64_t offset;        /**< Request offset*/
+	uint16_t length;        /**< Lenght of request*/
+	uint8_t  tag;           /**< Request tag */
+	uint8_t  lower_addr;    /**< Lower alligned address */
+	uint8_t  byte_enable;   /**< Request byte-enable*/
+	uint32_t requester_id;  /**< Requester-ID*/
 } t_read_req;
 
 /**
@@ -286,9 +286,9 @@ __attribute__((__packed__))
 typedef struct
 __attribute__((__packed__))
 {
-	uint32_t  wr_ack;
-	uint32_t  data;
-	int32_t   id;
+	uint32_t  wr_ack;   /**< Message write acknowledge */
+	uint32_t  data;     /**< Message data */
+	int32_t   id;       /**< Message-ID*/
 } flimsgT;
 
 /**
@@ -297,12 +297,12 @@ __attribute__((__packed__))
 typedef struct
 __attribute__((__packed__))
 {
-	uint32_t addr;
-	uint32_t bar;
-	uint8_t  byte_enable;
-	uint8_t  type;
-	uint16_t len;
-	int32_t  id;
+	uint32_t addr;          /**< Alligned address */
+	uint32_t bar;           /**< Command base address registers */
+	uint8_t  byte_enable;   /**< Command byte-enable */
+	uint8_t  type;          /**< Command type */
+	uint16_t len;           /**<  */
+	int32_t  id;            /**< Command-ID */
 } flicmdT;
 
 #endif
