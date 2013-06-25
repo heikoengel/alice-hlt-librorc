@@ -131,10 +131,32 @@ uint8_t getSlot();
  **/
 uint8_t getFunc();
 
+/**
+ * get PCI Bar
+ * @return uint8 Bar
+ **/
 uint8_t  *getBarMap(uint8_t n);
+
+/**
+ * get PCI Bar-Size
+ * @return uint8 Bar-Size
+ **/
 uint64_t  getBarSize(uint8_t n);
+
+/**
+ * print PCI Device-Description
+ * @return uint8 Domain-ID
+ * @return uint8 Bus-ID
+ * @return uint8 Device-ID
+ * @return uint8 Function-ID
+ * @return uint8 Description
+ **/
 void      printDeviceDescription();
 
+/**
+ * get PCI-Device
+ * @return uint8 m-device
+ **/
 private:
     PciDevice *getPdaPciDevice()
     {
