@@ -115,31 +115,31 @@ init
 
 /**
  * get PCIe Bus-ID
- * @return uint8 Bus-ID
+ * @return Bus-ID
  **/
 uint8_t getBus();
 
 /**
  * get PCIe Slot-ID
- * @return uint8 Slot-ID
+ * @return Slot-ID
  **/
 uint8_t getSlot();
 
 /**
  * get PCIe Function-ID
- * @return uint8 Function-ID
+ * @return Function-ID
  **/
 uint8_t getFunc();
 
 /**
  * get PCI Bar
- * @return uint8 Bar
+ * @return Bar
  **/
 uint8_t  *getBarMap(uint8_t n);
 
 /**
  * get PCI Bar-Size
- * @return uint8 Bar-Size
+ * @return Bar-Size
  **/
 uint64_t  getBarSize(uint8_t n);
 
@@ -152,7 +152,7 @@ private:
 
     /**
      * get PCI-Device
-     * @return uint8 PCI-Device-Pointer
+     * @return PCI-Device-Pointer
      **/
     PciDevice *getPdaPciDevice()
     {
