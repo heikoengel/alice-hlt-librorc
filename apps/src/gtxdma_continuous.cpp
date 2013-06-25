@@ -165,8 +165,10 @@ int main( int argc, char *argv[])
 
 
   // create new device instance
-  dev = new rorcfs_device();
-  if ( dev->init(0) == -1 ) {
+  try
+  { dev = new rorcfs_device(0); }
+  catch(...)
+  {
     printf("ERROR: failed to initialize device.\n");
     goto out;
   }
