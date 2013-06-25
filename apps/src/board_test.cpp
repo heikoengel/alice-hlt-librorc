@@ -53,6 +53,14 @@ qsfp_set_page0_and_config
     uint32_t index
 );
 
+string*
+qsfp_i2c_string_readout
+(
+    rorcfs_sysmon *sm,
+    uint8_t        start,
+    uint8_t        end
+);
+
 bool
 qsfpIsPresent
 (
@@ -265,15 +273,7 @@ qsfpVendorName
 )
 {
     qsfp_set_page0_and_config(sm, index);
-
-    string *readout = new string();
-    uint8_t data_r = 0;
-    for(uint8_t i=148; i<=163; i++)
-    {
-        data_r = sm->i2c_read_mem(SLVADDR, i);
-        readout += (char)data_r;
-    }
-    return readout;
+    return( qsfp_i2c_string_readout(sm, 148, 163) );
 }
 
 
@@ -286,16 +286,28 @@ qsfpPartNumber
 )
 {
     qsfp_set_page0_and_config(sm, index);
-
-    string *readout = new string();
-    uint8_t data_r = 0;
-    for(uint8_t i=168; i<=183; i++)
-    {
-        data_r = sm->i2c_read_mem(SLVADDR, i);
-        readout += (char)data_r;
-    }
-    return readout;
+    return( qsfp_i2c_string_readout(sm, 168, 183) );
 }
+
+
+
+    string*
+    qsfp_i2c_string_readout
+    (
+        rorcfs_sysmon *sm,
+        uint8_t        start,
+        uint8_t        end
+    )
+    {
+        string *readout = new string();
+        uint8_t data_r = 0;
+        for(uint8_t i=start; i<=end; i++)
+        {
+            data_r = sm->i2c_read_mem(SLVADDR, i);
+            readout += (char)data_r;
+        }
+        return readout;
+    }
 
 
 
