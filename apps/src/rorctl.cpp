@@ -102,6 +102,12 @@ show_device_monitor
 );
 
 void
+flash_status
+(
+    librorc_flash *flash
+);
+
+void
 dump_flash_status
 (
     uint16_t       status,
@@ -229,30 +235,7 @@ int main
                 case 's':
                 {
                     flash = init_flash(options);
-                    flash->clearStatusRegister(0);
-
-                    uint16_t flashstatus = flash->getStatusRegister(0);
-
-                    cout << "Status               : " << hex
-                         << setw(4) << flashstatus << endl;
-                    dump_flash_status(flashstatus, flash);
-
-                    cout << "Manufacturer Code    : "    << hex << setw(4)
-                         << flash->getManufacturerCode() << endl;
-                    dump_flash_status(flashstatus, flash);
-
-                    cout << "Device ID            : " << hex << setw(4)
-                         << flash->getDeviceID() << endl;
-                    dump_flash_status(flashstatus, flash);
-
-                    cout << "Read Config Register : " << hex << setw(4)
-                         << flash->getReadConfigurationRegister() << endl;
-                    dump_flash_status(flashstatus, flash);
-
-                    cout << "Unique Device Number : " << hex
-                         << flash->getUniqueDeviceNumber() << endl;
-                    dump_flash_status(flashstatus, flash);
-
+                    flash_status(flash);
                     return 0;
                 }
                 break;
@@ -495,6 +478,38 @@ show_device_monitor
     delete bar1;
 
     return EXIT_SUCCESS;
+}
+
+
+
+void
+flash_status
+(
+    librorc_flash *flash
+)
+{
+    flash->clearStatusRegister(0);
+    uint16_t flashstatus = flash->getStatusRegister(0);
+
+    cout << "Status               : " << hex
+         << setw(4) << flashstatus << endl;
+    dump_flash_status(flashstatus, flash);
+
+    cout << "Manufacturer Code    : "    << hex << setw(4)
+         << flash->getManufacturerCode() << endl;
+    dump_flash_status(flashstatus, flash);
+
+    cout << "Device ID            : " << hex << setw(4)
+         << flash->getDeviceID() << endl;
+    dump_flash_status(flashstatus, flash);
+
+    cout << "Read Config Register : " << hex << setw(4)
+         << flash->getReadConfigurationRegister() << endl;
+    dump_flash_status(flashstatus, flash);
+
+    cout << "Unique Device Number : " << hex
+         << flash->getUniqueDeviceNumber() << endl;
+    dump_flash_status(flashstatus, flash);
 }
 
 
