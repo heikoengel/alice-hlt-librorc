@@ -101,7 +101,7 @@ show_device_monitor
     rorcfs_device *dev
 );
 
-void
+librorc_flash*
 flash_status
 (
     librorc_flash *flash
@@ -234,8 +234,7 @@ int main
 
                 case 's':
                 {
-                    flash = init_flash(options);
-                    flash_status(flash);
+                    delete flash_status(init_flash(options));
                     return 0;
                 }
                 break;
@@ -482,7 +481,7 @@ show_device_monitor
 
 
 
-void
+librorc_flash*
 flash_status
 (
     librorc_flash *flash
@@ -510,6 +509,8 @@ flash_status
     cout << "Unique Device Number : " << hex
          << flash->getUniqueDeviceNumber() << endl;
     dump_flash_status(flashstatus, flash);
+
+    return flash;
 }
 
 
