@@ -370,16 +370,22 @@ init_flash
     {
         switch (e)
         {
-        case 1:
-            cout << "BAR is no CRORC flash.";
+            case 1:
+            {
+                cout << "BAR is no CRORC flash.";
+            }
             break;
 
-        case 2:
-            cout << "Illegal flash chip select";
+            case 2:
+            {
+                cout << "Illegal flash chip select";
+            }
             break;
 
-        default:
-            cout << "Unknown Exceptoin Nr. " << e << endl;
+            default:
+            {
+                cout << "Unknown Exceptoin Nr. " << e << endl;
+            }
             break;
         }
         return(NULL);
