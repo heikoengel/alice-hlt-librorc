@@ -48,6 +48,7 @@ Value parameters :                                           \n\
   -v              Be verbose                                 \n\
   -c              Select Flash Chip [0 or 1]                 \n\
 Instruction parameters :                                     \n\
+  -h              Print this help screen!                    \n\
   -l              List available devices.                    \n\
   -d              Dump device firmware to file.              \n\
                   Requires value parameters -n and f.        \n\
@@ -58,6 +59,7 @@ Instruction parameters :                                     \n\
                   Requires value parameters -n               \n\
   -s              Show flash status                          \n\
   -r              Reset Flash                                \n\
+  -m              Show CRORC monitor stats                   \n\
 Examples :                                                   \n\
 Show status of Device 0 Flash 0:                             \n\
   rorctl -n 0 -c 0 -s                                        \n\
@@ -137,7 +139,6 @@ int main
         NULL
     };
 
-    librorc_flash *flash = NULL;
     {
         opterr = 0;
         int c;
@@ -152,16 +153,49 @@ int main
                 }
                 break;
 
-                case 'v':
-                {
-                    options.verbose = LIBRORC_VERBOSE_ON;
-                }
-                break;
-
                 case 'l':
                 {
                     print_devices();
                     return(0);
+                }
+                break;
+
+                case 'd':
+                {
+                    cout << "Dumping device to file!" << endl;
+                    librorc_flash *flash = init_flash(options);
+                    return( flash->dump(options.filename, options.verbose) );
+                }
+                break;
+
+                case 'p':
+                {
+                    cout << "Flashing device!" << endl;
+                    librorc_flash *flash = init_flash(options);
+                    return( flash->flash(options.filename, options.verbose) );
+                }
+                break;
+
+                case 'e':
+                {
+                    cout << "Erasing device!" << endl;
+                    librorc_flash *flash = init_flash(options);
+                    return( flash->erase(16<<20, options.verbose) );
+                }
+                break;
+
+                case 's':
+                {
+                    delete flash_status(init_flash(options));
+                    return 0;
+                }
+                break;
+
+                case 'r':
+                {
+                    cout << "Resetting Flash!" << endl;
+                    librorc_flash *flash = init_flash(options);
+                    return( flash->resetChip() );
                 }
                 break;
 
@@ -173,38 +207,7 @@ int main
                 }
                 break;
 
-                case 'd':
-                {
-                    cout << "Dumping device to file!" << endl;
-                    flash = init_flash(options);
-                    return( flash->dump(options.filename, options.verbose) );
-                }
-                break;
-
-                case 'r':
-                {
-                    cout << "Resetting Flash!" << endl;
-                    flash = init_flash(options);
-                    return(0);
-                }
-                break;
-
-                case 'e':
-                {
-                    cout << "Erasing device!" << endl;
-                    flash = init_flash(options);
-                    return( flash->erase(16<<20, options.verbose) );
-                }
-                break;
-
-                case 'p':
-                {
-                    cout << "Flashing device!" << endl;
-                    flash = init_flash(options);
-                    return( flash->flash(options.filename, options.verbose) );
-                }
-                break;
-
+                /** Value parameter */
                 case 'n':
                 {
                     options.device_number = atoi(optarg);
@@ -226,16 +229,15 @@ int main
                 }
                 break;
 
-                case 'c':
+                case 'v':
                 {
-                    options.chip_select = atoi(optarg);
+                    options.verbose = LIBRORC_VERBOSE_ON;
                 }
                 break;
 
-                case 's':
+                case 'c':
                 {
-                    delete flash_status(init_flash(options));
-                    return 0;
+                    options.chip_select = atoi(optarg);
                 }
                 break;
 
