@@ -96,7 +96,7 @@ init_flash
 );
 
 int
-showDeviceMonitor
+show_device_monitor
 (
     rorcfs_device *dev
 );
@@ -104,7 +104,8 @@ showDeviceMonitor
 void
 dump_flash_status
 (
-    uint16_t status
+    uint16_t       status,
+    librorc_flash *flash
 );
 
 
@@ -162,7 +163,7 @@ int main
                 {
                     cout << "Monitor Device " << options.device_number
                          << endl << endl;
-                    return( showDeviceMonitor(options.dev) );
+                    return( show_device_monitor(options.dev) );
                 }
                 break;
 
@@ -235,7 +236,7 @@ int main
                         << setw(4) << flashstatus << endl;
                     if (flashstatus!=0x0080)
                     {
-                        dump_flash_status(flashstatus);
+                        dump_flash_status(flashstatus, flash);
                         flash->clearStatusRegister(0);
                     }
 
@@ -245,7 +246,7 @@ int main
                     if (flashstatus!=0x0080)
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
-                        dump_flash_status(flashstatus);
+                        dump_flash_status(flashstatus, flash);
                         flash->clearStatusRegister(0);
                     }
 
@@ -255,7 +256,7 @@ int main
                     if (flashstatus!=0x0080)
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
-                        dump_flash_status(flashstatus);
+                        dump_flash_status(flashstatus, flash);
                         flash->clearStatusRegister(0);
                     }
 
@@ -265,7 +266,7 @@ int main
                     if (flashstatus!=0x0080)
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
-                        dump_flash_status(flashstatus);
+                        dump_flash_status(flashstatus, flash);
                         flash->clearStatusRegister(0);
                     }
 
@@ -275,7 +276,7 @@ int main
                     if (flashstatus!=0x0080)
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
-                        dump_flash_status(flashstatus);
+                        dump_flash_status(flashstatus, flash);
                         flash->clearStatusRegister(0);
                     }
 
@@ -403,7 +404,7 @@ init_flash
 
 
 int
-showDeviceMonitor
+show_device_monitor
 (
     rorcfs_device *dev
 )
@@ -521,7 +522,8 @@ showDeviceMonitor
 void
 dump_flash_status
 (
-    uint16_t status
+    uint16_t       status,
+    librorc_flash *flash
 )
 {
     if ( status & (1<<7) )
