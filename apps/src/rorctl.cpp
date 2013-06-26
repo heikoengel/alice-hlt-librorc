@@ -233,14 +233,14 @@ int main
 
                     uint16_t flashstatus = flash->getStatusRegister(0);
                     cout << "Status               : " << hex
-                        << setw(4) << flashstatus << endl;
+                         << setw(4) << flashstatus << endl;
                     if (flashstatus!=0x0080)
                     {
                         dump_flash_status(flashstatus, flash);
                     }
 
                     cout << "Manufacturer Code    : " << hex << setw(4)
-                        << flash->getManufacturerCode() << endl;
+                         << flash->getManufacturerCode() << endl;
                     flashstatus = flash->getStatusRegister(0);
                     if (flashstatus!=0x0080)
                     {
@@ -249,7 +249,7 @@ int main
                     }
 
                     cout << "Device ID            : " << hex << setw(4)
-                        << flash->getDeviceID() << endl;
+                         << flash->getDeviceID() << endl;
                     flashstatus = flash->getStatusRegister(0);
                     if (flashstatus!=0x0080)
                     {
@@ -258,7 +258,7 @@ int main
                     }
 
                     cout << "Read Config Register : " << hex << setw(4)
-                        << flash->getReadConfigurationRegister() << endl;
+                         << flash->getReadConfigurationRegister() << endl;
                     flashstatus = flash->getStatusRegister(0);
                     if (flashstatus!=0x0080)
                     {
@@ -267,7 +267,7 @@ int main
                     }
 
                     cout << "Unique Device Number : " << hex
-                        << flash->getUniqueDeviceNumber() << endl;
+                         << flash->getUniqueDeviceNumber() << endl;
                     flashstatus = flash->getStatusRegister(0);
                     if (flashstatus!=0x0080)
                     {
@@ -291,6 +291,7 @@ int main
     }
 
 ret_main:
+
     if(options.filename != NULL)
     {
         free(options.filename);
@@ -521,41 +522,90 @@ dump_flash_status
     librorc_flash *flash
 )
 {
-    if ( status & (1<<7) )
+    if( status & (1<<7) )
     {
         cout << "\tReady" << endl;
-    } else
+    }
+    else
     {
         cout << "\tBusy" << endl;
     }
 
-    if ( status & (1<<6) ) cout << "\tErase suspended" << endl;
-    else cout << "\tErase in progress or completed" << endl;
-
-    if ( status & (1<<5) ) cout << "\tErase/blank check error" << endl;
-    else cout << "\tErase/blank check sucess" << endl;
-
-    if ( status & (1<<4) ) cout << "\tProgram Error" << endl;
-    else cout << "\tProgram sucess" << endl;
-
-    if ( status & (1<<3) ) cout << "\tVpp invalid, abort" << endl;
-    else cout << "\tVpp OK" << endl;
-
-    if ( status & (1<<2) ) cout << "\tProgram Suspended" << endl;
-    else cout << "\tProgram in progress or completed" << endl;
-
-    if ( status & (1<<1) ) cout << "\tProgram/erase on protected block, abort" << endl;
-    else cout << "\tNo operation to protected block" << endl;
-
-    if ( status & 1 )
+    if( status & (1<<6) )
     {
-        if (status & (1<<7)) cout << "\tNot Allowed" << endl;
-        else cout << "\tProgram or erase operation in a bank other than the addressed bank" << endl;
+        cout << "\tErase suspended" << endl;
     }
     else
     {
-        if (status & (1<<7)) cout << "\tNo program or erase operation in the device" << endl;
-        else cout << "\tProgram or erase operation in addressed bank" << endl;
+        cout << "\tErase in progress or completed" << endl;
+    }
+
+    if( status & (1<<5) )
+    {
+        cout << "\tErase/blank check error" << endl;
+    }
+    else
+    {
+        cout << "\tErase/blank check sucess" << endl;
+    }
+
+    if( status & (1<<4) )
+    {
+        cout << "\tProgram Error" << endl;
+    }
+    else
+    {
+        cout << "\tProgram sucess" << endl;
+    }
+
+    if( status & (1<<3) )
+    {
+        cout << "\tVpp invalid, abort" << endl;
+    }
+    else
+    {
+        cout << "\tVpp OK" << endl;
+    }
+
+    if( status & (1<<2) )
+    {
+        cout << "\tProgram Suspended" << endl;
+    }
+    else
+    {
+        cout << "\tProgram in progress or completed" << endl;
+    }
+
+    if( status & (1<<1) )
+    {
+        cout << "\tProgram/erase on protected block, abort" << endl;
+    }
+    else
+    {
+        cout << "\tNo operation to protected block" << endl;
+    }
+
+    if( status & 1 )
+    {
+        if( status & (1<<7) )
+        {
+            cout << "\tNot Allowed" << endl;
+        }
+        else
+        {
+            cout << "\tProgram or erase operation in a bank other than the addressed bank" << endl;
+        }
+    }
+    else
+    {
+        if( status & (1<<7) )
+        {
+            cout << "\tNo program or erase operation in the device" << endl;
+        }
+        else
+        {
+            cout << "\tProgram or erase operation in addressed bank" << endl;
+        }
     }
 
     flash->clearStatusRegister(0);
