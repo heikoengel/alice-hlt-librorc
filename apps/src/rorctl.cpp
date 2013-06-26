@@ -237,7 +237,6 @@ int main
                     if (flashstatus!=0x0080)
                     {
                         dump_flash_status(flashstatus, flash);
-                        flash->clearStatusRegister(0);
                     }
 
                     cout << "Manufacturer Code    : " << hex << setw(4)
@@ -247,7 +246,6 @@ int main
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
                         dump_flash_status(flashstatus, flash);
-                        flash->clearStatusRegister(0);
                     }
 
                     cout << "Device ID            : " << hex << setw(4)
@@ -257,7 +255,6 @@ int main
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
                         dump_flash_status(flashstatus, flash);
-                        flash->clearStatusRegister(0);
                     }
 
                     cout << "Read Config Register : " << hex << setw(4)
@@ -267,7 +264,6 @@ int main
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
                         dump_flash_status(flashstatus, flash);
-                        flash->clearStatusRegister(0);
                     }
 
                     cout << "Unique Device Number : " << hex
@@ -277,7 +273,6 @@ int main
                     {
                         cout << "Status : " << hex << setw(4) << flashstatus << endl;
                         dump_flash_status(flashstatus, flash);
-                        flash->clearStatusRegister(0);
                     }
 
                     return 0;
@@ -562,4 +557,6 @@ dump_flash_status
         if (status & (1<<7)) cout << "\tNo program or erase operation in the device" << endl;
         else cout << "\tProgram or erase operation in addressed bank" << endl;
     }
+
+    flash->clearStatusRegister(0);
 }
