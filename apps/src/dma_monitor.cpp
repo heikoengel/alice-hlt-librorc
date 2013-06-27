@@ -105,17 +105,17 @@ int main( void )
             i, chstats[i]->n_events,
             (double)chstats[i]->bytes_received/(double)(1<<30));
 
+            cout << "CH" << i << " - Events: " << chstats[i]->n_events << ", DataSize: "
+                 << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
+
             channel_bytes[i] =
                 chstats[i]->bytes_received - last_bytes_received[i];
 
             if( last_bytes_received[i] && channel_bytes[i] )
             {
-                printf(" Data-Rate: %9.3f MB/s",
-                (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
-
                 cout << " Data-Rate: " <<
                 (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
-                << " MB/s" << endl;
+                << " MB/s";
 
             }
             else
