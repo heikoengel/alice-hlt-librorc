@@ -373,6 +373,8 @@ show_device_monitor
     rorcfs_device *dev
 )
 {
+    cout << setfill('0');
+
     if(dev == NULL)
     {
         cout << "Device ID was not given!" << endl;
@@ -407,8 +409,8 @@ show_device_monitor
     try
     {
         cout << "CRORC FPGA" << endl
-             << "Firmware Rev. : " << hex << setprecision(8) << sm->FwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setprecision(8) << sm->FwBuildDate() << dec << endl;
+             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
     }
     catch(...)
     {
@@ -527,6 +529,7 @@ dump_flash_status
 
     if( flash->getStatusRegister(0) != 0x0080 )
     {
+        cout << setfill('0');
         cout << "Status : " << hex << setw(4) << status << endl;
 
         if( status & (1<<7) )

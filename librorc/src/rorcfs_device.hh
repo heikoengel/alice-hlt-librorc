@@ -99,6 +99,8 @@ public:
     rorcfs_device(int32_t device_index);
     ~rorcfs_device();
 
+uint16_t getDomain();
+
 /**
  * get PCIe Bus-ID
  * @return Bus-ID

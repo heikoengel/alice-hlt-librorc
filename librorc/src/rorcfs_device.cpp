@@ -31,6 +31,7 @@
 #include "rorcfs_bar.hh"
 #include "sim_bar.hh"
 #include "rorcfs_device.hh"
+#include "rorcfs_sysmon.hh"
 #include <librorc_registers.h>
 
 using namespace std;
@@ -64,6 +65,20 @@ rorcfs_device::rorcfs_device
 
 rorcfs_device::~rorcfs_device()
 {
+}
+
+
+
+uint16_t
+rorcfs_device::getDomain()
+{
+    uint16_t domain_id;
+    if(PciDevice_getDomainID(m_device, &domain_id) == PDA_SUCCESS)
+    {
+        return(domain_id);
+    }
+
+    return(0);
 }
 
 
@@ -157,18 +172,11 @@ rorcfs_device::getBarSize
 void
 rorcfs_device::printDeviceDescription()
 {
-    uint16_t    domain_id   = 0;
-    uint8_t     bus_id      = 0;
-    uint8_t     device_id   = 0;
-    uint8_t     function_id = 0;
+
     char        description_buffer[1024];
 
     const char *description = (const char *)description_buffer;
     PdaDebugReturnCode ret = PDA_SUCCESS;
-    ret += PciDevice_getDomainID(m_device, &domain_id);
-    ret += PciDevice_getBusID(m_device, &bus_id);
-    ret += PciDevice_getDeviceID(m_device, &device_id);
-    ret += PciDevice_getFunctionID(m_device, &function_id);
     ret += PciDevice_getDescription(m_device, &description );
 
     if( ret != PDA_SUCCESS )
@@ -176,6 +184,7 @@ rorcfs_device::printDeviceDescription()
         return;
     }
 
+    /** Instantiate a new bar */
     #ifdef SIM
         librorc_bar *bar = new sim_bar(this, 1);
     #else
@@ -188,26 +197,31 @@ rorcfs_device::printDeviceDescription()
         return;
     }
 
-    printf("Device [%u] %04x:%02x:%02x.%x : %s (firmware date: %08x, revision: %08x)\n",
-            m_number, domain_id, bus_id, device_id, function_id, description,
-            bar->get(RORC_REG_FIRMWARE_DATE), bar->get(RORC_REG_FIRMWARE_REVISION) );
-
+    /** Instantiate a new sysmon */
+    rorcfs_sysmon *sm;
+    try
+    { sm = new rorcfs_sysmon(bar); }
+    catch(...)
+    {
+        cout << "Sysmon init failed!" << endl;
+        delete bar;
+        abort();
+    }
 
     cout << "Device [" <<  (unsigned int)m_number << "] ";
 
     cout << setfill('0');
-    cout << hex << setw(4) << (unsigned int)domain_id << ":"
-         << hex << setw(2) << (unsigned int)bus_id    << ":"
-         << hex << setw(2) << (unsigned int)device_id << "."
-         << hex << setw(1) << (unsigned int)function_id ;
+    cout << hex << setw(4) << (unsigned int)getDomain() << ":"
+         << hex << setw(2) << (unsigned int)getBus()    << ":"
+         << hex << setw(2) << (unsigned int)getSlot()   << "."
+         << hex << setw(1) << (unsigned int)getFunc() ;
 
     cout << " : " << description;
 
-    cout << " (firmware date: "
-         << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_DATE)
-         << ", revision: "
-         << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_REVISION)
+    cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
+         << ", revision: "      << hex << setw(8) << sm->FwRevision()
          << ")" << endl;
 
+    delete sm;
     delete bar;
 }
