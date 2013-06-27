@@ -35,7 +35,7 @@
 #include "librorc.h"
 #include "event_handling.h"
 
-#define STAT_INTERVAL 1.0
+#define STAT_INTERVAL 1
 #define N_CHANNELS 12
 
 int done = 0;
@@ -100,64 +100,19 @@ int main( int argc, char *argv[] )
         gettimeofday(&cur_time, 0);
 
         /** print status line each second */
-        if( gettimeofday_diff(last_time, cur_time) > STAT_INTERVAL )
+        for(int32_t i=0; i<N_CHANNELS; i++)
         {
+            printf("CH%2d - Events: %10ld, DataSize: %8.3f GB ",
+            i, chstats[i]->n_events,
+            (double)chstats[i]->bytes_received/(double)(1<<30));
 
-            for(int32_t i=0; i<N_CHANNELS; i++)
+            channel_bytes[i] =
+                chstats[i]->bytes_received - last_bytes_received[i];
+
+            if( last_bytes_received[i] && channel_bytes[i] )
             {
-                printf("CH%2d - Events: %10ld, DataSize: %8.3f GB ",
-                i, chstats[i]->n_events,
-                (double)chstats[i]->bytes_received/(double)(1<<30));
-
-                channel_bytes[i] =
-                    chstats[i]->bytes_received - last_bytes_received[i];
-
-                if( last_bytes_received[i] && channel_bytes[i] )
-                {
-                    printf(" DataRate: %9.3f MB/s",
-                    (double)(channel_bytes[i])/
-                    gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
-                }
-                else
-                {
-                    printf(" DataRate: -");
-                }
-
-                if
-                (
-                    last_events_received[i] &&
-                    chstats[i]->n_events - last_events_received[i]
-                )
-                {
-                    printf(" EventRate: %9.3f kHz",
-                    (double)(chstats[i]->n_events-last_events_received[i])/
-                    gettimeofday_diff(last_time, cur_time)/1000.0);
-                }
-                else
-                {
-                    printf(" EventRate: -");
-                }
-
-                printf(" Errors: %ld\n", chstats[i]->error_count);
-                last_bytes_received[i] = chstats[i]->bytes_received;
-                last_events_received[i] = chstats[i]->n_events;
-            }
-
-            printf("======== ");
-
-            uint64_t sum_of_bytes      = 0;
-            uint64_t sum_of_bytes_diff = 0;
-            for(int32_t i=0; i<N_CHANNELS; i++)
-            {
-                sum_of_bytes+=chstats[i]->bytes_received;
-                sum_of_bytes_diff+=channel_bytes[i];
-            }
-
-            if(sum_of_bytes_diff)
-            {
-                printf("DataSize: %8.3f TB, DataRate: %9.3f MB/s",
-                (double)sum_of_bytes/((uint64_t)1<<40),
-                (double)(sum_of_bytes_diff)/
+                printf(" DataRate: %9.3f MB/s",
+                (double)(channel_bytes[i])/
                 gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
             }
             else
@@ -165,13 +120,56 @@ int main( int argc, char *argv[] )
                 printf(" DataRate: -");
             }
 
-            printf(" ========\n");
+            if
+            (
+                last_events_received[i] &&
+                chstats[i]->n_events - last_events_received[i]
+            )
+            {
+                printf(" EventRate: %9.3f kHz",
+                (double)(chstats[i]->n_events-last_events_received[i])/
+                gettimeofday_diff(last_time, cur_time)/1000.0);
+            }
+            else
+            {
+                printf(" EventRate: -");
+            }
 
-            last_time = cur_time;
+            printf(" Errors: %ld\n", chstats[i]->error_count);
+            last_bytes_received[i] = chstats[i]->bytes_received;
+            last_events_received[i] = chstats[i]->n_events;
         }
-        usleep(100);
+
+        printf("======== ");
+
+        uint64_t sum_of_bytes      = 0;
+        uint64_t sum_of_bytes_diff = 0;
+        for(int32_t i=0; i<N_CHANNELS; i++)
+        {
+            sum_of_bytes+=chstats[i]->bytes_received;
+            sum_of_bytes_diff+=channel_bytes[i];
+        }
+
+        if(sum_of_bytes_diff)
+        {
+            printf("DataSize: %8.3f TB, DataRate: %9.3f MB/s",
+            (double)sum_of_bytes/((uint64_t)1<<40),
+            (double)(sum_of_bytes_diff)/
+            gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
+        }
+        else
+        {
+            printf(" DataRate: -");
+        }
+
+        printf(" ========\n");
+
+        last_time = cur_time;
+
+        sleep(STAT_INTERVAL);
     }
 
+    /** Detach all the shared memory */
     for(int32_t i=0; i<N_CHANNELS; i++)
     {
         if (shm[i])
