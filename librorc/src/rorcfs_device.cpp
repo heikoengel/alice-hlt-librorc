@@ -31,7 +31,7 @@
 #include "rorcfs_bar.hh"
 #include "sim_bar.hh"
 #include "rorcfs_device.hh"
-#include "rorcfs_sysmon.hh"
+#include "librorc_sysmon.hh"
 #include <librorc_registers.h>
 
 using namespace std;
