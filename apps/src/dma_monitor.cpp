@@ -101,10 +101,6 @@ int main( void )
         /** print status line each second */
         for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
-            printf("CH%2d - Events: %10ld, DataSize: %8.3f GB ",
-            i, chstats[i]->n_events,
-            (double)chstats[i]->bytes_received/(double)(1<<30));
-
             cout << "CH" << i << " - Events: " << chstats[i]->n_events << ", DataSize: "
                  << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
 
