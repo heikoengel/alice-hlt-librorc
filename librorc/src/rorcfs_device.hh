@@ -66,6 +66,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <iostream>
+#include <iomanip>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+using namespace std;
+
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
@@ -123,13 +132,15 @@ uint8_t getFunc();
  * get PCI Bar
  * @return Bar
  **/
-uint8_t  *getBarMap(uint8_t n);
+uint8_t *getBarMap(uint8_t n);
 
 /**
  * get PCI Bar-Size
  * @return Bar-Size
  **/
-uint64_t  getBarSize(uint8_t n);
+uint64_t getBarSize(uint8_t n);
+
+string* deviceDescription();
 
 /**
  * print PCI Device-Description

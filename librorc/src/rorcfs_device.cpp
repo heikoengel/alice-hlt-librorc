@@ -173,21 +173,30 @@ rorcfs_device::getBarSize
     return(size);
 }
 
+
+
+string*
+rorcfs_device::deviceDescription()
+{
+    char description_buffer[1024];
+    const char *description
+        = (const char *)description_buffer;
+
+    if
+    (
+        PciDevice_getDescription(m_device, &description )
+            != PDA_SUCCESS
+    )
+    {
+        return NULL;
+    }
+
+    return( new string(description_buffer) );
+}
+
 void
 rorcfs_device::printDeviceDescription()
 {
-
-    char        description_buffer[1024];
-
-    const char *description = (const char *)description_buffer;
-    PdaDebugReturnCode ret = PDA_SUCCESS;
-    ret += PciDevice_getDescription(m_device, &description );
-
-    if( ret != PDA_SUCCESS )
-    {
-        return;
-    }
-
     /** Instantiate a new bar */
     #ifdef SIM
         librorc_bar *bar = new sim_bar(this, 1);
@@ -220,7 +229,7 @@ rorcfs_device::printDeviceDescription()
          << hex << setw(2) << (unsigned int)getSlot()   << "."
          << hex << setw(1) << (unsigned int)getFunc() ;
 
-    cout << " : " << description;
+    cout << " : " << deviceDescription();
 
     cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
          << ", revision: "      << hex << setw(8) << sm->FwRevision()
