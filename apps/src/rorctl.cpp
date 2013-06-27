@@ -331,6 +331,7 @@ print_device
          << hex << setw(2) << (unsigned int)dev->getSlot()   << "."
          << hex << setw(1) << (unsigned int)dev->getFunc() ;
 
+    cout << resetiosflags(std::ios::showbase);
     cout << " : " << dev->deviceDescription();
 
     cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
