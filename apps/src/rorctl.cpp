@@ -90,6 +90,12 @@ typedef struct
 /** Function signatures */
 void print_devices();
 
+void
+print_device
+(
+    uint8_t index
+);
+
 inline
 librorc_flash*
 init_flash
@@ -273,18 +279,27 @@ void
 print_devices()
 {
     cout << "Available CRORC devices:" << endl;
-
-    rorcfs_device *dev = NULL;
     for(uint8_t i=0; i>(-1); i++)
     {
-        try{ dev = new rorcfs_device(i);}
-        catch(...){ break; }
-
-        dev->printDeviceDescription();
-        cout << endl;
-
-        delete dev;
+        print_device(i);
     }
+}
+
+
+
+void
+print_device
+(
+    uint8_t index
+)
+{
+    rorcfs_device *dev = NULL;
+    try{ dev = new rorcfs_device(index);}
+    catch(...){ exit(0); }
+
+    dev->printDeviceDescription();
+
+    delete dev;
 }
 
 

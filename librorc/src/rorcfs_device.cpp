@@ -123,6 +123,8 @@ rorcfs_device::getFunc()
     return(0);
 }
 
+
+
 uint8_t*
 rorcfs_device::getBarMap
 (
@@ -145,6 +147,8 @@ rorcfs_device::getBarMap
 
     return(buffer);
 }
+
+
 
 uint64_t
 rorcfs_device::getBarSize
@@ -193,7 +197,7 @@ rorcfs_device::printDeviceDescription()
 
     if ( bar->init() == -1 )
     {
-        printf("ERROR: failed to initialize BAR1.\n");
+        printf("ERROR: failed to initialize BAR.\n");
         return;
     }
 
