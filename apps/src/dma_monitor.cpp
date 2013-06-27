@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
         channel_bytes[i] = 0;
 
         shID[i] = shmget(SHM_KEY_OFFSET + i, sizeof(struct ch_stats), IPC_CREAT | 0666);
-        if ( shID[i]==-1)
+        if( shID[i]==-1)
         {
             perror("shmget");
             abort();
@@ -88,10 +88,9 @@ int main( int argc, char *argv[] )
     }
 
     /** capture starting time */
-    timeval start_time;
-    gettimeofday(&start_time, 0);
-    timeval last_time = start_time;
-    timeval cur_time = start_time;
+    timeval cur_time;
+    gettimeofday(&cur_time, 0);
+    timeval last_time = cur_time;
 
     sigaction(SIGINT, &sigIntHandler, NULL);
 
@@ -111,13 +110,13 @@ int main( int argc, char *argv[] )
 
             if( last_bytes_received[i] && channel_bytes[i] )
             {
-                printf(" DataRate: %9.3f MB/s",
+                printf(" Data Rate: %9.3f MB/s",
                 (double)(channel_bytes[i])/
                 gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
             }
             else
             {
-                printf(" DataRate: -");
+                printf(" Data Rate: -");
             }
 
             if
@@ -126,13 +125,13 @@ int main( int argc, char *argv[] )
                 chstats[i]->n_events - last_events_received[i]
             )
             {
-                printf(" EventRate: %9.3f kHz",
+                printf(" Event Rate: %9.3f kHz",
                 (double)(chstats[i]->n_events-last_events_received[i])/
                 gettimeofday_diff(last_time, cur_time)/1000.0);
             }
             else
             {
-                printf(" EventRate: -");
+                printf(" Event Rate: -");
             }
 
             printf(" Errors: %ld\n", chstats[i]->error_count);
@@ -152,7 +151,7 @@ int main( int argc, char *argv[] )
 
         if(sum_of_bytes_diff)
         {
-            printf("DataSize: %8.3f TB, DataRate: %9.3f MB/s",
+            printf("DataSize: %8.3f TB, Combined Data-Rate: %9.3f MB/s",
             (double)sum_of_bytes/((uint64_t)1<<40),
             (double)(sum_of_bytes_diff)/
             gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
@@ -172,7 +171,7 @@ int main( int argc, char *argv[] )
     /** Detach all the shared memory */
     for(int32_t i=0; i<N_CHANNELS; i++)
     {
-        if (shm[i])
+        if(shm[i])
         {
             shmdt(shm[i]);
             shm[i] = NULL;
