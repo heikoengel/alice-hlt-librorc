@@ -154,7 +154,7 @@ int main( int argc, char *argv[] )
 //            (double)sum_of_bytes/((uint64_t)1<<40),
 //            (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)));
 
-            cout << "Combined DataSize: " << (double)(sum_of_bytes/((uint64_t)1<<40)) << " TB, Combined Data-Rate: "
+            cout << "Combined DataSize: " << (double)sum_of_bytes/((uint64_t)1<<40) << " TB, Combined Data-Rate: "
                  << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
                  << " MB/s";
 
