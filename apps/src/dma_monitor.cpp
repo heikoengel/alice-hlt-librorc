@@ -111,8 +111,12 @@ int main( void )
             if( last_bytes_received[i] && channel_bytes[i] )
             {
                 printf(" Data-Rate: %9.3f MB/s",
-                (double)(channel_bytes[i])/
-                gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
+                (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
+
+                cout << " Data-Rate: " <<
+                (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
+                << " MB/s" << endl;
+
             }
             else
             {
@@ -125,10 +129,6 @@ int main( void )
                 chstats[i]->n_events - last_events_received[i]
             )
             {
-                printf(" Event Rate: %9.3f kHz",
-                (double)(chstats[i]->n_events-last_events_received[i])/
-                gettimeofday_diff(last_time, cur_time)/1000.0);
-
                 cout << " Event Rate: " << (double)(chstats[i]->n_events-last_events_received[i])/
                           gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
             }
@@ -155,7 +155,8 @@ int main( void )
 
         if(sum_of_bytes_diff)
         {
-            cout << "Combined Data-Size: " << (double)sum_of_bytes/((uint64_t)1<<40) << " TB, Combined Data-Rate: "
+            cout << "Combined Data-Size: " << (double)sum_of_bytes/((uint64_t)1<<40)
+                 << " TB, Combined Data-Rate: "
                  << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
                  << " MB/s";
 
