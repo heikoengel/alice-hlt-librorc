@@ -32,6 +32,8 @@
 		<Unit filename="librorc/src/librorc_defines.hh" />
 		<Unit filename="librorc/src/librorc_flash.cpp" />
 		<Unit filename="librorc/src/librorc_flash.hh" />
+		<Unit filename="librorc/src/librorc_sysmon.cpp" />
+		<Unit filename="librorc/src/librorc_sysmon.hh" />
 		<Unit filename="librorc/src/rorcfs_bar.cpp" />
 		<Unit filename="librorc/src/rorcfs_bar.hh" />
 		<Unit filename="librorc/src/rorcfs_bar_includes.hh" />
@@ -41,8 +43,6 @@
 		<Unit filename="librorc/src/rorcfs_device.hh" />
 		<Unit filename="librorc/src/rorcfs_dma_channel.cpp" />
 		<Unit filename="librorc/src/rorcfs_dma_channel.hh" />
-		<Unit filename="librorc/src/rorcfs_sysmon.cpp" />
-		<Unit filename="librorc/src/rorcfs_sysmon.hh" />
 		<Unit filename="librorc/src/sim_bar.cpp" />
 		<Unit filename="librorc/src/sim_bar.hh" />
 		<Extensions>
