@@ -40,12 +40,12 @@ uint32_t done = 0;
 
 void abort_handler( int s )
 {
-  printf("Caught signal %d\n", s);
+  cout << "Caught signal " << s << endl;
   done = 1;
 }
 
 
-int main( int argc, char *argv[] )
+int main( void )
 {
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
@@ -63,6 +63,7 @@ int main( int argc, char *argv[] )
     struct   ch_stats *chstats[LIBRORC_MAX_DMA_CHANNELS];
     int32_t            shID[LIBRORC_MAX_DMA_CHANNELS];
     char              *shm[LIBRORC_MAX_DMA_CHANNELS];
+
     for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
     {
         last_bytes_received[i] = 0;
@@ -109,13 +110,13 @@ int main( int argc, char *argv[] )
 
             if( last_bytes_received[i] && channel_bytes[i] )
             {
-                printf(" Data Rate: %9.3f MB/s",
+                printf(" Data-Rate: %9.3f MB/s",
                 (double)(channel_bytes[i])/
                 gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
             }
             else
             {
-                printf(" Data Rate: -");
+                cout << " Data-Rate: -";
             }
 
             if
@@ -127,13 +128,17 @@ int main( int argc, char *argv[] )
                 printf(" Event Rate: %9.3f kHz",
                 (double)(chstats[i]->n_events-last_events_received[i])/
                 gettimeofday_diff(last_time, cur_time)/1000.0);
+
+                cout << " Event Rate: " << (double)(chstats[i]->n_events-last_events_received[i])/
+                          gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
             }
             else
             {
-                printf(" Event Rate: -");
+                cout << " Event-Rate: -";
             }
 
-            printf(" Errors: %ld\n", chstats[i]->error_count);
+            cout << " Errors: " << chstats[i]->error_count << endl;
+
             last_bytes_received[i] = chstats[i]->bytes_received;
             last_events_received[i] = chstats[i]->n_events;
         }
@@ -144,17 +149,13 @@ int main( int argc, char *argv[] )
         uint64_t sum_of_bytes_diff = 0;
         for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
-            sum_of_bytes+=chstats[i]->bytes_received;
-            sum_of_bytes_diff+=channel_bytes[i];
+            sum_of_bytes      += chstats[i]->bytes_received;
+            sum_of_bytes_diff += channel_bytes[i];
         }
 
         if(sum_of_bytes_diff)
         {
-//            printf("Combined Data-Size: %8.3f TB, Combined Data-Rate: %9.3f MB/s",
-//            (double)sum_of_bytes/((uint64_t)1<<40),
-//            (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)));
-
-            cout << "Combined DataSize: " << (double)sum_of_bytes/((uint64_t)1<<40) << " TB, Combined Data-Rate: "
+            cout << "Combined Data-Size: " << (double)sum_of_bytes/((uint64_t)1<<40) << " TB, Combined Data-Rate: "
                  << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
                  << " MB/s";
 
