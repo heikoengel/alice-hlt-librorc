@@ -47,18 +47,18 @@ using namespace std;
 #include <librorc_registers.h>
 
 /**
- * @class rorcfs_sysmon
+ * @class librorc_sysmon
  * @brief System monitor class
  *
  * This class can be attached to rorcfs_bar to provide access to the
  * static parts of the design, like PCIe status, SystemMonitor readings
  * and access to the ICAP interface
  **/
-class rorcfs_sysmon
+class librorc_sysmon
 {
     public:
-        rorcfs_sysmon(librorc_bar *parent_bar);
-        ~rorcfs_sysmon();
+         librorc_sysmon(librorc_bar *parent_bar);
+        ~librorc_sysmon();
 
         /**
          * get PCIe Interface status

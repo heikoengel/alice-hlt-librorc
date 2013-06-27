@@ -312,9 +312,9 @@ print_device
     }
 
     /** Instantiate a new sysmon */
-    rorcfs_sysmon *sm;
+    librorc_sysmon *sm;
     try
-    { sm = new rorcfs_sysmon(bar); }
+    { sm = new librorc_sysmon(bar); }
     catch(...)
     {
         cout << "Sysmon init failed!" << endl;
@@ -451,9 +451,9 @@ show_device_monitor
     }
 
     /** instantiate a new sysmon */
-    rorcfs_sysmon *sm;
+    librorc_sysmon *sm;
     try
-    { sm = new rorcfs_sysmon(bar1); }
+    { sm = new librorc_sysmon(bar1); }
     catch(...)
     {
         cout << "Sysmon init failed!" << endl;
