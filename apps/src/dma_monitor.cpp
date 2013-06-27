@@ -49,13 +49,6 @@ void abort_handler( int s )
 
 int main( int argc, char *argv[] )
 {
-    int shID[N_CHANNELS];
-    char *shm[N_CHANNELS];
-    struct ch_stats *chstats[N_CHANNELS];
-
-    uint64_t sum_of_bytes;
-    uint64_t sum_of_bytes_diff;
-
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = abort_handler;
@@ -63,9 +56,12 @@ int main( int argc, char *argv[] )
     sigIntHandler.sa_flags = 0;
 
     /** Innitialize shm channels */
-    uint64_t last_bytes_received[N_CHANNELS];
-    uint64_t last_events_received[N_CHANNELS];
-    uint64_t channel_bytes[N_CHANNELS];
+    uint64_t           last_bytes_received[N_CHANNELS];
+    uint64_t           last_events_received[N_CHANNELS];
+    uint64_t           channel_bytes[N_CHANNELS];
+    struct   ch_stats *chstats[N_CHANNELS];
+    int32_t            shID[N_CHANNELS];
+    char              *shm[N_CHANNELS];
     for(int32_t i=0;i<N_CHANNELS;i++)
     {
         last_bytes_received[i] = 0;
@@ -149,8 +145,8 @@ int main( int argc, char *argv[] )
 
             printf("======== ");
 
-            sum_of_bytes=0;
-            sum_of_bytes_diff=0;
+            uint64_t sum_of_bytes      = 0;
+            uint64_t sum_of_bytes_diff = 0;
             for(int32_t i=0; i<N_CHANNELS; i++)
             {
                 sum_of_bytes+=chstats[i]->bytes_received;
