@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 
 #include <pda.h>
 
@@ -162,32 +163,42 @@ rorcfs_device::printDeviceDescription()
     uint8_t     function_id = 0;
     char        description_buffer[1024];
 
-        const char *description = (const char *)description_buffer;
-        PdaDebugReturnCode ret = PDA_SUCCESS;
-        ret += PciDevice_getDomainID(m_device, &domain_id);
-        ret += PciDevice_getBusID(m_device, &bus_id);
-        ret += PciDevice_getDeviceID(m_device, &device_id);
-        ret += PciDevice_getFunctionID(m_device, &function_id);
-        ret += PciDevice_getDescription(m_device, &description );
+    const char *description = (const char *)description_buffer;
+    PdaDebugReturnCode ret = PDA_SUCCESS;
+    ret += PciDevice_getDomainID(m_device, &domain_id);
+    ret += PciDevice_getBusID(m_device, &bus_id);
+    ret += PciDevice_getDeviceID(m_device, &device_id);
+    ret += PciDevice_getFunctionID(m_device, &function_id);
+    ret += PciDevice_getDescription(m_device, &description );
 
-        if( ret != PDA_SUCCESS )
-        {
-            return;
-        }
+    if( ret != PDA_SUCCESS )
+    {
+        return;
+    }
 
-        #ifdef SIM
-            librorc_bar *bar = new sim_bar(this, 1);
-        #else
-            librorc_bar *bar = new rorc_bar(this, 1);
-        #endif
+    #ifdef SIM
+        librorc_bar *bar = new sim_bar(this, 1);
+    #else
+        librorc_bar *bar = new rorc_bar(this, 1);
+    #endif
 
-        if ( bar->init() == -1 )
-        {
-            printf("ERROR: failed to initialize BAR1.\n");
-            return;
-        }
+    if ( bar->init() == -1 )
+    {
+        printf("ERROR: failed to initialize BAR1.\n");
+        return;
+    }
 
     printf("Device [%u] %04x:%02x:%02x.%x : %s (firmware date: %08x, revision: %08x)",
             m_number, domain_id, bus_id, device_id, function_id, description,
             bar->get(RORC_REG_FIRMWARE_DATE), bar->get(RORC_REG_FIRMWARE_REVISION) );
+
+    cout << "Device [" << m_number << hex << setw(4) << domain_id << ":"
+                                   << hex << setw(2) << bus_id    << ":"
+                                   << hex << setw(2) << device_id << "."
+                                   << hex << setw(2) << function_id ;
+    cout << " (firmware date: "    << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_DATE)
+         << ", revision: "         << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_REVISION)
+         << ")" << endl;
+
+    delete bar;
 }
