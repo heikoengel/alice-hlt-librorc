@@ -293,12 +293,52 @@ print_device
     uint8_t index
 )
 {
+    /** Instantiate device with index <index> */
     rorcfs_device *dev = NULL;
     try{ dev = new rorcfs_device(index);}
     catch(...){ exit(0); }
 
-    dev->printDeviceDescription();
+    /** Instantiate a new bar */
+    #ifdef SIM
+        librorc_bar *bar = new sim_bar(dev, 1);
+    #else
+        librorc_bar *bar = new rorc_bar(dev, 1);
+    #endif
 
+    if ( bar->init() == -1 )
+    {
+        printf("ERROR: failed to initialize BAR.\n");
+        return;
+    }
+
+    /** Instantiate a new sysmon */
+    rorcfs_sysmon *sm;
+    try
+    { sm = new rorcfs_sysmon(bar); }
+    catch(...)
+    {
+        cout << "Sysmon init failed!" << endl;
+        delete bar;
+        delete dev;
+        abort();
+    }
+
+    cout << "Device [" <<  (unsigned int)index << "] ";
+
+    cout << setfill('0');
+    cout << hex << setw(4) << (unsigned int)dev->getDomain() << ":"
+         << hex << setw(2) << (unsigned int)dev->getBus()    << ":"
+         << hex << setw(2) << (unsigned int)dev->getSlot()   << "."
+         << hex << setw(1) << (unsigned int)dev->getFunc() ;
+
+    cout << " : " << dev->deviceDescription();
+
+    cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
+         << ", revision: "      << hex << setw(8) << sm->FwRevision()
+         << ")" << endl;
+
+    delete sm;
+    delete bar;
     delete dev;
 }
 

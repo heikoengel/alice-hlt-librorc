@@ -142,10 +142,6 @@ uint64_t getBarSize(uint8_t n);
 
 string* deviceDescription();
 
-/**
- * print PCI Device-Description
- **/
-void      printDeviceDescription();
 
 private:
 
