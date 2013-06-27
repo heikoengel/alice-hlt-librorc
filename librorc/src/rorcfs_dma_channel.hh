@@ -32,6 +32,8 @@
 #define RORCFS_DMA_TO_DEVICE     1
 #define RORCFS_DMA_BIDIRECTIONAL 0
 
+#define LIBRORC_MAX_DMA_CHANNELS  12
+
 // TODO get this from PDA
 #define MAX_PAYLOAD 256
 

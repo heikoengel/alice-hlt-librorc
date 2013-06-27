@@ -18,12 +18,6 @@
  *
  * */
 
-
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
 #include <errno.h>
 #include <limits.h>
 #include <sys/time.h>
@@ -32,13 +26,18 @@
 #include <stdint.h>
 #include <sys/shm.h>
 
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+
 #include "librorc.h"
 #include "event_handling.h"
 
 #define STAT_INTERVAL 1
-#define N_CHANNELS 12
 
-int done = 0;
+
+uint32_t done = 0;
 
 void abort_handler( int s )
 {
@@ -51,18 +50,21 @@ int main( int argc, char *argv[] )
 {
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = abort_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
+    {
+        sigIntHandler.sa_handler = abort_handler;
+        sigemptyset(&sigIntHandler.sa_mask);
+        sigIntHandler.sa_flags = 0;
+    }
+    sigaction(SIGINT, &sigIntHandler, NULL);
 
     /** Innitialize shm channels */
-    uint64_t           last_bytes_received[N_CHANNELS];
-    uint64_t           last_events_received[N_CHANNELS];
-    uint64_t           channel_bytes[N_CHANNELS];
-    struct   ch_stats *chstats[N_CHANNELS];
-    int32_t            shID[N_CHANNELS];
-    char              *shm[N_CHANNELS];
-    for(int32_t i=0;i<N_CHANNELS;i++)
+    uint64_t           last_bytes_received[LIBRORC_MAX_DMA_CHANNELS];
+    uint64_t           last_events_received[LIBRORC_MAX_DMA_CHANNELS];
+    uint64_t           channel_bytes[LIBRORC_MAX_DMA_CHANNELS];
+    struct   ch_stats *chstats[LIBRORC_MAX_DMA_CHANNELS];
+    int32_t            shID[LIBRORC_MAX_DMA_CHANNELS];
+    char              *shm[LIBRORC_MAX_DMA_CHANNELS];
+    for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
     {
         last_bytes_received[i] = 0;
         last_events_received[i] = 0;
@@ -92,14 +94,12 @@ int main( int argc, char *argv[] )
     gettimeofday(&cur_time, 0);
     timeval last_time = cur_time;
 
-    sigaction(SIGINT, &sigIntHandler, NULL);
-
     while( !done )
     {
         gettimeofday(&cur_time, 0);
 
         /** print status line each second */
-        for(int32_t i=0; i<N_CHANNELS; i++)
+        for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
             printf("CH%2d - Events: %10ld, DataSize: %8.3f GB ",
             i, chstats[i]->n_events,
@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
 
         uint64_t sum_of_bytes      = 0;
         uint64_t sum_of_bytes_diff = 0;
-        for(int32_t i=0; i<N_CHANNELS; i++)
+        for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
             sum_of_bytes+=chstats[i]->bytes_received;
             sum_of_bytes_diff+=channel_bytes[i];
@@ -169,9 +169,9 @@ int main( int argc, char *argv[] )
     }
 
     /** Detach all the shared memory */
-    for(int32_t i=0; i<N_CHANNELS; i++)
+    for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
     {
-        if(shm[i])
+        if( shm[i] != NULL )
         {
             shmdt(shm[i]);
             shm[i] = NULL;
