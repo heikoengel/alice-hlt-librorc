@@ -192,13 +192,19 @@ rorcfs_device::printDeviceDescription()
             m_number, domain_id, bus_id, device_id, function_id, description,
             bar->get(RORC_REG_FIRMWARE_DATE), bar->get(RORC_REG_FIRMWARE_REVISION) );
 
-    cout << "Device [" << m_number << "]"
-         << hex << setw(4) << domain_id << ":"
+    cout << "Device [" << m_number << "]";
+
+    cout << hex << setw(4) << domain_id << ":"
          << hex << setw(2) << bus_id    << ":"
          << hex << setw(2) << device_id << "."
          << hex << setw(2) << function_id ;
-    cout << " (firmware date: "    << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_DATE)
-         << ", revision: "         << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_REVISION)
+
+    cout << " : " << description;
+
+    cout << " (firmware date: "
+         << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_DATE)
+         << ", revision: "
+         << hex << setw(8) << bar->get(RORC_REG_FIRMWARE_REVISION)
          << ")" << endl;
 
     delete bar;
