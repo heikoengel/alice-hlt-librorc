@@ -583,6 +583,7 @@ dump_flash_status
 )
 {
 
+    //TODO : put this into a proper interface and add signatures for the related states
     if( flash->getStatusRegister(0) != 0x0080 )
     {
         cout << setfill('0');
