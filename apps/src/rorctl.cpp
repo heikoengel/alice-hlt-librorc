@@ -1,5 +1,5 @@
 /**
- * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>, Heiko Engel <hengel@cern.ch>
  * @version 0.2
  * @date 2012-04-12
  *

@@ -1,7 +1,6 @@
 /**
- * @file dma_monitor.cpp
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @version 0.2
  * @date 2013-01-11i
  *
  * @section LICENSE
@@ -139,7 +138,7 @@ int main( int argc, char *argv[] )
             last_events_received[i] = chstats[i]->n_events;
         }
 
-        printf("======== ");
+        cout << "======== ";
 
         uint64_t sum_of_bytes      = 0;
         uint64_t sum_of_bytes_diff = 0;
@@ -151,17 +150,20 @@ int main( int argc, char *argv[] )
 
         if(sum_of_bytes_diff)
         {
-            printf("DataSize: %8.3f TB, Combined Data-Rate: %9.3f MB/s",
+            printf("Combined Data-Size: %8.3f TB, Combined Data-Rate: %9.3f MB/s",
             (double)sum_of_bytes/((uint64_t)1<<40),
-            (double)(sum_of_bytes_diff)/
-            gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
+            (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)));
+
+            cout << "DataSize: " << (double)(sum_of_bytes/((uint64_t)1<<40)) << " TB, Combined Data-Rate: "
+                 << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
+
         }
         else
         {
-            printf(" DataRate: -");
+            cout << " Combined Data-Rate: -";
         }
 
-        printf(" ========\n");
+        cout << " ========" << endl;
 
         last_time = cur_time;
 
