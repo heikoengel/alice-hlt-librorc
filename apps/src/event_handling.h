@@ -19,16 +19,17 @@
 #define CHK_FILE (1<<8)
 
 /** struct to store statistics on received data for a single channel **/
-struct ch_stats {
-  uint64_t n_events;
-  uint64_t bytes_received;
-  uint64_t min_epi;
-  uint64_t max_epi;
-  uint64_t index;
-  uint64_t set_offset_count;
-  uint64_t error_count;
-  int64_t last_id;
-  uint32_t channel;
+struct ch_stats
+{
+    uint64_t n_events;
+    uint64_t bytes_received;
+    uint64_t min_epi;
+    uint64_t max_epi;
+    uint64_t index;
+    uint64_t set_offset_count;
+    uint64_t error_count;
+    int64_t  last_id;
+    uint32_t channel;
 };
 
 #include "helper_functions.h"
@@ -43,16 +44,18 @@ struct ch_stats {
  * @param check_mask mask of checks to be done on the recived data
  * @return (int64_t)(-1) or error, (int64_t)EventID on success
  **/
-int event_sanity_check(
+int event_sanity_check
+(
     struct rorcfs_event_descriptor *reportbuffer,
-    uint32_t *eventbuffer,
+    volatile uint32_t *eventbuffer,
     uint64_t i,
     uint32_t ch,
     int64_t last_id,
     uint32_t pattern_mode,
     uint32_t check_mask,
     uint32_t *ddlref,
-    uint64_t ddlref_size)
+    uint64_t ddlref_size
+)
 {
   uint64_t offset;
   uint32_t j;
@@ -316,7 +319,7 @@ int handle_channel_data
 
   struct rorcfs_event_descriptor *reportbuffer =
     (struct rorcfs_event_descriptor *)rbuf->getMem();
-  uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
+  volatile uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
   // new event received
   if( reportbuffer[stats->index].calc_event_size!=0 ) {
