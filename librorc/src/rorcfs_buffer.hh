@@ -28,11 +28,11 @@ struct
 __attribute__((__packed__))
 rorcfs_event_descriptor
 {
-    uint64_t offset;
-    uint32_t reported_event_size;
-    uint32_t calc_event_size;
-    uint64_t dummy;   /** do not use! */
-    uint64_t dummy2;  /** do not use! */
+    volatile uint64_t offset;
+    volatile uint32_t reported_event_size;
+    volatile uint32_t calc_event_size;
+    volatile uint64_t dummy;   /** do not use! */
+    volatile uint64_t dummy2;  /** do not use! */
 };
 #endif
 

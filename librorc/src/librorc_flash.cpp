@@ -50,9 +50,8 @@ librorc_flash::librorc_flash
         throw 2;
     }
 
-    bar        = flashbar;
-    base_addr = chip_select << FLASH_CHIP_SELECT_BIT;
-
+    bar             = flashbar;
+    base_addr       = chip_select << FLASH_CHIP_SELECT_BIT;
     uint16_t status = getStatusRegister(0);
 
     if( status != 0x0080 )
@@ -201,7 +200,7 @@ librorc_flash::get
 }
 
 
-uint16_t 
+uint16_t
 librorc_flash::resetBlock
 (
     uint32_t blkaddr
@@ -216,7 +215,7 @@ librorc_flash::resetBlock
 
     sendCommand(blkaddr, FLASH_CMD_RESET);
     sendCommand(blkaddr, FLASH_CMD_READ_ARRAY);
-    
+
     return status;
 }
 
@@ -269,7 +268,7 @@ librorc_flash::programBuffer
         int32_t ret = unlockBlock(arch.blkaddr) ;
         if ( ret < 0 )
         {
-            cout << "Failed to unlock block at addr" << hex 
+            cout << "Failed to unlock block at addr" << hex
                  << arch.blkaddr << endl;
             return ret;
         }
@@ -289,7 +288,7 @@ librorc_flash::programBuffer
         {
             if ( verbose==LIBRORC_VERBOSE_ON )
             {
-                cout << "programBuffer: Timeout waiting for buffer!" 
+                cout << "programBuffer: Timeout waiting for buffer!"
                      << endl;
             }
             return -status;
@@ -330,7 +329,7 @@ librorc_flash::programBuffer
     {
         if ( verbose==LIBRORC_VERBOSE_ON )
         {
-            cout << "programBuffer: program/erase sequence error: " 
+            cout << "programBuffer: program/erase sequence error: "
                  << hex << status << endl;
         }
         return -status;
@@ -646,7 +645,7 @@ librorc_flash::erase
             status = unlockBlock(arch.blkaddr) ;
             if ( status < 0 )
             {
-                cout << "Failed to unlock block at addr" << hex 
+                cout << "Failed to unlock block at addr" << hex
                      << arch.blkaddr << endl;
                 return status;
             }
@@ -656,7 +655,7 @@ librorc_flash::erase
         status = eraseBlock(arch.blkaddr);
         if( status < 0 )
         {
-            cout << "Failed to erase block at addr" << hex 
+            cout << "Failed to erase block at addr" << hex
                  << arch.blkaddr << ": " << -status << endl;
             return status;
         }
