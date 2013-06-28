@@ -43,9 +43,9 @@ struct ch_stats {
  * @param check_mask mask of checks to be done on the recived data
  * @return (int64_t)(-1) or error, (int64_t)EventID on success
  **/
-int event_sanity_check( 
-    struct rorcfs_event_descriptor *reportbuffer, 
-    uint32_t *eventbuffer, 
+int event_sanity_check(
+    struct rorcfs_event_descriptor *reportbuffer,
+    uint32_t *eventbuffer,
     uint64_t i,
     uint32_t ch,
     int64_t last_id,
@@ -60,7 +60,7 @@ int event_sanity_check(
   int64_t EventID;
 
   // compare calculated and reported event sizes
-  if ( (check_mask & CHK_SIZES) && 
+  if ( (check_mask & CHK_SIZES) &&
       (reportbuffer->calc_event_size != reportbuffer->reported_event_size) ) {
 #ifdef DEBUG
     printf("CH%2d ERROR: Event[%ld] sizes do not match: \n"
@@ -68,7 +68,7 @@ int event_sanity_check(
         "offset=0x%lx, rbdm_offset=0x%lx\n", ch, i,
         reportbuffer->calc_event_size,
         reportbuffer->reported_event_size,
-        reportbuffer->offset, 
+        reportbuffer->offset,
         i*sizeof(struct rorcfs_event_descriptor) );
 #endif
     return -1;
@@ -84,17 +84,17 @@ int event_sanity_check(
   }
   // local copy of the event.
   // TODO: replace this with something more meaningful
-  memcpy(eb, (uint8_t *)eventbuffer + reportbuffer->offset, 
+  memcpy(eb, (uint8_t *)eventbuffer + reportbuffer->offset,
       (reportbuffer->reported_event_size+4)*sizeof(uint32_t));
 
   // sanity check on SOF
-  if( (check_mask & CHK_SOE) && 
+  if( (check_mask & CHK_SOE) &&
       ((uint32_t)*(eb)!=0xffffffff) ) {
 #ifdef DEBUG
     printf("ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
-        "offset=%ld, rbdm_offset=%ld\n", 
+        "offset=%ld, rbdm_offset=%ld\n",
         i, (uint32_t)*(eb),
-        reportbuffer->offset, 
+        reportbuffer->offset,
         i*sizeof(struct rorcfs_event_descriptor) );
     dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
     dump_rb(reportbuffer, i, ch);
@@ -116,7 +116,7 @@ int event_sanity_check(
 #ifdef DEBUG
             printf("ERROR: Event[%ld][%d] expected %08x read %08x\n",
                 i, j, j-8, (uint32_t)*(eventbuffer + offset + j));
-            dump_event(eventbuffer, offset, 
+            dump_event(eventbuffer, offset,
                 reportbuffer->reported_event_size);
             dump_rb(reportbuffer, i, ch);
 #endif
@@ -141,9 +141,9 @@ int event_sanity_check(
 #ifdef DEBUG
         printf("ERROR: Eventsize %lx does not match "
             "reference DDL file size %lx\n",
-            ((uint64_t)reportbuffer->calc_event_size<<2), 
+            ((uint64_t)reportbuffer->calc_event_size<<2),
             ddlref_size);
-        dump_event(eventbuffer, offset, 
+        dump_event(eventbuffer, offset,
             reportbuffer->reported_event_size);
         dump_rb(reportbuffer, i, ch);
 #endif
@@ -151,14 +151,14 @@ int event_sanity_check(
         return -1;
     }
 
-      
-      
+
+
     for (j=0;j<reportbuffer->calc_event_size;j++) {
       if ( eb[j] != ddlref[j] ) {
 #ifdef DEBUG
         printf("ERROR: Event[%ld][%d] expected %08x read %08x\n",
             i, j, ddlref[j], eb[j]);
-        dump_event(eventbuffer, offset, 
+        dump_event(eventbuffer, offset,
             reportbuffer->reported_event_size);
         dump_rb(reportbuffer, i, ch);
 #endif
@@ -191,11 +191,11 @@ int event_sanity_check(
         j+=4;
 
       // first EOE DW is calculated event size
-      if ( (uint32_t)*(eb + j) != 
+      if ( (uint32_t)*(eb + j) !=
           reportbuffer->calc_event_size ) {
 #ifdef DEBUG
         printf("ERROR: could not find matching calculated event size "
-            "at Event[%d], expected %08x found %08x\n", 
+            "at Event[%d], expected %08x found %08x\n",
             j, reportbuffer->calc_event_size,
             (uint32_t)*(eb + j) );
         dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
@@ -209,11 +209,11 @@ int event_sanity_check(
       j++;
 
       // second EOE DW is reported event size
-      if ( (uint32_t)*(eb + j) != 
+      if ( (uint32_t)*(eb + j) !=
           reportbuffer->reported_event_size ) {
 #ifdef DEBUG
         printf("ERROR: could not find matching reported event size "
-            "at Event[%d] expected %08x found %08x\n", 
+            "at Event[%d] expected %08x found %08x\n",
             j, reportbuffer->reported_event_size,
             (uint32_t)*(eb + j) );
         dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
@@ -224,7 +224,7 @@ int event_sanity_check(
       }
     } // DMA_MODE
 
-    else if (DMA_MODE==32) 
+    else if (DMA_MODE==32)
     {
       /**
        * 32 bit DMA mode
@@ -234,11 +234,11 @@ int event_sanity_check(
        * The EOE word contains the EOE status word received from the DIU
        **/
 
-      if ( (uint32_t)*(eb + reportbuffer->calc_event_size) != 
+      if ( (uint32_t)*(eb + reportbuffer->calc_event_size) !=
           reportbuffer->reported_event_size ) {
 #ifdef DEBUG
         printf("ERROR: could not find matching reported event size "
-            "at Event[%d] expected %08x found %08x\n", 
+            "at Event[%d] expected %08x found %08x\n",
             j, reportbuffer->calc_event_size,
             (uint32_t)*(eb + j) );
         dump_event(eventbuffer, offset, reportbuffer->calc_event_size);
@@ -258,12 +258,12 @@ int event_sanity_check(
   EventID = (uint32_t)*(eventbuffer + offset + 2) & 0x00ffffff;
   EventID<<=12;
   EventID |= (uint32_t)*(eventbuffer + offset + 1) & 0x00000fff;
-        
+
   // make sure EventIDs increment with each event.
   // missing EventIDs are an indication of lost event data
-  if ( (check_mask & CHK_ID) && 
+  if ( (check_mask & CHK_ID) &&
       last_id!=-1 &&
-      (EventID & 0xfffffffff) != 
+      (EventID & 0xfffffffff) !=
       ((last_id +1) & 0xfffffffff) ) {
 #ifdef DEBUG
     printf("ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
@@ -291,18 +291,20 @@ int event_sanity_check(
  * @param eventbuffer pointer to EventBuffer Memory
  * @param ch pointer to struct rorcfs_dma_channel
  * @param ch_stats pointer to channel stats struct
- * @param do_sanity_check mask of sanity checks to be done on the 
+ * @param do_sanity_check mask of sanity checks to be done on the
  * received data. See CHK_* defines above.
  * @return number of events processed
  **/
-int handle_channel_data( 
-    struct rorcfs_buffer *rbuf,
-    struct rorcfs_buffer *ebuf,
-    struct rorcfs_dma_channel *ch,
-    struct ch_stats *stats,
-    int do_sanity_check,
+int handle_channel_data
+(
+    struct    rorcfs_buffer *rbuf,
+    struct    rorcfs_buffer *ebuf,
+    struct    rorcfs_dma_channel *channel,
+    struct    ch_stats *stats,
+    int       do_sanity_check,
     uint32_t *ddlref,
-    uint64_t ddlref_size)
+    uint64_t  ddlref_size
+)
 {
   uint64_t events_per_iteration = 0;
   int events_processed = 0;
@@ -312,12 +314,12 @@ int handle_channel_data(
   int64_t EventID;
   char basedir[] = "/tmp";
 
-  struct rorcfs_event_descriptor *reportbuffer = 
+  struct rorcfs_event_descriptor *reportbuffer =
     (struct rorcfs_event_descriptor *)rbuf->getMem();
   uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
   // new event received
-  if( reportbuffer[stats->index].calc_event_size!=0 ) { 
+  if( reportbuffer[stats->index].calc_event_size!=0 ) {
 
     // capture index of the first found reportbuffer entry
     starting_index = stats->index;
@@ -332,9 +334,9 @@ int handle_channel_data(
       if (do_sanity_check) {
         rb = reportbuffer[stats->index];
         EventID = event_sanity_check(
-            &rb, 
-            eventbuffer, 
-            stats->index, 
+            &rb,
+            eventbuffer,
+            stats->index,
             stats->channel,
             stats->last_id,
             PG_PATTERN_RAMP,
@@ -367,7 +369,7 @@ int handle_channel_data(
 #endif
 
       // increment the number of bytes received
-      stats->bytes_received += 
+      stats->bytes_received +=
         (reportbuffer[stats->index].calc_event_size<<2);
 
       // save new EBOffset
@@ -378,7 +380,7 @@ int handle_channel_data(
           sizeof(struct rorcfs_event_descriptor)) % rbuf->getPhysicalSize();
 
       // wrap RB index if necessary
-      if( stats->index < rbuf->getMaxRBEntries()-1 ) 
+      if( stats->index < rbuf->getMaxRBEntries()-1 )
         stats->index++;
       else
         stats->index=0;
@@ -392,7 +394,7 @@ int handle_channel_data(
 
     // clear processed reportbuffer entries
     entrysize = sizeof(struct rorcfs_event_descriptor);
-    memset(&reportbuffer[starting_index], 0, 
+    memset(&reportbuffer[starting_index], 0,
         events_per_iteration*entrysize);
 
 
@@ -406,11 +408,11 @@ int handle_channel_data(
     stats->set_offset_count++;
 
     // actually update the offset pointers in the firmware
-    ch->setEBOffset(eboffset);
-    ch->setRBOffset(rboffset);
+    channel->setEBOffset(eboffset);
+    channel->setRBOffset(rboffset);
 
 #ifdef DEBUG
-    printf("CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n", 
+    printf("CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
         stats->channel, rboffset, eboffset);
 #endif
   }
