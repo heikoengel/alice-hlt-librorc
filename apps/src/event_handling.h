@@ -311,11 +311,12 @@ int handle_channel_data
 {
   uint64_t events_per_iteration = 0;
   int events_processed = 0;
-  uint64_t eboffset, rboffset;
+  uint64_t eboffset = 0;
+  uint64_t rboffset = 0;
   uint64_t starting_index, entrysize;
   struct rorcfs_event_descriptor rb;
   int64_t EventID;
-  char basedir[] = "/tmp";
+  char    basedir[] = "/tmp";
 
   struct rorcfs_event_descriptor *reportbuffer =
     (struct rorcfs_event_descriptor *)rbuf->getMem();
