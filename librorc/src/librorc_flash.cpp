@@ -23,7 +23,7 @@
 
 librorc_flash::librorc_flash
 (
-    librorc_bar            *flashbar,
+    bar                    *flashbar,
     uint64_t                chip_select,
     librorc_verbosity_enum  verbose
 )
@@ -38,8 +38,8 @@ librorc_flash::librorc_flash
         throw 2;
     }
 
-    bar             = flashbar;
-    base_addr       = chip_select << FLASH_CHIP_SELECT_BIT;
+    m_bar           = flashbar;
+    m_base_addr     = chip_select << FLASH_CHIP_SELECT_BIT;
     uint16_t status = getStatusRegister(0);
 
     if( status != 0x0080 )
@@ -58,7 +58,7 @@ librorc_flash::librorc_flash
 
 librorc_flash::~librorc_flash()
 {
-    bar = NULL;
+    m_bar = NULL;
 }
 
 
@@ -70,7 +70,7 @@ librorc_flash::sendCommand
     uint16_t cmd
 )
 {
-    bar->set16(base_addr + addr, cmd);
+    m_bar->set16(m_base_addr + addr, cmd);
 }
 
 
@@ -184,7 +184,7 @@ librorc_flash::get
     uint32_t addr
 )
 {
-    return bar->get16(base_addr + addr);
+    return m_bar->get16(m_base_addr + addr);
 }
 
 
@@ -284,11 +284,11 @@ librorc_flash::programBuffer
     }
 
     /** write word count */
-    bar->set16(base_addr + arch.blkaddr, length - 1);
+    m_bar->set16(m_base_addr + arch.blkaddr, length - 1);
 
     for(int32_t i=0; i < length; i++)
     {
-        bar->set16(base_addr + addr + i, data[i]);
+        m_bar->set16(m_base_addr + addr + i, data[i]);
     }
 
     /** send write confirm command */
@@ -467,8 +467,8 @@ librorc_flash::setConfigReg
     uint32_t value
 )
 {
-    bar->set16(base_addr + value, FLASH_CMD_BLOCK_LOCK_SETUP);
-    bar->set16(base_addr + value, FLASH_CMD_CFG_REG_CONFIRM);
+    m_bar->set16(m_base_addr + value, FLASH_CMD_BLOCK_LOCK_SETUP);
+    m_bar->set16(m_base_addr + value, FLASH_CMD_CFG_REG_CONFIRM);
 }
 
 

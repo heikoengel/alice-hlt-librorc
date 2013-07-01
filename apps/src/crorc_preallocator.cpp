@@ -63,7 +63,7 @@ int16_t
 alloc_channel
 (
     uint32_t       ChannelID,
-    librorc_bar   *Bar,
+    bar           *Bar,
     rorcfs_device *Dev
 );
 
@@ -82,9 +82,9 @@ int main( int argc, char *argv[])
 
         /** bind to BAR1 */
         #ifdef SIM
-            librorc_bar *Bar = new sim_bar(Dev, 1);
+            bar *Bar = new sim_bar(Dev, 1);
         #else
-            librorc_bar *Bar = new rorc_bar(Dev, 1);
+            bar *Bar = new rorc_bar(Dev, 1);
         #endif
         if( Bar->init() == -1 )
         {
@@ -106,7 +106,7 @@ int16_t
 alloc_channel
 (
     uint32_t       ChannelID,
-    librorc_bar   *Bar,
+    bar           *Bar,
     rorcfs_device *Dev
 )
 {

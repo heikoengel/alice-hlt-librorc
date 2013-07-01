@@ -300,9 +300,9 @@ print_device
 
     /** Instantiate a new bar */
     #ifdef SIM
-        librorc_bar *bar = new sim_bar(dev, 1);
+        bar *bar = new sim_bar(dev, 1);
     #else
-        librorc_bar *bar = new rorc_bar(dev, 1);
+        bar *bar = new rorc_bar(dev, 1);
     #endif
 
     if ( bar->init() == -1 )
@@ -365,11 +365,10 @@ init_flash
         options.chip_select = 0;
     }
 
-    librorc_bar *bar;
     #ifdef SIM
-        bar = new sim_bar(options.dev, 0);
+        bar *bar = new sim_bar(options.dev, 0);
     #else
-        bar = new rorc_bar(options.dev, 0);
+        bar *bar = new rorc_bar(options.dev, 0);
     #endif
 
     if(bar->init() == -1)
@@ -438,11 +437,10 @@ show_device_monitor
     }
 
     /** bind to BAR1 */
-    librorc_bar *bar1 = NULL;
     #ifdef SIM
-        bar1 = new sim_bar(dev, 1);
+        bar *bar1 = new sim_bar(dev, 1);
     #else
-        bar1 = new rorc_bar(dev, 1);
+        bar *bar1 = new rorc_bar(dev, 1);
     #endif
 
     if ( bar1->init() == -1 )

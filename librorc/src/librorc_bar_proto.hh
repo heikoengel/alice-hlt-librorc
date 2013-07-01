@@ -4,7 +4,7 @@
 #include "include_ext.hh"
 #include "librorc_device.hh"
 
-class librorc_bar
+class bar
 {
 public:
 

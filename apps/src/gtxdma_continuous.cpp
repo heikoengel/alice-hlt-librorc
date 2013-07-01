@@ -74,7 +74,7 @@ int main( int argc, char *argv[])
 {
   int result = 0;
   rorcfs_device      *dev  = NULL;
-  librorc_bar        *bar1 = NULL;
+  bar                *bar1 = NULL;
   rorcfs_buffer      *ebuf = NULL;
   rorcfs_buffer      *rbuf = NULL;
   rorcfs_dma_channel *ch   = NULL;

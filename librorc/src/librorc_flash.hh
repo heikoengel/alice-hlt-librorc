@@ -113,14 +113,14 @@ public:
 
 /**
  * constructor
- * @param flashbar librorc_bar instance representing the flash
+ * @param flashbar bar instance representing the flash
  * @param chip_select flash chip select (0 or 1)
  * @param verbose verbose level
  * memory
  **/
     librorc_flash
     (
-        librorc_bar            *flashbar,
+        bar                    *flashbar,
         uint64_t                chip_select,
         librorc_verbosity_enum  verbose
     );
@@ -372,8 +372,8 @@ public:
     );
 
 private:
-    librorc_bar *bar;
-    uint32_t     base_addr;
+    bar      *m_bar;
+    uint32_t  m_base_addr;
 };
 
 #endif /** LIBRORC_FLASH_H */

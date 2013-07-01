@@ -70,8 +70,8 @@ class rorcfs_dma_channel
         void
         init
         (
-            librorc_bar *dma_bar,
-            uint32_t     dma_base
+            bar      *dma_bar,
+            uint32_t  dma_base
         );
 
         /**
@@ -251,7 +251,7 @@ class rorcfs_dma_channel
          * @return bound rorcfs_bar
          **/
 
-        librorc_bar*
+        bar*
         getBar()
         {
             return m_bar;
@@ -490,7 +490,7 @@ class rorcfs_dma_channel
         uint32_t m_channel;
         uint32_t m_MaxPayload;
 
-        librorc_bar  *m_bar;
+        bar *m_bar;
 
         /**
          * This method is the generic version of the

@@ -24,7 +24,7 @@
 
 librorc_sysmon::librorc_sysmon
 (
-    librorc_bar *parent_bar
+    bar *parent_bar
 )
 {
 	m_bar = NULL;

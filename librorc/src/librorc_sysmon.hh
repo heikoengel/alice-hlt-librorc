@@ -50,7 +50,7 @@
 class librorc_sysmon
 {
     public:
-         librorc_sysmon(librorc_bar *parent_bar);
+         librorc_sysmon(bar *parent_bar);
         ~librorc_sysmon();
 
         /**
@@ -228,7 +228,7 @@ class librorc_sysmon
             uint32_t index
         );
 
-        librorc_bar *m_bar;
+        bar *m_bar;
 };
 
 #endif /** LIBRORC_SYSMON_H */

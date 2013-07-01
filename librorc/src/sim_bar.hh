@@ -64,7 +64,7 @@
  * initialized (with init()) you can use get() and set() to
  * read from and/or write to the device.
  */
-class sim_bar : public librorc_bar
+class sim_bar : public bar
 {
     public:
 
