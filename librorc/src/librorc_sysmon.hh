@@ -34,15 +34,7 @@
 #define SLVADDR          0x50
 #define LIBRORC_MAX_QSFP 3
 
-
-#include <iostream>
-#include <iomanip>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
-using namespace std;
+#include "include_ext.hh"
 
 #include <librorc_registers.h>
 

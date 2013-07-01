@@ -1,7 +1,7 @@
 #ifndef LIBRORC_BAR_PROTO_H
 #define LIBRORC_BAR_PROTO_H
 
-
+#include "include_ext.hh"
 
 class librorc_bar
 {

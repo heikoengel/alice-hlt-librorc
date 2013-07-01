@@ -24,9 +24,7 @@
 #ifndef LIBRORC_BAR_H
 #define LIBRORC_BAR_H
 
-#include <pthread.h>
-#include <stdint.h>
-#include <sys/stat.h>
+#include "include_ext.hh"
 
 #include "librorc_bar_proto.hh"
 

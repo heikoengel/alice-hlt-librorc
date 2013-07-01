@@ -16,8 +16,6 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "rorcfs_bar_includes.hh"
-
 #include "includes.hh"
 #include "mti.h"
 

@@ -62,18 +62,7 @@
 #ifndef LIBRORC_DEVICE_H
 #define LIBRORC_DEVICE_H
 
-#include <stdint.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include <iostream>
-#include <iomanip>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
-using namespace std;
+#include "include_ext.hh"
 
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;

@@ -20,6 +20,7 @@
 #ifndef LIBRORC_BUFFER_H
 #define LIBRORC_BUFFER_H
 
+#include "include_ext.hh"
 
 #define DMA_MODE 32
 
