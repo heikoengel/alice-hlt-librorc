@@ -24,7 +24,7 @@
 #include "include_int.hh"
 #include "librorc_bar_proto.hh"
 
-
+using namespace librorc;
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value

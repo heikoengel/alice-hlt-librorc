@@ -29,7 +29,7 @@
 
 #include "librorc_bar_proto.hh"
 
-
+using namespace librorc;
 
 /**
  * FLI_CMD bit definitions

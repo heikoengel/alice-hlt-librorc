@@ -29,6 +29,8 @@
 
 #include "librorc_bar_proto.hh"
 
+using namespace librorc;
+
 /**
  * @class rorc_bar
  * @brief Represents a Base Address Register (BAR) file
