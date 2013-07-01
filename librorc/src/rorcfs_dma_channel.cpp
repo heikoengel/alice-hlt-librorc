@@ -31,10 +31,7 @@
 #include <iostream>
 
 #include <pda.h>
-
-#include "rorcfs_bar.hh"
-#include "rorcfs_buffer.hh"
-#include "rorcfs_dma_channel.hh"
+#include "includes.hh"
 #include <librorc_registers.h>
 
 using namespace std;

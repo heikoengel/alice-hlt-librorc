@@ -28,7 +28,6 @@
 #include <arpa/inet.h>
 #include <pda.h>
 
-#include "rorcfs_device.hh"
 #include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
 

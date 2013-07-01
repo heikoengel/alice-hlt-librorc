@@ -29,8 +29,7 @@
 
 #include <pda.h>
 
-#include "rorcfs_device.hh"
-#include "rorcfs_buffer.hh"
+#include "includes.hh"
 
 using namespace std;
 

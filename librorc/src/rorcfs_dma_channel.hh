@@ -20,8 +20,7 @@
 #ifndef _RORCLIB_RORCFS_DMA_CHANNEL_H
 #define _RORCLIB_RORCFS_DMA_CHANNEL_H
 
-#include "rorcfs_buffer.hh"
-#include "rorcfs_bar.hh"
+#include "includes.hh"
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value

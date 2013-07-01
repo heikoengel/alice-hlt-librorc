@@ -28,8 +28,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include "rorcfs_bar.hh"
-#include "librorc_flash.hh"
+#include "includes.hh"
 
 using namespace std;
 

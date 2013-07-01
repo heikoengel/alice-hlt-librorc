@@ -28,10 +28,8 @@
 
 #include <pda.h>
 
-#include "rorcfs_bar.hh"
-#include "sim_bar.hh"
-#include "rorcfs_device.hh"
-#include "librorc_sysmon.hh"
+#include "includes.hh"
+
 #include <librorc_registers.h>
 
 using namespace std;

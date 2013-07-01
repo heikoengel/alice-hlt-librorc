@@ -16,12 +16,11 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "rorcfs_bar.hh"
+#include <assert.h>
+#include <sys/mman.h>
+#include <sys/time.h>
 
-#include "rorcfs_bar_includes.hh"
-
-#include "rorcfs_device.hh"
-#include "rorcfs_dma_channel.hh"
+#include "includes.hh"
 #include <librorc_registers.h>
 
 
