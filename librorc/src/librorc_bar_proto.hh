@@ -2,6 +2,7 @@
 #define LIBRORC_BAR_PROTO_H
 
 #include "include_ext.hh"
+#include "librorc_device.hh"
 
 class librorc_bar
 {

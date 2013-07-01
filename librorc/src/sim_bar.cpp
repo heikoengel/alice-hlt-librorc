@@ -16,6 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
+#include "librorc_device.hh"
 #include "includes.hh"
 #include "mti.h"
 

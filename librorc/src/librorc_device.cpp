@@ -16,19 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  **/
 
-#include <dirent.h>
-#include <errno.h>
-#include <stdio.h>
-#include <sys/stat.h>
-
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <iomanip>
-
-#include <pda.h>
-
-#include "includes.hh"
+#include "librorc_device.hh"
 
 #include <librorc_registers.h>
 

@@ -64,6 +64,7 @@
 
 #include "include_ext.hh"
 
+
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
