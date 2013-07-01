@@ -16,14 +16,14 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "librorc_device.hh"
-#include "includes.hh"
+#include "sim_bar.hh"
+
+
 #include "mti.h"
 #include <pda.h>
-
 #include <librorc_registers.h>
 
-using namespace std;
+
 
 /**
  * usleep time for FLI read polling

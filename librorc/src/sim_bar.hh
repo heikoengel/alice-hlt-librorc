@@ -25,8 +25,11 @@
 #define SIM_BAR_H
 
 #include "include_ext.hh"
+#include "includes.hh"
 
 #include "librorc_bar_proto.hh"
+
+
 
 /**
  * FLI_CMD bit definitions
