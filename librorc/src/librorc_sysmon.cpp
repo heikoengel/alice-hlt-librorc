@@ -24,7 +24,7 @@ namespace librorc
 {
 
 
-librorc_sysmon::librorc_sysmon
+sysmon::sysmon
 (
     bar *parent_bar
 )
@@ -40,7 +40,7 @@ librorc_sysmon::librorc_sysmon
 
 
 
-librorc_sysmon::~librorc_sysmon()
+sysmon::~sysmon()
 {
 	m_bar = NULL;
 }
@@ -52,7 +52,7 @@ librorc_sysmon::~librorc_sysmon()
 
 
 uint32_t
-librorc_sysmon::FwRevision()
+sysmon::FwRevision()
 {
 	uint32_t firmware_revision
         = m_bar->get(RORC_REG_FIRMWARE_REVISION);
@@ -68,7 +68,7 @@ librorc_sysmon::FwRevision()
 
 
 uint32_t
-librorc_sysmon::FwBuildDate()
+sysmon::FwBuildDate()
 {
     uint32_t date
         = m_bar->get(RORC_REG_FIRMWARE_DATE);
@@ -88,7 +88,7 @@ librorc_sysmon::FwBuildDate()
 
 
 uint32_t
-librorc_sysmon::pcieNumberOfLanes()
+sysmon::pcieNumberOfLanes()
 {
     uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
     return(1<<(status>>3 & 0x3));
@@ -97,7 +97,7 @@ librorc_sysmon::pcieNumberOfLanes()
 
 
 uint32_t
-librorc_sysmon::pcieGeneration()
+sysmon::pcieGeneration()
 {
     uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
     return(1<<(status>>5 & 0x01));
@@ -110,7 +110,7 @@ librorc_sysmon::pcieGeneration()
 
 
 double
-librorc_sysmon::FPGATemperature()
+sysmon::FPGATemperature()
 {
 	uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
 	return (double)(value*503.975/1024.0 - 273.15);
@@ -119,7 +119,7 @@ librorc_sysmon::FPGATemperature()
 
 
 double
-librorc_sysmon::VCCINT()
+sysmon::VCCINT()
 {
 	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
 	return (double)(value/1024.0 * 3.0);
@@ -128,7 +128,7 @@ librorc_sysmon::VCCINT()
 
 
 double
-librorc_sysmon::VCCAUX()
+sysmon::VCCAUX()
 {
 	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
 	return (double)(value/1024.0 * 3.0);
@@ -151,7 +151,7 @@ librorc_sysmon::VCCAUX()
 
 
 bool
-librorc_sysmon::systemClockIsRunning()
+sysmon::systemClockIsRunning()
 {
     uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
     if( ((ddrctrl>>3)&1) == 1 )
@@ -163,7 +163,7 @@ librorc_sysmon::systemClockIsRunning()
 
 
 bool
-librorc_sysmon::systemFanIsEnabled()
+sysmon::systemFanIsEnabled()
 {
     uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
     if ( !(fanctrl & (1<<31)) )
@@ -175,7 +175,7 @@ librorc_sysmon::systemFanIsEnabled()
 
 
 bool
-librorc_sysmon::systemFanIsRunning()
+sysmon::systemFanIsRunning()
 {
     uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
     if( !(fanctrl & (1<<29)) )
@@ -187,7 +187,7 @@ librorc_sysmon::systemFanIsRunning()
 
 
 double
-librorc_sysmon::systemFanSpeed()
+sysmon::systemFanSpeed()
 {
     uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
     return 15/((fanctrl & 0x1fffffff)*0.000000004);
@@ -200,7 +200,7 @@ librorc_sysmon::systemFanSpeed()
 
 
 bool
-librorc_sysmon::qsfpIsPresent
+sysmon::qsfpIsPresent
 (
     uint32_t index
 )
@@ -218,7 +218,7 @@ librorc_sysmon::qsfpIsPresent
 
 
 bool
-librorc_sysmon::qsfpLEDIsOn
+sysmon::qsfpLEDIsOn
 (
     uint32_t qsfp_index,
     uint32_t LED_index
@@ -237,7 +237,7 @@ librorc_sysmon::qsfpLEDIsOn
 
 
 string*
-librorc_sysmon::qsfpVendorName
+sysmon::qsfpVendorName
 (
     uint32_t index
 )
@@ -249,7 +249,7 @@ librorc_sysmon::qsfpVendorName
 
 
 string*
-librorc_sysmon::qsfpPartNumber
+sysmon::qsfpPartNumber
 (
     uint32_t index
 )
@@ -261,7 +261,7 @@ librorc_sysmon::qsfpPartNumber
 
 
 float
-librorc_sysmon::qsfpTemperature
+sysmon::qsfpTemperature
 (
     uint32_t index
 )
@@ -281,12 +281,12 @@ librorc_sysmon::qsfpTemperature
 
 
 
-//_________________________________________________________________________________
+/** Protected ***** ***********************************************/
 
 
 
     void
-    librorc_sysmon::i2c_reset()
+    sysmon::i2c_reset()
     {
         m_bar->set(RORC_REG_I2C_OPERATION, 0x00040000);
 
@@ -303,7 +303,7 @@ librorc_sysmon::qsfpTemperature
 
 
     uint8_t
-    librorc_sysmon::i2c_read_mem
+    sysmon::i2c_read_mem
     (
         uint8_t slvaddr,
         uint8_t memaddr
@@ -335,7 +335,7 @@ librorc_sysmon::qsfpTemperature
 
 
     void
-    librorc_sysmon::i2c_write_mem
+    sysmon::i2c_write_mem
     (
         uint8_t slvaddr,
         uint8_t memaddr,
@@ -361,7 +361,7 @@ librorc_sysmon::qsfpTemperature
 
 
     uint32_t
-    librorc_sysmon::wait_for_tip_to_negate()
+    sysmon::wait_for_tip_to_negate()
     {
         uint32_t status = m_bar->get(RORC_REG_I2C_OPERATION);
         while( status & 0x02000000 )
@@ -376,7 +376,7 @@ librorc_sysmon::qsfpTemperature
 
 
     void
-    librorc_sysmon::check_rxack_is_zero( uint32_t status )
+    sysmon::check_rxack_is_zero( uint32_t status )
     {
         if( status & 0x80000000 )
         {
@@ -386,7 +386,8 @@ librorc_sysmon::qsfpTemperature
 
 
 
-    void librorc_sysmon::i2c_set_config( uint32_t config )
+    void
+    sysmon::i2c_set_config( uint32_t config )
     {
         m_bar->set(RORC_REG_I2C_CONFIG, config);
     }
@@ -394,7 +395,7 @@ librorc_sysmon::qsfpTemperature
 
 
     string*
-    librorc_sysmon::qsfp_i2c_string_readout
+    sysmon::qsfp_i2c_string_readout
     (
         uint8_t start,
         uint8_t end
@@ -413,7 +414,7 @@ librorc_sysmon::qsfpTemperature
 
 
     void
-    librorc_sysmon::qsfp_set_page0_and_config
+    sysmon::qsfp_set_page0_and_config
     (
         uint32_t index
     )

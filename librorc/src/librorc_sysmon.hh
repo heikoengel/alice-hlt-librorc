@@ -50,11 +50,11 @@
 namespace librorc
 {
 
-    class librorc_sysmon
+    class sysmon
     {
         public:
-             librorc_sysmon(bar *parent_bar);
-            ~librorc_sysmon();
+             sysmon(bar *parent_bar);
+            ~sysmon();
 
             /**
              * get PCIe Interface status

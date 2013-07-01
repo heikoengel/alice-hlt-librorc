@@ -316,9 +316,9 @@ print_device
     }
 
     /** Instantiate a new sysmon */
-    librorc::librorc_sysmon *sm;
+    librorc::sysmon *sm;
     try
-    { sm = new librorc::librorc_sysmon(bar); }
+    { sm = new librorc::sysmon(bar); }
     catch(...)
     {
         cout << "Sysmon init failed!" << endl;
@@ -457,9 +457,9 @@ show_device_monitor
     }
 
     /** instantiate a new sysmon */
-    librorc::librorc_sysmon *sm;
+    librorc::sysmon *sm;
     try
-    { sm = new librorc::librorc_sysmon(bar1); }
+    { sm = new librorc::sysmon(bar1); }
     catch(...)
     {
         cout << "Sysmon init failed!" << endl;
