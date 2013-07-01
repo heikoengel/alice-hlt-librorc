@@ -36,7 +36,7 @@ struct ch_stats
 
 /**
  * Sanity checks on received data
- * @param reportbuffer pointer to struct rorcfs_event_descriptor
+ * @param reportbuffer pointer to struct librorc_event_descriptor
  * @param eventbuffer pointer to eventbuffer
  * @param i current reportbuffer index
  * @param ch DMA channel number
@@ -46,7 +46,7 @@ struct ch_stats
  **/
 int event_sanity_check
 (
-    struct rorcfs_event_descriptor *reportbuffer,
+    struct librorc_event_descriptor *reportbuffer,
     volatile uint32_t *eventbuffer,
     uint64_t i,
     uint32_t ch,
@@ -72,7 +72,7 @@ int event_sanity_check
         reportbuffer->calc_event_size,
         reportbuffer->reported_event_size,
         reportbuffer->offset,
-        i*sizeof(struct rorcfs_event_descriptor) );
+        i*sizeof(struct librorc_event_descriptor) );
 #endif
     return -1;
   }
@@ -98,7 +98,7 @@ int event_sanity_check
         "offset=%ld, rbdm_offset=%ld\n",
         i, (uint32_t)*(eb),
         reportbuffer->offset,
-        i*sizeof(struct rorcfs_event_descriptor) );
+        i*sizeof(struct librorc_event_descriptor) );
     dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
     dump_rb(reportbuffer, i, ch);
 #endif
@@ -314,12 +314,12 @@ int handle_channel_data
   uint64_t eboffset = 0;
   uint64_t rboffset = 0;
   uint64_t starting_index, entrysize;
-  struct rorcfs_event_descriptor rb;
+  struct librorc_event_descriptor rb;
   int64_t EventID;
   char    basedir[] = "/tmp";
 
-  struct rorcfs_event_descriptor *reportbuffer =
-    (struct rorcfs_event_descriptor *)rbuf->getMem();
+  struct librorc_event_descriptor *reportbuffer =
+    (struct librorc_event_descriptor *)rbuf->getMem();
   volatile uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
   // new event received
@@ -381,7 +381,7 @@ int handle_channel_data
 
       // increment reportbuffer offset
       rboffset = ((stats->index)*
-          sizeof(struct rorcfs_event_descriptor)) % rbuf->getPhysicalSize();
+          sizeof(struct librorc_event_descriptor)) % rbuf->getPhysicalSize();
 
       // wrap RB index if necessary
       if( stats->index < rbuf->getMaxRBEntries()-1 )
@@ -397,7 +397,7 @@ int handle_channel_data
     }
 
     // clear processed reportbuffer entries
-    entrysize = sizeof(struct rorcfs_event_descriptor);
+    entrysize = sizeof(struct librorc_event_descriptor);
     memset(&reportbuffer[starting_index], 0,
         events_per_iteration*entrysize);
 

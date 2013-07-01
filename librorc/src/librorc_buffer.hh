@@ -30,7 +30,7 @@
 #if DMA_MODE==32
 struct
 __attribute__((__packed__))
-rorcfs_event_descriptor
+librorc_event_descriptor
 {
     volatile uint64_t offset;
     volatile uint32_t reported_event_size;
@@ -186,7 +186,7 @@ namespace librorc
             uint64_t
             getMaxRBEntries()
             {
-                return (getSize()/sizeof(struct rorcfs_event_descriptor) );
+                return (getSize()/sizeof(struct librorc_event_descriptor) );
             }
 
 

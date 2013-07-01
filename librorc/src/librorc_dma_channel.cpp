@@ -337,10 +337,10 @@ dma_channel::configureChannel
     config.swptrs.ebdm_software_read_pointer_high =
         (ebuf->getPhysicalSize() - max_payload) >> 32;
     config.swptrs.rbdm_software_read_pointer_low =
-        (rbuf->getPhysicalSize() - sizeof(struct rorcfs_event_descriptor) ) &
+        (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) &
         0xffffffff;
     config.swptrs.rbdm_software_read_pointer_high =
-        (rbuf->getPhysicalSize() - sizeof(struct rorcfs_event_descriptor) ) >> 32;
+        (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
 
     /** set new MAX_PAYLOAD and MAX_READ_REQUEST size */
     m_bar->set( (m_base+RORC_REG_DMA_PKT_SIZE),

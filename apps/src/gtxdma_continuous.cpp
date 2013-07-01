@@ -80,7 +80,7 @@ int main( int argc, char *argv[])
   librorc::buffer      *rbuf = NULL;
   librorc::dma_channel *ch   = NULL;
 
-  struct rorcfs_event_descriptor *reportbuffer = NULL;
+  struct librorc_event_descriptor *reportbuffer = NULL;
   timeval start_time, end_time;
   timeval last_time, cur_time;
   unsigned long last_bytes_received;
@@ -272,7 +272,7 @@ int main( int argc, char *argv[])
 
 
   /* clear report buffer */
-  reportbuffer = (struct rorcfs_event_descriptor *)rbuf->getMem();
+  reportbuffer = (struct librorc_event_descriptor *)rbuf->getMem();
   memset(reportbuffer, 0, rbuf->getMappingSize());
 
   // enable BDMs
