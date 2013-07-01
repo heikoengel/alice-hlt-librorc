@@ -110,7 +110,7 @@ void dump_rb(
  * */
 void dump_dma_state
 (
-    librorc::rorcfs_dma_channel *ch
+    librorc::dma_channel *ch
 )
 {
   uint32_t dma_ctrl;
@@ -248,7 +248,7 @@ void print_channel_stats(
 void
 dump_diu_state
 (
-    librorc::rorcfs_dma_channel *ch
+    librorc::dma_channel *ch
 )
 {
   uint32_t status;

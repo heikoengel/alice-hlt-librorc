@@ -67,7 +67,7 @@ namespace librorc
 {
     class buffer
     {
-        friend class rorcfs_dma_channel;
+        friend class dma_channel;
 
         public:
              buffer();

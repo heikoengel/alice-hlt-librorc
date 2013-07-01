@@ -300,13 +300,13 @@ int event_sanity_check
  **/
 int handle_channel_data
 (
-    librorc::buffer *rbuf,
-    librorc::buffer *ebuf,
-    librorc::rorcfs_dma_channel *channel,
-    struct    ch_stats *stats,
-    int       do_sanity_check,
-    uint32_t *ddlref,
-    uint64_t  ddlref_size
+    librorc::buffer      *rbuf,
+    librorc::buffer      *ebuf,
+    librorc::dma_channel *channel,
+    struct ch_stats      *stats,
+    int                   do_sanity_check,
+    uint32_t             *ddlref,
+    uint64_t              ddlref_size
 )
 {
   uint64_t events_per_iteration = 0;

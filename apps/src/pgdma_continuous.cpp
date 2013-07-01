@@ -77,11 +77,11 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
   int result = 0;
-  librorc::device    *dev  = NULL;
-  librorc::bar       *bar1 = NULL;
-  librorc::buffer    *ebuf = NULL;
-  librorc::buffer    *rbuf = NULL;
-  librorc::rorcfs_dma_channel *ch   = NULL;
+  librorc::device      *dev  = NULL;
+  librorc::bar         *bar1 = NULL;
+  librorc::buffer      *ebuf = NULL;
+  librorc::buffer      *rbuf = NULL;
+  librorc::dma_channel *ch   = NULL;
 
   struct rorcfs_event_descriptor *reportbuffer = NULL;
   timeval start_time, end_time;
@@ -222,7 +222,7 @@ int main( int argc, char *argv[])
 
 
   // create DMA channel
-  ch = new librorc::rorcfs_dma_channel();
+  ch = new librorc::dma_channel();
 
   // bind channel to BAR1
   ch->init(bar1, ChannelId);

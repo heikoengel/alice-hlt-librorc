@@ -59,11 +59,11 @@
 namespace librorc
 {
 
-    class rorcfs_dma_channel
+    class dma_channel
     {
         public:
-             rorcfs_dma_channel();
-            ~rorcfs_dma_channel();
+             dma_channel();
+            ~dma_channel();
 
             /**
              * initialize DMA base address within BAR
