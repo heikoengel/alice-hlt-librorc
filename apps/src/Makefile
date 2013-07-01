@@ -1,9 +1,8 @@
 include $(TOP_DIR)/prefix.make
 LIB_BASE := ../../librorc
-DRV_BASE := ../../rorcfs
 LIB := $(LIB_BASE)/lib/$(BUILD_ID)
 
-INCLUDES := -I$(LIB_BASE)/src -I$(LIB_BASE)/include -I$(DRV_BASE)/include -I../$(FIRMWARE_BASE)
+INCLUDES := -I$(LIB_BASE)/src -I$(LIB_BASE)/include -I../$(FIRMWARE_BASE)
 ifdef INSTALL_HOME
 	INCLUDES += -I$(INSTALL_HOME)/include
 endif

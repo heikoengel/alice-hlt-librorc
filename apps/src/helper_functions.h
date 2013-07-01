@@ -106,7 +106,7 @@ void dump_rb(
 
 /**
  * Dump the state of the DMA engine
- * @param ch pointer to struct rorcfs_dma_channel
+ * @param ch pointer to librorc::dma_channel
  * */
 void dump_dma_state
 (
@@ -279,7 +279,7 @@ dump_diu_state
  * @param rb_index index of according reportbuffer entry
  * @param file_index index of according file, appears in file name
  * @param reportbuffer pointer to reportbuffer
- * @param ebuf pointer to struct rorcfs_buffer
+ * @param ebuf pointer to librorc::buffer
  * @return 0 on sucess, -1 on error
  * */
 int dump_to_file
@@ -393,15 +393,15 @@ int dump_to_file
 
 ///**
 // * Dump ScatterGather List
-// * @param buf pointer to the according struct rorcfs_buffer
+// * @param buf pointer to the according struct librorc::buffer
 // * */
-//void dump_sglist( struct rorcfs_buffer *buf )
+//void dump_sglist( librorc::buffer *buf )
 //{
 //  char *fname = NULL;
 //  int fname_size = 0;
 //  int fd, nbytes;
 //  unsigned long i;
-//  struct rorcfs_dma_desc dma_desc;
+//  struct librorc_dma_desc dma_desc;
 //  fname_size = snprintf(NULL, 0, "%s/sglist", buf->getDName()) + 1;
 //  fname = (char *)malloc(fname_size);
 //  if (!fname) {

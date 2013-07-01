@@ -1,6 +1,6 @@
 /**
- * @file rorcfs_dma_channel.cpp
- * @author Heiko Engel <hengel@cern.ch>
+ * @file
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.1
  * @date 2011-08-17
  *
@@ -48,7 +48,8 @@ librorc_buffer_software_pointers
     uint32_t dma_ctrl;
 };
 
-/** struct rorcfs_channel_config **/
+
+
 struct
 __attribute__((__packed__))
 librorc_channel_config
@@ -76,6 +77,8 @@ librorc_channel_config
 
 };
 
+
+
 /** struct t_sg_entry_cfg **/
 struct
 __attribute__((__packed__))
@@ -95,8 +98,10 @@ t_sg_entry_cfg
 };
 
 
+
 /** extern error number **/
 extern int errno;
+
 
 
 namespace librorc
@@ -214,7 +219,7 @@ dma_channel::_prepare
 
         sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
 
-        /** write rorcfs_dma_desc to RORC EBDM */
+        /** write librorc_dma_desc to RORC EBDM */
         m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
                            &sg_entry, sizeof(sg_entry) );
         i++;

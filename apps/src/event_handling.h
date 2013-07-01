@@ -290,9 +290,9 @@ int event_sanity_check
  *
  * check if there is a reportbuffer entry at the current polling index
  * if yes, handle all available reportbuffer entries
- * @param rbuf pointer to ReportBuffer's struct rorcfs_buffer
+ * @param rbuf pointer to ReportBuffer
  * @param eventbuffer pointer to EventBuffer Memory
- * @param ch pointer to struct rorcfs_dma_channel
+ * @param channel pointer
  * @param ch_stats pointer to channel stats struct
  * @param do_sanity_check mask of sanity checks to be done on the
  * received data. See CHK_* defines above.

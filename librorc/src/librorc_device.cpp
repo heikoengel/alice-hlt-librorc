@@ -1,5 +1,5 @@
 /**
- * @file rorcfs_device.cpp
+ * @file
  * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @date 2011-08-16
  *
