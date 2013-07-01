@@ -99,7 +99,7 @@ print_device
 );
 
 inline
-librorc::librorc_flash*
+librorc::flash*
 init_flash
 (
     confopts options
@@ -111,17 +111,17 @@ show_device_monitor
     librorc::device *dev
 );
 
-librorc::librorc_flash*
+librorc::flash*
 flash_status
 (
-    librorc::librorc_flash *flash
+    librorc::flash *flash
 );
 
 void
 dump_flash_status
 (
-    uint16_t       status,
-    librorc::librorc_flash *flash
+    uint16_t        status,
+    librorc::flash *flash
 );
 
 
@@ -171,7 +171,7 @@ int main
                 case 'd':
                 {
                     cout << "Dumping device to file!" << endl;
-                    librorc::librorc_flash *flash = init_flash(options);
+                    librorc::flash *flash = init_flash(options);
                     return( flash->dump(options.filename, options.verbose) );
                 }
                 break;
@@ -179,15 +179,15 @@ int main
                 case 'p':
                 {
                     cout << "Flashing device!" << endl;
-                    librorc::librorc_flash *flash = init_flash(options);
-                    return( flash->flash(options.filename, options.verbose) );
+                    librorc::flash *flash = init_flash(options);
+                    return( flash->flashWrite(options.filename, options.verbose) );
                 }
                 break;
 
                 case 'e':
                 {
                     cout << "Erasing device!" << endl;
-                    librorc::librorc_flash *flash = init_flash(options);
+                    librorc::flash *flash = init_flash(options);
                     return( flash->erase(16<<20, options.verbose) );
                 }
                 break;
@@ -202,7 +202,7 @@ int main
                 case 'r':
                 {
                     cout << "Resetting Flash!" << endl;
-                    librorc::librorc_flash *flash = init_flash(options);
+                    librorc::flash *flash = init_flash(options);
                     return( flash->resetChip() );
                 }
                 break;
@@ -350,7 +350,7 @@ print_device
 
 
 inline
-librorc::librorc_flash *
+librorc::flash *
 init_flash
 (
     confopts options
@@ -384,11 +384,11 @@ init_flash
     }
 
     /** get flash object */
-    librorc::librorc_flash *flash = NULL;
+    librorc::flash *flash = NULL;
     try
     {
         flash =
-            new librorc::librorc_flash
+            new librorc::flash
                 (bar, options.chip_select, options.verbose);
     }
     catch (int e)
@@ -547,10 +547,10 @@ show_device_monitor
 
 
 
-librorc::librorc_flash*
+librorc::flash*
 flash_status
 (
-    librorc::librorc_flash *flash
+    librorc::flash *flash
 )
 {
     flash->clearStatusRegister(0);
@@ -584,8 +584,8 @@ flash_status
 void
 dump_flash_status
 (
-    uint16_t       status,
-    librorc::librorc_flash *flash
+    uint16_t        status,
+    librorc::flash *flash
 )
 {
 

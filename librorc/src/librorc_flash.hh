@@ -90,7 +90,7 @@
 /** address bit 23 selects flash chip **/
 #define FLASH_CHIP_SELECT_BIT 23
 
-
+//TODO: check this for packed and volatile
 struct flash_architecture
 {
     uint32_t blkaddr;
@@ -110,7 +110,7 @@ struct flash_architecture
 namespace librorc
 {
 
-    class librorc_flash
+    class flash
     {
     public:
 
@@ -121,7 +121,7 @@ namespace librorc
      * @param verbose verbose level
      * memory
      **/
-        librorc_flash
+        flash
         (
             bar                    *flashbar,
             uint64_t                chip_select,
@@ -131,7 +131,7 @@ namespace librorc
     /**
      * deconstructor
      **/
-        ~librorc_flash();
+        ~flash();
 
     /**
      * set read state
@@ -355,7 +355,7 @@ namespace librorc
      * @return -1 on error, 0 on success
      * */
         int32_t
-        flash
+        flashWrite
         (
             char                   *filename,
             librorc_verbosity_enum  verbose

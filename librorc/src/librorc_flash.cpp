@@ -22,7 +22,7 @@
 namespace librorc
 {
 
-librorc_flash::librorc_flash
+flash::flash
 (
     bar                    *flashbar,
     uint64_t                chip_select,
@@ -57,7 +57,7 @@ librorc_flash::librorc_flash
 
 
 
-librorc_flash::~librorc_flash()
+flash::~flash()
 {
     m_bar = NULL;
 }
@@ -65,7 +65,7 @@ librorc_flash::~librorc_flash()
 
 
 void
-librorc_flash::sendCommand
+flash::sendCommand
 (
     uint32_t addr,
     uint16_t cmd
@@ -77,7 +77,7 @@ librorc_flash::sendCommand
 
 
 uint16_t
-librorc_flash::getStatusRegister
+flash::getStatusRegister
 (
     uint32_t blkaddr
 )
@@ -89,7 +89,7 @@ librorc_flash::getStatusRegister
 
 
 void
-librorc_flash::clearStatusRegister
+flash::clearStatusRegister
 (
     uint32_t blkaddr
 )
@@ -100,7 +100,7 @@ librorc_flash::clearStatusRegister
 
 
 uint16_t
-librorc_flash::getManufacturerCode()
+flash::getManufacturerCode()
 {
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
 
@@ -116,7 +116,7 @@ librorc_flash::getManufacturerCode()
 
 
 uint16_t
-librorc_flash::getDeviceID()
+flash::getDeviceID()
 {
     /** send read id code command */
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
@@ -133,7 +133,7 @@ librorc_flash::getDeviceID()
 
 
 uint16_t
-librorc_flash::getBlockLockConfiguration
+flash::getBlockLockConfiguration
 (
     uint32_t blkaddr
 )
@@ -150,7 +150,7 @@ librorc_flash::getBlockLockConfiguration
 
 
 uint16_t
-librorc_flash::getReadConfigurationRegister()
+flash::getReadConfigurationRegister()
 {
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
     uint16_t rcr = get(0x05);
@@ -162,8 +162,9 @@ librorc_flash::getReadConfigurationRegister()
 }
 
 
+
 uint64_t
-librorc_flash::getUniqueDeviceNumber()
+flash::getUniqueDeviceNumber()
 {
     uint64_t udn = 0;
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
@@ -179,8 +180,9 @@ librorc_flash::getUniqueDeviceNumber()
 }
 
 
+
 uint16_t
-librorc_flash::get
+flash::get
 (
     uint32_t addr
 )
@@ -189,8 +191,9 @@ librorc_flash::get
 }
 
 
+
 uint16_t
-librorc_flash::resetBlock
+flash::resetBlock
 (
     uint32_t blkaddr
 )
@@ -209,8 +212,9 @@ librorc_flash::resetBlock
 }
 
 
+
 uint16_t
-librorc_flash::resetChip()
+flash::resetChip()
 {
     uint32_t blkaddr = 0;
     struct flash_architecture arch;
@@ -231,8 +235,9 @@ librorc_flash::resetChip()
 }
 
 
+
 int32_t
-librorc_flash::programBuffer
+flash::programBuffer
 (
     uint32_t  addr,
     uint16_t  length,
@@ -333,7 +338,7 @@ librorc_flash::programBuffer
 
 
 int32_t
-librorc_flash::eraseBlock
+flash::eraseBlock
 (
     uint32_t blkaddr
 )
@@ -368,7 +373,7 @@ librorc_flash::eraseBlock
 
 
 void
-librorc_flash::programSuspend
+flash::programSuspend
 (
     uint32_t blkaddr
 )
@@ -379,7 +384,7 @@ librorc_flash::programSuspend
 
 
 void
-librorc_flash::programResume
+flash::programResume
 (
     uint32_t blkaddr
 )
@@ -390,7 +395,7 @@ librorc_flash::programResume
 
 
 int32_t
-librorc_flash::lockBlock
+flash::lockBlock
 (
     uint32_t blkaddr
 )
@@ -426,7 +431,7 @@ librorc_flash::lockBlock
 
 
 int32_t
-librorc_flash::unlockBlock
+flash::unlockBlock
 (
     uint32_t blkaddr
 )
@@ -463,7 +468,7 @@ librorc_flash::unlockBlock
 
 
 void
-librorc_flash::setConfigReg
+flash::setConfigReg
 (
     uint32_t value
 )
@@ -475,7 +480,7 @@ librorc_flash::setConfigReg
 
 
 int32_t
-librorc_flash::blankCheck
+flash::blankCheck
 (
     uint32_t blkaddr
 )
@@ -508,8 +513,9 @@ librorc_flash::blankCheck
 }
 
 
+
 int32_t
-librorc_flash::getFlashArchitecture
+flash::getFlashArchitecture
 (
     uint32_t addr,
     struct flash_architecture *arch
@@ -547,7 +553,7 @@ librorc_flash::getFlashArchitecture
 
 
 int32_t
-librorc_flash::dump
+flash::dump
 (
     char                   *filename,
     librorc_verbosity_enum  verbose
@@ -596,7 +602,7 @@ librorc_flash::dump
 
 
 int32_t
-librorc_flash::erase
+flash::erase
 (
     int64_t byte_count,
     librorc_verbosity_enum verbose
@@ -666,7 +672,7 @@ librorc_flash::erase
 
 
 int32_t
-librorc_flash::flash
+flash::flashWrite
 (
     char                   *filename,
     librorc_verbosity_enum  verbose
