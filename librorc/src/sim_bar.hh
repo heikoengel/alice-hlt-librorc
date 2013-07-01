@@ -17,7 +17,7 @@
  *
  * @section DESCRIPTION
  *
- * The rorcfs_bar class represents a Base Address Register (BAR) file
+ * The librorc::sim_bar class represents a Base Address Register (BAR) file
  * mapping of the RORCs PCIe address space
  */
 
@@ -45,12 +45,9 @@
 #define CMD_ACK_CMPL         10
 
 #ifdef DEBUG
-    #define DEBUG_PRINTF( ... ) {       \
-      printf( __VA_ARGS__ );           \
-    }
+    #define DEBUG_PRINTF( ... ) { printf( __VA_ARGS__ ); }
 #else
-#define DEBUG_PRINTF( ... ) {           \
-    }
+    #define DEBUG_PRINTF( ... ) {  }
 #endif
 
 /**
@@ -59,7 +56,7 @@
  * (BAR) file mapping of the RORCs PCIe address space
  *
  * Create a new sim_bar object after initializing your
- * rorcfs_device instance. <br>Once your sim_bar instance is
+ * librorc::device instance. <br>Once your sim_bar instance is
  * initialized (with init()) you can use get() and set() to
  * read from and/or write to the device.
  */
@@ -74,7 +71,7 @@ namespace librorc
             /**
              * Constructor that sets fname accordingly. No mapping is
              * performed at this point.
-             * @param dev parent rorcfs_device
+             * @param dev parent librorc::device
              * @param n number of BAR to be mapped [0-6]
              */
             sim_bar

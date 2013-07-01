@@ -44,7 +44,7 @@ librorc_event_descriptor
 #endif
 
 //#if DMA_MODE==128
-//struct rorcfs_event_descriptor
+//struct librorc_event_descriptor
 //{
 //    uint64_t offset;
 //    uint64_t length;
@@ -59,7 +59,7 @@ typedef struct PciDevice_struct PciDevice;
 typedef struct DMABuffer_struct DMABuffer;
 
 /**
- * @class rorcfs_buffer
+ * @class librorc::buffer
  * @brief buffer management class
  *
  * This class manages the DMA receive buffers. One instance of this
@@ -80,10 +80,10 @@ namespace librorc
              * Allocate buffer: This function initiates allocation of an
              * EventBuffer of [size] bytes with Buffer-ID [id]. The size
              * of the according ReportBuffer is determined by the driver.
-             * @param dev pointer to parent rorcfs_device instance
+             * @param dev pointer to parent librorc::device instance
              * @param size Size of EventBuffer in bytes
              * @param id Buffer-ID to be used for this buffer. This ID has to
-             *        be unique within all instances of rorcfs_buffer on a machine.
+             *        be unique within all instances of librorc::buffer on a machine.
              * @param overmap enables overmapping of the physical pages if nonzero
              * @param dma_direction select from RORCFS_DMA_FROM_DEVICE,
              *        RORCFS_DMA_TO_DEVICE, RORCFS_DMA_BIDIRECTIONAL
