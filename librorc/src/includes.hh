@@ -6,6 +6,6 @@
 #include "librorc_sysmon.hh"
 #include "librorc_bar.hh"
 #include "librorc_device.hh"
+#include "librorc_buffer.hh"
 
-#include "rorcfs_buffer.hh"
 #include "rorcfs_dma_channel.hh"
