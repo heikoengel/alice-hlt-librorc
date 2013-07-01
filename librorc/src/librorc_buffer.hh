@@ -23,7 +23,10 @@
 #include "include_ext.hh"
 #include "librorc_device.hh"
 
-
+//TODO: put this into an enum!
+#define LIBRORC_DMA_FROM_DEVICE   2
+#define LIBRORC_DMA_TO_DEVICE     1
+#define LIBRORC_DMA_BIDIRECTIONAL 0
 
 #define DMA_MODE 32
 
@@ -80,12 +83,10 @@ namespace librorc
              * @param dev pointer to parent rorcfs_device instance
              * @param size Size of EventBuffer in bytes
              * @param id Buffer-ID to be used for this buffer. This ID has to
-             *                   be unique within all instances of rorcfs_buffer on a
-             *                   machine.
-             * @param overmap enables overmapping of the physical pages if
-             *                   nonzero
+             *        be unique within all instances of rorcfs_buffer on a machine.
+             * @param overmap enables overmapping of the physical pages if nonzero
              * @param dma_direction select from RORCFS_DMA_FROM_DEVICE,
-             *                   RORCFS_DMA_TO_DEVICE, RORCFS_DMA_BIDIRECTIONAL
+             *        RORCFS_DMA_TO_DEVICE, RORCFS_DMA_BIDIRECTIONAL
              * @return 0 on sucess, -1 on error
              **/
             int32_t
@@ -108,7 +109,7 @@ namespace librorc
 
             /**
              * Connect to an existing buffer
-             * @param dev parent rorcfs device
+             * @param dev parent librorc::device
              * @param id buffer ID of exisiting buffer
              * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
              **/

@@ -30,11 +30,6 @@
  *  of the chipset and the FPGA PCIe core before modifying this value
  *  Common values are 128 or 256 bytes.*/
 
-//TODO: put this into an enum!
-#define RORCFS_DMA_FROM_DEVICE   2
-#define RORCFS_DMA_TO_DEVICE     1
-#define RORCFS_DMA_BIDIRECTIONAL 0
-
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
 // TODO get this from PDA

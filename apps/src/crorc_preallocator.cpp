@@ -120,7 +120,7 @@ alloc_channel
     /** create a new DMA event buffer */
     librorc::buffer *ebuf
         = new librorc::buffer();
-    if ( ebuf->allocate(Dev, EBUFSIZE, 2*ChannelID, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
+    if ( ebuf->allocate(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )
         {
@@ -139,7 +139,7 @@ alloc_channel
 
     /** create new DMA report buffer */
     librorc::buffer *rbuf = new librorc::buffer();
-    if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
+    if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )
         {

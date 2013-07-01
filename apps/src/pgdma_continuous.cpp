@@ -182,7 +182,7 @@ int main( int argc, char *argv[])
   // create new DMA event buffer
   ebuf = new librorc::buffer();
   if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
-        1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
+        1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
       if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
         perror("ERROR: ebuf->connect");
@@ -199,7 +199,7 @@ int main( int argc, char *argv[])
   // create new DMA report buffer
   rbuf = new librorc::buffer();;
   if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
-        1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
+        1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
       //printf("INFO: Buffer already exists, trying to connect...\n");
       if ( rbuf->connect(dev, 2*ChannelId+1) != 0 ) {
