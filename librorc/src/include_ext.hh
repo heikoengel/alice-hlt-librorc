@@ -33,7 +33,6 @@
     #define MODELSIM_SERVER "localhost"
 #endif
 
-#include <pda.h>
 
 using namespace std;
 

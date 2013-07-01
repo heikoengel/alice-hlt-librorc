@@ -19,6 +19,7 @@
 #include "librorc_device.hh"
 #include "includes.hh"
 #include "mti.h"
+#include <pda.h>
 
 #include <librorc_registers.h>
 

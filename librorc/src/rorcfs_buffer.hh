@@ -21,6 +21,7 @@
 #define LIBRORC_BUFFER_H
 
 #include "include_ext.hh"
+#include "librorc_device.hh"
 
 #define DMA_MODE 32
 

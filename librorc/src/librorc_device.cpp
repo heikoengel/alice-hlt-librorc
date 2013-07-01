@@ -17,8 +17,8 @@
  **/
 
 #include "librorc_device.hh"
-
 #include <librorc_registers.h>
+#include <pda.h>
 
 using namespace std;
 

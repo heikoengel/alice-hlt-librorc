@@ -8,8 +8,8 @@
     #include "librorc_flash.hh"
     #include "librorc_sysmon.hh"
     #include "librorc_bar.hh"
+    #include "librorc_device.hh"
 
-    #include "rorcfs_device.hh"
     #include "rorcfs_buffer.hh"
     #include "rorcfs_dma_channel.hh"
 
