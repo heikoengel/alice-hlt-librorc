@@ -29,7 +29,7 @@
 		<Unit filename="apps/src/rorctl.cpp" />
 		<Unit filename="librorc/include/librorc.h" />
 		<Unit filename="librorc/src/include_ext.hh" />
-		<Unit filename="librorc/src/includes.hh" />
+		<Unit filename="librorc/src/include_int.hh" />
 		<Unit filename="librorc/src/librorc_bar.cpp" />
 		<Unit filename="librorc/src/librorc_bar.hh" />
 		<Unit filename="librorc/src/librorc_bar_proto.hh" />
