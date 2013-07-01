@@ -7,5 +7,4 @@
 #include "librorc_bar.hh"
 #include "librorc_device.hh"
 #include "librorc_buffer.hh"
-
-#include "rorcfs_dma_channel.hh"
+#include "librorc_dma_channel.hh"
