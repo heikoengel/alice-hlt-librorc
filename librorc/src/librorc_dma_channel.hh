@@ -24,7 +24,7 @@
 #include "include_int.hh"
 #include "librorc_bar_proto.hh"
 
-using namespace librorc;
+
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value
@@ -56,464 +56,469 @@ using namespace librorc;
  * No DMA transfer will start unless setDMAEnable() has been called
  * with enable=1.
  **/
-class rorcfs_dma_channel
+namespace librorc
 {
-    public:
-         rorcfs_dma_channel();
-        ~rorcfs_dma_channel();
 
-        /**
-         * initialize DMA base address within BAR
-         * @param dma_base -> base address
-         * @param dma_bar according instance of rorcfs_bar
-         **/
-        void
-        init
-        (
-            bar      *dma_bar,
-            uint32_t  dma_base
-        );
+    class rorcfs_dma_channel
+    {
+        public:
+             rorcfs_dma_channel();
+            ~rorcfs_dma_channel();
 
-        /**
-         * prepare EventBuffer: copy scatterlist from
-         * rorcfs_buffer into the EventBufferDescriptorManager
-         * in the RORC
-         * @param buf rorcfs_buffer instance to be used as
-         *                      event destination buffer
-         * @return 0 on sucess, -1 on errors, -EFBIG if more
-         *               than 2048 sg-entries
-         **/
-        int32_t
-        prepareEB
-        (
-            rorcfs_buffer *buf
-        );
+            /**
+             * initialize DMA base address within BAR
+             * @param dma_base -> base address
+             * @param dma_bar according instance of rorcfs_bar
+             **/
+            void
+            init
+            (
+                bar      *dma_bar,
+                uint32_t  dma_base
+            );
 
-        /**
-         * prepare ReportBuffer: copy scatterlist from
-         * rorcfs_buffer into the ReportBufferDescriptorManager
-         * in the RORC
-         * @param buf rorcfs_buffer instance to be used as
-         *                      report destination buffer
-         * @return 0 on sucess, -1 on errors
-         **/
-        int32_t
-        prepareRB
-        (
-            rorcfs_buffer *buf
-        );
+            /**
+             * prepare EventBuffer: copy scatterlist from
+             * rorcfs_buffer into the EventBufferDescriptorManager
+             * in the RORC
+             * @param buf rorcfs_buffer instance to be used as
+             *                      event destination buffer
+             * @return 0 on sucess, -1 on errors, -EFBIG if more
+             *               than 2048 sg-entries
+             **/
+            int32_t
+            prepareEB
+            (
+                rorcfs_buffer *buf
+            );
 
-        /**
-         * set Enable Bit of EBDM
-         * @param enable nonzero param will enable, zero will disable
-         **/
-        void
-        setEnableEB
-        (
-            int32_t enable
-        );
+            /**
+             * prepare ReportBuffer: copy scatterlist from
+             * rorcfs_buffer into the ReportBufferDescriptorManager
+             * in the RORC
+             * @param buf rorcfs_buffer instance to be used as
+             *                      report destination buffer
+             * @return 0 on sucess, -1 on errors
+             **/
+            int32_t
+            prepareRB
+            (
+                rorcfs_buffer *buf
+            );
 
-        /**
-         * set Enable Bit of RBDM
-         * @param enable nonzero param will enable, zero will disable
-         **/
-        void
-        setEnableRB
-        (
-            int32_t enable
-        );
+            /**
+             * set Enable Bit of EBDM
+             * @param enable nonzero param will enable, zero will disable
+             **/
+            void
+            setEnableEB
+            (
+                int32_t enable
+            );
 
-        /**
-         * get Enable Bit of EBDM
-         * @return enable bit
-         **/
-        uint32_t
-        getEnableEB();
+            /**
+             * set Enable Bit of RBDM
+             * @param enable nonzero param will enable, zero will disable
+             **/
+            void
+            setEnableRB
+            (
+                int32_t enable
+            );
 
-        /**
-         * get Enable Bit of RBDM
-         * @return enable bit
-         **/
-        uint32_t
-        getEnableRB();
+            /**
+             * get Enable Bit of EBDM
+             * @return enable bit
+             **/
+            uint32_t
+            getEnableEB();
 
-        /**
-         * setDMAConfig set the DMA Controller operation mode
-         * @param config Bit mapping:
-         * TODO
-         **/
-        void
-        setDMAConfig
-        (
-            uint32_t config
-        );
+            /**
+             * get Enable Bit of RBDM
+             * @return enable bit
+             **/
+            uint32_t
+            getEnableRB();
 
-        /**
-         * getDMAConfig
-         * @return DMA Packetizer COnfiguration and Status
-         **/
-        uint32_t
-        getDMAConfig();
+            /**
+             * setDMAConfig set the DMA Controller operation mode
+             * @param config Bit mapping:
+             * TODO
+             **/
+            void
+            setDMAConfig
+            (
+                uint32_t config
+            );
 
-        /**
-         * set PCIe maximum payload size
-         * @param size maximum payload size in byte
-         **/
-        void
-        setMaxPayload
-        (
-            int32_t size
-        );
+            /**
+             * getDMAConfig
+             * @return DMA Packetizer COnfiguration and Status
+             **/
+            uint32_t
+            getDMAConfig();
 
-        /**
-         * set PCIe maximum payload size to the default
-         * value (MAX_PAYLOAD)
-         **/
-        void
-        setMaxPayload();
+            /**
+             * set PCIe maximum payload size
+             * @param size maximum payload size in byte
+             **/
+            void
+            setMaxPayload
+            (
+                int32_t size
+            );
 
-        /**
-         * get maximum payload size from current HW configuration
-         * @return maximum payload size in bytes
-         **/
-        uint32_t
-        getMaxPayload();
+            /**
+             * set PCIe maximum payload size to the default
+             * value (MAX_PAYLOAD)
+             **/
+            void
+            setMaxPayload();
 
-        /**
-         * get number of Scatter Gather entries for the Event buffer
-         * @return number of entries
-         **/
-        uint32_t
-        getEBDMnSGEntries();
+            /**
+             * get maximum payload size from current HW configuration
+             * @return maximum payload size in bytes
+             **/
+            uint32_t
+            getMaxPayload();
 
-        /**
-         * get number of Scatter Gather entries for the Report buffer
-         * @return number of entries
-         **/
-        uint32_t
-        getRBDMnSGEntries();
+            /**
+             * get number of Scatter Gather entries for the Event buffer
+             * @return number of entries
+             **/
+            uint32_t
+            getEBDMnSGEntries();
 
-        /**
-         * get DMA Packetizer 'Busy' flag
-         * @return 1 if busy, 0 if idle
-         **/
-        uint32_t
-        getDMABusy();
+            /**
+             * get number of Scatter Gather entries for the Report buffer
+             * @return number of entries
+             **/
+            uint32_t
+            getRBDMnSGEntries();
 
-        /**
-         * get buffer size set in EBDM. This returns the size of the
-         * DMA buffer set in the DMA enginge and has to be the physical
-         * size of the associated DMA buffer.
-         * @return buffer size in bytes
-         **/
-        uint64_t
-        getEBSize();
+            /**
+             * get DMA Packetizer 'Busy' flag
+             * @return 1 if busy, 0 if idle
+             **/
+            uint32_t
+            getDMABusy();
 
-        /**
-         * get buffer size set in RBDM. As the RB is not overmapped this size
-         * should be equal to the sysfs file size and buf->getRBSize()
-         * @return buffer size in bytes
-         **/
-        uint64_t
-        getRBSize();
+            /**
+             * get buffer size set in EBDM. This returns the size of the
+             * DMA buffer set in the DMA enginge and has to be the physical
+             * size of the associated DMA buffer.
+             * @return buffer size in bytes
+             **/
+            uint64_t
+            getEBSize();
 
-        /**
-         * configure DMA engine for current set of buffers
-         * @param ebuf pointer to struct rorcfs_buffer to be used as
-         * event buffer
-         * @param rbuf pointer to struct rorcfs_buffer to be used as
-         * report buffer
-         * @param max_payload maximum payload size to be used (in bytes)
-         * @return 0 on sucess, <0 on error
-         * */
-        int32_t
-        configureChannel
-        (
-            struct rorcfs_buffer *ebuf,
-            struct rorcfs_buffer *rbuf,
-            uint32_t              max_payload,
-            uint32_t              max_rd_req
-        );
+            /**
+             * get buffer size set in RBDM. As the RB is not overmapped this size
+             * should be equal to the sysfs file size and buf->getRBSize()
+             * @return buffer size in bytes
+             **/
+            uint64_t
+            getRBSize();
 
-        /**
-         * get base
-         * @return channel base address
-         **/
+            /**
+             * configure DMA engine for current set of buffers
+             * @param ebuf pointer to struct rorcfs_buffer to be used as
+             * event buffer
+             * @param rbuf pointer to struct rorcfs_buffer to be used as
+             * report buffer
+             * @param max_payload maximum payload size to be used (in bytes)
+             * @return 0 on sucess, <0 on error
+             * */
+            int32_t
+            configureChannel
+            (
+                struct rorcfs_buffer *ebuf,
+                struct rorcfs_buffer *rbuf,
+                uint32_t              max_payload,
+                uint32_t              max_rd_req
+            );
 
-        uint64_t
-        getBase()
-        {
-            return m_base;
-        }
+            /**
+             * get base
+             * @return channel base address
+             **/
 
-        /**
-         * get BAR
-         * @return bound rorcfs_bar
-         **/
+            uint64_t
+            getBase()
+            {
+                return m_base;
+            }
 
-        bar*
-        getBar()
-        {
-            return m_bar;
-        }
+            /**
+             * get BAR
+             * @return bound rorcfs_bar
+             **/
 
-        /**
-         * set Event Buffer File Offset
-         * the DMA engine only writes to the Event buffer as long as
-         * its internal offset is at least (MaxPayload)-bytes smaller
-         * than the Event Buffer Offset. In order to start a transfer,
-         * set EBOffset to (BufferSize-MaxPayload).
-         * IMPORTANT: offset has always to be a multiple of MaxPayload!
-         **/
-        void
-        setEBOffset
-        (
-            uint64_t offset
-        );
+            bar*
+            getBar()
+            {
+                return m_bar;
+            }
 
-        /**
-         * get current Event Buffer File Offset
-         * @return offset
-         **/
-        uint64_t
-        getEBOffset();
+            /**
+             * set Event Buffer File Offset
+             * the DMA engine only writes to the Event buffer as long as
+             * its internal offset is at least (MaxPayload)-bytes smaller
+             * than the Event Buffer Offset. In order to start a transfer,
+             * set EBOffset to (BufferSize-MaxPayload).
+             * IMPORTANT: offset has always to be a multiple of MaxPayload!
+             **/
+            void
+            setEBOffset
+            (
+                uint64_t offset
+            );
 
-        /**
-         * set Report Buffer File Offset
-         **/
-        void
-        setRBOffset
-        (
-            uint64_t offset
-        );
+            /**
+             * get current Event Buffer File Offset
+             * @return offset
+             **/
+            uint64_t
+            getEBOffset();
 
-        /**
-         * get Report Buffer File Offset
-         * @return offset
-         **/
-        uint64_t
-        getRBOffset();
+            /**
+             * set Report Buffer File Offset
+             **/
+            void
+            setRBOffset
+            (
+                uint64_t offset
+            );
 
-        /**
-         * setOffsets
-         * @param eboffset byte offset in event buffer
-         * @param rboffset byte offset in report buffer
-         **/
-        void
-        setOffsets
-        (
-            uint64_t eboffset,
-            uint64_t rboffset
-        );
+            /**
+             * get Report Buffer File Offset
+             * @return offset
+             **/
+            uint64_t
+            getRBOffset();
 
-        /**
-         * get buffer offset that is currently used as
-         * DMA destination
-         * @return 64bit offset in report buffer file
-         **/
-        uint64_t
-        getRBDMAOffset();
+            /**
+             * setOffsets
+             * @param eboffset byte offset in event buffer
+             * @param rboffset byte offset in report buffer
+             **/
+            void
+            setOffsets
+            (
+                uint64_t eboffset,
+                uint64_t rboffset
+            );
 
-        /**
-         * get buffer offset that is currently used as
-         * DMA destination
-         * @return 64bit offset in event buffer file
-         **/
-        uint64_t
-        getEBDMAOffset();
+            /**
+             * get buffer offset that is currently used as
+             * DMA destination
+             * @return 64bit offset in report buffer file
+             **/
+            uint64_t
+            getRBDMAOffset();
 
-        /**
-         * set DW in EBDM
-         * @param addr address in EBDM component
-         * @param data data to be writtem
-         **/
-        void
-        setEBDM
-        (
-            uint32_t addr,
-            uint32_t data
-        );
+            /**
+             * get buffer offset that is currently used as
+             * DMA destination
+             * @return 64bit offset in event buffer file
+             **/
+            uint64_t
+            getEBDMAOffset();
 
-        /**
-         * get DW from EBDM
-         * @param addr address in EBDM component
-         * @return data read from EBDM
-         **/
-        uint32_t
-        getEBDM
-        (
-            uint32_t addr
-        );
+            /**
+             * set DW in EBDM
+             * @param addr address in EBDM component
+             * @param data data to be writtem
+             **/
+            void
+            setEBDM
+            (
+                uint32_t addr,
+                uint32_t data
+            );
 
-        /**
-         * set DW in RBDM
-         * @param addr address in RBDM component
-         * @param data data to be writtem
-         **/
-        void
-        setRBDM
-        (
-            uint32_t addr,
-            uint32_t data
-        );
+            /**
+             * get DW from EBDM
+             * @param addr address in EBDM component
+             * @return data read from EBDM
+             **/
+            uint32_t
+            getEBDM
+            (
+                uint32_t addr
+            );
 
-        /**
-         * get DW from RBDM
-         * @param addr address in RBDM component
-         * @return data read from RBDM
-         **/
-        uint32_t
-        getRBDM
-        (
-            uint32_t addr
-        );
+            /**
+             * set DW in RBDM
+             * @param addr address in RBDM component
+             * @param data data to be writtem
+             **/
+            void
+            setRBDM
+            (
+                uint32_t addr,
+                uint32_t data
+            );
 
-        /**
-         * set DW in EBDRAM
-         * @param addr address in EBDRAM component
-         * @param data data to be writtem
-         **/
-        void
-        setEBDRAM
-        (
-            uint32_t addr,
-            uint32_t data
-        );
+            /**
+             * get DW from RBDM
+             * @param addr address in RBDM component
+             * @return data read from RBDM
+             **/
+            uint32_t
+            getRBDM
+            (
+                uint32_t addr
+            );
 
-        /**
-         * memcpy into EBDRAM
-         * @param startaddr address in EBDRAM component
-         * @param dma_desc pointer to struct rorcfs_dma_desc
-         * */
-        void
-        memcpyEBDRAMentry
-        (
-            uint32_t                startaddr,
-            struct rorcfs_dma_desc *dma_desc
-        );
+            /**
+             * set DW in EBDRAM
+             * @param addr address in EBDRAM component
+             * @param data data to be writtem
+             **/
+            void
+            setEBDRAM
+            (
+                uint32_t addr,
+                uint32_t data
+            );
 
-        /**
-         * get DW from EBDRAM
-         * @param addr address in EBDRAM component
-         * @return data read from EBDRAM
-         **/
-        uint32_t
-        getEBDRAM
-        (
-            uint32_t addr
-        );
+            /**
+             * memcpy into EBDRAM
+             * @param startaddr address in EBDRAM component
+             * @param dma_desc pointer to struct rorcfs_dma_desc
+             * */
+            void
+            memcpyEBDRAMentry
+            (
+                uint32_t                startaddr,
+                struct rorcfs_dma_desc *dma_desc
+            );
 
-        /**
-         * set DW in RBDRAM
-         * @param addr address in RBDRAM component
-         * @param data data to be writtem
-         **/
-        void
-        setRBDRAM
-        (
-            uint32_t addr,
-            uint32_t data
-        );
+            /**
+             * get DW from EBDRAM
+             * @param addr address in EBDRAM component
+             * @return data read from EBDRAM
+             **/
+            uint32_t
+            getEBDRAM
+            (
+                uint32_t addr
+            );
 
-        /**
-         * memcpy into RBDRAM
-         * @param startaddr address in EBDRAM component
-         * @param dma_desc pointer to struct rorcfs_dma_desc
-         * */
-        void
-        memcpyRBDRAMentry
-        (
-            uint32_t                startaddr,
-            struct rorcfs_dma_desc *dma_desc
-        );
+            /**
+             * set DW in RBDRAM
+             * @param addr address in RBDRAM component
+             * @param data data to be writtem
+             **/
+            void
+            setRBDRAM
+            (
+                uint32_t addr,
+                uint32_t data
+            );
 
-        /**
-         * get DW from RBDRAM
-         * @param addr address in RBDRAM component
-         * @return data read from RBDRAM
-         **/
-        uint32_t
-        getRBDRAM
-        (
-            uint32_t addr
-        );
+            /**
+             * memcpy into RBDRAM
+             * @param startaddr address in EBDRAM component
+             * @param dma_desc pointer to struct rorcfs_dma_desc
+             * */
+            void
+            memcpyRBDRAMentry
+            (
+                uint32_t                startaddr,
+                struct rorcfs_dma_desc *dma_desc
+            );
 
-        /**
-         * set DW in Packtizer
-         * @param addr address in PKT component
-         * @param data data to be writtem
-         **/
-        void
-        setPKT
-        (
-            uint32_t addr,
-            uint32_t data
-        );
+            /**
+             * get DW from RBDRAM
+             * @param addr address in RBDRAM component
+             * @return data read from RBDRAM
+             **/
+            uint32_t
+            getRBDRAM
+            (
+                uint32_t addr
+            );
 
-        /**
-         * get DW from  Packtizer
-         * @param addr address in PKT component
-         * @return data read from PKT
-         **/
-        uint32_t
-        getPKT
-        (
-            uint32_t addr
-        );
+            /**
+             * set DW in Packtizer
+             * @param addr address in PKT component
+             * @param data data to be writtem
+             **/
+            void
+            setPKT
+            (
+                uint32_t addr,
+                uint32_t data
+            );
 
-        /**
-         * set DW in GTX Domain
-         * @param addr address in GTX component
-         * @param data data to be writtem
-         **/
-        void
-        setGTX
-        (
-            uint32_t addr,
-            uint32_t data
-        );
+            /**
+             * get DW from  Packtizer
+             * @param addr address in PKT component
+             * @return data read from PKT
+             **/
+            uint32_t
+            getPKT
+            (
+                uint32_t addr
+            );
 
-        /**
-         * get DW from GTX Domain
-         * @param addr address in GTX component
-         * @return data read from GTX
-         **/
-        unsigned int
-        getGTX
-        (
-            uint32_t addr
-        );
+            /**
+             * set DW in GTX Domain
+             * @param addr address in GTX component
+             * @param data data to be writtem
+             **/
+            void
+            setGTX
+            (
+                uint32_t addr,
+                uint32_t data
+            );
 
-    protected:
+            /**
+             * get DW from GTX Domain
+             * @param addr address in GTX component
+             * @return data read from GTX
+             **/
+            unsigned int
+            getGTX
+            (
+                uint32_t addr
+            );
 
-        uint32_t m_base;
-        uint32_t m_channel;
-        uint32_t m_MaxPayload;
+        protected:
 
-        bar *m_bar;
+            uint32_t m_base;
+            uint32_t m_channel;
+            uint32_t m_MaxPayload;
 
-        /**
-         * This method is the generic version of the
-         * methods to program the sglists into the
-         * CRORC bars.
-         **/
-        int32_t
-        _prepare
-        (
-            rorcfs_buffer *buf,
-            uint32_t       flag
-        );
+            bar *m_bar;
 
-        /**
-         * setMaxPayload() and setMaxPayload()
-         * are wrappers around _setMaxPayload and should
-         * be called instead
-         **/
-        void
-        _setMaxPayload
-        (
-            int32_t size
-        );
-};
+            /**
+             * This method is the generic version of the
+             * methods to program the sglists into the
+             * CRORC bars.
+             **/
+            int32_t
+            _prepare
+            (
+                rorcfs_buffer *buf,
+                uint32_t       flag
+            );
+
+            /**
+             * setMaxPayload() and setMaxPayload()
+             * are wrappers around _setMaxPayload and should
+             * be called instead
+             **/
+            void
+            _setMaxPayload
+            (
+                int32_t size
+            );
+    };
+
+}
 
 #endif /** LIBRORC_DMA_CHANNEL_H */

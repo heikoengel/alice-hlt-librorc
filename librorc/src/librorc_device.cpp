@@ -22,6 +22,9 @@
 
 using namespace std;
 
+namespace librorc
+{
+
 rorcfs_device::rorcfs_device
 (
     int32_t device_index
@@ -178,4 +181,6 @@ rorcfs_device::deviceDescription()
     }
 
     return( new string(description_buffer) );
+}
+
 }

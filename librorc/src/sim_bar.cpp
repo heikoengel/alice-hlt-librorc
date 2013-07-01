@@ -29,7 +29,8 @@
  * */
 #define USLEEP_TIME 50
 
-
+namespace librorc
+{
 
 sim_bar::sim_bar
 (
@@ -807,3 +808,7 @@ sim_bar::getSize()
 {
     return m_size;
 }
+
+
+}
+

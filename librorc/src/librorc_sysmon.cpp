@@ -20,6 +20,8 @@
 
 #include "librorc_sysmon.hh"
 
+namespace librorc
+{
 
 
 librorc_sysmon::librorc_sysmon
@@ -427,3 +429,6 @@ librorc_sysmon::qsfpTemperature
 
         i2c_set_config( 0x01f30081 | ((1<<index)<<8) );
     }
+
+
+}

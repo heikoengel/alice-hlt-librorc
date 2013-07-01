@@ -29,7 +29,7 @@
 
 #include "librorc_bar_proto.hh"
 
-using namespace librorc;
+
 
 /**
  * @class rorc_bar
@@ -41,118 +41,123 @@ using namespace librorc;
  * initialized (with init()) you can use get() and set() to
  * read from and/or write to the device.
  */
-class rorc_bar : public bar
+
+namespace librorc
 {
-    public:
 
-        /**
-         * Constructor that sets fname accordingly. No mapping is
-         * performed at this point.
-         * @param dev parent rorcfs_device
-         * @param n number of BAR to be mapped [0-6]
-         **/
-        rorc_bar
-        (
-            rorcfs_device *dev,
-            int32_t        n
-        );
+    class rorc_bar : public bar
+    {
+        public:
 
-        /**
-         * Deconstructor: free fname, unmap BAR, close file
-         **/
-        ~rorc_bar();
+            /**
+             * Constructor that sets fname accordingly. No mapping is
+             * performed at this point.
+             * @param dev parent rorcfs_device
+             * @param n number of BAR to be mapped [0-6]
+             **/
+            rorc_bar
+            (
+                rorcfs_device *dev,
+                int32_t        n
+            );
 
-        /**
-         * initialize BAR mapping: open sysfs file, get file stats,
-         * mmap file. This has to be done before using any other
-         * member funtion. This function will fail if the requested
-         * BAR does not exist.
-         * @return 0 on sucess, -1 on errors
-         **/
-        int32_t init();
+            /**
+             * Deconstructor: free fname, unmap BAR, close file
+             **/
+            ~rorc_bar();
 
-        /**
-         * read DWORD from BAR address
-         * @param addr (unsigned int) aligned address within the
-         *              BAR to read from.
-         * @return data read from BAR[addr]
-         **/
-        uint32_t
-        get
-        (
-            uint64_t addr
-        );
+            /**
+             * initialize BAR mapping: open sysfs file, get file stats,
+             * mmap file. This has to be done before using any other
+             * member funtion. This function will fail if the requested
+             * BAR does not exist.
+             * @return 0 on sucess, -1 on errors
+             **/
+            int32_t init();
 
-        /**
-         * read WORD from BAR address
-         * @param addr within the BAR to read from.
-         * @return data read from BAR[addr]
-         **/
-        uint16_t
-        get16
-        (
-            uint64_t addr
-        );
+            /**
+             * read DWORD from BAR address
+             * @param addr (unsigned int) aligned address within the
+             *              BAR to read from.
+             * @return data read from BAR[addr]
+             **/
+            uint32_t
+            get
+            (
+                uint64_t addr
+            );
 
-        /**
-         * copy buffer range into BAR
-         * @param addr address in current BAR
-         * @param source pointer to source data field
-         * @param num number of bytes to be copied to destination
-         * */
-        void
-        memcpy_bar
-        (
-            uint64_t    addr,
-            const void *source,
-            size_t      num
-        );
+            /**
+             * read WORD from BAR address
+             * @param addr within the BAR to read from.
+             * @return data read from BAR[addr]
+             **/
+            uint16_t
+            get16
+            (
+                uint64_t addr
+            );
 
-        /**
-         * write DWORD to BAR address
-         * @param addr (unsigned int) aligned address within the
-         *              BAR to write to
-         * @param data (unsigned int) data word to be written.
-         **/
-        void
-        set
-        (
-            uint64_t addr,
-            uint32_t data
-        );
+            /**
+             * copy buffer range into BAR
+             * @param addr address in current BAR
+             * @param source pointer to source data field
+             * @param num number of bytes to be copied to destination
+             * */
+            void
+            memcpy_bar
+            (
+                uint64_t    addr,
+                const void *source,
+                size_t      num
+            );
 
-        /**
-         * write WORD to BAR address
-         * @param addr within the BAR to write to
-         * @param data (unsigned int) data word to be written.
-         **/
-        void
-        set16
-        (
-            uint64_t addr,
-            uint16_t data
-        );
+            /**
+             * write DWORD to BAR address
+             * @param addr (unsigned int) aligned address within the
+             *              BAR to write to
+             * @param data (unsigned int) data word to be written.
+             **/
+            void
+            set
+            (
+                uint64_t addr,
+                uint32_t data
+            );
 
-        /**
-         * get current time of day
-         * @param tv pointer to struct timeval
-         * @param tz pointer to struct timezone
-         * @return return valiue from gettimeof day or zero for FLI simulation
-         **/
-        int32_t
-        gettime
-        (
-            struct timeval *tv,
-            struct timezone *tz
-        );
+            /**
+             * write WORD to BAR address
+             * @param addr within the BAR to write to
+             * @param data (unsigned int) data word to be written.
+             **/
+            void
+            set16
+            (
+                uint64_t addr,
+                uint16_t data
+            );
 
-        /**
-         * get size of mapped BAR. This value is only valid after init()
-         * @return size of mapped BAR in bytes
-         **/
+            /**
+             * get current time of day
+             * @param tv pointer to struct timeval
+             * @param tz pointer to struct timezone
+             * @return return valiue from gettimeof day or zero for FLI simulation
+             **/
+            int32_t
+            gettime
+            (
+                struct timeval *tv,
+                struct timezone *tz
+            );
 
-        size_t getSize();
+            /**
+             * get size of mapped BAR. This value is only valid after init()
+             * @return size of mapped BAR in bytes
+             **/
 
-};
+            size_t getSize();
 
+    };
+
+}
 #endif /** LIBRORC_BAR_H */

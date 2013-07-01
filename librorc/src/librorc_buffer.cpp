@@ -23,7 +23,8 @@
 
 #include <pda.h>
 
-
+namespace librorc
+{
 
 rorcfs_buffer::rorcfs_buffer()
 {
@@ -169,4 +170,6 @@ rorcfs_buffer::connect
     }
 
     return 0;
+}
+
 }

@@ -64,203 +64,210 @@ using namespace librorc;
  * initialized (with init()) you can use get() and set() to
  * read from and/or write to the device.
  */
-class sim_bar : public bar
+
+namespace librorc
 {
-    public:
 
-        /**
-         * Constructor that sets fname accordingly. No mapping is
-         * performed at this point.
-         * @param dev parent rorcfs_device
-         * @param n number of BAR to be mapped [0-6]
-         */
-        sim_bar
-        (
-            rorcfs_device *dev,
-            int32_t        n
-        );
+    class sim_bar : public bar
+    {
+        public:
 
-        /**
-         * Deconstructor: free fname, unmap BAR, close file
-         */
-        ~sim_bar();
+            /**
+             * Constructor that sets fname accordingly. No mapping is
+             * performed at this point.
+             * @param dev parent rorcfs_device
+             * @param n number of BAR to be mapped [0-6]
+             */
+            sim_bar
+            (
+                rorcfs_device *dev,
+                int32_t        n
+            );
 
-        /**
-         * Initialize BAR Mapping: open sysfs file, get file stats,
-         * mmap file. This has to be done before using any other
-         * member function. This function will fail if the requested
-         * BAR does not exist
-         * @return 0 on sucess, -1 on errors
-         */
-        int32_t init();
+            /**
+             * Deconstructor: free fname, unmap BAR, close file
+             */
+            ~sim_bar();
 
-        /**
-         * read DWORD from BAR address
-         * @param addr (unsigned int) aligned address within the
-         *              BAR to read from.
-         * @return data read from BAR[addr]
-         */
-        unsigned int
-        get
-        (
-            uint64_t addr
-        );
+            /**
+             * Initialize BAR Mapping: open sysfs file, get file stats,
+             * mmap file. This has to be done before using any other
+             * member function. This function will fail if the requested
+             * BAR does not exist
+             * @return 0 on sucess, -1 on errors
+             */
+            int32_t init();
 
-        /**
-         * write DWORD to BAR address
-         * @param addr (unsigned int) aligned address within the
-         *              BAR to write to
-         * @param data (unsigned int) data word to be written.
-         */
-        void
-        set
-        (
-            uint64_t addr,
-            uint32_t data
-        );
+            /**
+             * read DWORD from BAR address
+             * @param addr (unsigned int) aligned address within the
+             *              BAR to read from.
+             * @return data read from BAR[addr]
+             */
+            unsigned int
+            get
+            (
+                uint64_t addr
+            );
 
-        /**
-         * copy buffer range into BAR
-         * @param addr address in current BAR
-         * @param source pointer to source data field
-         * @param num number of bytes to be copied to destination
-         */
-        void
-        memcpy_bar
-        (
-            uint64_t    addr,
-            const void *source,
-            size_t      num
-        );
+            /**
+             * write DWORD to BAR address
+             * @param addr (unsigned int) aligned address within the
+             *              BAR to write to
+             * @param data (unsigned int) data word to be written.
+             */
+            void
+            set
+            (
+                uint64_t addr,
+                uint32_t data
+            );
 
-        /**
-         * read DWORD from BAR address
-         * @param addr (unsigned int) aligned address within the
-         *              BAR to read from.
-         * @return data read from BAR[addr]
-         */
-        unsigned short
-        get16
-        (
-            uint64_t addr
-        );
+            /**
+             * copy buffer range into BAR
+             * @param addr address in current BAR
+             * @param source pointer to source data field
+             * @param num number of bytes to be copied to destination
+             */
+            void
+            memcpy_bar
+            (
+                uint64_t    addr,
+                const void *source,
+                size_t      num
+            );
 
-        /**
-         * write WORD to BAR address
-         * @param addr within the BAR to write to
-         * @param data (unsigned int) data word to be written.
-         */
-        void
-        set16
-        (
-            uint64_t addr,
-            uint16_t data
-        );
+            /**
+             * read DWORD from BAR address
+             * @param addr (unsigned int) aligned address within the
+             *              BAR to read from.
+             * @return data read from BAR[addr]
+             */
+            unsigned short
+            get16
+            (
+                uint64_t addr
+            );
 
-        /**
-         * get current time of day
-         * @param tv pointer to struct timeval
-         * @param tz pointer to struct timezone
-         * @return return valiue from gettimeof day or zero for FLI simulation
-         */
-        int32_t
-        gettime
-        (
-            struct timeval *tv,
-            struct timezone *tz
-        );
+            /**
+             * write WORD to BAR address
+             * @param addr within the BAR to write to
+             * @param data (unsigned int) data word to be written.
+             */
+            void
+            set16
+            (
+                uint64_t addr,
+                uint16_t data
+            );
 
-        /**
-         * get size of mapped BAR. This value is only valid after init()
-         * @return size of mapped BAR in bytes
-         */
-        size_t getSize();
+            /**
+             * get current time of day
+             * @param tv pointer to struct timeval
+             * @param tz pointer to struct timezone
+             * @return return valiue from gettimeof day or zero for FLI simulation
+             */
+            int32_t
+            gettime
+            (
+                struct timeval *tv,
+                struct timezone *tz
+            );
 
-
-    private:
-
-        /**
-         * Initialize member variables
-         */
-        int      m_sockfd;
-        int      m_pipefd[2];
-        int32_t  m_msgid;
-        uint32_t m_read_from_dev_data;
-        uint32_t m_read_from_dev_done;
-        uint32_t m_write_to_dev_done;
-        uint32_t m_cmpl_to_dev_done;
-
-        pthread_t sock_mon_p;
-        pthread_t cmpl_handler_p;
+            /**
+             * get size of mapped BAR. This value is only valid after init()
+             * @return size of mapped BAR in bytes
+             */
+            size_t getSize();
 
 
-        void *sockMonitor();
-        void *cmplHandler();
+        private:
 
-        static void*
-        sock_monitor_helper(void * This)
-        {
-            ((sim_bar *)This)->sockMonitor();
-            return 0;
-        }
+            /**
+             * Initialize member variables
+             */
+            int      m_sockfd;
+            int      m_pipefd[2];
+            int32_t  m_msgid;
+            uint32_t m_read_from_dev_data;
+            uint32_t m_read_from_dev_done;
+            uint32_t m_write_to_dev_done;
+            uint32_t m_cmpl_to_dev_done;
 
-        static void*
-        cmpl_handler_helper(void * This)
-        {
-            ((sim_bar *)This)->cmplHandler();
-            return 0;
-        }
+            pthread_t sock_mon_p;
+            pthread_t cmpl_handler_p;
 
-        uint32_t
-        readDWfromSock
-        (
-            int sock
-        );
 
-        void
-        doCompleteToHost
-        (
-            uint16_t msgsize
-        );
+            void *sockMonitor();
+            void *cmplHandler();
 
-        void
-        doWriteToHost
-        (
-            uint16_t msgsize
-        );
+            static void*
+            sock_monitor_helper(void * This)
+            {
+                ((sim_bar *)This)->sockMonitor();
+                return 0;
+            }
 
-        void
-        doReadFromHost
-        (
-            uint16_t msgsize
-        );
+            static void*
+            cmpl_handler_helper(void * This)
+            {
+                ((sim_bar *)This)->cmplHandler();
+                return 0;
+            }
 
-        void
-        doAcknowledgeCompletion
-        (
-            uint16_t msgsize
-        );
+            uint32_t
+            readDWfromSock
+            (
+                int sock
+            );
 
-        void
-        doAcknowledgeWrite
-        (
-            uint16_t msgsize
-        );
+            void
+            doCompleteToHost
+            (
+                uint16_t msgsize
+            );
 
-        void
-        doAcknowledgeTime
-        (
-            uint16_t msgsize
-        );
+            void
+            doWriteToHost
+            (
+                uint16_t msgsize
+            );
 
-        int32_t
-        getOffset
-        (
-            uint64_t  phys_addr,
-            uint64_t *buffer_id,
-            uint64_t *offset
-        );
-};
+            void
+            doReadFromHost
+            (
+                uint16_t msgsize
+            );
+
+            void
+            doAcknowledgeCompletion
+            (
+                uint16_t msgsize
+            );
+
+            void
+            doAcknowledgeWrite
+            (
+                uint16_t msgsize
+            );
+
+            void
+            doAcknowledgeTime
+            (
+                uint16_t msgsize
+            );
+
+            int32_t
+            getOffset
+            (
+                uint64_t  phys_addr,
+                uint64_t *buffer_id,
+                uint64_t *offset
+            );
+    };
+
+
+}
 
 
 /**

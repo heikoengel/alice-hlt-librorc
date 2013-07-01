@@ -107,273 +107,277 @@ struct flash_architecture
  * @brief interface class to the StrataFlash Embedded
  * Memory P30-65nm on the HTG board
  **/
-class librorc_flash
+namespace librorc
 {
-public:
 
-/**
- * constructor
- * @param flashbar bar instance representing the flash
- * @param chip_select flash chip select (0 or 1)
- * @param verbose verbose level
- * memory
- **/
-    librorc_flash
-    (
-        bar                    *flashbar,
-        uint64_t                chip_select,
-        librorc_verbosity_enum  verbose
-    );
+    class librorc_flash
+    {
+    public:
 
-/**
- * deconstructor
- **/
-    ~librorc_flash();
+    /**
+     * constructor
+     * @param flashbar bar instance representing the flash
+     * @param chip_select flash chip select (0 or 1)
+     * @param verbose verbose level
+     * memory
+     **/
+        librorc_flash
+        (
+            bar                    *flashbar,
+            uint64_t                chip_select,
+            librorc_verbosity_enum  verbose
+        );
 
-/**
- * set read state
- * @param cmd command to be sent
- * @param addr address
- **/
-    void
-    sendCommand
-    (
-        uint32_t addr,
-        uint16_t cmd
-    );
+    /**
+     * deconstructor
+     **/
+        ~librorc_flash();
 
-/**
- * read flash status register
- * @param blkaddr block address
- * @return status register
- **/
-    uint16_t
-    getStatusRegister
-    (
-        uint32_t blkaddr
-    );
+    /**
+     * set read state
+     * @param cmd command to be sent
+     * @param addr address
+     **/
+        void
+        sendCommand
+        (
+            uint32_t addr,
+            uint16_t cmd
+        );
 
-/**
- * read flash status register
- * @param blkaddr block address
- **/
-    void
-    clearStatusRegister
-    (
-        uint32_t blkaddr
-    );
+    /**
+     * read flash status register
+     * @param blkaddr block address
+     * @return status register
+     **/
+        uint16_t
+        getStatusRegister
+        (
+            uint32_t blkaddr
+        );
 
-/**
- * get Manufacturer Code
- * @return manufacturer code
- **/
-    uint16_t
-    getManufacturerCode();
+    /**
+     * read flash status register
+     * @param blkaddr block address
+     **/
+        void
+        clearStatusRegister
+        (
+            uint32_t blkaddr
+        );
 
-/**
- * get Device ID
- * @return Device ID
- **/
-    uint16_t
-    getDeviceID();
+    /**
+     * get Manufacturer Code
+     * @return manufacturer code
+     **/
+        uint16_t
+        getManufacturerCode();
 
-/**
- * get Block Lock Configuration
- * @param blkaddr block address
- * @return block lock configuration: 0=unlocked,
- * 1=locked but not locked down, 3=locked and locked down
- **/
-    uint16_t
-    getBlockLockConfiguration
-    (
-        uint32_t blkaddr
-    );
+    /**
+     * get Device ID
+     * @return Device ID
+     **/
+        uint16_t
+        getDeviceID();
 
-/**
- * get Read Configuration Register (RCR)
- * @return Read Configuraion Register
- **/
-    uint16_t
-    getReadConfigurationRegister();
+    /**
+     * get Block Lock Configuration
+     * @param blkaddr block address
+     * @return block lock configuration: 0=unlocked,
+     * 1=locked but not locked down, 3=locked and locked down
+     **/
+        uint16_t
+        getBlockLockConfiguration
+        (
+            uint32_t blkaddr
+        );
 
-/**
- * get Unique Device Number
- * @return 64bit device number
-**/
-    uint64_t
-    getUniqueDeviceNumber();
+    /**
+     * get Read Configuration Register (RCR)
+     * @return Read Configuraion Register
+     **/
+        uint16_t
+        getReadConfigurationRegister();
 
-/**
- * Reset Block:
- * Clear Status, Read Status, set Read Array mode
- * @param blkaddr block address
- * @return status register
- **/
-    uint16_t resetBlock
-    (
-        uint32_t blkaddr
-    );
+    /**
+     * get Unique Device Number
+     * @return 64bit device number
+    **/
+        uint64_t
+        getUniqueDeviceNumber();
 
-/**
- * Reset Chip:
- * iterate over all blocks
- * @return 0 on sucess, status register on error
- **/
-    uint16_t resetChip ();
+    /**
+     * Reset Block:
+     * Clear Status, Read Status, set Read Array mode
+     * @param blkaddr block address
+     * @return status register
+     **/
+        uint16_t resetBlock
+        (
+            uint32_t blkaddr
+        );
 
-
-/** get WORD from flash
- * @param addr address
- * @return data word at specified address
- **/
-    uint16_t
-    get
-    (
-        uint32_t addr
-    );
-
-/**
- * Buffer Program Mode
- * @param addr start address
- * @param length number of WORDs to be written
- * @param data pointer to data buffer
- * @return 0 on sucess, -1 on errors
- **/
-    int32_t
-    programBuffer
-    (
-        uint32_t  addr,
-        uint16_t  length,
-        uint16_t *data,
-        librorc_verbosity_enum verbose
-    );
-
-/**
- * Erase Block
- * @param blkaddr block address
- * @return 0 on sucess, -1 on errors
- **/
-    int32_t
-    eraseBlock
-    (
-        uint32_t blkaddr
-    );
-
-/**
- * programSuspend
- * @param blkaddr block address
- **/
-    void
-    programSuspend
-    (
-        uint32_t blkaddr
-    );
-
-/**
- * programResume
- * @param blkaddr block address
- **/
-    void
-    programResume
-    (
-        uint32_t blkaddr
-    );
-
-/**
- * Lock Block
- **/
-    int32_t
-    lockBlock
-    (
-        uint32_t blkaddr
-    );
-
-/**
- * unlock Block
- **/
-    int32_t
-    unlockBlock
-    (
-        uint32_t blkaddr
-    );
-
-/**
- * set Configuration Register
- * */
-    void
-    setConfigReg
-    (
-        uint32_t value
-    );
-
-/**
- * check if block is empty
- * NOTE: this will only work if VPP=VPPH (~8V)
- * this is not supported on C-RORC
- * @param blkaddr block address
- * @return -1 on error, 0 on empty, 1 on not empty
- * */
-    int32_t
-    blankCheck
-    (
-        uint32_t blkaddr
-    );
+    /**
+     * Reset Chip:
+     * iterate over all blocks
+     * @return 0 on sucess, status register on error
+     **/
+        uint16_t resetChip ();
 
 
-/**
- * Dump flash contents to file
- * @param filename destination filename
- * @param verbose verbose level
- * @return -1 on error, 0 on sucess
- * */
-    int32_t
-    dump
-    (
-        char                   *filename,
-        librorc_verbosity_enum  verbose
-    );
+    /** get WORD from flash
+     * @param addr address
+     * @return data word at specified address
+     **/
+        uint16_t
+        get
+        (
+            uint32_t addr
+        );
 
-/**
- * erase flash
- * @param verbose verbose level
- * @return -status on error, 0 on success
- * */
-    int32_t
-    erase
-    (
-        int64_t                byte_count,
-        librorc_verbosity_enum verbose
-    );
+    /**
+     * Buffer Program Mode
+     * @param addr start address
+     * @param length number of WORDs to be written
+     * @param data pointer to data buffer
+     * @return 0 on sucess, -1 on errors
+     **/
+        int32_t
+        programBuffer
+        (
+            uint32_t  addr,
+            uint16_t  length,
+            uint16_t *data,
+            librorc_verbosity_enum verbose
+        );
 
-/**
- * program flash with binary file
- * @param filename source file
- * @param verbose verbose level
- * @return -1 on error, 0 on success
- * */
-    int32_t
-    flash
-    (
-        char                   *filename,
-        librorc_verbosity_enum  verbose
-    );
+    /**
+     * Erase Block
+     * @param blkaddr block address
+     * @return 0 on sucess, -1 on errors
+     **/
+        int32_t
+        eraseBlock
+        (
+            uint32_t blkaddr
+        );
 
-/**
- * get Flash Architecture
- * @param flash address
- * @param pointer to destination struct
- * @return 0 on success, -1 on invalid address
- * */
-    int32_t
-    getFlashArchitecture
-    (
-        uint32_t                   addr,
-        struct flash_architecture *arch
-    );
+    /**
+     * programSuspend
+     * @param blkaddr block address
+     **/
+        void
+        programSuspend
+        (
+            uint32_t blkaddr
+        );
 
-private:
-    bar      *m_bar;
-    uint32_t  m_base_addr;
-};
+    /**
+     * programResume
+     * @param blkaddr block address
+     **/
+        void
+        programResume
+        (
+            uint32_t blkaddr
+        );
 
+    /**
+     * Lock Block
+     **/
+        int32_t
+        lockBlock
+        (
+            uint32_t blkaddr
+        );
+
+    /**
+     * unlock Block
+     **/
+        int32_t
+        unlockBlock
+        (
+            uint32_t blkaddr
+        );
+
+    /**
+     * set Configuration Register
+     * */
+        void
+        setConfigReg
+        (
+            uint32_t value
+        );
+
+    /**
+     * check if block is empty
+     * NOTE: this will only work if VPP=VPPH (~8V)
+     * this is not supported on C-RORC
+     * @param blkaddr block address
+     * @return -1 on error, 0 on empty, 1 on not empty
+     * */
+        int32_t
+        blankCheck
+        (
+            uint32_t blkaddr
+        );
+
+
+    /**
+     * Dump flash contents to file
+     * @param filename destination filename
+     * @param verbose verbose level
+     * @return -1 on error, 0 on sucess
+     * */
+        int32_t
+        dump
+        (
+            char                   *filename,
+            librorc_verbosity_enum  verbose
+        );
+
+    /**
+     * erase flash
+     * @param verbose verbose level
+     * @return -status on error, 0 on success
+     * */
+        int32_t
+        erase
+        (
+            int64_t                byte_count,
+            librorc_verbosity_enum verbose
+        );
+
+    /**
+     * program flash with binary file
+     * @param filename source file
+     * @param verbose verbose level
+     * @return -1 on error, 0 on success
+     * */
+        int32_t
+        flash
+        (
+            char                   *filename,
+            librorc_verbosity_enum  verbose
+        );
+
+    /**
+     * get Flash Architecture
+     * @param flash address
+     * @param pointer to destination struct
+     * @return 0 on success, -1 on invalid address
+     * */
+        int32_t
+        getFlashArchitecture
+        (
+            uint32_t                   addr,
+            struct flash_architecture *arch
+        );
+
+    private:
+        bar      *m_bar;
+        uint32_t  m_base_addr;
+    };
+
+}
 #endif /** LIBRORC_FLASH_H */

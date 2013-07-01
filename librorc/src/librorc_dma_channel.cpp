@@ -98,6 +98,10 @@ t_sg_entry_cfg
 /** extern error number **/
 extern int errno;
 
+
+namespace librorc
+{
+
 /**
  * Constructor
  * */
@@ -719,4 +723,6 @@ rorcfs_dma_channel::getGTX
 )
 {
     return m_bar->get(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
+}
+
 }

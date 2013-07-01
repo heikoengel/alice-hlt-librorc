@@ -20,7 +20,8 @@
 
 #include <librorc_registers.h>
 
-
+namespace librorc
+{
 
 rorc_bar::rorc_bar
 (
@@ -210,4 +211,6 @@ size_t
 rorc_bar::getSize()
 {
     return m_size;
+}
+
 }

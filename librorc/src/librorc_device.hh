@@ -26,6 +26,7 @@
 #include "include_ext.hh"
 
 
+
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
@@ -48,67 +49,73 @@ typedef struct PciDevice_struct PciDevice;
  * Once the device is sucessfully initialized you can attach
  * instances of rorcfs_bar.
  **/
-class rorcfs_device
+
+namespace librorc
 {
-friend class rorcfs_buffer;
-friend class librorc_bar;
-friend class rorc_bar;
-friend class sim_bar;
 
-public:
-    rorcfs_device(int32_t device_index);
-    ~rorcfs_device();
+    class rorcfs_device
+    {
+    friend class rorcfs_buffer;
+    friend class bar;
+    friend class rorc_bar;
+    friend class sim_bar;
 
-uint16_t getDomain();
+    public:
+        rorcfs_device(int32_t device_index);
+        ~rorcfs_device();
 
-/**
- * get PCIe Bus-ID
- * @return Bus-ID
- **/
-uint8_t getBus();
-
-/**
- * get PCIe Slot-ID
- * @return Slot-ID
- **/
-uint8_t getSlot();
-
-/**
- * get PCIe Function-ID
- * @return Function-ID
- **/
-uint8_t getFunc();
-
-/**
- * get PCI Bar
- * @return Bar
- **/
-uint8_t *getBarMap(uint8_t n);
-
-/**
- * get PCI Bar-Size
- * @return Bar-Size
- **/
-uint64_t getBarSize(uint8_t n);
-
-string* deviceDescription();
-
-
-private:
+    uint16_t getDomain();
 
     /**
-     * get PCI-Device
-     * @return PCI-Device-Pointer
+     * get PCIe Bus-ID
+     * @return Bus-ID
      **/
-    PciDevice *getPdaPciDevice()
-    {
-        return(m_device);
-    }
+    uint8_t getBus();
 
-    DeviceOperator *m_dop;
-    PciDevice      *m_device;
-    uint8_t         m_number;
+    /**
+     * get PCIe Slot-ID
+     * @return Slot-ID
+     **/
+    uint8_t getSlot();
 
-};
+    /**
+     * get PCIe Function-ID
+     * @return Function-ID
+     **/
+    uint8_t getFunc();
+
+    /**
+     * get PCI Bar
+     * @return Bar
+     **/
+    uint8_t *getBarMap(uint8_t n);
+
+    /**
+     * get PCI Bar-Size
+     * @return Bar-Size
+     **/
+    uint64_t getBarSize(uint8_t n);
+
+    string* deviceDescription();
+
+
+    private:
+
+        /**
+         * get PCI-Device
+         * @return PCI-Device-Pointer
+         **/
+        PciDevice *getPdaPciDevice()
+        {
+            return(m_device);
+        }
+
+        DeviceOperator *m_dop;
+        PciDevice      *m_device;
+        uint8_t         m_number;
+
+    };
+
+}
 
 #endif /** LIBRORC_DEVICE_H */

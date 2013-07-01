@@ -19,7 +19,8 @@
 
 #include "librorc_flash.hh"
 
-
+namespace librorc
+{
 
 librorc_flash::librorc_flash
 (
@@ -775,3 +776,6 @@ librorc_flash::flash
 
     return 0;
 }
+
+}
+

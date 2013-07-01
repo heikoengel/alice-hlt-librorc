@@ -36,5 +36,4 @@
 
 using namespace std;
 
-
 #endif /** INCLUDE_EXT_H */
