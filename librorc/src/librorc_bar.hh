@@ -24,9 +24,8 @@
 #ifndef LIBRORC_BAR_H
 #define LIBRORC_BAR_H
 
-#include "librorc_device.hh"
-#include "librorc_dma_channel.hh"
 #include "include_ext.hh"
+#include "includes.hh"
 
 #include "librorc_bar_proto.hh"
 
