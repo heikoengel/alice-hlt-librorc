@@ -18,20 +18,9 @@
  *
  */
 
-#include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdint.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
+#include "librorc_dma_channel.hh"
 
 #include <pda.h>
-#include "includes.hh"
 #include <librorc_registers.h>
 
 using namespace std;

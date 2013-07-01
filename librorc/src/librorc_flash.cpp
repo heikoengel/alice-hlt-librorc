@@ -17,20 +17,9 @@
  *
  * */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <assert.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include "librorc_flash.hh"
 
-#include <iostream>
-#include <iomanip>
 
-#include "includes.hh"
-
-using namespace std;
 
 librorc_flash::librorc_flash
 (

@@ -35,9 +35,11 @@
 #define LIBRORC_MAX_QSFP 3
 
 #include "include_ext.hh"
-#include "librorc_device.hh"
-#include "librorc_bar.hh"
-#include <librorc_registers.h>
+#include "includes.hh"
+
+//#include "librorc_device.hh"
+//#include "librorc_bar.hh"
+//#include <librorc_registers.h>
 
 /**
  * @class librorc_sysmon

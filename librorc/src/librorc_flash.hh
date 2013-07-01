@@ -21,6 +21,7 @@
 #define LIBRORC_FLASH_H
 
 #include "include_ext.hh"
+#include "includes.hh"
 
 #include "librorc_defines.hh"
 
