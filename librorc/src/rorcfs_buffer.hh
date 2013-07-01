@@ -17,10 +17,9 @@
  *
  */
 
-#ifndef _RORCLIB_RORCFS_BUFFER_H
-#define _RORCLIB_RORCFS_BUFFER_H
+#ifndef LIBRORC_BUFFER_H
+#define LIBRORC_BUFFER_H
 
-#include "includes.hh"
 
 #define DMA_MODE 32
 
@@ -206,4 +205,4 @@ class rorcfs_buffer
 
 };
 
-#endif
+#endif /** LIBRORC_BUFFER_H */

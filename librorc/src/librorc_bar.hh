@@ -21,14 +21,13 @@
  * mapping of the RORCs PCIe address space
  */
 
-#ifndef _RORCLIB_RORCFS_BAR_H
-#define _RORCLIB_RORCFS_BAR_H
+#ifndef LIBRORC_BAR_H
+#define LIBRORC_BAR_H
 
 #include <pthread.h>
 #include <stdint.h>
 #include <sys/stat.h>
 
-#include "includes.hh"
 #include "librorc_bar_proto.hh"
 
 /**
@@ -155,4 +154,4 @@ class rorc_bar : public librorc_bar
 
 };
 
-#endif
+#endif /** LIBRORC_BAR_H */

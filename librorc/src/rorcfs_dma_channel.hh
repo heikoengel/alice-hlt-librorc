@@ -20,8 +20,6 @@
 #ifndef LIBRORC_DMA_CHANNEL_H
 #define LIBRORC_DMA_CHANNEL_H
 
-#include "includes.hh"
-
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value
  *  Common values are 128 or 256 bytes.*/

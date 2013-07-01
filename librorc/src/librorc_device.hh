@@ -59,8 +59,8 @@
  * DIU in order to control the pattern generator parameters.
  **/
 
-#ifndef _RORCLIB_RORCFS_DEVICE_H
-#define _RORCLIB_RORCFS_DEVICE_H
+#ifndef LIBRORC_DEVICE_H
+#define LIBRORC_DEVICE_H
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -160,4 +160,4 @@ private:
 
 };
 
-#endif
+#endif /** LIBRORC_DEVICE_H */

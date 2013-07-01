@@ -17,8 +17,8 @@
  *
  * */
 
-#ifndef _RORCLIB_RORCFS_FLASH_HTG
-#define _RORCLIB_RORCFS_FLASH_HTG
+#ifndef LIBRORC_FLASH_H
+#define LIBRORC_FLASH_H
 
 #include "librorc_defines.hh"
 
@@ -200,18 +200,18 @@ public:
     getUniqueDeviceNumber();
 
 /**
- * Reset Block: 
+ * Reset Block:
  * Clear Status, Read Status, set Read Array mode
  * @param blkaddr block address
  * @return status register
  **/
-    uint16_t resetBlock 
+    uint16_t resetBlock
     (
         uint32_t blkaddr
     );
 
 /**
- * Reset Chip: 
+ * Reset Chip:
  * iterate over all blocks
  * @return 0 on sucess, status register on error
  **/
@@ -372,4 +372,4 @@ private:
     uint32_t     base_addr;
 };
 
-#endif
+#endif /** LIBRORC_FLASH_H */

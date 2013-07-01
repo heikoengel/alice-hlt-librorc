@@ -24,8 +24,6 @@
 #ifndef SIM_BAR_H
 #define SIM_BAR_H
 
-#include "includes.hh"
-
 #include "librorc_bar_proto.hh"
 
 /**

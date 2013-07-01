@@ -1,5 +1,5 @@
 /**
- * @file rorcfs_sysmon.hh
+ * @file
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2011-11-16
@@ -18,8 +18,8 @@
  *
  * */
 
-#ifndef RORCFS_SYSMON_H
-#define RORCFS_SYSMON_H
+#ifndef LIBRORC_SYSMON_H
+#define LIBRORC_SYSMON_H
 
 #define LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED  1
 #define LIBRORC_SYSMON_ERROR_PCI_PROBLEM         5
@@ -238,4 +238,4 @@ class librorc_sysmon
         librorc_bar *m_bar;
 };
 
-#endif
+#endif /** LIBRORC_SYSMON_H */

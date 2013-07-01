@@ -1,7 +1,7 @@
 #ifndef LIBRORC_BAR_PROTO_H
 #define LIBRORC_BAR_PROTO_H
 
-#include "includes.hh"
+
 
 class librorc_bar
 {
@@ -78,7 +78,7 @@ set16
  * get current time of day
  * @param tv pointer to struct timeval
  * @param tz pointer to struct timezone
- * @return return valiue from gettimeof day or zero for FLI simulation
+ * @return return value from gettimeof day or zero for FLI simulation
  **/
 virtual
 int32_t
