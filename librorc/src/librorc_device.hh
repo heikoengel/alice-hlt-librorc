@@ -17,7 +17,7 @@
  *
  * @section DESCRIPTION
  *
- * The rorcfs_device represents a RORC PCIe device
+ * The librorc::device represents a RORC PCIe device
  */
 
 #ifndef LIBRORC_DEVICE_H
@@ -40,14 +40,14 @@ typedef struct PciDevice_struct PciDevice;
 #endif
 
 /**
- * @class rorcfs_device
+ * @class librorc::device
  * @brief represents a RORC PCIe device
  *
- * The rorcfs_device class is the base class for all device
- * IO. Create a rorcfs_device instance and initialize
+ * The librorc::device class is the base class for all device
+ * IO. Create a librorc::device instance and initialize
  * (via init(int n)) with the device you want to bind to.
  * Once the device is sucessfully initialized you can attach
- * instances of rorcfs_bar.
+ * instances of librorc::bar.
  **/
 
 namespace librorc

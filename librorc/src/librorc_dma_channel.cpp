@@ -30,7 +30,7 @@ using namespace std;
  **/
 struct
 __attribute__((__packed__))
-rorcfs_buffer_software_pointers
+librorc_buffer_software_pointers
 {
     /** EBDM read pointer low **/
     uint32_t ebdm_software_read_pointer_low;
@@ -51,7 +51,7 @@ rorcfs_buffer_software_pointers
 /** struct rorcfs_channel_config **/
 struct
 __attribute__((__packed__))
-rorcfs_channel_config
+librorc_channel_config
 {
     /** EBDM number of sg entries **/
     uint32_t ebdm_n_sg_config;
@@ -72,7 +72,7 @@ rorcfs_channel_config
     uint32_t rbdm_buffer_size_high;
 
     /** struct for read pointers nad control register **/
-    struct rorcfs_buffer_software_pointers swptrs;
+    struct librorc_buffer_software_pointers swptrs;
 
 };
 
@@ -324,7 +324,7 @@ dma_channel::configureChannel
     }
 
     //TODO refactor this into a sepparate method
-    struct rorcfs_channel_config config;
+    struct librorc_channel_config config;
     config.ebdm_n_sg_config      = ebuf->getnSGEntries();
     config.ebdm_buffer_size_low  = ebuf->getPhysicalSize() & 0xffffffff;
     config.ebdm_buffer_size_high = ebuf->getPhysicalSize() >> 32;
@@ -354,7 +354,7 @@ dma_channel::configureChannel
      * at the address of the lowest register(EBDM_N_SG_CONFIG)
      */
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_N_SG_CONFIG, &config,
-                      sizeof(struct rorcfs_channel_config) );
+                      sizeof(struct librorc_channel_config) );
     m_MaxPayload = max_payload;
 
     return 0;
@@ -520,7 +520,7 @@ dma_channel::setOffsets
 )
 {
     assert(m_bar!=NULL);
-    struct rorcfs_buffer_software_pointers offsets;
+    struct librorc_buffer_software_pointers offsets;
 
     offsets.ebdm_software_read_pointer_low =
         (uint32_t)(eboffset & 0xffffffff);
