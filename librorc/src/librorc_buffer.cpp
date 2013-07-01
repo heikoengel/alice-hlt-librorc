@@ -19,19 +19,9 @@
  *
  */
 
-#include <stdio.h>
-#include <unistd.h>
-
-
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
+#include "librorc_buffer.hh"
 
 #include <pda.h>
-
-#include "rorcfs_buffer.hh"
-
-using namespace std;
 
 
 
