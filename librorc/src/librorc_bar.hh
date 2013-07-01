@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <sys/stat.h>
 
-#include "rorcfs_device.hh"
+#include "includes.hh"
 #include "librorc_bar_proto.hh"
 
 /**

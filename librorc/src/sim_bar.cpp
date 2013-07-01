@@ -16,19 +16,11 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "sim_bar.hh"
-
 #include "rorcfs_bar_includes.hh"
 
+#include "includes.hh"
 #include "mti.h"
-#include <pthread.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <pda.h>
 
-#include "rorcfs_dma_channel.hh"
 #include <librorc_registers.h>
 
 using namespace std;

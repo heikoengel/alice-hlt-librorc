@@ -1,7 +1,7 @@
-#ifndef _RORCLIB_LIBRORC_BAR_PROTO_H
-#define _RORCLIB_LIBRORC_BAR_PROTO_H
+#ifndef LIBRORC_BAR_PROTO_H
+#define LIBRORC_BAR_PROTO_H
 
-#include "rorcfs_device.hh"
+#include "includes.hh"
 
 class librorc_bar
 {
@@ -115,4 +115,4 @@ protected:
 
 };
 
-#endif
+#endif /** LIBRORC_BAR_PROTO_H */

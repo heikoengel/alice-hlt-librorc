@@ -21,30 +21,26 @@
  * mapping of the RORCs PCIe address space
  */
 
-#ifndef _RORCLIB_SIM_BAR_H
-#define _RORCLIB_SIM_BAR_H
+#ifndef SIM_BAR_H
+#define SIM_BAR_H
 
-#include <pthread.h>
-#include <stdint.h>
-#include <sys/stat.h>
+#include "includes.hh"
 
-#include "rorcfs_device.hh"
 #include "librorc_bar_proto.hh"
-
 
 /**
  * FLI_CMD bit definitions
  * */
 #define CMD_READ_FROM_DEVICE 1
-#define CMD_WRITE_TO_DEVICE 2
-#define CMD_GET_TIME 3
-#define CMD_CMPL_TO_DEVICE 4
-#define CMD_READ_FROM_HOST 5
-#define CMD_WRITE_TO_HOST 6
-#define CMD_CMPL_TO_HOST 7
-#define CMD_ACK_TIME 8
-#define CMD_ACK_WRITE 9
-#define CMD_ACK_CMPL 10
+#define CMD_WRITE_TO_DEVICE  2
+#define CMD_GET_TIME         3
+#define CMD_CMPL_TO_DEVICE   4
+#define CMD_READ_FROM_HOST   5
+#define CMD_WRITE_TO_HOST    6
+#define CMD_CMPL_TO_HOST     7
+#define CMD_ACK_TIME         8
+#define CMD_ACK_WRITE        9
+#define CMD_ACK_CMPL         10
 
 #ifdef DEBUG
     #define DEBUG_PRINTF( ... ) {       \
@@ -305,4 +301,4 @@ __attribute__((__packed__))
 	int32_t  id;            /**< Command-ID */
 } flicmdT;
 
-#endif
+#endif /** SIM_BAR_H */

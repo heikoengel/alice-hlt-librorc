@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _RORCLIB_RORCFS_DMA_CHANNEL_H
-#define _RORCLIB_RORCFS_DMA_CHANNEL_H
+#ifndef LIBRORC_DMA_CHANNEL_H
+#define LIBRORC_DMA_CHANNEL_H
 
 #include "includes.hh"
 
@@ -512,4 +512,4 @@ class rorcfs_dma_channel
         );
 };
 
-#endif
+#endif /** LIBRORC_DMA_CHANNEL_H */

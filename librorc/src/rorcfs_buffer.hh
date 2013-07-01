@@ -20,9 +20,10 @@
 #ifndef _RORCLIB_RORCFS_BUFFER_H
 #define _RORCLIB_RORCFS_BUFFER_H
 
-#include "rorcfs_device.hh"
+#include "includes.hh"
 
 #define DMA_MODE 32
+
 #if DMA_MODE==32
 struct
 __attribute__((__packed__))
