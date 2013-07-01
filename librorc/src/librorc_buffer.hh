@@ -23,6 +23,7 @@
 #include "include_ext.hh"
 #include "librorc_device.hh"
 
+
 #define DMA_MODE 32
 
 #if DMA_MODE==32

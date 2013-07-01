@@ -18,7 +18,6 @@
 
 #include "sim_bar.hh"
 
-
 #include "mti.h"
 #include <pda.h>
 #include <librorc_registers.h>
