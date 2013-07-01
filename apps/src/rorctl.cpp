@@ -39,7 +39,7 @@
 #include "librorc.h"
 
 using namespace std;
-using namespace librorc;
+//using namespace librorc;
 
 #define HELP_TEXT "rorctl usage :                            \n\
 rorctl [value parameter(s)] [instruction parameter]          \n\
@@ -85,7 +85,7 @@ typedef struct
     uint64_t                chip_select;
     char                   *filename;
     librorc_verbosity_enum  verbose;
-    rorcfs_device          *dev;
+    librorc::rorcfs_device *dev;
 }confopts;
 
 /** Function signatures */
@@ -98,7 +98,7 @@ print_device
 );
 
 inline
-librorc_flash*
+librorc::librorc_flash*
 init_flash
 (
     confopts options
@@ -107,20 +107,20 @@ init_flash
 int
 show_device_monitor
 (
-    rorcfs_device *dev
+    librorc::rorcfs_device *dev
 );
 
-librorc_flash*
+librorc::librorc_flash*
 flash_status
 (
-    librorc_flash *flash
+    librorc::librorc_flash *flash
 );
 
 void
 dump_flash_status
 (
     uint16_t       status,
-    librorc_flash *flash
+    librorc::librorc_flash *flash
 );
 
 
@@ -170,7 +170,7 @@ int main
                 case 'd':
                 {
                     cout << "Dumping device to file!" << endl;
-                    librorc_flash *flash = init_flash(options);
+                    librorc::librorc_flash *flash = init_flash(options);
                     return( flash->dump(options.filename, options.verbose) );
                 }
                 break;
@@ -178,7 +178,7 @@ int main
                 case 'p':
                 {
                     cout << "Flashing device!" << endl;
-                    librorc_flash *flash = init_flash(options);
+                    librorc::librorc_flash *flash = init_flash(options);
                     return( flash->flash(options.filename, options.verbose) );
                 }
                 break;
@@ -186,7 +186,7 @@ int main
                 case 'e':
                 {
                     cout << "Erasing device!" << endl;
-                    librorc_flash *flash = init_flash(options);
+                    librorc::librorc_flash *flash = init_flash(options);
                     return( flash->erase(16<<20, options.verbose) );
                 }
                 break;
@@ -201,7 +201,7 @@ int main
                 case 'r':
                 {
                     cout << "Resetting Flash!" << endl;
-                    librorc_flash *flash = init_flash(options);
+                    librorc::librorc_flash *flash = init_flash(options);
                     return( flash->resetChip() );
                 }
                 break;
@@ -219,7 +219,7 @@ int main
                 {
                     options.device_number = atoi(optarg);
                     try
-                    { options.dev = new rorcfs_device(0); }
+                    { options.dev = new librorc::rorcfs_device(0); }
                     catch(...)
                     {
                         cout << "failed to initialize device 0 -"
@@ -295,15 +295,17 @@ print_device
 )
 {
     /** Instantiate device with index <index> */
-    rorcfs_device *dev = NULL;
-    try{ dev = new rorcfs_device(index);}
+    librorc::rorcfs_device *dev = NULL;
+    try{ dev = new librorc::rorcfs_device(index);}
     catch(...){ exit(0); }
 
     /** Instantiate a new bar */
     #ifdef SIM
-        bar *bar = new sim_bar(dev, 1);
+        librorc::bar *bar
+            = new librorc::sim_bar(dev, 1);
     #else
-        bar *bar = new rorc_bar(dev, 1);
+        librorc::bar *bar
+            = new librorc::rorc_bar(dev, 1);
     #endif
 
     if ( bar->init() == -1 )
@@ -313,9 +315,9 @@ print_device
     }
 
     /** Instantiate a new sysmon */
-    librorc_sysmon *sm;
+    librorc::librorc_sysmon *sm;
     try
-    { sm = new librorc_sysmon(bar); }
+    { sm = new librorc::librorc_sysmon(bar); }
     catch(...)
     {
         cout << "Sysmon init failed!" << endl;
@@ -347,7 +349,7 @@ print_device
 
 
 inline
-librorc_flash *
+librorc::librorc_flash *
 init_flash
 (
     confopts options
@@ -367,9 +369,11 @@ init_flash
     }
 
     #ifdef SIM
-        bar *bar = new sim_bar(options.dev, 0);
+        librorc::bar *bar
+            = new librorc::sim_bar(options.dev, 0);
     #else
-        bar *bar = new rorc_bar(options.dev, 0);
+        librorc::bar *bar
+            = new librorc::rorc_bar(options.dev, 0);
     #endif
 
     if(bar->init() == -1)
@@ -379,10 +383,12 @@ init_flash
     }
 
     /** get flash object */
-    librorc_flash *flash = NULL;
+    librorc::librorc_flash *flash = NULL;
     try
     {
-        flash = new librorc_flash(bar, options.chip_select, options.verbose);
+        flash =
+            new librorc::librorc_flash
+                (bar, options.chip_select, options.verbose);
     }
     catch (int e)
     {
@@ -426,7 +432,7 @@ init_flash
 int
 show_device_monitor
 (
-    rorcfs_device *dev
+    librorc::rorcfs_device *dev
 )
 {
     cout << setfill('0');
@@ -439,9 +445,9 @@ show_device_monitor
 
     /** bind to BAR1 */
     #ifdef SIM
-        bar *bar1 = new sim_bar(dev, 1);
+        librorc::bar *bar1 = new librorc::sim_bar(dev, 1);
     #else
-        bar *bar1 = new rorc_bar(dev, 1);
+        librorc::bar *bar1 = new librorc::rorc_bar(dev, 1);
     #endif
 
     if ( bar1->init() == -1 )
@@ -450,9 +456,9 @@ show_device_monitor
     }
 
     /** instantiate a new sysmon */
-    librorc_sysmon *sm;
+    librorc::librorc_sysmon *sm;
     try
-    { sm = new librorc_sysmon(bar1); }
+    { sm = new librorc::librorc_sysmon(bar1); }
     catch(...)
     {
         cout << "Sysmon init failed!" << endl;
@@ -540,10 +546,10 @@ show_device_monitor
 
 
 
-librorc_flash*
+librorc::librorc_flash*
 flash_status
 (
-    librorc_flash *flash
+    librorc::librorc_flash *flash
 )
 {
     flash->clearStatusRegister(0);
@@ -578,7 +584,7 @@ void
 dump_flash_status
 (
     uint16_t       status,
-    librorc_flash *flash
+    librorc::librorc_flash *flash
 )
 {
 

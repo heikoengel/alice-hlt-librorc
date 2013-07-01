@@ -36,7 +36,7 @@
 #define STAT_INTERVAL 1
 
 using namespace std;
-using namespace librorc;
+
 
 
 uint32_t done = 0;

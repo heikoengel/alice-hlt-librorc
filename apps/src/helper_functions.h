@@ -23,7 +23,7 @@
 
 #include <fcntl.h>
 
-//using namespace librorc;
+
 
 /**
  * gettimeofday_diff
