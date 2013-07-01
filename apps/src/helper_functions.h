@@ -23,7 +23,7 @@
 
 #include <fcntl.h>
 
-using namespace librorc;
+//using namespace librorc;
 
 /**
  * gettimeofday_diff
@@ -108,8 +108,10 @@ void dump_rb(
  * Dump the state of the DMA engine
  * @param ch pointer to struct rorcfs_dma_channel
  * */
-void dump_dma_state(
-    struct rorcfs_dma_channel *ch)
+void dump_dma_state
+(
+    librorc::rorcfs_dma_channel *ch
+)
 {
   uint32_t dma_ctrl;
   printf("\nPKT:\n");
@@ -151,11 +153,13 @@ void dump_dma_state(
  * fromt the last iteration
  * @param timediff time passed since the last iteration
  * */
-void print_summary_stats(
+void print_summary_stats
+(
     uint32_t n,
     struct ch_stats *chstats[],
     uint64_t *ch_last_bytes_received,
-    double timediff)
+    double timediff
+)
 {
   struct ch_stats statsum;
   uint64_t last_bytes_received = 0;
@@ -241,7 +245,11 @@ void print_channel_stats(
 }
 
 
-void dump_diu_state ( struct rorcfs_dma_channel *ch )
+void
+dump_diu_state
+(
+    librorc::rorcfs_dma_channel *ch
+)
 {
   uint32_t status;
   status = ch->getGTX(RORC_REG_DDL_CTRL);
@@ -274,13 +282,15 @@ void dump_diu_state ( struct rorcfs_dma_channel *ch )
  * @param ebuf pointer to struct rorcfs_buffer
  * @return 0 on sucess, -1 on error
  * */
-int dump_to_file (
+int dump_to_file
+(
     char *base_dir,
     uint32_t ch_index,
     uint64_t rb_index,
     uint32_t file_index,
     struct rorcfs_event_descriptor *reportbuffer,
-    struct rorcfs_buffer *ebuf)
+    librorc::rorcfs_buffer *ebuf
+)
 {
   char *ddlname = NULL;
   char *logname = NULL;

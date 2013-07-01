@@ -75,16 +75,16 @@ int main( int argc, char *argv[])
     for( uint16_t i=0; i<UINT16_MAX; i++)
     {
         /** create new device instance */
-        rorcfs_device *Dev;
+        librorc::rorcfs_device *Dev;
 
-        try{ Dev = new rorcfs_device(i); }
+        try{ Dev = new librorc::rorcfs_device(i); }
         catch(...){ break; }
 
         /** bind to BAR1 */
         #ifdef SIM
-            bar *Bar = new sim_bar(Dev, 1);
+            librorc::bar *Bar = new librorc::sim_bar(Dev, 1);
         #else
-            bar *Bar = new rorc_bar(Dev, 1);
+            librorc::bar *Bar = new librorc::rorc_bar(Dev, 1);
         #endif
         if( Bar->init() == -1 )
         {
@@ -119,7 +119,8 @@ alloc_channel
     }
 
     /** create a new DMA event buffer */
-    rorcfs_buffer *ebuf = new rorcfs_buffer();
+    librorc::rorcfs_buffer *ebuf
+        = new librorc::rorcfs_buffer();
     if ( ebuf->allocate(Dev, EBUFSIZE, 2*ChannelID, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )
@@ -138,7 +139,7 @@ alloc_channel
     }
 
     /** create new DMA report buffer */
-    rorcfs_buffer *rbuf = new rorcfs_buffer();
+    librorc::rorcfs_buffer *rbuf = new librorc::rorcfs_buffer();
     if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, RORCFS_DMA_FROM_DEVICE)!=0 )
     {
         if ( errno == EEXIST )

@@ -300,9 +300,9 @@ int event_sanity_check
  **/
 int handle_channel_data
 (
-    struct    rorcfs_buffer *rbuf,
-    struct    rorcfs_buffer *ebuf,
-    struct    rorcfs_dma_channel *channel,
+    librorc::rorcfs_buffer *rbuf,
+    librorc::rorcfs_buffer *ebuf,
+    librorc::rorcfs_dma_channel *channel,
     struct    ch_stats *stats,
     int       do_sanity_check,
     uint32_t *ddlref,
