@@ -25,7 +25,7 @@
 #define LIBRORC_BAR_H
 
 #include "include_ext.hh"
-#include "includes.hh"
+#include "include_int.hh"
 
 #include "librorc_bar_proto.hh"
 
