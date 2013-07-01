@@ -16,11 +16,8 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include <assert.h>
-#include <sys/mman.h>
-#include <sys/time.h>
-
 #include "librorc_bar.hh"
+
 #include <librorc_registers.h>
 
 
