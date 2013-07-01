@@ -462,12 +462,12 @@ sim_bar::sockMonitor()
         if (result == 0)
         {
             /** terminate if 0 characters received */
-            cout << "rorcfs_bar::readDWfromSock: closing socket" << endl;
+            cout << "librorc::sim_bar::readDWfromSock: closing socket" << endl;
             close(sock);
         }
         else if (result!=sizeof(uint32_t))
         {
-            cout << "ERROR: rorcfs_bar::readDWfromSock returned "
+            cout << "ERROR: librorc::sim_bar::readDWfromSock returned "
                  << result << " bytes" << endl;
         }
 

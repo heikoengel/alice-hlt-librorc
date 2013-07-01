@@ -49,7 +49,6 @@ rorc_bar::~rorc_bar()
 
 
 /**
- * rorcfs_bar::init()
  * Initialize and mmap BAR
  * */
 

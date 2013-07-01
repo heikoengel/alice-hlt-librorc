@@ -43,7 +43,7 @@
  * @class librorc_sysmon
  * @brief System monitor class
  *
- * This class can be attached to rorcfs_bar to provide access to the
+ * This class can be attached to librorc::rorc_bar to provide access to the
  * static parts of the design, like PCIe status, SystemMonitor readings
  * and access to the ICAP interface
  **/

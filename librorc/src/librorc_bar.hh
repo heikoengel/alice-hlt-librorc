@@ -37,7 +37,7 @@
  * mapping of the RORCs PCIe address space
  *
  * Create a new crorc_bar object after initializing your
- * rorcfs_device instance. <br>Once your rorc_bar instance is
+ * librorc::device instance. <br>Once your rorc_bar instance is
  * initialized (with init()) you can use get() and set() to
  * read from and/or write to the device.
  */
@@ -52,7 +52,7 @@ namespace librorc
             /**
              * Constructor that sets fname accordingly. No mapping is
              * performed at this point.
-             * @param dev parent rorcfs_device
+             * @param dev parent librorc::device
              * @param n number of BAR to be mapped [0-6]
              **/
             rorc_bar

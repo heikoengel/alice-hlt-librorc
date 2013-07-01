@@ -44,7 +44,7 @@
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
 /**
- * @class rorcfs_dma_channel
+ * @class dma_channel
  * @brief DMA channel management class
  *
  * Initialize DMA channel with init() before using any other member
@@ -66,9 +66,9 @@ namespace librorc
             ~dma_channel();
 
             /**
-             * initialize DMA base address within BAR
+             * Initialize DMA base address within BAR
              * @param dma_base -> base address
-             * @param dma_bar according instance of rorcfs_bar
+             * @param dma_bar according instance of librorc::bar
              **/
             void
             init
@@ -78,13 +78,11 @@ namespace librorc
             );
 
             /**
-             * prepare EventBuffer: copy scatterlist from
-             * rorcfs_buffer into the EventBufferDescriptorManager
+             * Prepare EventBuffer: copy scatterlist from
+             * librorc::buffer into the EventBufferDescriptorManager
              * in the RORC
-             * @param buf rorcfs_buffer instance to be used as
-             *                      event destination buffer
-             * @return 0 on sucess, -1 on errors, -EFBIG if more
-             *               than 2048 sg-entries
+             * @param buf librorc::buffer instance to be used as event destination buffer
+             * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
              **/
             int32_t
             prepareEB
@@ -94,10 +92,9 @@ namespace librorc
 
             /**
              * prepare ReportBuffer: copy scatterlist from
-             * rorcfs_buffer into the ReportBufferDescriptorManager
+             * librorc::buffer into the ReportBufferDescriptorManager
              * in the RORC
-             * @param buf rorcfs_buffer instance to be used as
-             *                      report destination buffer
+             * @param buf librorc::buffer instance to be used as report destination buffer
              * @return 0 on sucess, -1 on errors
              **/
             int32_t
@@ -222,10 +219,8 @@ namespace librorc
 
             /**
              * configure DMA engine for current set of buffers
-             * @param ebuf pointer to struct rorcfs_buffer to be used as
-             * event buffer
-             * @param rbuf pointer to struct rorcfs_buffer to be used as
-             * report buffer
+             * @param ebuf pointer to struct librorc::buffer to be used as event buffer
+             * @param rbuf pointer to struct librorc::buffer to be used as report buffer
              * @param max_payload maximum payload size to be used (in bytes)
              * @return 0 on sucess, <0 on error
              * */
@@ -251,7 +246,7 @@ namespace librorc
 
             /**
              * get BAR
-             * @return bound rorcfs_bar
+             * @return bound librorc::bar
              **/
 
             bar*
@@ -386,7 +381,7 @@ namespace librorc
             /**
              * memcpy into EBDRAM
              * @param startaddr address in EBDRAM component
-             * @param dma_desc pointer to struct rorcfs_dma_desc
+             * @param dma_desc pointer to dma descriptor
              * */
             void
             memcpyEBDRAMentry
@@ -421,7 +416,7 @@ namespace librorc
             /**
              * memcpy into RBDRAM
              * @param startaddr address in EBDRAM component
-             * @param dma_desc pointer to struct rorcfs_dma_desc
+             * @param dma_desc pointer to dma descriptor
              * */
             void
             memcpyRBDRAMentry
