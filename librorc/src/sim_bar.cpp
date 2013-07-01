@@ -564,7 +564,8 @@ sim_bar::sockMonitor()
         rdreq.lower_addr   = (addr & 0xff);
         rdreq.requester_id = reqid;
 
-        cout << "sock_monitor: CMD_READ_FROM_HOST " << param << endl;
+        cout << "sock_monitor: CMD_READ_FROM_HOST: " << dec << rdreq.length
+             << " bytes from 0x" << hex << addr << endl;
 
         if( getOffset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
         {
@@ -591,7 +592,6 @@ sim_bar::sockMonitor()
         uint16_t msgsize
     )
     {
-        cout << "sock_monitor: CMD_ACK_CMPL" << endl;
         if (msgsize!=2)
         {
             cout << "Invalid message size for CMD_ACK_CMPL: "
@@ -780,10 +780,10 @@ sim_bar::cmplHandler()
                     }
                     m_cmpl_to_dev_done = 0;
 
-                    cout << "cmpl_handler: CMD_CMPL_TO_DEVICE: tag=" << rdreq.tag
-                         << ", length=" << length << "buffer=" << rdreq.buffer_id
-                         << "offset=" << (rdreq.offset>>2) << "MP=" << MAX_PAYLOAD
-                         << "Req:" << rdreq.length << endl;
+                    cout << "cmpl_handler: CMD_CMPL_TO_DEVICE: tag=" << dec << int(rdreq.tag)
+                         << ", length=" << length << " bytes, buffer=" << rdreq.buffer_id
+                         << ", offset=" << (rdreq.offset>>2) << ", MP=" << MAX_PAYLOAD
+                         << ", Req:" << rdreq.length << endl;
                 }
             }
             pthread_mutex_unlock(&m_mtx);
@@ -791,7 +791,7 @@ sim_bar::cmplHandler()
             rdreq.length     -= length;
             rdreq.offset     += length;
             rdreq.lower_addr += length;
-            rdreq.lower_addr &= 0x7f; /** only lower 6 bit */
+            rdreq.lower_addr &= 0x7f; /** only lower 7 bit */
         }
         delete buf;
     }

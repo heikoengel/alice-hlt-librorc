@@ -690,7 +690,8 @@ static void trn_monitor( void *arg )
             buffer[5] = (rx_ndw<<16) + 
               ( slv2ulong_high(ip->td) & 0x0000ffff );
 
-            fli_debug("CMD_READ_FROM_HOST: %08x\n", buffer[5]);
+            fli_debug("CMD_READ_FROM_HOST: %d DWs from 0x%16x\n", 
+                rx_ndw, rx_addr);
 
             // send request to host
             dump_sockcmd(buffer, buffer_size);

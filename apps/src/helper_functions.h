@@ -53,7 +53,7 @@ double gettimeofday_diff(timeval time1, timeval time2) {
  * @param len size in DWs of the event
  * */
 void dump_event(
-    uint32_t *eventbuffer,
+    volatile uint32_t *eventbuffer,
     uint64_t offset,
     uint64_t len)
 {
