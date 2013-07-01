@@ -1,5 +1,5 @@
 /**
- * @file helper_functions.h
+ * @file
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2013-03-18

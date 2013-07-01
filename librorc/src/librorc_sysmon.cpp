@@ -1,5 +1,5 @@
 /**
- * @file librorc_sysmon.cpp
+ * @file
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2011-11-16

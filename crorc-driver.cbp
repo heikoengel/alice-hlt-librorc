@@ -28,6 +28,10 @@
 		<Unit filename="apps/src/pgdma_continuous.cpp" />
 		<Unit filename="apps/src/rorctl.cpp" />
 		<Unit filename="librorc/include/librorc.h" />
+		<Unit filename="librorc/src/flisock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="librorc/src/flisock.h" />
 		<Unit filename="librorc/src/include_ext.hh" />
 		<Unit filename="librorc/src/include_int.hh" />
 		<Unit filename="librorc/src/librorc_bar.cpp" />

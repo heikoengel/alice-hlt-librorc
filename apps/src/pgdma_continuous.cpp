@@ -1,5 +1,5 @@
 /**
- * @file pgdma_continuous.cpp
+ * @file
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
  * @date 2012-11-14

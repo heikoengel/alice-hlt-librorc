@@ -1,5 +1,5 @@
 /**
- * @file crorc_preallocator.cpp
+ * @file
  * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.1
  * @date 2013-06-07
