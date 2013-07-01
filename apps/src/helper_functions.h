@@ -23,6 +23,8 @@
 
 #include <fcntl.h>
 
+using namespace librorc;
+
 /**
  * gettimeofday_diff
  * @param time1 earlier timestamp

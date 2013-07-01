@@ -39,6 +39,7 @@
 #include "librorc.h"
 
 using namespace std;
+using namespace librorc;
 
 #define HELP_TEXT "rorctl usage :                            \n\
 rorctl [value parameter(s)] [instruction parameter]          \n\

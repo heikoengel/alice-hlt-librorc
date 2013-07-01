@@ -62,9 +62,9 @@ using namespace std;
 int16_t
 alloc_channel
 (
-    uint32_t       ChannelID,
-    bar           *Bar,
-    rorcfs_device *Dev
+    uint32_t                ChannelID,
+    librorc::bar           *Bar,
+    librorc::rorcfs_device *Dev
 );
 
 
@@ -105,9 +105,9 @@ int main( int argc, char *argv[])
 int16_t
 alloc_channel
 (
-    uint32_t       ChannelID,
-    bar           *Bar,
-    rorcfs_device *Dev
+    uint32_t                ChannelID,
+    librorc::bar           *Bar,
+    librorc::rorcfs_device *Dev
 )
 {
     /** check if requested channel is implemented in firmware */

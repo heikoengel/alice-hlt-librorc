@@ -39,6 +39,7 @@
 #include "event_handling.h"
 
 using namespace std;
+using namespace librorc;
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
