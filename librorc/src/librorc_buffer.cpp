@@ -26,7 +26,7 @@
 namespace librorc
 {
 
-rorcfs_buffer::rorcfs_buffer()
+buffer::buffer()
 {
     m_id                           = 0;
     m_dmaDirection                 = 0;
@@ -37,7 +37,7 @@ rorcfs_buffer::rorcfs_buffer()
 
 
 
-rorcfs_buffer::~rorcfs_buffer()
+buffer::~buffer()
 {
 
 }
@@ -45,7 +45,7 @@ rorcfs_buffer::~rorcfs_buffer()
 
 
 int32_t
-rorcfs_buffer::isOvermapped()
+buffer::isOvermapped()
 {
     void *map_two = NULL;
 
@@ -63,7 +63,7 @@ rorcfs_buffer::isOvermapped()
 
 
 uint64_t
-rorcfs_buffer::getSize()
+buffer::getSize()
 {
     return m_size;
 }
@@ -71,7 +71,7 @@ rorcfs_buffer::getSize()
 
 
 int32_t
-rorcfs_buffer::allocate
+buffer::allocate
 (
     rorcfs_device *dev,
     uint64_t       size,
@@ -123,7 +123,7 @@ rorcfs_buffer::allocate
 
 
 int32_t
-rorcfs_buffer::deallocate()
+buffer::deallocate()
 {
     return 0;
 }
@@ -131,7 +131,7 @@ rorcfs_buffer::deallocate()
 
 
 int32_t
-rorcfs_buffer::connect
+buffer::connect
 (
     rorcfs_device *dev,
     uint64_t  id

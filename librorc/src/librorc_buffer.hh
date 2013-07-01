@@ -65,13 +65,13 @@ typedef struct DMABuffer_struct DMABuffer;
  **/
 namespace librorc
 {
-    class rorcfs_buffer
+    class buffer
     {
         friend class rorcfs_dma_channel;
 
         public:
-             rorcfs_buffer();
-            ~rorcfs_buffer();
+             buffer();
+            ~buffer();
 
             /**
              * Allocate buffer: This function initiates allocation of an

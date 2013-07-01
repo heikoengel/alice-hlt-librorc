@@ -150,8 +150,8 @@ rorcfs_dma_channel::init
 int32_t
 rorcfs_dma_channel::_prepare
 (
-    rorcfs_buffer *buf,
-    uint32_t       flag
+    buffer   *buf,
+    uint32_t  flag
 )
 {
     assert(m_bar!=NULL);
@@ -239,7 +239,7 @@ rorcfs_dma_channel::_prepare
 int32_t
 rorcfs_dma_channel::prepareEB
 (
-    rorcfs_buffer *buf
+    buffer *buf
 )
 {
     return(_prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
@@ -250,7 +250,7 @@ rorcfs_dma_channel::prepareEB
 int32_t
 rorcfs_dma_channel::prepareRB
 (
-    rorcfs_buffer *buf
+    buffer *buf
 )
 {
     return(_prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
@@ -269,10 +269,10 @@ rorcfs_dma_channel::prepareRB
 int32_t
 rorcfs_dma_channel::configureChannel
 (
-    struct rorcfs_buffer *ebuf,
-    struct rorcfs_buffer *rbuf,
-    uint32_t              max_payload,
-    uint32_t              max_rd_req
+    buffer   *ebuf,
+    buffer   *rbuf,
+    uint32_t  max_payload,
+    uint32_t  max_rd_req
 )
 {
 

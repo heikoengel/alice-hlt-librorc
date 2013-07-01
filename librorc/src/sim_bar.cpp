@@ -507,10 +507,10 @@ sim_bar::sockMonitor()
         addr          += readDWfromSock(m_sockfd);
         msgsize       -= 4;
 
-        uint32_t buffer[msgsize];
+        uint32_t msg_buffer[msgsize];
         for(uint64_t i=0; i<msgsize; i++)
         {
-            buffer[i] = readDWfromSock(m_sockfd);
+            msg_buffer[i] = readDWfromSock(m_sockfd);
         }
 
         uint64_t offset    = 0;
@@ -522,7 +522,7 @@ sim_bar::sockMonitor()
         }
         else
         {
-            rorcfs_buffer *buf = new rorcfs_buffer();
+            buffer *buf = new buffer();
             if( buf->connect(m_parent_dev, buffer_id) )
             {
                 perror("failed to connect to buffer");
@@ -530,7 +530,7 @@ sim_bar::sockMonitor()
             else
             {
                 uint32_t *mem = buf->getMem();
-                memcpy(mem+(offset>>2), buffer, msgsize*sizeof(uint32_t));
+                memcpy(mem+(offset>>2), msg_buffer, msgsize*sizeof(uint32_t));
                 cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
                      << buffer_id << " offset " << offset << endl;
             }
@@ -722,7 +722,7 @@ sim_bar::cmplHandler()
          * after each packet
          */
 
-        rorcfs_buffer *buf = new rorcfs_buffer();
+        buffer *buf = new buffer();
         if( buf->connect(m_parent_dev, rdreq.buffer_id) )
         {
             cout << "Failed to connect to buffer "

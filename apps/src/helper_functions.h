@@ -284,12 +284,12 @@ dump_diu_state
  * */
 int dump_to_file
 (
-    char *base_dir,
-    uint32_t ch_index,
-    uint64_t rb_index,
-    uint32_t file_index,
+    char            *base_dir,
+    uint32_t         ch_index,
+    uint64_t         rb_index,
+    uint32_t         file_index,
     struct rorcfs_event_descriptor *reportbuffer,
-    librorc::rorcfs_buffer *ebuf
+    librorc::buffer *ebuf
 )
 {
   char *ddlname = NULL;

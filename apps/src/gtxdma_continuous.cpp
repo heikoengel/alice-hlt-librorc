@@ -39,7 +39,7 @@
 #include "event_handling.h"
 
 using namespace std;
-using namespace librorc;
+
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
@@ -74,11 +74,11 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
   int result = 0;
-  rorcfs_device      *dev  = NULL;
-  bar                *bar1 = NULL;
-  rorcfs_buffer      *ebuf = NULL;
-  rorcfs_buffer      *rbuf = NULL;
-  rorcfs_dma_channel *ch   = NULL;
+  librorc::rorcfs_device *dev  = NULL;
+  librorc::bar           *bar1 = NULL;
+  librorc::buffer        *ebuf = NULL;
+  librorc::buffer        *rbuf = NULL;
+  librorc::rorcfs_dma_channel *ch   = NULL;
 
   struct rorcfs_event_descriptor *reportbuffer = NULL;
   timeval start_time, end_time;
@@ -167,7 +167,7 @@ int main( int argc, char *argv[])
 
   // create new device instance
   try
-  { dev = new rorcfs_device(0); }
+  { dev = new librorc::rorcfs_device(0); }
   catch(...)
   {
     printf("ERROR: failed to initialize device.\n");
@@ -179,9 +179,9 @@ int main( int argc, char *argv[])
 
   // bind to BAR1
   #ifdef SIM
-    bar1 = new sim_bar(dev, 1);
+    bar1 = new librorc::sim_bar(dev, 1);
   #else
-    bar1 = new rorc_bar(dev, 1);
+    bar1 = new librorc::rorc_bar(dev, 1);
   #endif
   if ( bar1->init() == -1 ) {
     printf("ERROR: failed to initialize BAR1.\n");
@@ -198,7 +198,7 @@ int main( int argc, char *argv[])
   }
 
   // create new DMA event buffer
-  ebuf = new rorcfs_buffer();
+  ebuf = new librorc::buffer();
   if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
         1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
@@ -215,7 +215,7 @@ int main( int argc, char *argv[])
   //dump_sglist(ebuf);
 
   // create new DMA report buffer
-  rbuf = new rorcfs_buffer();;
+  rbuf = new librorc::buffer();;
   if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
         1, RORCFS_DMA_FROM_DEVICE)!=0 ) {
     if ( errno == EEXIST ) {
@@ -239,7 +239,7 @@ int main( int argc, char *argv[])
 
 
   // create DMA channel
-  ch = new rorcfs_dma_channel();
+  ch = new librorc::rorcfs_dma_channel();
 
   // bind channel to BAR1, channel offset 0
   ch->init(bar1, ChannelId);

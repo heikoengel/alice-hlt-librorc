@@ -89,7 +89,7 @@ namespace librorc
             int32_t
             prepareEB
             (
-                rorcfs_buffer *buf
+                buffer *buf
             );
 
             /**
@@ -103,7 +103,7 @@ namespace librorc
             int32_t
             prepareRB
             (
-                rorcfs_buffer *buf
+                buffer *buf
             );
 
             /**
@@ -232,10 +232,10 @@ namespace librorc
             int32_t
             configureChannel
             (
-                struct rorcfs_buffer *ebuf,
-                struct rorcfs_buffer *rbuf,
-                uint32_t              max_payload,
-                uint32_t              max_rd_req
+                buffer   *ebuf,
+                buffer   *rbuf,
+                uint32_t  max_payload,
+                uint32_t  max_rd_req
             );
 
             /**
@@ -503,8 +503,8 @@ namespace librorc
             int32_t
             _prepare
             (
-                rorcfs_buffer *buf,
-                uint32_t       flag
+                buffer   *buf,
+                uint32_t  flag
             );
 
             /**

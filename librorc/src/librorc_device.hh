@@ -55,7 +55,7 @@ namespace librorc
 
     class rorcfs_device
     {
-    friend class rorcfs_buffer;
+    friend class buffer;
     friend class bar;
     friend class rorc_bar;
     friend class sim_bar;
