@@ -86,7 +86,7 @@ typedef struct
     uint64_t                chip_select;
     char                   *filename;
     librorc_verbosity_enum  verbose;
-    librorc::rorcfs_device *dev;
+    librorc::device        *dev;
 }confopts;
 
 /** Function signatures */
@@ -108,7 +108,7 @@ init_flash
 int
 show_device_monitor
 (
-    librorc::rorcfs_device *dev
+    librorc::device *dev
 );
 
 librorc::librorc_flash*
@@ -220,7 +220,7 @@ int main
                 {
                     options.device_number = atoi(optarg);
                     try
-                    { options.dev = new librorc::rorcfs_device(0); }
+                    { options.dev = new librorc::device(0); }
                     catch(...)
                     {
                         cout << "failed to initialize device 0 -"
@@ -296,8 +296,8 @@ print_device
 )
 {
     /** Instantiate device with index <index> */
-    librorc::rorcfs_device *dev = NULL;
-    try{ dev = new librorc::rorcfs_device(index);}
+    librorc::device *dev = NULL;
+    try{ dev = new librorc::device(index);}
     catch(...){ exit(0); }
 
     /** Instantiate a new bar */
@@ -433,7 +433,7 @@ init_flash
 int
 show_device_monitor
 (
-    librorc::rorcfs_device *dev
+    librorc::device *dev
 )
 {
     cout << setfill('0');

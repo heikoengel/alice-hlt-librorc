@@ -62,9 +62,9 @@ using namespace std;
 int16_t
 alloc_channel
 (
-    uint32_t                ChannelID,
-    librorc::bar           *Bar,
-    librorc::rorcfs_device *Dev
+    uint32_t         ChannelID,
+    librorc::bar    *Bar,
+    librorc::device *Dev
 );
 
 
@@ -75,9 +75,8 @@ int main( int argc, char *argv[])
     for( uint16_t i=0; i<UINT16_MAX; i++)
     {
         /** create new device instance */
-        librorc::rorcfs_device *Dev;
-
-        try{ Dev = new librorc::rorcfs_device(i); }
+        librorc::device *Dev;
+        try{ Dev = new librorc::device(i); }
         catch(...){ break; }
 
         /** bind to BAR1 */
@@ -105,9 +104,9 @@ int main( int argc, char *argv[])
 int16_t
 alloc_channel
 (
-    uint32_t                ChannelID,
-    librorc::bar           *Bar,
-    librorc::rorcfs_device *Dev
+    uint32_t         ChannelID,
+    librorc::bar    *Bar,
+    librorc::device *Dev
 )
 {
     /** check if requested channel is implemented in firmware */

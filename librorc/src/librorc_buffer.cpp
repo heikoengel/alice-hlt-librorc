@@ -73,11 +73,11 @@ buffer::getSize()
 int32_t
 buffer::allocate
 (
-    rorcfs_device *dev,
-    uint64_t       size,
-    uint64_t       id,
-    int32_t        overmap,
-    int32_t        dma_direction
+    device   *dev,
+    uint64_t  size,
+    uint64_t  id,
+    int32_t   overmap,
+    int32_t   dma_direction
 )
 {
     m_device =
@@ -133,7 +133,7 @@ buffer::deallocate()
 int32_t
 buffer::connect
 (
-    rorcfs_device *dev,
+    device   *dev,
     uint64_t  id
 )
 

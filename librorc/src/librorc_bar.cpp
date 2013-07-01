@@ -25,8 +25,8 @@ namespace librorc
 
 rorc_bar::rorc_bar
 (
-    rorcfs_device *dev,
-    int32_t        n
+    device  *dev,
+    int32_t  n
 )
 {
     m_parent_dev = dev;

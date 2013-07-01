@@ -77,7 +77,7 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
   int result = 0;
-  librorc::rorcfs_device      *dev  = NULL;
+  librorc::device    *dev  = NULL;
   librorc::bar       *bar1 = NULL;
   librorc::buffer    *ebuf = NULL;
   librorc::buffer    *rbuf = NULL;
@@ -149,7 +149,7 @@ int main( int argc, char *argv[])
 
 
   // create new device instance
-  try{ dev = new librorc::rorcfs_device(0); }
+  try{ dev = new librorc::device(0); }
   catch(...)
   {
     printf("ERROR: failed to initialize device.\n");

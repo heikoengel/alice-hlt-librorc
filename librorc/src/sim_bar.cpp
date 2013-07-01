@@ -34,8 +34,8 @@ namespace librorc
 
 sim_bar::sim_bar
 (
-    rorcfs_device *dev,
-    int32_t        n
+    device  *dev,
+    int32_t  n
 )
 
 {

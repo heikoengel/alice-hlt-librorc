@@ -57,8 +57,8 @@ namespace librorc
              **/
             rorc_bar
             (
-                rorcfs_device *dev,
-                int32_t        n
+                device  *dev,
+                int32_t  n
             );
 
             /**

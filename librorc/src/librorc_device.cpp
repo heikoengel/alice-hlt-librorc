@@ -25,7 +25,7 @@ using namespace std;
 namespace librorc
 {
 
-rorcfs_device::rorcfs_device
+device::device
 (
     int32_t device_index
 )
@@ -52,14 +52,14 @@ rorcfs_device::rorcfs_device
 
 
 
-rorcfs_device::~rorcfs_device()
+device::~device()
 {
 }
 
 
 
 uint16_t
-rorcfs_device::getDomain()
+device::getDomain()
 {
     uint16_t domain_id;
     if(PciDevice_getDomainID(m_device, &domain_id) == PDA_SUCCESS)
@@ -73,7 +73,7 @@ rorcfs_device::getDomain()
 
 
 uint8_t
-rorcfs_device::getBus()
+device::getBus()
 {
     uint8_t bus_id;
     if(PciDevice_getBusID(m_device, &bus_id) == PDA_SUCCESS)
@@ -87,7 +87,7 @@ rorcfs_device::getBus()
 
 
 uint8_t
-rorcfs_device::getSlot()
+device::getSlot()
 {
     uint8_t device_id;
     if(PciDevice_getDeviceID(m_device, &device_id) == PDA_SUCCESS)
@@ -101,7 +101,7 @@ rorcfs_device::getSlot()
 
 
 uint8_t
-rorcfs_device::getFunc()
+device::getFunc()
 {
     uint8_t function_id;
     if(PciDevice_getFunctionID(m_device, &function_id) == PDA_SUCCESS)
@@ -115,7 +115,7 @@ rorcfs_device::getFunc()
 
 
 uint8_t*
-rorcfs_device::getBarMap
+device::getBarMap
 (
     uint8_t n
 )
@@ -140,7 +140,7 @@ rorcfs_device::getBarMap
 
 
 uint64_t
-rorcfs_device::getBarSize
+device::getBarSize
 (
     uint8_t n
 )
@@ -165,7 +165,7 @@ rorcfs_device::getBarSize
 
 
 string*
-rorcfs_device::deviceDescription()
+device::deviceDescription()
 {
     char description_buffer[1024];
     const char *description

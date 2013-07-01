@@ -53,7 +53,7 @@ typedef struct PciDevice_struct PciDevice;
 namespace librorc
 {
 
-    class rorcfs_device
+    class device
     {
     friend class buffer;
     friend class bar;
@@ -61,8 +61,8 @@ namespace librorc
     friend class sim_bar;
 
     public:
-        rorcfs_device(int32_t device_index);
-        ~rorcfs_device();
+         device(int32_t device_index);
+        ~device();
 
     uint16_t getDomain();
 

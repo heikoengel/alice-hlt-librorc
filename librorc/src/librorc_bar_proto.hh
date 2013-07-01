@@ -110,7 +110,7 @@ namespace librorc
     virtual size_t getSize() = 0;
 
     protected:
-        rorcfs_device   *m_parent_dev;
+        device          *m_parent_dev;
         PciDevice       *m_pda_pci_device;
         pthread_mutex_t  m_mtx;
         int32_t          m_number;
