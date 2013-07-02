@@ -18,7 +18,7 @@
  *
  */
 
-#include "librorc_dma_channel.hh"
+#include <librorc_dma_channel.hh>
 
 #include <pda.h>
 #include <librorc_registers.h>

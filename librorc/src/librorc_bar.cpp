@@ -16,7 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "librorc_bar.hh"
+#include <librorc_bar.hh>
 
 #include <librorc_registers.h>
 

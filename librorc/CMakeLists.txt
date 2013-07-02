@@ -23,7 +23,7 @@ MESSAGE(STATUS "--------------")
 MESSAGE(STATUS "pda include = ${PDA_INCLUDE_DIR}")
 MESSAGE(STATUS "--------------")
 
-include_directories ( ${LIBRORC_SOURCE_DIR}/src )
+#include_directories ( ${LIBRORC_SOURCE_DIR}/src )
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 include_directories ( ${PDA_INCLUDE_DIR}  )
 

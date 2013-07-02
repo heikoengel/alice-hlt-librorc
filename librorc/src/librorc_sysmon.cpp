@@ -18,7 +18,7 @@
  *
  * */
 
-#include "librorc_sysmon.hh"
+#include <librorc_sysmon.hh>
 
 namespace librorc
 {

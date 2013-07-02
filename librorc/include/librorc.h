@@ -40,6 +40,6 @@
 #ifndef LIBRORC_H
 #define LIBRORC_H
 
-    #include "include_int.hh"
+    #include <include_int.hh>
 
 #endif /** LIBRORC_H */

@@ -16,7 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  **/
 
-#include "librorc_device.hh"
+#include <librorc_device.hh>
 #include <librorc_registers.h>
 #include <pda.h>
 

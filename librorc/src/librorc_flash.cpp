@@ -17,7 +17,7 @@
  *
  * */
 
-#include "librorc_flash.hh"
+#include <librorc_flash.hh>
 
 namespace librorc
 {

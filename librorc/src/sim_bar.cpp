@@ -16,7 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include "sim_bar.hh"
+#include <sim_bar.hh>
 
 #include "mti.h"
 #include <pda.h>
