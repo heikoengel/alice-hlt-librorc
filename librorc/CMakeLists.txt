@@ -27,8 +27,12 @@ include_directories ( ${LIBRORC_SOURCE_DIR}/src )
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 include_directories ( ${PDA_INCLUDE_DIR}  )
 
+#TODO put this into conditionals
 add_definitions(-DDEBUG)
 add_definitions(-DSIM)
+
+set( CMAKE_CXX_FLAGS "-Wall -O3 " )
+
 
 #add_library ( LIBRORC_OBJECTS OBJECT  ${LIBRARY_FILES} )
 #add_library ( rorc STATIC SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
