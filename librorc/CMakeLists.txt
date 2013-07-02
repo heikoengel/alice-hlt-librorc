@@ -31,15 +31,18 @@ include_directories ( ${PDA_INCLUDE_DIR}  )
 
 set ( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 
-#add_definitions(-DDEBUG)
 #add_definitions(-DSIM)
 
-#set( CMAKE_CXX_FLAGS "-Wall -O3 " )
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+add_custom_target(doc
+${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(DOXYGEN_FOUND)
 
-
-#add_library ( LIBRORC_OBJECTS OBJECT  ${LIBRARY_FILES} )
-#add_library ( rorc STATIC SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
-#add_library ( rorc SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
 add_library ( rorc SHARED  ${LIBRARY_FILES} )
 
