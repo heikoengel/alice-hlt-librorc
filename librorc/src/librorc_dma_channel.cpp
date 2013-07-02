@@ -361,6 +361,8 @@ dma_channel::configureChannel
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_N_SG_CONFIG, &config,
                       sizeof(struct librorc_channel_config) );
     m_MaxPayload = max_payload;
+    m_last_ebdm_offset = ebuf->getPhysicalSize() - max_payload;
+    m_last_rbdm_offset = rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
 
     return 0;
 }
@@ -539,13 +541,19 @@ dma_channel::setOffsets
     offsets.rbdm_software_read_pointer_high =
         (uint32_t)(rboffset >> 32 & 0xffffffff);
 
-    offsets.dma_ctrl = (1 << 31) | /** sync pointers     */
-                       (1 << 2)  | /** enable EB         */
-                       (1 << 3)  | /** enable RB         */
-                       (1 << 0);   /** enable DMA engine */
+    /** set sync-flag in DMA control register
+     * TODO: this is the fail-save version. The following getPKT() 
+     * can be omitted if the library keeps track on any writes to
+     * RORC_REG_DMA_CTRL. This would reduce PCIe traffic.
+     **/
+    offsets.dma_ctrl = ( getPKT(RORC_REG_DMA_CTRL) | (1<<31) );
 
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_SW_READ_POINTER_L,
                       &offsets, sizeof(offsets) );
+
+    /** save a local copy of the last offsets written to the channel **/
+    m_last_ebdm_offset = eboffset;
+    m_last_rbdm_offset = rboffset;
 }
 
 
@@ -563,6 +571,9 @@ dma_channel::setEBOffset
 
     uint32_t status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
+
+    /** save a local copy of the last offsets written to the channel **/
+    m_last_ebdm_offset = offset;
 }
 
 
@@ -576,6 +587,21 @@ dma_channel::getEBOffset()
     offset += (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
 
     return offset;
+}
+
+
+uint64_t
+dma_channel::getLastEBOffset()
+{
+  return m_last_ebdm_offset;
+}
+
+
+
+uint64_t
+dma_channel::getLastRBOffset()
+{
+  return m_last_rbdm_offset;
 }
 
 
@@ -600,14 +626,15 @@ dma_channel::setRBOffset
 )
 {
     assert(m_bar!=NULL);
-    uint32_t status;
 
     m_bar->memcpy_bar( (m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
                         &offset, sizeof(offset) );
 
-    status = getPKT(RORC_REG_DMA_CTRL);
-
+    uint32_t status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
+
+    /** save a local copy of the last offsets written to the channel **/
+    m_last_rbdm_offset = offset;
 }
 
 

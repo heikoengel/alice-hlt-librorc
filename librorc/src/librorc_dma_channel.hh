@@ -316,6 +316,21 @@ namespace librorc
             getEBDMAOffset();
 
             /**
+             * get last event buffer read offset written to channel
+             * @return 64bit offset in event buffer file
+             **/
+            uint64_t
+            getLastEBOffset();
+
+
+            /**
+             * get last report buffer read offset written to channel
+             * @return 64bit offset in report buffer file
+             **/
+            uint64_t
+            getLastRBOffset();
+
+            /**
              * set DW in EBDM
              * @param addr address in EBDM component
              * @param data data to be writtem
@@ -482,6 +497,8 @@ namespace librorc
             uint32_t m_base;
             uint32_t m_channel;
             uint32_t m_MaxPayload;
+            uint64_t m_last_ebdm_offset;
+            uint64_t m_last_rbdm_offset;
 
             bar *m_bar;
 
