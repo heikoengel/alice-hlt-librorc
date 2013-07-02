@@ -13,10 +13,21 @@ set ( LIBRARY_FILES
 cmake_minimum_required(VERSION 2.8)
 project(LIBRORC)
 
+EXECUTE_PROCESS(
+  COMMAND pda-config --include
+  RESULT_VARIABLE ret
+  OUTPUT_VARIABLE PDA_INCLUDE_DIR
+  )
+
+MESSAGE(STATUS "--------------")
+MESSAGE(STATUS "pda include = ${PDA_INCLUDE_DIR}")
+MESSAGE(STATUS "--------------")
+
+
 include_directories ( ${LIBRORC_SOURCE_DIR}/src )
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
-include_directories ( `pda-config --include` )
-include_directories ( /opt/packages/pda/5.0.0/include/ )
+include_directories ( ${PDA_INCLUDE_DIR}  )
+
 
 add_library ( rorc ${LIBRARY_FILES} )
 
