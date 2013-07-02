@@ -23,14 +23,18 @@ MESSAGE(STATUS "--------------")
 MESSAGE(STATUS "pda include = ${PDA_INCLUDE_DIR}")
 MESSAGE(STATUS "--------------")
 
-
 include_directories ( ${LIBRORC_SOURCE_DIR}/src )
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 include_directories ( ${PDA_INCLUDE_DIR}  )
 
+add_definitions(-DDEBUG)
+add_definitions(-DSIM)
 
-add_library ( rorc ${LIBRARY_FILES} )
+#add_library ( LIBRORC_OBJECTS OBJECT  ${LIBRARY_FILES} )
+#add_library ( rorc STATIC SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
+#add_library ( rorc SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
+add_library ( rorc SHARED  ${LIBRARY_FILES} )
 
 
 #add_executable (helloDemo demo.cxx demo_b.cxx)
