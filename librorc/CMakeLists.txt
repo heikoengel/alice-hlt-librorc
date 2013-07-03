@@ -73,3 +73,6 @@ add_library( rorc SHARED  ${LIBRARY_FILES} )
 # BUILD RORCTL
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries (rorctl rorc ${EXTRA_LIBS})
+# BUILD DMA BUFFER ALLOCATOR FOR CRORCS
+
+
