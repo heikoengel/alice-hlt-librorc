@@ -72,7 +72,7 @@ endif(DOXYGEN_FOUND)
 add_library( rorc SHARED  ${LIBRARY_FILES} )
 # BUILD RORCTL
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
-target_link_libraries (rorctl rorc ${EXTRA_LIBS})
+target_link_libraries( rorctl rorc ${EXTRA_LIBS})
 # BUILD DMA BUFFER ALLOCATOR FOR CRORCS
-
-
+add_executable( crorc_preallocator ${LIBRORC_SOURCE_DIR}/tools_src/crorc_preallocator/crorc_preallocator.cpp)
+target_link_libraries( crorc_preallocator rorc ${EXTRA_LIBS})
