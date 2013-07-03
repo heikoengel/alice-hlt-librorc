@@ -70,12 +70,19 @@ endif(DOXYGEN_FOUND)
 # BUILD LIBRORC
 # add STATIC / SHARED here if needed
 add_library( rorc SHARED  ${LIBRARY_FILES} )
+
 # BUILD RORCTL
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc ${EXTRA_LIBS})
+
 # BUILD DMA BUFFER ALLOCATOR FOR CRORCS
 add_executable( crorc_preallocator ${LIBRORC_SOURCE_DIR}/tools_src/crorc_preallocator/crorc_preallocator.cpp)
 target_link_libraries( crorc_preallocator rorc ${EXTRA_LIBS})
+
 # BUILD DMA CHANNEL TEST WITH PATTERN GENERATOR
 add_executable( pgdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp)
 target_link_libraries( pgdma_continuous rorc ${EXTRA_LIBS})
+
+# BUILD DMA CHANNEL TEST
+add_executable( gtxdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/gtxdma_continuous.cpp)
+target_link_libraries( gtxdma_continuous rorc ${EXTRA_LIBS})
