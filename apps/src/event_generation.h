@@ -85,7 +85,7 @@ fill_eventbuffer
     // check how many events can be put into the available space
     // note: EventSize is in DWs and events have to be aligned to
     // MaxReadReq boundaries
-    uint32_t max_read_req = channel->getMaxReadReq();
+    uint32_t max_read_req = channel->getPciePacketSize();
     if ( (EventSize<<2) % max_read_req )
     {
         // EventSize is not a multiple of max_read_req
