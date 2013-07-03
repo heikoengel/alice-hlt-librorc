@@ -13,25 +13,32 @@ set ( LIBRARY_FILES
 cmake_minimum_required(VERSION 2.8)
 project(LIBRORC)
 
+include_directories ( ${LIBRORC_SOURCE_DIR}/include )
+set ( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
+
+
 EXECUTE_PROCESS(
   COMMAND pda-config --include
   RESULT_VARIABLE ret
   OUTPUT_VARIABLE PDA_INCLUDE_DIR
   )
 
+include_directories ( ${PDA_INCLUDE_DIR}  )
+
 MESSAGE(STATUS "--------------")
 MESSAGE(STATUS "pda include = ${PDA_INCLUDE_DIR}")
 MESSAGE(STATUS "--------------")
 
-#include_directories ( ${LIBRORC_SOURCE_DIR}/src )
-include_directories ( ${LIBRORC_SOURCE_DIR}/include )
-include_directories ( ${PDA_INCLUDE_DIR}  )
 
-#TODO put this into conditionals
+option(MyOption "SIM" OFF)
+if(${SIM})
+    add_definitions(-DSIM)
+    MESSAGE(STATUS "--------------")
+    MESSAGE(STATUS "Librorc is going to be compiled in simulation mode!")
+    MESSAGE(STATUS "--------------")
+endif(${SIM})
 
-set ( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 
-#add_definitions(-DSIM)
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
