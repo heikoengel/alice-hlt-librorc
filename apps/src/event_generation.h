@@ -67,6 +67,7 @@ fill_eventbuffer
     // get last EB Offset written to channel
     uint64_t last_eb_offset = channel->getLastEBOffset();
     uint64_t buf_space_avail;
+    uint32_t fragment_size;
 
     // get the available event buffer space between the current
     // generation offset and the last offset written to the channel
@@ -82,8 +83,20 @@ fill_eventbuffer
     }
 
     // check how many events can be put into the available space
-    // note: EventSize is in DWs!
-    uint64_t nevents = (uint64_t)(buf_space_avail / (EventSize<<2));
+    // note: EventSize is in DWs and events have to be aligned to
+    // MaxReadReq boundaries
+    uint32_t max_read_req = channel->getMaxReadReq();
+    if ( (EventSize<<2) % max_read_req )
+    {
+        // EventSize is not a multiple of max_read_req
+        fragment_size = (((EventSize<<2) / max_read_req) + 1) * 
+            max_read_req;
+    } else
+    {
+        fragment_size = EventSize;
+    }
+
+    uint64_t nevents = (uint64_t)(buf_space_avail / fragment_size);
 
     // get current EL FIFO fill state consisting of:
     // el_fifo_state[31:16] = FIFO write limit
@@ -119,7 +132,7 @@ fill_eventbuffer
         // write event data to buffer
         // TODO: new event has to start on a MAX_READ_REQ boundary
         create_event(
-                 eventbuffer + i*EventSize, // destination pointer
+                 eventbuffer + i*fragment_size, // destination pointer
                  i, // event ID
                  EventSize ); // event size
 

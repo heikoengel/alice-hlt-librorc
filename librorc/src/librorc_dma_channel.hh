@@ -33,7 +33,8 @@
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
 // TODO get this from PDA
-#define MAX_PAYLOAD 256
+#define MAX_PAYLOAD 128
+#define MAX_READ_REQ 256
 
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
@@ -155,24 +156,32 @@ namespace librorc
              * @param size maximum payload size in byte
              **/
             void
-            setMaxPayload
+            setPciePacketSizes
             (
-                int32_t size
+                uint32_t max_payload_size,
+                uint32_t max_read_req_size
             );
 
             /**
-             * set PCIe maximum payload size to the default
-             * value (MAX_PAYLOAD)
+             * set PCIe maximum payload and max read requst sizes
+             * to the default values MAX_PAYLOAD and MAX_READ_REQ
              **/
             void
-            setMaxPayload();
+            setPciePacketSizes();
 
             /**
-             * get maximum payload size from current HW configuration
+             * get last value set as maximum payload size
              * @return maximum payload size in bytes
              **/
             uint32_t
             getMaxPayload();
+
+            /**
+             * get last value set as maximum read request size
+             * @return maximum read request size in bytes
+             **/
+            uint32_t
+            getMaxReadReq();
 
             /**
              * get number of Scatter Gather entries for the Event buffer
@@ -496,7 +505,8 @@ namespace librorc
 
             uint32_t m_base;
             uint32_t m_channel;
-            uint32_t m_MaxPayload;
+            uint32_t m_max_payload;
+            uint32_t m_max_read_req;
             uint64_t m_last_ebdm_offset;
             uint64_t m_last_rbdm_offset;
 
@@ -515,14 +525,15 @@ namespace librorc
             );
 
             /**
-             * setMaxPayload() and setMaxPayload()
-             * are wrappers around _setMaxPayload and should
-             * be called instead
+             * setPciePacketSizes(uint32_t, uint32_t) and 
+             * setPciePacketSizes(void) are wrappers around 
+             * _setPciePacketSizes and should be called instead
              **/
             void
-            _setMaxPayload
+            _setPciePacketSizes
             (
-                int32_t size
+                uint32_t max_payload_size,
+                uint32_t max_read_req_size
             );
     };
 

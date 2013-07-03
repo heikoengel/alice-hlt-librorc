@@ -112,9 +112,12 @@ namespace librorc
  * */
 dma_channel::dma_channel()
 {
-    m_bar        = NULL;
-    m_base       = 0;
-    m_MaxPayload = 0;
+    m_bar              = NULL;
+    m_base             = 0;
+    m_last_ebdm_offset = 0;
+    m_last_rbdm_offset = 0;
+    m_max_payload      = 0;
+    m_max_read_req     = 0;
 }
 
 
@@ -282,13 +285,6 @@ dma_channel::configureChannel
 {
 
     /**
-     * MAX_PAYLOAD has to be provided as #DWs
-     *  -> divide size by 4
-     */
-    uint32_t mp_size = max_payload >> 2;
-    uint32_t mr_size = max_rd_req >> 2;
-
-    /**
      * N_SG_CONFIG:
      * [15:0] : actual number of sg entries in RAM
      * [31:16]: maximum number of entries
@@ -304,9 +300,9 @@ dma_channel::configureChannel
         return errno;
     }
 
-    if(max_payload & 0x3)
+    if(max_payload & 0xf)
     {
-        /** max_payload must be a multiple of 4 DW */
+        /** max_payload must be a multiple of 4 DW / 16 bytes */
         errno = -EINVAL;
         return errno;
     }
@@ -316,9 +312,9 @@ dma_channel::configureChannel
         return errno;
     }
 
-    if(max_rd_req & 0x3)
+    if(max_rd_req & 0xf)
     {
-        /** max_rd_req must be a multiple of 4 DW */
+        /** max_rd_req must be a multiple of 4 DW / 16 bytes */
         errno = -EINVAL;
         return errno;
     }
@@ -347,12 +343,21 @@ dma_channel::configureChannel
     config.swptrs.rbdm_software_read_pointer_high =
         (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
 
-    /** set new MAX_PAYLOAD and MAX_READ_REQUEST size */
-    m_bar->set( (m_base+RORC_REG_DMA_PKT_SIZE),
-                ((mr_size << 16)+mp_size) );
-
     config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (m_channel << 16); // set PCIe tag
+                             (m_channel << 16); // set channel as PCIe tag
+
+    /**
+     * Set MaxPayload and MaxReadReq sizes
+     **/
+    if ( !max_payload || !max_rd_req )
+    {
+        /** set defaults if no values provided **/
+        setPciePacketSizes();
+    }
+    else
+    {
+        setPciePacketSizes(max_payload, max_rd_req);
+    }
 
     /**
      * copy configuration struct to RORC, starting
@@ -360,7 +365,9 @@ dma_channel::configureChannel
      */
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_N_SG_CONFIG, &config,
                       sizeof(struct librorc_channel_config) );
-    m_MaxPayload = max_payload;
+
+    m_max_payload = max_payload;
+    m_max_read_req = max_rd_req;
     m_last_ebdm_offset = ebuf->getPhysicalSize() - max_payload;
     m_last_rbdm_offset = rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
 
@@ -443,78 +450,66 @@ dma_channel::getDMAConfig()
 
 
 void
-dma_channel::setMaxPayload
+dma_channel::setPciePacketSizes
 (
-    int32_t size
+    uint32_t max_payload_size,
+    uint32_t max_read_req_size
 )
 {
-    _setMaxPayload( size );
+    _setPciePacketSizes( max_payload_size, max_read_req_size );
 }
 
 
 
 void
-dma_channel::setMaxPayload()
+dma_channel::setPciePacketSizes()
 {
-    _setMaxPayload( MAX_PAYLOAD );
+    _setPciePacketSizes( MAX_PAYLOAD, MAX_READ_REQ );
 }
 
 
 
 void
-dma_channel::_setMaxPayload
+dma_channel::_setPciePacketSizes
 (
-    int32_t size
+    uint32_t max_payload_size,
+    uint32_t max_read_req_size
 )
 {
     /**
-     * MAX_PAYLOAD is located in the higher WORD of
-     * RORC_REG_DMA_CTRL: [25:16], 10 bits wide
+     * maximum payload and maximum read request sizes
+     * are located in RORC_REG_DMA_PKT_SIZE:
+     * max_payload_size = RORC_REG_DMA_PKT_SIZE[9:0]
+     * max_read_req_size = RORC_REG_DMA_PKT_SIZE[25:16]
      */
     assert( m_bar!=NULL );
 
     /**
-     * assure valid values for "size":
-     * size <= systems MAX_PAYLOAD
-     */
-    assert( size <= MAX_PAYLOAD );
-
-    uint32_t status
-        = getPKT(RORC_REG_DMA_PKT_SIZE);
-
-    /**
-     * MAX_PAYLOAD has to be provided as #DWs
+     * MAX_PAYLOAD/MAX_READ_REQ has to be provided as #DWs
      * -> divide size by 4
      */
-    uint32_t mp_size
-        = size >> 2;
+    uint32_t mp_size = (max_payload_size >> 2) & 0x3ff;
+    uint32_t mr_size = (max_read_req_size >> 2) & 0x3ff;
 
-    /** clear current MAX_PAYLOAD setting
-     *
-     *  clear bits 15:0 */
-    status &= 0xffff0000;
-    /** set new MAX_PAYLOAD size */
-    status |= mp_size;
+    /** write to channel*/
+    setPKT( RORC_REG_DMA_PKT_SIZE, ((mr_size << 16) | mp_size) );
 
-    /** write DMA_CTRL */
-    setPKT(RORC_REG_DMA_PKT_SIZE, status);
-    m_MaxPayload = size;
+    m_max_payload = max_payload_size;
+    m_max_read_req = max_read_req_size;
 }
-
 
 
 uint32_t
 dma_channel::getMaxPayload()
 {
-    assert(m_bar!=NULL);
+    return m_max_payload;
+}
 
-    /** RORC_REG_DMA_CTRL = {max_rd_req, max_payload} */
-    uint32_t status = getPKT(RORC_REG_DMA_PKT_SIZE);
 
-    status &= 0xffff;
-    status = status << 2;
-
-    return status;
+uint32_t
+dma_channel::getMaxReadReq()
+{
+    return m_max_read_req;
 }
 
 

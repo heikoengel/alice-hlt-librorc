@@ -34,6 +34,9 @@
 #include "event_handling.h"
 #include "event_generation.h"
 
+using namespace std;
+
+
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
 #define EBUFSIZE (((uint64_t)1) << 28)
@@ -65,6 +68,7 @@ void abort_handler( int s )
 /**
  * Command line arguments
  * argv[1]: Channel Number
+ * argv[2]: Event Fragment Size
  * */
 int main( int argc, char *argv[])
 {
@@ -158,7 +162,7 @@ int main( int argc, char *argv[])
 #ifdef SIM
     bar1 = new librorc::sim_bar(dev, 1);
 #else
-    bar1 = new librorc::bar(dev, 1);
+    bar1 = new librorc::rorc_bar(dev, 1);
 #endif
     if ( bar1->init() == -1 ) {
         printf("ERROR: failed to initialize BAR1.\n");
@@ -341,6 +345,37 @@ int main( int argc, char *argv[])
     // EOR
     bar1->gettime(&end_time, 0);
 
+    // print summary
+    printf("%ld Byte / %ld events in %.2f sec"
+            "-> %.1f MB/s.\n",
+            (chstats->bytes_received), chstats->n_events,
+            gettimeofday_diff(start_time, end_time),
+            ((float)chstats->bytes_received/
+             gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
+
+    if(!chstats->set_offset_count) //avoid DivByZero Exception
+        printf("CH%d: No Events\n", ChannelId);
+    else
+        printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
+                "avg_epi=%ld, set_offset_count=%ld\n", ChannelId,
+                chstats->n_events, chstats->max_epi,
+                chstats->min_epi,
+                chstats->n_events/chstats->set_offset_count,
+                chstats->set_offset_count);
+
+
+    // disable DMA Engine
+    ch->setEnableEB(0);
+
+    // wait for pending transfers to complete (dma_busy->0)
+    while( ch->getDMABusy() )
+        usleep(100);
+
+    // disable RBDM
+    ch->setEnableRB(0);
+
+    // reset DFIFO, disable DMA PKT
+    ch->setDMAConfig(0X00000002);
 
     // clear reportbuffer
     memset(reportbuffer, 0, rbuf->getMappingSize());
