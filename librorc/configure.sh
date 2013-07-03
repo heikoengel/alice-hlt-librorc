@@ -1,20 +1,24 @@
 #!/bin/bash
 
-mkdir build
-mkdir build/debug
-mkdir build/release
-mkdir build/sim_debug
-mkdir build/sim_release
+BASEDIR=`pwd`/`dirname $0`
+echo $BASEDIR
 
-cd build/release
+mkdir $BASEDIR/build
+mkdir $BASEDIR/build/debug
+mkdir $BASEDIR/build/release
+mkdir $BASEDIR/build/sim_debug
+mkdir $BASEDIR/build/sim_release
+
+cd $BASEDIR/build/release
 cmake -DCMAKE_BUILD_TYPE=Release ../../
 
-cd ../../
-
-cd build/debug
+cd $BASEDIR/build/debug
 cmake -DCMAKE_BUILD_TYPE=Debug ../../
 
-cd ../../
+cd $BASEDIR/build/sim
+cmake -DCMAKE_BUILD_TYPE=Release -DSIM=ON ../../
 
-cd build/sim_debug
+cd $BASEDIR/build/sim_debug
 cmake -DCMAKE_BUILD_TYPE=Debug -DSIM=ON ../../
+
+cd $BASEDIR
