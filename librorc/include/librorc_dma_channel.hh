@@ -33,7 +33,8 @@
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
 // TODO get this from PDA
-#define MAX_PAYLOAD 256
+#define MAX_PAYLOAD 128
+#define MAX_READ_REQ 256
 
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
@@ -151,28 +152,22 @@ namespace librorc
             getDMAConfig();
 
             /**
-             * set PCIe maximum payload size
-             * @param size maximum payload size in byte
+             * set maximum PCIe packet size. This is MAX_PAYLOAD for
+             * hlt_in and MAX_READ_REQ for hlt_out channels.
+             * @param size maximum packet size in bytes
              **/
             void
-            setMaxPayload
+            setPciePacketSize
             (
-                int32_t size
+                uint32_t packet_size
             );
 
             /**
-             * set PCIe maximum payload size to the default
-             * value (MAX_PAYLOAD)
-             **/
-            void
-            setMaxPayload();
-
-            /**
-             * get maximum payload size from current HW configuration
+             * get last value set as PCIe packet size
              * @return maximum payload size in bytes
              **/
             uint32_t
-            getMaxPayload();
+            getPciePacketSize();
 
             /**
              * get number of Scatter Gather entries for the Event buffer
@@ -216,7 +211,8 @@ namespace librorc
              * configure DMA engine for current set of buffers
              * @param ebuf pointer to struct librorc::buffer to be used as event buffer
              * @param rbuf pointer to struct librorc::buffer to be used as report buffer
-             * @param max_payload maximum payload size to be used (in bytes)
+             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or 
+             * PCIe read requests (hlt_out)
              * @return 0 on sucess, <0 on error
              * */
             int32_t
@@ -224,8 +220,7 @@ namespace librorc
             (
                 buffer   *ebuf,
                 buffer   *rbuf,
-                uint32_t  max_payload,
-                uint32_t  max_rd_req
+                uint32_t  pcie_packet_size
             );
 
             /**
@@ -314,6 +309,21 @@ namespace librorc
              **/
             uint64_t
             getEBDMAOffset();
+
+            /**
+             * get last event buffer read offset written to channel
+             * @return 64bit offset in event buffer file
+             **/
+            uint64_t
+            getLastEBOffset();
+
+
+            /**
+             * get last report buffer read offset written to channel
+             * @return 64bit offset in report buffer file
+             **/
+            uint64_t
+            getLastRBOffset();
 
             /**
              * set DW in EBDM
@@ -481,7 +491,9 @@ namespace librorc
 
             uint32_t m_base;
             uint32_t m_channel;
-            uint32_t m_MaxPayload;
+            uint32_t m_pcie_packet_size;
+            uint64_t m_last_ebdm_offset;
+            uint64_t m_last_rbdm_offset;
 
             bar *m_bar;
 
@@ -495,17 +507,6 @@ namespace librorc
             (
                 buffer   *buf,
                 uint32_t  flag
-            );
-
-            /**
-             * setMaxPayload() and setMaxPayload()
-             * are wrappers around _setMaxPayload and should
-             * be called instead
-             **/
-            void
-            _setMaxPayload
-            (
-                int32_t size
             );
     };
 

@@ -112,9 +112,11 @@ namespace librorc
  * */
 dma_channel::dma_channel()
 {
-    m_bar        = NULL;
-    m_base       = 0;
-    m_MaxPayload = 0;
+    m_bar              = NULL;
+    m_base             = 0;
+    m_last_ebdm_offset = 0;
+    m_last_rbdm_offset = 0;
+    m_pcie_packet_size = 0;
 }
 
 
@@ -276,17 +278,9 @@ dma_channel::configureChannel
 (
     buffer   *ebuf,
     buffer   *rbuf,
-    uint32_t  max_payload,
-    uint32_t  max_rd_req
+    uint32_t  pcie_packet_size
 )
 {
-
-    /**
-     * MAX_PAYLOAD has to be provided as #DWs
-     *  -> divide size by 4
-     */
-    uint32_t mp_size = max_payload >> 2;
-    uint32_t mr_size = max_rd_req >> 2;
 
     /**
      * N_SG_CONFIG:
@@ -304,25 +298,13 @@ dma_channel::configureChannel
         return errno;
     }
 
-    if(max_payload & 0x3)
+    if(pcie_packet_size & 0xf)
     {
-        /** max_payload must be a multiple of 4 DW */
+        /** packet size must be a multiple of 4 DW / 16 bytes */
         errno = -EINVAL;
         return errno;
     }
-    else if(max_payload > 1024)
-    {
-        errno = -ERANGE;
-        return errno;
-    }
-
-    if(max_rd_req & 0x3)
-    {
-        /** max_rd_req must be a multiple of 4 DW */
-        errno = -EINVAL;
-        return errno;
-    }
-    else if(max_rd_req > 1024)
+    else if(pcie_packet_size > 1024)
     {
         errno = -ERANGE;
         return errno;
@@ -338,21 +320,22 @@ dma_channel::configureChannel
     config.rbdm_buffer_size_high = rbuf->getPhysicalSize() >> 32;
 
     config.swptrs.ebdm_software_read_pointer_low =
-        (ebuf->getPhysicalSize() - max_payload) & 0xffffffff;
+        (ebuf->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
     config.swptrs.ebdm_software_read_pointer_high =
-        (ebuf->getPhysicalSize() - max_payload) >> 32;
+        (ebuf->getPhysicalSize() - pcie_packet_size) >> 32;
     config.swptrs.rbdm_software_read_pointer_low =
         (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) &
         0xffffffff;
     config.swptrs.rbdm_software_read_pointer_high =
         (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
 
-    /** set new MAX_PAYLOAD and MAX_READ_REQUEST size */
-    m_bar->set( (m_base+RORC_REG_DMA_PKT_SIZE),
-                ((mr_size << 16)+mp_size) );
-
     config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (m_channel << 16); // set PCIe tag
+                             (m_channel << 16); // set channel as PCIe tag
+
+    /**
+     * Set PCIe packet size
+     **/
+    setPciePacketSize(pcie_packet_size);
 
     /**
      * copy configuration struct to RORC, starting
@@ -360,7 +343,10 @@ dma_channel::configureChannel
      */
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_N_SG_CONFIG, &config,
                       sizeof(struct librorc_channel_config) );
-    m_MaxPayload = max_payload;
+
+    m_pcie_packet_size = pcie_packet_size;
+    m_last_ebdm_offset = ebuf->getPhysicalSize() - pcie_packet_size;
+    m_last_rbdm_offset = rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
 
     return 0;
 }
@@ -439,80 +425,35 @@ dma_channel::getDMAConfig()
 }
 
 
-
 void
-dma_channel::setMaxPayload
+dma_channel::setPciePacketSize
 (
-    int32_t size
-)
-{
-    _setMaxPayload( size );
-}
-
-
-
-void
-dma_channel::setMaxPayload()
-{
-    _setMaxPayload( MAX_PAYLOAD );
-}
-
-
-
-void
-dma_channel::_setMaxPayload
-(
-    int32_t size
+    uint32_t packet_size
 )
 {
     /**
-     * MAX_PAYLOAD is located in the higher WORD of
-     * RORC_REG_DMA_CTRL: [25:16], 10 bits wide
+     * packet size is located in RORC_REG_DMA_PKT_SIZE:
+     * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
      */
     assert( m_bar!=NULL );
 
     /**
-     * assure valid values for "size":
-     * size <= systems MAX_PAYLOAD
-     */
-    assert( size <= MAX_PAYLOAD );
-
-    uint32_t status
-        = getPKT(RORC_REG_DMA_PKT_SIZE);
-
-    /**
-     * MAX_PAYLOAD has to be provided as #DWs
+     * packet size has to be provided as #DWs
      * -> divide size by 4
      */
-    uint32_t mp_size
-        = size >> 2;
+    uint32_t mp_size = (packet_size >> 2) & 0x3ff;
 
-    /** clear current MAX_PAYLOAD setting
-     *
-     *  clear bits 15:0 */
-    status &= 0xffff0000;
-    /** set new MAX_PAYLOAD size */
-    status |= mp_size;
+    /** write to channel*/
+    setPKT( RORC_REG_DMA_PKT_SIZE, mp_size );
 
-    /** write DMA_CTRL */
-    setPKT(RORC_REG_DMA_PKT_SIZE, status);
-    m_MaxPayload = size;
+    m_pcie_packet_size = packet_size;
 }
 
 
-
 uint32_t
-dma_channel::getMaxPayload()
+dma_channel::getPciePacketSize()
 {
-    assert(m_bar!=NULL);
-
-    /** RORC_REG_DMA_CTRL = {max_rd_req, max_payload} */
-    uint32_t status = getPKT(RORC_REG_DMA_PKT_SIZE);
-
-    status &= 0xffff;
-    status = status << 2;
-
-    return status;
+    return m_pcie_packet_size;
 }
 
 
@@ -539,13 +480,19 @@ dma_channel::setOffsets
     offsets.rbdm_software_read_pointer_high =
         (uint32_t)(rboffset >> 32 & 0xffffffff);
 
-    offsets.dma_ctrl = (1 << 31) | /** sync pointers     */
-                       (1 << 2)  | /** enable EB         */
-                       (1 << 3)  | /** enable RB         */
-                       (1 << 0);   /** enable DMA engine */
+    /** set sync-flag in DMA control register
+     * TODO: this is the fail-save version. The following getPKT() 
+     * can be omitted if the library keeps track on any writes to
+     * RORC_REG_DMA_CTRL. This would reduce PCIe traffic.
+     **/
+    offsets.dma_ctrl = ( getPKT(RORC_REG_DMA_CTRL) | (1<<31) );
 
     m_bar->memcpy_bar(m_base + RORC_REG_EBDM_SW_READ_POINTER_L,
                       &offsets, sizeof(offsets) );
+
+    /** save a local copy of the last offsets written to the channel **/
+    m_last_ebdm_offset = eboffset;
+    m_last_rbdm_offset = rboffset;
 }
 
 
@@ -563,6 +510,9 @@ dma_channel::setEBOffset
 
     uint32_t status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
+
+    /** save a local copy of the last offsets written to the channel **/
+    m_last_ebdm_offset = offset;
 }
 
 
@@ -576,6 +526,21 @@ dma_channel::getEBOffset()
     offset += (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
 
     return offset;
+}
+
+
+uint64_t
+dma_channel::getLastEBOffset()
+{
+  return m_last_ebdm_offset;
+}
+
+
+
+uint64_t
+dma_channel::getLastRBOffset()
+{
+  return m_last_rbdm_offset;
 }
 
 
@@ -600,14 +565,15 @@ dma_channel::setRBOffset
 )
 {
     assert(m_bar!=NULL);
-    uint32_t status;
 
     m_bar->memcpy_bar( (m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
                         &offset, sizeof(offset) );
 
-    status = getPKT(RORC_REG_DMA_CTRL);
-
+    uint32_t status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
+
+    /** save a local copy of the last offsets written to the channel **/
+    m_last_rbdm_offset = offset;
 }
 
 

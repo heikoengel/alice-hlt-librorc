@@ -263,7 +263,7 @@ int main( int argc, char *argv[])
   }
 
   // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-  result = ch->configureChannel(ebuf, rbuf, 256, 512);
+  result = ch->configureChannel(ebuf, rbuf, 256);
   if (result < 0) {
     perror("configureChannel()");
     result = -1;
