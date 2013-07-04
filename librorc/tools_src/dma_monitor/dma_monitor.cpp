@@ -30,8 +30,8 @@
 #include <cstring>
 #include <ctime>
 
-#include "librorc.h"
-#include "event_handling.h"
+#include <librorc.h>
+#include <event_handling.h>
 
 #define STAT_INTERVAL 1
 
