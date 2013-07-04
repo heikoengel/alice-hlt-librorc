@@ -24,16 +24,16 @@ EXECUTE_PROCESS(
   OUTPUT_VARIABLE PDA_INCLUDE_DIR
   )
 
-MESSAGE(STATUS "--------------")
+MESSAGE( STATUS "--------------")
 IF(NOT DEFINED ${PDA_INCLUDE_DIR})
-  MESSAGE(STATUS "Failed to run pda-config because it is not in the path. ")
-  MESSAGE(STATUS "Maybe the related module is not loaded? ")
-  MESSAGE(STATUS "Try \"module load pda\" ...")
-  MESSAGE(STATUS "--------------")
-  MESSAGE(FATAL_ERROR "ABORT!!!")
+  MESSAGE( STATUS "Failed to run pda-config because it is not in the path. ")
+  MESSAGE( STATUS "Maybe the related module is not loaded? ")
+  MESSAGE( STATUS "Try \"module load pda\" ...")
+  MESSAGE( STATUS "--------------")
+  MESSAGE( FATAL_ERROR "ABORT!!!")
 ENDIF(NOT DEFINED ${PDA_INCLUDE_DIR})
-MESSAGE(STATUS "pda include = ${PDA_INCLUDE_DIR}")
-MESSAGE(STATUS "--------------")
+MESSAGE( STATUS "pda include = ${PDA_INCLUDE_DIR}")
+MESSAGE( STATUS "--------------")
 
 include_directories ( ${PDA_INCLUDE_DIR}  )
 
@@ -57,9 +57,9 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 option(MyOption "SIM" OFF)
 if(${SIM})
     add_definitions(-DSIM)
-    MESSAGE(STATUS "--------------")
-    MESSAGE(STATUS "Librorc is going to be compiled in simulation mode!")
-    MESSAGE(STATUS "--------------")
+    MESSAGE( STATUS "--------------")
+    MESSAGE( STATUS "Librorc is going to be compiled in simulation mode!")
+    MESSAGE( STATUS "--------------")
 endif(${SIM})
 
 
@@ -76,22 +76,22 @@ endif(DOXYGEN_FOUND)
 
 
 #--- build libraries and tools ------------------------------------------------
-# BUILD LIBRORC
+# Build librorc
 # add STATIC / SHARED here if needed
 add_library( rorc SHARED  ${LIBRARY_FILES} )
 
-# BUILD RORCTL
+# Build rorctl
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc ${EXTRA_LIBS})
 
-# BUILD DMA BUFFER ALLOCATOR FOR CRORCS
+# Build DMA buffer allocator
 add_executable( crorc_preallocator ${LIBRORC_SOURCE_DIR}/tools_src/crorc_preallocator/crorc_preallocator.cpp)
 target_link_libraries( crorc_preallocator rorc ${EXTRA_LIBS})
 
-# BUILD DMA CHANNEL TEST WITH PATTERN GENERATOR
+# Build DMA channel test with pattern generator
 add_executable( pgdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp)
 target_link_libraries( pgdma_continuous rorc ${EXTRA_LIBS})
 
-# BUILD DMA CHANNEL TEST
+# Build DMA test
 add_executable( gtxdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/gtxdma_continuous.cpp)
 target_link_libraries( gtxdma_continuous rorc ${EXTRA_LIBS})
