@@ -25,18 +25,17 @@ EXECUTE_PROCESS(
   )
 
 MESSAGE( STATUS "--------------")
-IF(NOT DEFINED ${PDA_INCLUDE_DIR})
+IF( PDA_RETURN )
   MESSAGE( STATUS "Failed to run pda-config because it is not in the path. ")
   MESSAGE( STATUS "Maybe the related module is not loaded? ")
   MESSAGE( STATUS "Try \"module load pda\" ...")
   MESSAGE( STATUS "--------------")
   MESSAGE( FATAL_ERROR "ABORT!!!")
-ENDIF(NOT DEFINED ${PDA_INCLUDE_DIR})
+ENDIF()
 MESSAGE( STATUS "pda include = ${PDA_INCLUDE_DIR}")
 MESSAGE( STATUS "--------------")
 
 include_directories ( ${PDA_INCLUDE_DIR}  )
-
 
 EXECUTE_PROCESS(
   COMMAND pda-config --ldlibrarypath
@@ -66,12 +65,16 @@ endif(${SIM})
 #--- add target for Doxygen ---------------------------------------------------
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
+    MESSAGE( STATUS "--------------")
+
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(doc
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
+
+    MESSAGE( STATUS "--------------")
 endif(DOXYGEN_FOUND)
 
 
