@@ -91,10 +91,14 @@ target_link_libraries( rorctl rorc ${EXTRA_LIBS})
 add_executable( crorc_preallocator ${LIBRORC_SOURCE_DIR}/tools_src/crorc_preallocator/crorc_preallocator.cpp)
 target_link_libraries( crorc_preallocator rorc ${EXTRA_LIBS})
 
-# Build DMA channel test with pattern generator
+# Build DMA test with pattern generator
 add_executable( pgdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp)
 target_link_libraries( pgdma_continuous rorc ${EXTRA_LIBS})
 
 # Build DMA test
 add_executable( gtxdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/gtxdma_continuous.cpp)
 target_link_libraries( gtxdma_continuous rorc ${EXTRA_LIBS})
+
+# Build DMA monitor
+add_executable( dma_monitor ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/dma_monitor.cpp)
+target_link_libraries( dma_monitor rorc ${EXTRA_LIBS})
