@@ -30,9 +30,9 @@
 #include <stdint.h>
 #include <sys/shm.h>
 
-#include "librorc.h"
-#include "event_handling.h"
-#include "event_generation.h"
+#include <librorc.h>
+#include <event_handling.h>
+#include <event_generation.h>
 
 using namespace std;
 
