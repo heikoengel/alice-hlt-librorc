@@ -20,15 +20,23 @@ set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 #--- Find and check PDA -------------------------------------------------------
 EXECUTE_PROCESS(
   COMMAND pda-config --include
-  RESULT_VARIABLE ret
+  RESULT_VARIABLE PDA_RETURN
   OUTPUT_VARIABLE PDA_INCLUDE_DIR
   )
 
-include_directories ( ${PDA_INCLUDE_DIR}  )
-
 MESSAGE(STATUS "--------------")
+IF(NOT DEFINED ${PDA_INCLUDE_DIR})
+  MESSAGE(STATUS "Failed to run pda-config because it is not in the path. ")
+  MESSAGE(STATUS "Maybe the related module is not loaded? ")
+  MESSAGE(STATUS "Try \"module load pda\" ...")
+  MESSAGE(STATUS "--------------")
+  MESSAGE(FATAL_ERROR "ABORT!!!")
+ENDIF(NOT DEFINED ${PDA_INCLUDE_DIR})
 MESSAGE(STATUS "pda include = ${PDA_INCLUDE_DIR}")
 MESSAGE(STATUS "--------------")
+
+include_directories ( ${PDA_INCLUDE_DIR}  )
+
 
 EXECUTE_PROCESS(
   COMMAND pda-config --ldlibrarypath
@@ -43,6 +51,7 @@ MESSAGE(STATUS "--------------")
 find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
+
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
