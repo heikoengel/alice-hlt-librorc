@@ -35,8 +35,8 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 
-#include "librorc.h"
-#include "event_handling.h"
+#include <librorc.h>
+#include <event_handling.h>
 
 using namespace std;
 
