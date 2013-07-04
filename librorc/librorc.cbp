@@ -20,6 +20,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="include/event_handling.h" />
+		<Unit filename="include/helper_functions.h" />
 		<Unit filename="include/include_ext.hh" />
 		<Unit filename="include/include_int.hh" />
 		<Unit filename="include/librorc.h" />
@@ -46,9 +48,7 @@
 		<Unit filename="src/mti.h" />
 		<Unit filename="src/sim_bar.cpp" />
 		<Unit filename="tools_src/crorc_preallocator/crorc_preallocator.cpp" />
-		<Unit filename="tools_src/dma/event_handling.h" />
 		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
-		<Unit filename="tools_src/dma/helper_functions.h" />
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
 		<Unit filename="tools_src/rorctl/rorctl.cpp" />

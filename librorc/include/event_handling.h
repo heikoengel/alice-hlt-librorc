@@ -32,7 +32,7 @@ struct ch_stats
     uint32_t channel;
 };
 
-#include "helper_functions.h"
+#include <helper_functions.h>
 
 /**
  * Sanity checks on received data
