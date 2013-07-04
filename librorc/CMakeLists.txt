@@ -102,3 +102,7 @@ target_link_libraries( gtxdma_continuous rorc ${EXTRA_LIBS})
 # Build DMA monitor
 add_executable( dma_monitor ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/dma_monitor.cpp)
 target_link_libraries( dma_monitor rorc ${EXTRA_LIBS})
+
+# Build DMA-out testbed
+add_executable( hlt_out_writer ${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer.cpp)
+target_link_libraries( hlt_out_writer rorc ${EXTRA_LIBS})
