@@ -85,7 +85,10 @@ endif(DOXYGEN_FOUND)
 
 #--- build libraries and tools ------------------------------------------------
 # Build librorc add STATIC / SHARED here if needed
-add_library( rorc SHARED  ${LIBRORC_LIBRARY_SOURCE} )
+add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
+
+# Build flisock adapter
+add_library( flisock SHARED ${FLISOCK_LIBRARY_SOURCE} )
 
 # Build rorctl
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
