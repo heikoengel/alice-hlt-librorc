@@ -1,5 +1,4 @@
-set( LIBRARY_FILES
-"${LIBRORC_SOURCE_DIR}/src/flisock.c"
+set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/librorc_device.cpp"
 "${LIBRORC_SOURCE_DIR}/src/librorc_bar.cpp"
 "${LIBRORC_SOURCE_DIR}/src/librorc_buffer.cpp"
@@ -8,6 +7,10 @@ set( LIBRARY_FILES
 "${LIBRORC_SOURCE_DIR}/src/librorc_flash.cpp"
 "${LIBRORC_SOURCE_DIR}/src/librorc_sysmon.cpp"
 "${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
+)
+
+set( FLISOCK_LIBRARY_SOURCE
+"${LIBRORC_SOURCE_DIR}/src/flisock.c"
 )
 
 cmake_minimum_required(VERSION 2.8)
@@ -81,9 +84,8 @@ endif(DOXYGEN_FOUND)
 
 
 #--- build libraries and tools ------------------------------------------------
-# Build librorc
-# add STATIC / SHARED here if needed
-add_library( rorc SHARED  ${LIBRARY_FILES} )
+# Build librorc add STATIC / SHARED here if needed
+add_library( rorc SHARED  ${LIBRORC_LIBRARY_SOURCE} )
 
 # Build rorctl
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)

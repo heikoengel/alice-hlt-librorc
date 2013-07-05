@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mti.h"                    // MTI Headers & Prototypes
+#include <mti.h>                    // MTI Headers & Prototypes
 
 //========================== Sockets Definitions ======================
 #include <unistd.h>
@@ -39,7 +39,7 @@
 #include <netinet/in.h>
 #include <netdb.h>              // defines gethostbyname()
 
-#include "flisock.h"
+#include <flisock.h>
 
 /**
  * Message encoding for TCP communication with host app:
