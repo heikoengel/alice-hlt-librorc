@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project(LIBRORC)
+
 set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/librorc_device.cpp"
 "${LIBRORC_SOURCE_DIR}/src/librorc_bar.cpp"
@@ -12,9 +15,6 @@ set( LIBRORC_LIBRARY_SOURCE
 set( FLISOCK_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/flisock.c"
 )
-
-cmake_minimum_required(VERSION 2.8)
-project(LIBRORC)
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
