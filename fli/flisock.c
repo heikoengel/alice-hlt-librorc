@@ -39,7 +39,7 @@
 #include <netinet/in.h>
 #include <netdb.h>              // defines gethostbyname()
 
-#include <flisock.h>
+#include "flisock.h"
 
 /**
  * Message encoding for TCP communication with host app:
