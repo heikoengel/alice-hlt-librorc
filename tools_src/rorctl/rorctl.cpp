@@ -120,7 +120,6 @@ flash_status
 void
 dump_flash_status
 (
-    uint16_t        status,
     librorc::flash *flash
 );
 
@@ -560,23 +559,23 @@ flash_status
 
     cout << "Status               : " << hex
          << setw(4) << flashstatus << endl;
-    dump_flash_status(flashstatus, flash);
+    dump_flash_status(flash);
 
     cout << "Manufacturer Code    : "    << hex << setw(4)
          << flash->getManufacturerCode() << endl;
-    dump_flash_status(flashstatus, flash);
+    dump_flash_status(flash);
 
     cout << "Device ID            : " << hex << setw(4)
          << flash->getDeviceID() << endl;
-    dump_flash_status(flashstatus, flash);
+    dump_flash_status(flash);
 
     cout << "Read Config Register : " << hex << setw(4)
          << flash->getReadConfigurationRegister() << endl;
-    dump_flash_status(flashstatus, flash);
+    dump_flash_status(flash);
 
     cout << "Unique Device Number : " << hex
          << flash->getUniqueDeviceNumber() << endl;
-    dump_flash_status(flashstatus, flash);
+    dump_flash_status(flash);
 
     return flash;
 }
@@ -586,13 +585,18 @@ flash_status
 void
 dump_flash_status
 (
-    uint16_t        status,
     librorc::flash *flash
 )
 {
 
     //TODO : put this into a proper interface and add signatures for the related states
-    if( flash->getStatusRegister(0) != 0x0080 )
+    uint16_t status = flash->getStatusRegister(0);
+    if ( status == 0xffff )
+    {
+        cout << "Received Flash Status 0xffff - Flash access failed"
+             << endl;
+    }
+    else if ( status != 0x0080 )
     {
         cout << setfill('0');
         cout << "Status : " << hex << setw(4) << status << endl;
