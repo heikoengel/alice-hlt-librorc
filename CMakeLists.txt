@@ -65,7 +65,7 @@ add_subdirectory(fli)
 
 option(MyOption "LIBMODE" SHARED)
 
-# Build librorc add STATIC / SHARED here if needed
+# Build librorc
 add_library( rorc ${LIBMODE} $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
 # Build flisock adapter (if SIM is configured)
