@@ -104,15 +104,16 @@ int main( void )
         /** print status line each second */
         for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
-            cout << "CH" << i << " - Events: " << chstats[i]->n_events << ", DataSize: "
-                 << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
+            cout << "CH" << setw(2) << i << " - Events: " 
+                 << setw(10) << chstats[i]->n_events << ", DataSize: "
+                 << setw(10) << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
 
             channel_bytes[i] =
                 chstats[i]->bytes_received - last_bytes_received[i];
 
             if( last_bytes_received[i] && channel_bytes[i] )
             {
-                cout << " Data-Rate: " <<
+                cout << " Data-Rate: " << fixed << setprecision(3) << setw(7) <<
                 (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
                 << " MB/s";
 
@@ -128,7 +129,8 @@ int main( void )
                 chstats[i]->n_events - last_events_received[i]
             )
             {
-                cout << " Event Rate: " << (double)(chstats[i]->n_events-last_events_received[i])/
+                cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) << 
+                          (double)(chstats[i]->n_events-last_events_received[i])/
                           gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
             }
             else
