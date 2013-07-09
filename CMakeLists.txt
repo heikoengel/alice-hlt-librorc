@@ -13,7 +13,7 @@ set( LIBRORC_LIBRARY_SOURCE
 )
 
 set( FLISOCK_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/src/flisock.c"
+"${LIBRORC_SOURCE_DIR}/fli/flisock.c"
 )
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
