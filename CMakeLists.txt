@@ -1,17 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(LIBRORC)
 
-set( LIBRORC_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/src/device.cpp"
-"${LIBRORC_SOURCE_DIR}/src/bar.cpp"
-"${LIBRORC_SOURCE_DIR}/src/buffer.cpp"
-"${LIBRORC_SOURCE_DIR}/src/device.cpp"
-"${LIBRORC_SOURCE_DIR}/src/dma_channel.cpp"
-"${LIBRORC_SOURCE_DIR}/src/flash.cpp"
-"${LIBRORC_SOURCE_DIR}/src/sysmon.cpp"
-"${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
-)
-
 set( FLISOCK_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/fli/flisock.c"
 )
@@ -82,10 +71,12 @@ if(DOXYGEN_FOUND)
     MESSAGE( STATUS "--------------")
 endif(DOXYGEN_FOUND)
 
+add_subdirectory(src)
 
 #--- build libraries and tools ------------------------------------------------
 # Build librorc add STATIC / SHARED here if needed
-add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
+#add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
+add_library( rorc $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
 # Build flisock adapter
 IF(${SIM})
