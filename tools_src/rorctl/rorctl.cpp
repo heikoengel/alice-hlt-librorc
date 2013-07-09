@@ -220,10 +220,12 @@ int main
                 {
                     options.device_number = atoi(optarg);
                     try
-                    { options.dev = new librorc::device(0); }
+                    { options.dev = new librorc::device(
+                            options.device_number); }
                     catch(...)
                     {
-                        cout << "failed to initialize device 0 -"
+                        cout << "failed to initialize device "
+                             << options.device_number << "-"
                              << " is the board detected with lspci?" << endl;
                         abort();
                     }
