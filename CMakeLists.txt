@@ -58,20 +58,18 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 add_subdirectory(src)
+add_subdirectory(fli)
 
-set( FLISOCK_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/fli/flisock.c"
-)
 
 #--- build libraries and tools ------------------------------------------------
-
 # Build librorc add STATIC / SHARED here if needed
 add_library( rorc SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
 # Build flisock adapter (if SIM is configured)
 IF(${SIM})
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
-    add_library( fli SHARED ${FLISOCK_LIBRARY_SOURCE} )
+#    add_library( fli SHARED ${FLISOCK_LIBRARY_SOURCE} )
+    add_library( fli SHARED $<TARGET_OBJECTS:FLI_OBJECTS> )
     set_target_properties(fli PROPERTIES PREFIX "")
 ENDIF()
 
