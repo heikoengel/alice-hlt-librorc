@@ -19,7 +19,7 @@
  *
  */
 
-#include <librorc_buffer.hh>
+#include <librorc/buffer.hh>
 
 #include <pda.h>
 

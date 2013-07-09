@@ -16,11 +16,11 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-#include <sim_bar.hh>
+#include <librorc/registers.h>
+#include <librorc/sim_bar.hh>
 
-#include "mti.h"
+#include <mti.h>
 #include <pda.h>
-#include <librorc_registers.h>
 
 
 
