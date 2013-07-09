@@ -63,13 +63,15 @@ add_subdirectory(fli)
 
 #--- build libraries and tools ------------------------------------------------
 
+option(MyOption "LIBMODE" SHARED)
+
 # Build librorc add STATIC / SHARED here if needed
-add_library( rorc SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
+add_library( rorc ${LIBMODE} $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
 # Build flisock adapter (if SIM is configured)
 IF(${SIM})
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
-    add_library( fli SHARED $<TARGET_OBJECTS:FLI_OBJECTS> )
+    add_library( fli ${LIBMODE} $<TARGET_OBJECTS:FLI_OBJECTS> )
     set_target_properties(fli PROPERTIES PREFIX "")
 ENDIF()
 
