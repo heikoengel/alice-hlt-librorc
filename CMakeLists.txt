@@ -1,9 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.9)
 project(LIBRORC)
-
-set( FLISOCK_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/fli/flisock.c"
-)
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
@@ -44,8 +40,6 @@ find_library(PDA pda
 set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 
 
-#--- Check and find libpthread ------------------------------------------------
-
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
 if(${SIM})
@@ -73,12 +67,18 @@ endif(DOXYGEN_FOUND)
 
 add_subdirectory(src)
 
+set( FLISOCK_LIBRARY_SOURCE
+"${LIBRORC_SOURCE_DIR}/fli/flisock.c"
+)
+
 #--- build libraries and tools ------------------------------------------------
 # Build librorc add STATIC / SHARED here if needed
-#add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
-add_library( rorc $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
+add_library( rorc SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
+set_target_properties( rorc PROPERTIES POSITION_INDEPENDENT_CODE ON )
 
-# Build flisock adapter
+#add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
+
+# Build flisock adapter (if SIM is configured)
 IF(${SIM})
     MESSAGE( STATUS "--------------")
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
