@@ -34,21 +34,29 @@
 #include <sys/shm.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <getopt.h>
 
 #include <librorc.h>
 #include <event_handling.h>
 
 using namespace std;
 
+#define HELP_TEXT "pgdma_continuous usage: \n\
+        pgdma_continuous [parameters] \n\
+parameters: \n\
+        --device [0..255] Source device ID \n\
+        --channel [0..11] Source DMA channel \n\
+        --size [value]    PatternGenerator Event Size in DWs \n"
+
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
-#define EBUFSIZE (((unsigned long)1) << 28)
-#define RBUFSIZE (((unsigned long)1) << 26)
+#define EBUFSIZE (((uint64_t)1) << 28)
+#define RBUFSIZE (((uint64_t)1) << 26)
 #define STAT_INTERVAL 1.0
 #else
-#define EBUFSIZE (((unsigned long)1) << 19)
-#define RBUFSIZE (((unsigned long)1) << 17)
+#define EBUFSIZE (((uint64_t)1) << 19)
+#define RBUFSIZE (((uint64_t)1) << 17)
 #define STAT_INTERVAL 0.00001
 #endif
 
@@ -86,10 +94,73 @@ int main( int argc, char *argv[])
   struct rorcfs_event_descriptor *reportbuffer = NULL;
   timeval start_time, end_time;
   timeval last_time, cur_time;
-  unsigned long last_bytes_received;
-  unsigned long last_events_received;
-  unsigned long EventSize;
-  unsigned int ChannelId;
+  uint64_t last_bytes_received;
+  uint64_t last_events_received;
+
+  int32_t DeviceId = -1;
+  int32_t ChannelId = -1;
+  uint32_t EventSize = 0;
+
+  // command line arguments
+  static struct option long_options[] = {
+      {"device", required_argument, 0, 'd'},
+      {"channel", required_argument, 0, 'c'},
+      {"size", required_argument, 0, 's'},
+      {"help", no_argument, 0, 'h'},
+      {0, 0, 0, 0}
+  };
+
+  /** parse command line arguments **/
+  while (1)
+  {
+      int opt = getopt_long(argc, argv, "", long_options, NULL);
+      if ( opt == -1 )
+      {
+          break;
+      }
+
+      switch(opt)
+      {
+          case 'd':
+              DeviceId = strtol(optarg, NULL, 0);
+              break;
+          case 'c':
+              ChannelId = strtol(optarg, NULL, 0);
+              break;
+          case 's':
+              EventSize = strtol(optarg, NULL, 0);
+              break;
+          case 'h':
+              cout << HELP_TEXT;
+              break;
+          default:
+              break;
+      }
+  }
+
+  /** sanity checks on command line arguments **/
+  if ( DeviceId < 0 || DeviceId > 255 )
+  {
+      cout << "DeviceId invalid or not set: " << DeviceId << endl;
+      cout << HELP_TEXT;
+      exit(-1);
+  }
+
+  if ( ChannelId < 0 || ChannelId > MAX_CHANNEL)
+  {
+      cout << "ChannelId invalid or not set: " << ChannelId << endl;
+      cout << HELP_TEXT;
+      exit(-1);
+  }
+
+  if ( EventSize == 0)
+  {
+      cout << "EventSize invalid or not set: 0x" << hex 
+           << EventSize << endl;
+      cout << HELP_TEXT;
+      exit(-1);
+  }
+
 
 
   // catch CTRL+C for abort
@@ -102,35 +173,6 @@ int main( int argc, char *argv[])
   int shID;
   struct ch_stats *chstats = NULL;
   char *shm = NULL;
-
-  // charg argument count
-  if (argc!=3 ) {
-    printf("wrong argument count %d\n"
-        "usage: %s [ChannelId] [EventSize]\n"
-        "where [EventSize] is the number of DWs sent after"
-        "the CommonDataHeader (CDH). The CDH itself consists of"
-        "8 DWs\n",
-        argc, argv[0]);
-    result = -1;
-    exit(-1);
-  }
-
-  // get ChannelID
-  ChannelId= strtoul(argv[1], NULL, 0);
-  if ( errno || ChannelId>MAX_CHANNEL) {
-    perror("illegal ChannelId");
-    result = -1;
-    exit(-1);
-  }
-
-  // get EventSize
-  EventSize = strtoul(argv[2], NULL, 0);
-  if ((errno == ERANGE && EventSize == ULONG_MAX)
-      || (errno != 0 && EventSize== 0)) {
-    perror("illegal EventSize");
-    result = -1;
-    exit(-1);
-  }
 
   //allocate shared mem
   shID = shmget(SHM_KEY_OFFSET + ChannelId,
@@ -149,7 +191,7 @@ int main( int argc, char *argv[])
 
 
   // create new device instance
-  try{ dev = new librorc::device(0); }
+  try{ dev = new librorc::device(DeviceId); }
   catch(...)
   {
     printf("ERROR: failed to initialize device.\n");
