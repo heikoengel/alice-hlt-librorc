@@ -5,6 +5,9 @@ include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 
 
+MESSAGE( STATUS "-------------------------------------------------------------------------------")
+
+
 #--- Find and check PDA -------------------------------------------------------
 EXECUTE_PROCESS(
   COMMAND pda-config --include
@@ -12,16 +15,13 @@ EXECUTE_PROCESS(
   OUTPUT_VARIABLE PDA_INCLUDE_DIR
   )
 
-MESSAGE( STATUS "--------------")
 IF( PDA_RETURN )
   MESSAGE( STATUS "Failed to run pda-config because it is not in the path. ")
   MESSAGE( STATUS "Maybe the related module is not loaded? ")
   MESSAGE( STATUS "Try \"module load pda\" ...")
-  MESSAGE( STATUS "--------------")
   MESSAGE( FATAL_ERROR "ABORT!!!")
 ENDIF()
 MESSAGE( STATUS "pda include = ${PDA_INCLUDE_DIR}")
-MESSAGE( STATUS "--------------")
 
 include_directories ( ${PDA_INCLUDE_DIR}  )
 
@@ -31,9 +31,7 @@ EXECUTE_PROCESS(
   OUTPUT_VARIABLE PDA_LD_LIBRARY_PATH
   )
 
-MESSAGE(STATUS "--------------")
 MESSAGE(STATUS "pda LD_LIBRARY_PATH = ${PDA_LD_LIBRARY_PATH}")
-MESSAGE(STATUS "--------------")
 
 find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
@@ -44,25 +42,19 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 option(MyOption "SIM" OFF)
 if(${SIM})
     add_definitions(-DSIM)
-    MESSAGE( STATUS "--------------")
     MESSAGE( STATUS "Librorc is going to be compiled in simulation mode!")
-    MESSAGE( STATUS "--------------")
 endif(${SIM})
 
 
 #--- add target for Doxygen ---------------------------------------------------
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-    MESSAGE( STATUS "--------------")
-
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     add_custom_target(doc
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM
     )
-
-    MESSAGE( STATUS "--------------")
 endif(DOXYGEN_FOUND)
 
 add_subdirectory(src)
@@ -72,20 +64,20 @@ set( FLISOCK_LIBRARY_SOURCE
 )
 
 #--- build libraries and tools ------------------------------------------------
+
 # Build librorc add STATIC / SHARED here if needed
 add_library( rorc SHARED $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
-set_target_properties( rorc PROPERTIES POSITION_INDEPENDENT_CODE ON )
-
-#add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
 
 # Build flisock adapter (if SIM is configured)
 IF(${SIM})
-    MESSAGE( STATUS "--------------")
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
-    MESSAGE( STATUS "--------------")
     add_library( fli SHARED ${FLISOCK_LIBRARY_SOURCE} )
     set_target_properties(fli PROPERTIES PREFIX "")
 ENDIF()
+
+
+MESSAGE( STATUS "-------------------------------------------------------------------------------")
+
 
 # Build rorctl
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
