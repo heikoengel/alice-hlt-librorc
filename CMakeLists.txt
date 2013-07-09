@@ -88,8 +88,7 @@ endif(DOXYGEN_FOUND)
 add_library( rorc SHARED ${LIBRORC_LIBRARY_SOURCE} )
 
 # Build flisock adapter
-#IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+IF(${SIM})
     MESSAGE( STATUS "--------------")
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
     MESSAGE( STATUS "--------------")
