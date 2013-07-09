@@ -20,37 +20,39 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="include/event_generation.h" />
 		<Unit filename="include/event_handling.h" />
+		<Unit filename="include/flisock.h" />
 		<Unit filename="include/helper_functions.h" />
-		<Unit filename="include/include_ext.hh" />
-		<Unit filename="include/include_int.hh" />
 		<Unit filename="include/librorc.h" />
-		<Unit filename="include/librorc_bar.hh" />
-		<Unit filename="include/librorc_bar_proto.hh" />
-		<Unit filename="include/librorc_buffer.hh" />
-		<Unit filename="include/librorc_defines.hh" />
-		<Unit filename="include/librorc_device.hh" />
-		<Unit filename="include/librorc_dma_channel.hh" />
-		<Unit filename="include/librorc_flash.hh" />
-		<Unit filename="include/librorc_registers.h" />
-		<Unit filename="include/librorc_sysmon.hh" />
-		<Unit filename="include/sim_bar.hh" />
+		<Unit filename="include/librorc/bar.hh" />
+		<Unit filename="include/librorc/bar_proto.hh" />
+		<Unit filename="include/librorc/buffer.hh" />
+		<Unit filename="include/librorc/defines.hh" />
+		<Unit filename="include/librorc/device.hh" />
+		<Unit filename="include/librorc/dma_channel.hh" />
+		<Unit filename="include/librorc/flash.hh" />
+		<Unit filename="include/librorc/include_ext.hh" />
+		<Unit filename="include/librorc/include_int.hh" />
+		<Unit filename="include/librorc/registers.h" />
+		<Unit filename="include/librorc/sim_bar.hh" />
+		<Unit filename="include/librorc/sysmon.hh" />
+		<Unit filename="include/mti.h" />
 		<Unit filename="src/flisock.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="src/flisock.h" />
 		<Unit filename="src/librorc_bar.cpp" />
 		<Unit filename="src/librorc_buffer.cpp" />
 		<Unit filename="src/librorc_device.cpp" />
 		<Unit filename="src/librorc_dma_channel.cpp" />
 		<Unit filename="src/librorc_flash.cpp" />
 		<Unit filename="src/librorc_sysmon.cpp" />
-		<Unit filename="src/mti.h" />
 		<Unit filename="src/sim_bar.cpp" />
 		<Unit filename="tools_src/crorc_preallocator/crorc_preallocator.cpp" />
 		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
+		<Unit filename="tools_src/hlt_out_writer/hlt_out_writer.cpp" />
 		<Unit filename="tools_src/rorctl/rorctl.cpp" />
 		<Extensions>
 			<code_completion />
