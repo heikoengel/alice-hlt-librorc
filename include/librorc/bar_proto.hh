@@ -1,8 +1,8 @@
 #ifndef LIBRORC_BAR_PROTO_H
 #define LIBRORC_BAR_PROTO_H
 
-#include "include_ext.hh"
-#include "librorc_device.hh"
+#include "librorc/include_ext.hh"
+#include "librorc/device.hh"
 
 namespace librorc
 {

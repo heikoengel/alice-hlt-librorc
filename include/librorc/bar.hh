@@ -24,10 +24,8 @@
 #ifndef LIBRORC_BAR_H
 #define LIBRORC_BAR_H
 
-#include <include_ext.hh>
-#include <include_int.hh>
-
-#include <librorc_bar_proto.hh>
+#include <librorc/include_ext.hh>
+#include <librorc/include_int.hh>
 
 
 

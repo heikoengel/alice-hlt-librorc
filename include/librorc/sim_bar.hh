@@ -24,10 +24,9 @@
 #ifndef SIM_BAR_H
 #define SIM_BAR_H
 
-#include "include_ext.hh"
-#include "include_int.hh"
+#include "librorc/include_ext.hh"
+#include "librorc/include_int.hh"
 
-#include "librorc_bar_proto.hh"
 
 
 /**

@@ -20,8 +20,8 @@
 #ifndef LIBRORC_BUFFER_H
 #define LIBRORC_BUFFER_H
 
-#include "include_ext.hh"
-#include "librorc_device.hh"
+#include "librorc/include_ext.hh"
+#include "librorc/device.hh"
 
 //TODO: put this into an enum!
 #define LIBRORC_DMA_FROM_DEVICE   2

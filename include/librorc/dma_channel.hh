@@ -20,9 +20,8 @@
 #ifndef LIBRORC_DMA_CHANNEL_H
 #define LIBRORC_DMA_CHANNEL_H
 
-#include "include_ext.hh"
-#include "include_int.hh"
-#include "librorc_bar_proto.hh"
+#include "librorc/include_ext.hh"
+#include "librorc/include_int.hh"
 
 
 
