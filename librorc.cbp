@@ -20,9 +20,12 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="fli/flisock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="fli/flisock.h" />
 		<Unit filename="include/event_generation.h" />
 		<Unit filename="include/event_handling.h" />
-		<Unit filename="include/flisock.h" />
 		<Unit filename="include/helper_functions.h" />
 		<Unit filename="include/librorc.h" />
 		<Unit filename="include/librorc/bar.hh" />
@@ -38,9 +41,6 @@
 		<Unit filename="include/librorc/sim_bar.hh" />
 		<Unit filename="include/librorc/sysmon.hh" />
 		<Unit filename="include/mti.h" />
-		<Unit filename="src/flisock.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="src/librorc_bar.cpp" />
 		<Unit filename="src/librorc_buffer.cpp" />
 		<Unit filename="src/librorc_device.cpp" />
