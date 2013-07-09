@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 project(LIBRORC)
 
 set( LIBRORC_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/src/librorc_device.cpp"
-"${LIBRORC_SOURCE_DIR}/src/librorc_bar.cpp"
-"${LIBRORC_SOURCE_DIR}/src/librorc_buffer.cpp"
-"${LIBRORC_SOURCE_DIR}/src/librorc_device.cpp"
-"${LIBRORC_SOURCE_DIR}/src/librorc_dma_channel.cpp"
-"${LIBRORC_SOURCE_DIR}/src/librorc_flash.cpp"
-"${LIBRORC_SOURCE_DIR}/src/librorc_sysmon.cpp"
+"${LIBRORC_SOURCE_DIR}/src/device.cpp"
+"${LIBRORC_SOURCE_DIR}/src/bar.cpp"
+"${LIBRORC_SOURCE_DIR}/src/buffer.cpp"
+"${LIBRORC_SOURCE_DIR}/src/device.cpp"
+"${LIBRORC_SOURCE_DIR}/src/dma_channel.cpp"
+"${LIBRORC_SOURCE_DIR}/src/flash.cpp"
+"${LIBRORC_SOURCE_DIR}/src/sysmon.cpp"
 "${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
 )
 
