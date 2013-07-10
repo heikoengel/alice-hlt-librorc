@@ -46,7 +46,8 @@ using namespace std;
 parameters: \n\
         --device [0..255] Source device ID \n\
         --channel [0..11] Source DMA channel \n\
-        --size [value]    PatternGenerator Event Size in DWs \n"
+        --size [value]    PatternGenerator Event Size in DWs \n\
+        --help            Show this text \n"
 
 
 /** Buffer Sizes (in Bytes) **/
@@ -132,6 +133,7 @@ int main( int argc, char *argv[])
               break;
           case 'h':
               cout << HELP_TEXT;
+              exit(0);
               break;
           default:
               break;
@@ -175,7 +177,7 @@ int main( int argc, char *argv[])
   char *shm = NULL;
 
   //allocate shared mem
-  shID = shmget(SHM_KEY_OFFSET + ChannelId,
+  shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
       sizeof(struct ch_stats), IPC_CREAT | 0666);
   if(shID==-1) {
     perror("shmget");

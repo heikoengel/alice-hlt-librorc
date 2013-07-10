@@ -6,6 +6,8 @@
 
 /** Shared mem key offset **/
 #define SHM_KEY_OFFSET 2048
+/** Shared mem device offset **/
+#define SHM_DEV_OFFSET 32
 
 /** Pattern Generator Mode: Ramp **/
 #define PG_PATTERN_RAMP (1<<0)

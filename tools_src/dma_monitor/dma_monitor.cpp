@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <sys/shm.h>
+#include <getopt.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -37,19 +38,70 @@
 
 using namespace std;
 
+#define HELP_TEXT "dma_monitor usage: \n\
+        dma_monitor [parameters] \n\
+parameters: \n\
+        --device [0..255] Source device ID \n\
+        --help            Show this text\n"
 
 
 uint32_t done = 0;
 
 void abort_handler( int s )
 {
-  cout << "Caught signal " << s << endl;
-  done = 1;
+    cout << "Caught signal " << s << endl;
+    done = 1;
 }
 
 
-int main( void )
+int main( int argc, char *argv[])
 {
+    int32_t DeviceId = -1;
+
+    // command line arguments
+    static struct option long_options[] = {
+        {"device", required_argument, 0, 'd'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
+
+    /** parse command line arguments **/
+    while (1)
+    {
+        int opt = getopt_long(argc, argv, "", long_options, NULL);
+        if ( opt == -1 )
+        {
+            break;
+        }
+
+        switch(opt)
+        {
+            case 'd':
+                DeviceId = strtol(optarg, NULL, 0);
+                break;;
+            case 'h':
+                cout << HELP_TEXT;
+                exit(0);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /** sanity checks on command line arguments **/
+    if ( DeviceId < 0 )
+    {
+        cout << "DeviceId not set, using default device 0" << endl;
+        DeviceId = 0;
+    }
+    else if ( DeviceId > 255 )
+    {
+        cout << "DeviceId invalid: " << DeviceId << endl;
+        cout << HELP_TEXT;
+        exit(-1);
+    }
+
+
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
     {
@@ -73,7 +125,8 @@ int main( void )
         last_events_received[i] = 0;
         channel_bytes[i] = 0;
 
-        shID[i] = shmget(SHM_KEY_OFFSET + i, sizeof(struct ch_stats), IPC_CREAT | 0666);
+        shID[i] = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + i, 
+                sizeof(struct ch_stats), IPC_CREAT | 0666);
         if( shID[i]==-1)
         {
             perror("shmget");
@@ -105,8 +158,8 @@ int main( void )
         for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
             cout << "CH" << setw(2) << i << " - Events: " 
-                 << setw(10) << chstats[i]->n_events << ", DataSize: "
-                 << setw(10) << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
+                << setw(10) << chstats[i]->n_events << ", DataSize: "
+                << setw(10) << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
 
             channel_bytes[i] =
                 chstats[i]->bytes_received - last_bytes_received[i];
@@ -114,8 +167,8 @@ int main( void )
             if( last_bytes_received[i] && channel_bytes[i] )
             {
                 cout << " Data-Rate: " << fixed << setprecision(3) << setw(7) <<
-                (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
-                << " MB/s";
+                    (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
+                    << " MB/s";
 
             }
             else
@@ -124,15 +177,15 @@ int main( void )
             }
 
             if
-            (
-                last_events_received[i] &&
-                chstats[i]->n_events - last_events_received[i]
-            )
-            {
-                cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) << 
-                          (double)(chstats[i]->n_events-last_events_received[i])/
-                          gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
-            }
+                (
+                 last_events_received[i] &&
+                 chstats[i]->n_events - last_events_received[i]
+                )
+                {
+                    cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) << 
+                        (double)(chstats[i]->n_events-last_events_received[i])/
+                        gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
+                }
             else
             {
                 cout << " Event-Rate: -";
@@ -157,9 +210,9 @@ int main( void )
         if(sum_of_bytes_diff)
         {
             cout << "Combined Data-Size: " << (double)sum_of_bytes/((uint64_t)1<<40)
-                 << " TB, Combined Data-Rate: "
-                 << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
-                 << " MB/s";
+                << " TB, Combined Data-Rate: "
+                << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
+                << " MB/s";
 
         }
         else

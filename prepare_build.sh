@@ -6,11 +6,11 @@ MODE="SHARED"
 BASEDIR=`pwd`/`dirname $0`
 echo $BASEDIR
 
-mkdir $BASEDIR/build
-mkdir $BASEDIR/build/debug
-mkdir $BASEDIR/build/release
-mkdir $BASEDIR/build/sim_debug
-mkdir $BASEDIR/build/sim_release
+mkdir -p $BASEDIR/build
+mkdir -p $BASEDIR/build/debug
+mkdir -p $BASEDIR/build/release
+mkdir -p $BASEDIR/build/sim_debug
+mkdir -p $BASEDIR/build/sim_release
 
 cd $BASEDIR/build/release
 cmake -V -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
