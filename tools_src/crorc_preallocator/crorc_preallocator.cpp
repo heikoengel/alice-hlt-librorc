@@ -117,44 +117,67 @@ alloc_channel
     }
 
     /** create a new DMA event buffer */
-    librorc::buffer *ebuf
-        = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE);
-    if ( ebuf->allocate(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+    librorc::buffer *ebuf;
+    try
     {
-        if ( errno == EEXIST )
-        {
-            if ( ebuf->connect(Dev, 2*ChannelID) != 0 )
-            {
-                perror("ERROR: ebuf->connect");
-                abort();
-            }
-        }
-        else
-        {
-            perror("ERROR: ebuf->allocate");
-            abort();
-        }
+        ebuf = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE);
+    }
+    catch(...)
+    {
+        perror("ERROR: Event buffer allocation failed!\n");
+        abort();
     }
 
+// TODO : remove this
+//    librorc::buffer *ebuf
+//        = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE);
+//    if ( ebuf->allocate(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+//    {
+//        if ( errno == EEXIST )
+//        {
+//            if ( ebuf->connect(Dev, 2*ChannelID) != 0 )
+//            {
+//                perror("ERROR: ebuf->connect");
+//                abort();
+//            }
+//        }
+//        else
+//        {
+//            perror("ERROR: ebuf->allocate");
+//            abort();
+//        }
+//    }
+
     /** create new DMA report buffer */
-    librorc::buffer *rbuf
-        = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE);
-    if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+    librorc::buffer *rbuf;
+    try
     {
-        if ( errno == EEXIST )
-        {
-            if ( rbuf->connect(Dev, 2*ChannelID+1) != 0 )
-            {
-                perror("ERROR: rbuf->connect");
-                abort();
-            }
-        }
-        else
-        {
-            perror("ERROR: rbuf->allocate");
-            abort();
-        }
+        rbuf = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE);
     }
+    catch(...)
+    {
+        perror("ERROR: Report buffer allocation failed!\n");
+        abort();
+    }
+
+//    librorc::buffer *rbuf
+//        = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE);
+//    if ( rbuf->allocate(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+//    {
+//        if ( errno == EEXIST )
+//        {
+//            if ( rbuf->connect(Dev, 2*ChannelID+1) != 0 )
+//            {
+//                perror("ERROR: rbuf->connect");
+//                abort();
+//            }
+//        }
+//        else
+//        {
+//            perror("ERROR: rbuf->allocate");
+//            abort();
+//        }
+//    }
 
     return 0;
 }
