@@ -52,13 +52,13 @@ parameters: \n\
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
-#define EBUFSIZE (((uint64_t)1) << 28)
-#define RBUFSIZE (((uint64_t)1) << 26)
-#define STAT_INTERVAL 1.0
+    #define EBUFSIZE (((uint64_t)1) << 28)
+    #define RBUFSIZE (((uint64_t)1) << 26)
+    #define STAT_INTERVAL 1.0
 #else
-#define EBUFSIZE (((uint64_t)1) << 19)
-#define RBUFSIZE (((uint64_t)1) << 17)
-#define STAT_INTERVAL 0.00001
+    #define EBUFSIZE (((uint64_t)1) << 19)
+    #define RBUFSIZE (((uint64_t)1) << 17)
+    #define STAT_INTERVAL 0.00001
 #endif
 
 
@@ -91,20 +91,6 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
     int result = 0;
-    librorc::device      *dev  = NULL;
-    librorc::buffer      *ebuf = NULL;
-    librorc::buffer      *rbuf = NULL;
-    librorc::dma_channel *ch   = NULL;
-
-    struct rorcfs_event_descriptor *reportbuffer = NULL;
-    timeval start_time, end_time;
-    timeval last_time, cur_time;
-    uint64_t last_bytes_received;
-    uint64_t last_events_received;
-
-    int32_t DeviceId = -1;
-    int32_t ChannelId = -1;
-    uint32_t EventSize = 0;
 
     /** command line arguments */
     // TODO : this is bad because it fails if the struct changes
@@ -118,6 +104,9 @@ int main( int argc, char *argv[])
     };
 
     /** parse command line arguments **/
+    int32_t  DeviceId  = -1;
+    int32_t  ChannelId = -1;
+    uint32_t EventSize = 0;
     while(1)
     {
         int opt = getopt_long(argc, argv, "", long_options, NULL);
@@ -197,15 +186,15 @@ int main( int argc, char *argv[])
     if(shID==-1)
     {
         perror("shmget");
-        goto out;
+        abort();
     }
 
-    /** attach to shared memory */
+    /** Attach to shared memory */
     char *shm = (char*)shmat(shID, 0, 0);
     if (shm==(char*)-1)
     {
         perror("shmat");
-        goto out;
+        abort();
     }
     struct ch_stats *chstats
         = (struct ch_stats*)shm;
@@ -218,11 +207,12 @@ int main( int argc, char *argv[])
 
 
     /** Create new device instance */
+    librorc::device *dev;
     try{ dev = new librorc::device(DeviceId); }
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
-        goto out;
+        abort();
     }
 
     printf("Bus %x, Slot %x, Func %x\n", dev->getBus(), dev->getSlot(),dev->getFunc());
@@ -236,7 +226,7 @@ int main( int argc, char *argv[])
     if ( bar1->init() == -1 )
     {
         printf("ERROR: failed to initialize BAR1.\n");
-        goto out;
+        abort();
     }
 
     printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
@@ -246,12 +236,12 @@ int main( int argc, char *argv[])
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                "firmware - exiting\n", ChannelId);
-        goto out;
+        abort();
     }
 
 
     /** Create new DMA event buffer */
-    ebuf = new librorc::buffer();
+    librorc::buffer *ebuf = new librorc::buffer();
     if( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
     {
         if( errno == EEXIST )
@@ -259,19 +249,19 @@ int main( int argc, char *argv[])
             if ( ebuf->connect(dev, 2*ChannelId) != 0 )
             {
                 perror("ERROR: ebuf->connect");
-                goto out;
+                abort();
             }
         }
         else
         {
             perror("ERROR: ebuf->allocate");
-            goto out;
+            abort();
         }
     }
 
 
     /** Create new DMA report buffer */
-    rbuf = new librorc::buffer();
+    librorc::buffer *rbuf = new librorc::buffer();
     if( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
     {
         if( errno == EEXIST )
@@ -279,23 +269,24 @@ int main( int argc, char *argv[])
             if( rbuf->connect(dev, 2*ChannelId+1) != 0 )
             {
                 perror("ERROR: rbuf->connect");
-                goto out;
+                abort();
             }
         }
         else
         {
             perror("ERROR: rbuf->allocate");
-            goto out;
+            abort();
         }
     }
 
     /* clear report buffer */
-    reportbuffer = (struct rorcfs_event_descriptor *)rbuf->getMem();
+    struct rorcfs_event_descriptor *reportbuffer
+        = (struct rorcfs_event_descriptor *)rbuf->getMem();
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
 
     /** Create DMA channel and bind channel to BAR1 */
-    ch = new librorc::dma_channel();
+    librorc::dma_channel *ch = new librorc::dma_channel();
     ch->init(bar1, ChannelId);
 
     /* Prepare EventBufferDescriptorManager with scatter-gather list */
@@ -304,7 +295,7 @@ int main( int argc, char *argv[])
     {
         perror("prepareEB()");
         result = -1;
-        goto out;
+        abort();
     }
 
     /* Prepare ReportBufferDescriptorManager with scatter-gather list */
@@ -313,7 +304,7 @@ int main( int argc, char *argv[])
     {
         perror("prepareRB()");
         result = -1;
-        goto out;
+        abort();
     }
 
     /* Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
@@ -322,7 +313,7 @@ int main( int argc, char *argv[])
     {
         perror("configureChannel()");
         result = -1;
-        goto out;
+        abort();
     }
 
 
@@ -356,12 +347,13 @@ int main( int argc, char *argv[])
 
 
     /** capture starting time */
-    bar1->gettime(&start_time, 0);
-    last_time = start_time;
-    cur_time = start_time;
+    timeval start_time;
+        bar1->gettime(&start_time, 0);
+    timeval last_time = start_time;
+    timeval cur_time = start_time;
 
-    last_bytes_received = 0;
-    last_events_received = 0;
+    uint64_t last_bytes_received  = 0;
+    uint64_t last_events_received = 0;
 
     /**
      *  This can be aborted by abort_handler() ... */
@@ -439,6 +431,7 @@ int main( int argc, char *argv[])
         }
     }
 
+    timeval end_time;
     bar1->gettime(&end_time, 0);
     printf
     (
@@ -491,24 +484,24 @@ int main( int argc, char *argv[])
 
 out:
 
-  if( shm )
-  {
-    //free(chstats);
-    shmdt(shm);
-    shm = NULL;
-  }
-
-  if (ch)
-    delete ch;
-  if (ebuf)
-    delete ebuf;
-  if (rbuf)
-    delete rbuf;
-
-  if (bar1)
-    delete bar1;
-  if (dev)
-    delete dev;
+//  if( shm )
+//  {
+//    //free(chstats);
+//    shmdt(shm);
+//    shm = NULL;
+//  }
+//
+//  if (ch)
+//    delete ch;
+//  if (ebuf)
+//    delete ebuf;
+//  if (rbuf)
+//    delete rbuf;
+//
+//  if (bar1)
+//    delete bar1;
+//  if (dev)
+//    delete dev;
 
   return result;
 }
