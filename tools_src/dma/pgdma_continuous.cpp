@@ -244,19 +244,8 @@ int main( int argc, char *argv[])
     librorc::buffer *ebuf = new librorc::buffer();
     if( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
     {
-        if( errno == EEXIST )
-        {
-//            if ( ebuf->connect(dev, 2*ChannelId) != 0 )
-//            {
-//                perror("ERROR: ebuf->connect");
-//                abort();
-//            }
-        }
-        else
-        {
-            perror("ERROR: ebuf->allocate");
-            abort();
-        }
+        perror("ERROR: ebuf->allocate");
+        abort();
     }
 
 
@@ -264,19 +253,8 @@ int main( int argc, char *argv[])
     librorc::buffer *rbuf = new librorc::buffer();
     if( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
     {
-        if( errno == EEXIST )
-        {
-//            if( rbuf->connect(dev, 2*ChannelId+1) != 0 )
-//            {
-//                perror("ERROR: rbuf->connect");
-//                abort();
-//            }
-        }
-        else
-        {
-            perror("ERROR: rbuf->allocate");
-            abort();
-        }
+        perror("ERROR: rbuf->allocate");
+        abort();
     }
 
     /* clear report buffer */
