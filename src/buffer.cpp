@@ -73,10 +73,7 @@ buffer::buffer
         }
     }
 
-//    if( buffer(dev, id) != 0 )
-//    {
-//        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-//    }
+    buffer(dev, id);
 }
 
 
