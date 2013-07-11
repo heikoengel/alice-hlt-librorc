@@ -70,12 +70,17 @@ int done = 0;
 
 void abort_handler( int s )
 {
-  printf("Caught signal %d\n", s);
-  if (done==1)
-    exit(-1);
-  else
-    done = 1;
+    printf("Caught signal %d\n", s);
+    if( done==1 )
+    {
+        exit(-1);
+    }
+    else
+    {
+        done = 1;
+    }
 }
+
 
 
 /**
@@ -85,217 +90,234 @@ void abort_handler( int s )
  * */
 int main( int argc, char *argv[])
 {
-  int result = 0;
-  librorc::device      *dev  = NULL;
-  librorc::bar         *bar1 = NULL;
-  librorc::buffer      *ebuf = NULL;
-  librorc::buffer      *rbuf = NULL;
-  librorc::dma_channel *ch   = NULL;
+    int result = 0;
+    librorc::device      *dev  = NULL;
+    librorc::buffer      *ebuf = NULL;
+    librorc::buffer      *rbuf = NULL;
+    librorc::dma_channel *ch   = NULL;
 
-  struct rorcfs_event_descriptor *reportbuffer = NULL;
-  timeval start_time, end_time;
-  timeval last_time, cur_time;
-  uint64_t last_bytes_received;
-  uint64_t last_events_received;
+    struct rorcfs_event_descriptor *reportbuffer = NULL;
+    timeval start_time, end_time;
+    timeval last_time, cur_time;
+    uint64_t last_bytes_received;
+    uint64_t last_events_received;
 
-  int32_t DeviceId = -1;
-  int32_t ChannelId = -1;
-  uint32_t EventSize = 0;
+    int32_t DeviceId = -1;
+    int32_t ChannelId = -1;
+    uint32_t EventSize = 0;
 
-  // command line arguments
-  static struct option long_options[] = {
-      {"device", required_argument, 0, 'd'},
-      {"channel", required_argument, 0, 'c'},
-      {"size", required_argument, 0, 's'},
-      {"help", no_argument, 0, 'h'},
-      {0, 0, 0, 0}
-  };
+    /** command line arguments */
+    // TODO : this is bad because it fails if the struct changes
+    static struct option long_options[] =
+    {
+        {"device", required_argument, 0, 'd'},
+        {"channel", required_argument, 0, 'c'},
+        {"size", required_argument, 0, 's'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
 
-  /** parse command line arguments **/
-  while (1)
-  {
-      int opt = getopt_long(argc, argv, "", long_options, NULL);
-      if ( opt == -1 )
-      {
-          break;
-      }
+    /** parse command line arguments **/
+    while(1)
+    {
+        int opt = getopt_long(argc, argv, "", long_options, NULL);
+        if ( opt == -1 )
+        { break; }
 
-      switch(opt)
-      {
-          case 'd':
-              DeviceId = strtol(optarg, NULL, 0);
-              break;
-          case 'c':
-              ChannelId = strtol(optarg, NULL, 0);
-              break;
-          case 's':
-              EventSize = strtol(optarg, NULL, 0);
-              break;
-          case 'h':
-              cout << HELP_TEXT;
-              exit(0);
-              break;
-          default:
-              break;
-      }
-  }
+        switch(opt)
+        {
+            case 'd':
+            {
+                DeviceId = strtol(optarg, NULL, 0);
+            }
+            break;
 
-  /** sanity checks on command line arguments **/
-  if ( DeviceId < 0 || DeviceId > 255 )
-  {
-      cout << "DeviceId invalid or not set: " << DeviceId << endl;
-      cout << HELP_TEXT;
-      exit(-1);
-  }
+            case 'c':
+            {
+                ChannelId = strtol(optarg, NULL, 0);
+            }
+            break;
 
-  if ( ChannelId < 0 || ChannelId > MAX_CHANNEL)
-  {
-      cout << "ChannelId invalid or not set: " << ChannelId << endl;
-      cout << HELP_TEXT;
-      exit(-1);
-  }
+            case 's':
+            {
+                EventSize = strtol(optarg, NULL, 0);
+            }
+            break;
 
-  if ( EventSize == 0)
-  {
-      cout << "EventSize invalid or not set: 0x" << hex 
-           << EventSize << endl;
-      cout << HELP_TEXT;
-      exit(-1);
-  }
+            case 'h':
+            {
+                cout << HELP_TEXT;
+                exit(0);
+            }
+            break;
 
-
-
-  // catch CTRL+C for abort
-  struct sigaction sigIntHandler;
-  sigIntHandler.sa_handler = abort_handler;
-  sigemptyset(&sigIntHandler.sa_mask);
-  sigIntHandler.sa_flags = 0;
-
-  //shared memory
-  int shID;
-  struct ch_stats *chstats = NULL;
-  char *shm = NULL;
-
-  //allocate shared mem
-  shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
-      sizeof(struct ch_stats), IPC_CREAT | 0666);
-  if(shID==-1) {
-    perror("shmget");
-    goto out;
-  }
-  //attach to shared memory
-  shm = (char*)shmat(shID, 0, 0);
-  if (shm==(char*)-1) {
-    perror("shmat");
-    goto out;
-  }
-  chstats = (struct ch_stats*)shm;
-
-
-  // create new device instance
-  try{ dev = new librorc::device(DeviceId); }
-  catch(...)
-  {
-    printf("ERROR: failed to initialize device.\n");
-    goto out;
-  }
-
-  printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
-      dev->getSlot(),dev->getFunc());
-
-  // bind to BAR1
-  #ifdef SIM
-    bar1 = new librorc::sim_bar(dev, 1);
-  #else
-    bar1 = new librorc::rorc_bar(dev, 1);
-  #endif
-  if ( bar1->init() == -1 ) {
-    printf("ERROR: failed to initialize BAR1.\n");
-    goto out;
-  }
-
-  printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
-
-  // check if requested channel is implemented in firmware
-  if ( ChannelId >= (bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff)) {
-    printf("ERROR: Requsted channel %d is not implemented in "
-        "firmware - exiting\n", ChannelId);
-    goto out;
-  }
-
-  // create new DMA event buffer
-  ebuf = new librorc::buffer();
-  if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
-        1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
-    if ( errno == EEXIST ) {
-      if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
-        perror("ERROR: ebuf->connect");
-        goto out;
-      }
-    } else {
-      perror("ERROR: ebuf->allocate");
-      goto out;
+            default:
+            {
+                break;
+            }
+        }
     }
-  }
-  printf("EventBuffer:\n");
-  //dump_sglist(ebuf);
 
-  // create new DMA report buffer
-  rbuf = new librorc::buffer();;
-  if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
-        1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
-    if ( errno == EEXIST ) {
-      //printf("INFO: Buffer already exists, trying to connect...\n");
-      if ( rbuf->connect(dev, 2*ChannelId+1) != 0 ) {
-        perror("ERROR: rbuf->connect");
-        goto out;
-      }
-    } else {
-      perror("ERROR: rbuf->allocate");
-      goto out;
+    /** sanity checks on command line arguments **/
+    if( DeviceId < 0 || DeviceId > 255 )
+    {
+        cout << "DeviceId invalid or not set: " << DeviceId << endl;
+        cout << HELP_TEXT;
+        exit(-1);
     }
-  }
-  printf("ReportBuffer:\n");
-  //dump_sglist(rbuf);
+
+    if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
+    {
+        cout << "ChannelId invalid or not set: " << ChannelId << endl;
+        cout << HELP_TEXT;
+        exit(-1);
+    }
+
+    if( EventSize == 0 )
+    {
+        cout << "EventSize invalid or not set: 0x" << hex
+             << EventSize << endl;
+        cout << HELP_TEXT;
+        exit(-1);
+    }
 
 
-  memset(chstats, 0, sizeof(struct ch_stats));
-  chstats->index = 0;
-  chstats->last_id = -1;
-  chstats->channel = (unsigned int)ChannelId;
+    /** catch CTRL+C for abort */
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = abort_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
 
 
-  // create DMA channel
-  ch = new librorc::dma_channel();
+    /** Shared memory for DMA monitoring */
+    /** Allocate shared mem */
+    int shID =
+        shmget( (SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId),
+                sizeof(struct ch_stats), IPC_CREAT | 0666);
+    if(shID==-1)
+    {
+        perror("shmget");
+        goto out;
+    }
 
-  // bind channel to BAR1
-  ch->init(bar1, ChannelId);
+    /** attach to shared memory */
+    char *shm = (char*)shmat(shID, 0, 0);
+    if (shm==(char*)-1)
+    {
+        perror("shmat");
+        goto out;
+    }
+    struct ch_stats *chstats
+        = (struct ch_stats*)shm;
 
-  // prepare EventBufferDescriptorManager
-  // with scatter-gather list
-  result = ch->prepareEB( ebuf );
-  if (result < 0) {
-    perror("prepareEB()");
-    result = -1;
-    goto out;
-  }
+    /** Wipe SHM */
+    memset(chstats, 0, sizeof(struct ch_stats));
+    chstats->index = 0;
+    chstats->last_id = -1;
+    chstats->channel = (unsigned int)ChannelId;
 
-  // prepare ReportBufferDescriptorManager
-  // with scatter-gather list
-  result = ch->prepareRB( rbuf );
-  if (result < 0) {
-    perror("prepareRB()");
-    result = -1;
-    goto out;
-  }
 
-  // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-  result = ch->configureChannel(ebuf, rbuf, 128);
-  if (result < 0) {
-    perror("configureChannel()");
-    result = -1;
-    goto out;
-  }
+    /** Create new device instance */
+    try{ dev = new librorc::device(DeviceId); }
+    catch(...)
+    {
+        printf("ERROR: failed to initialize device.\n");
+        goto out;
+    }
+
+    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(), dev->getSlot(),dev->getFunc());
+
+    /** bind to BAR1 */
+    #ifdef SIM
+        librorc::bar *bar1 = new librorc::sim_bar(dev, 1);
+    #else
+        librorc::bar *bar1 = new librorc::rorc_bar(dev, 1);
+    #endif
+    if ( bar1->init() == -1 )
+    {
+        printf("ERROR: failed to initialize BAR1.\n");
+        goto out;
+    }
+
+    printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
+
+    /** Check if requested channel is implemented in firmware */
+    if( ChannelId >= (bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    {
+        printf("ERROR: Requsted channel %d is not implemented in "
+               "firmware - exiting\n", ChannelId);
+        goto out;
+    }
+
+    /** Create new DMA event buffer */
+    ebuf = new librorc::buffer();
+    if( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+    {
+        if( errno == EEXIST )
+        {
+            if ( ebuf->connect(dev, 2*ChannelId) != 0 )
+            {
+                perror("ERROR: ebuf->connect");
+                goto out;
+            }
+        }
+        else
+        {
+            perror("ERROR: ebuf->allocate");
+            goto out;
+        }
+    }
+
+    /** Create new DMA report buffer */
+    rbuf = new librorc::buffer();
+    if( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+    {
+        if( errno == EEXIST )
+        {
+            if( rbuf->connect(dev, 2*ChannelId+1) != 0 )
+            {
+                perror("ERROR: rbuf->connect");
+                goto out;
+            }
+        }
+        else
+        {
+            perror("ERROR: rbuf->allocate");
+            goto out;
+        }
+    }
+
+
+    /** Create DMA channel and bind channel to BAR1 */
+    ch = new librorc::dma_channel();
+    ch->init(bar1, ChannelId);
+
+    /** Prepare EventBufferDescriptorManager with scatter-gather list */
+    result = ch->prepareEB( ebuf );
+    if(result < 0)
+    {
+        perror("prepareEB()");
+        result = -1;
+        goto out;
+    }
+
+    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
+    result = ch->prepareRB( rbuf );
+    if(result < 0)
+    {
+        perror("prepareRB()");
+        result = -1;
+        goto out;
+    }
+
+    /** Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
+    result = ch->configureChannel(ebuf, rbuf, 128);
+    if (result < 0)
+    {
+        perror("configureChannel()");
+        result = -1;
+        goto out;
+    }
 
 
   /* clear report buffer */
@@ -436,11 +458,13 @@ int main( int argc, char *argv[])
 
 out:
 
-  if (shm) {
+  if( shm )
+  {
     //free(chstats);
     shmdt(shm);
     shm = NULL;
   }
+
   if (ch)
     delete ch;
   if (ebuf)
