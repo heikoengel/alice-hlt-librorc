@@ -179,9 +179,9 @@ int main( int argc, char *argv[])
     }
 
     // create new DMA event buffer
-    ebuf = new librorc::buffer();
-    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
-                1, LIBRORC_DMA_TO_DEVICE)!=0 ) {
+    ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_TO_DEVICE);
+    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_TO_DEVICE)!=0 )
+    {
         if ( errno == EEXIST ) {
             if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
                 perror("ERROR: ebuf->connect");
@@ -195,9 +195,8 @@ int main( int argc, char *argv[])
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
 
     // create new DMA report buffer
-    rbuf = new librorc::buffer();;
-    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
-                1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
+    rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE);
+    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
         if ( errno == EEXIST ) {
             //printf("INFO: Buffer already exists, trying to connect...\n");
             if ( rbuf->connect(dev, 2*ChannelId+1) != 0 ) {
@@ -292,8 +291,8 @@ int main( int argc, char *argv[])
         }
 
         result = handle_channel_data(
-                rbuf, 
-                ebuf, 
+                rbuf,
+                ebuf,
                 ch, // channe struct
                 chstats, // stats struct
                 0, // do sanity check
@@ -302,7 +301,7 @@ int main( int argc, char *argv[])
 
         if (result<0)
         {
-            printf("handle_channel_data failed for channel %d\n", 
+            printf("handle_channel_data failed for channel %d\n",
                     ChannelId);
         } else if (result==0)
         {
@@ -383,7 +382,7 @@ int main( int argc, char *argv[])
 
 out:
 
-    if (shm) 
+    if (shm)
     {
         shmdt(shm);
         shm = NULL;

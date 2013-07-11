@@ -234,7 +234,7 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    cout << "FirmwareDate: " << setw(8) << hex 
+    cout << "FirmwareDate: " << setw(8) << hex
          << bar1->get(RORC_REG_FIRMWARE_DATE);
     cout << "FirmwareRevision: " << setw(8) << hex
          << bar1->get(RORC_REG_FIRMWARE_REVISION);
@@ -247,9 +247,8 @@ int main( int argc, char *argv[])
     }
 
     // create new DMA event buffer
-    ebuf = new librorc::buffer();
-    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId,
-                1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
+    ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE);
+    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
         if ( errno == EEXIST ) {
             if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
                 perror("ERROR: ebuf->connect");
@@ -264,9 +263,8 @@ int main( int argc, char *argv[])
     //dump_sglist(ebuf);
 
     // create new DMA report buffer
-    rbuf = new librorc::buffer();;
-    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1,
-                1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
+    rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE);
+    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
         if ( errno == EEXIST ) {
             //printf("INFO: Buffer already exists, trying to connect...\n");
             if ( rbuf->connect(dev, 2*ChannelId+1) != 0 ) {

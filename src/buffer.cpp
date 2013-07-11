@@ -26,7 +26,14 @@
 namespace librorc
 {
 
-buffer::buffer()
+buffer::buffer
+(
+    device   *dev,
+    uint64_t  size,
+    uint64_t  id,
+    int32_t   overmap,
+    int32_t   dma_direction
+)
 {
     m_id                           = 0;
     m_dmaDirection                 = 0;
@@ -35,6 +42,18 @@ buffer::buffer()
     m_numberOfScatterGatherEntries = 0;
 }
 
+buffer::buffer
+(
+    device   *dev,
+    uint64_t  id
+)
+{
+    m_id                           = 0;
+    m_dmaDirection                 = 0;
+    m_mem                          = NULL;
+    m_buffer                       = NULL;
+    m_numberOfScatterGatherEntries = 0;
+}
 
 
 buffer::~buffer()
@@ -123,14 +142,6 @@ buffer::allocate
 
 
 int32_t
-buffer::deallocate()
-{
-    return 0;
-}
-
-
-
-int32_t
 buffer::connect
 (
     device   *dev,
@@ -171,5 +182,15 @@ buffer::connect
 
     return 0;
 }
+
+
+
+int32_t
+buffer::deallocate()
+{
+    return 0;
+}
+
+
 
 }

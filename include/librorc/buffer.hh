@@ -73,7 +73,21 @@ namespace librorc
         friend class dma_channel;
 
         public:
-             buffer();
+             buffer
+             (
+                 device   *dev,
+                 uint64_t  size,
+                 uint64_t  id,
+                 int32_t   overmap,
+                 int32_t   dma_direction
+             );
+
+             buffer
+             (
+                 device   *dev,
+                 uint64_t  id
+             );
+
             ~buffer();
 
             /**

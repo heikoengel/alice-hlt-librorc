@@ -522,7 +522,7 @@ sim_bar::sockMonitor()
         }
         else
         {
-            buffer *buf = new buffer();
+            buffer *buf = new buffer(m_parent_dev, buffer_id);
             if( buf->connect(m_parent_dev, buffer_id) )
             {
                 perror("failed to connect to buffer");
@@ -722,7 +722,7 @@ sim_bar::cmplHandler()
          * after each packet
          */
 
-        buffer *buf = new buffer();
+        buffer *buf = new buffer(m_parent_dev, rdreq.buffer_id);
         if( buf->connect(m_parent_dev, rdreq.buffer_id) )
         {
             cout << "Failed to connect to buffer "
