@@ -522,18 +522,23 @@ sim_bar::sockMonitor()
         }
         else
         {
-            buffer *buf = new buffer(m_parent_dev, buffer_id);
-            if( buf->connect(m_parent_dev, buffer_id) )
+            buffer *buf;
+
+            try
+            {
+                buf = new buffer(m_parent_dev, buffer_id);
+            }
+            catch(...)
             {
                 perror("failed to connect to buffer");
+                abort();
             }
-            else
-            {
-                uint32_t *mem = buf->getMem();
-                memcpy(mem+(offset>>2), msg_buffer, msgsize*sizeof(uint32_t));
-                cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
-                     << buffer_id << " offset " << offset << endl;
-            }
+
+            uint32_t *mem = buf->getMem();
+            memcpy(mem+(offset>>2), msg_buffer, msgsize*sizeof(uint32_t));
+            cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
+                 << buffer_id << " offset " << offset << endl;
+
             delete buf;
         }
     }
@@ -721,12 +726,16 @@ sim_bar::cmplHandler()
          * wait for cmpl_done via CMD_CMPL_DONE from sock_monitor
          * after each packet
          */
-
-        buffer *buf = new buffer(m_parent_dev, rdreq.buffer_id);
-        if( buf->connect(m_parent_dev, rdreq.buffer_id) )
+        buffer *buf;
+        try
+        {
+            buf = new buffer(m_parent_dev, rdreq.buffer_id);
+        }
+        catch(...)
         {
             cout << "Failed to connect to buffer "
                  << rdreq.buffer_id << endl;
+            abort();
         }
 
         uint32_t *mem = buf->getMem();

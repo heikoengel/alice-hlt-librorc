@@ -81,28 +81,28 @@ namespace librorc
 
             ~buffer();
 
-            /**
-             * Allocate buffer: This function initiates allocation of an
-             * EventBuffer of [size] bytes with Buffer-ID [id]. The size
-             * of the according ReportBuffer is determined by the driver.
-             * @param dev pointer to parent librorc::device instance
-             * @param size Size of EventBuffer in bytes
-             * @param id Buffer-ID to be used for this buffer. This ID has to
-             *        be unique within all instances of librorc::buffer on a machine.
-             * @param overmap enables overmapping of the physical pages if nonzero
-             * @param dma_direction select from RORCFS_DMA_FROM_DEVICE,
-             *        RORCFS_DMA_TO_DEVICE, RORCFS_DMA_BIDIRECTIONAL
-             * @return 0 on sucess, -1 on error
-             **/
-            int32_t
-            allocate
-            (
-                device   *dev,
-                uint64_t  size,
-                uint64_t  id,
-                int32_t   overmap,
-                int32_t   dma_direction
-            );
+//            /**
+//             * Allocate buffer: This function initiates allocation of an
+//             * EventBuffer of [size] bytes with Buffer-ID [id]. The size
+//             * of the according ReportBuffer is determined by the driver.
+//             * @param dev pointer to parent librorc::device instance
+//             * @param size Size of EventBuffer in bytes
+//             * @param id Buffer-ID to be used for this buffer. This ID has to
+//             *        be unique within all instances of librorc::buffer on a machine.
+//             * @param overmap enables overmapping of the physical pages if nonzero
+//             * @param dma_direction select from RORCFS_DMA_FROM_DEVICE,
+//             *        RORCFS_DMA_TO_DEVICE, RORCFS_DMA_BIDIRECTIONAL
+//             * @return 0 on sucess, -1 on error
+//             **/
+//            int32_t
+//            allocate
+//            (
+//                device   *dev,
+//                uint64_t  size,
+//                uint64_t  id,
+//                int32_t   overmap,
+//                int32_t   dma_direction
+//            );
 
             /**
              * Free Buffer: This functions initiates de-allocation of the
@@ -112,18 +112,18 @@ namespace librorc
             int32_t
             deallocate();
 
-            /**
-             * Connect to an existing buffer
-             * @param dev parent librorc::device
-             * @param id buffer ID of exisiting buffer
-             * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
-             **/
-            int32_t
-            connect
-            (
-                device *dev,
-                uint64_t  id
-            );
+//            /**
+//             * Connect to an existing buffer
+//             * @param dev parent librorc::device
+//             * @param id buffer ID of exisiting buffer
+//             * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
+//             **/
+//            int32_t
+//            connect
+//            (
+//                device *dev,
+//                uint64_t  id
+//            );
 
             /**
              * get Buffer-ID
