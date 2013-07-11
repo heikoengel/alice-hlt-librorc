@@ -241,9 +241,12 @@ int main( int argc, char *argv[])
 
 
     /** Create new DMA event buffer */
-    librorc::buffer *ebuf =
-        new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE);
-    if( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+    librorc::buffer *ebuf;
+    try
+    {
+        ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE);
+    }
+    catch(...)
     {
         perror("ERROR: ebuf->allocate");
         abort();
@@ -251,9 +254,12 @@ int main( int argc, char *argv[])
 
 
     /** Create new DMA report buffer */
-    librorc::buffer *rbuf =
-        new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE);
-    if( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 )
+    librorc::buffer *rbuf;
+    try
+    {
+        rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE);
+    }
+    catch(...)
     {
         perror("ERROR: rbuf->allocate");
         abort();
