@@ -246,11 +246,11 @@ int main( int argc, char *argv[])
     {
         if( errno == EEXIST )
         {
-            if ( ebuf->connect(dev, 2*ChannelId) != 0 )
-            {
-                perror("ERROR: ebuf->connect");
-                abort();
-            }
+//            if ( ebuf->connect(dev, 2*ChannelId) != 0 )
+//            {
+//                perror("ERROR: ebuf->connect");
+//                abort();
+//            }
         }
         else
         {
@@ -266,11 +266,11 @@ int main( int argc, char *argv[])
     {
         if( errno == EEXIST )
         {
-            if( rbuf->connect(dev, 2*ChannelId+1) != 0 )
-            {
-                perror("ERROR: rbuf->connect");
-                abort();
-            }
+//            if( rbuf->connect(dev, 2*ChannelId+1) != 0 )
+//            {
+//                perror("ERROR: rbuf->connect");
+//                abort();
+//            }
         }
         else
         {
@@ -482,26 +482,5 @@ int main( int argc, char *argv[])
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
 
-out:
-
-//  if( shm )
-//  {
-//    //free(chstats);
-//    shmdt(shm);
-//    shm = NULL;
-//  }
-//
-//  if (ch)
-//    delete ch;
-//  if (ebuf)
-//    delete ebuf;
-//  if (rbuf)
-//    delete rbuf;
-//
-//  if (bar1)
-//    delete bar1;
-//  if (dev)
-//    delete dev;
-
-  return result;
+    return result;
 }
