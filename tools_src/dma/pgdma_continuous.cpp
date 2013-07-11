@@ -376,7 +376,7 @@ int main( int argc, char *argv[])
         if( result < 0 )
         {
             printf("handle_channel_data failed for channel %d\n", ChannelId);
-            goto out;
+            abort();
         }
         else if( result==0 )
         {
