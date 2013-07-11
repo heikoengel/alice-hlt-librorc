@@ -26,6 +26,8 @@
 namespace librorc
 {
 
+
+
 buffer::buffer
 (
     device   *dev,
@@ -35,12 +37,49 @@ buffer::buffer
     int32_t   dma_direction
 )
 {
-    m_id                           = 0;
-    m_dmaDirection                 = 0;
+
+    m_dmaDirection                 = dma_direction;
+    m_size                         = size;
+
+    m_sglist                       = NULL;
     m_mem                          = NULL;
-    m_buffer                       = NULL;
+    m_id                           = -1;
     m_numberOfScatterGatherEntries = 0;
+
+    //TODO: convert direction specifier
+    m_buffer = NULL;
+    if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
+    {
+	cout << "reallocate : " << size << endl;
+        if
+        (
+            PDA_SUCCESS !=
+                PciDevice_allocDMABuffer
+                    (m_device, size, PDABUFFER_DIRECTION_BI, &m_buffer)
+        )
+        {
+            cout << "DMA Buffer allocation failed!" << endl;
+            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        }
+    }
+
+    /** Wrap map if wanted */
+    if(overmap == 1)
+    {
+        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+        {
+            cout << "Wrap mapping failed!" << endl;
+            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        }
+    }
+
+//    if( buffer(dev, id) != 0 )
+//    {
+//        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+//    }
 }
+
+
 
 buffer::buffer
 (
@@ -48,12 +87,33 @@ buffer::buffer
     uint64_t  id
 )
 {
-    m_id                           = 0;
-    m_dmaDirection                 = 0;
-    m_mem                          = NULL;
-    m_buffer                       = NULL;
-    m_numberOfScatterGatherEntries = 0;
+    m_device = dev->getPdaPciDevice();
+    m_id     = id;
+
+    if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
+    {
+        cout << "Buffer lookup failed!" << endl;
+        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+    }
+
+    if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
+    {
+        cout << "Mapping failed!" << endl;
+        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+    }
+
+    if(DMABuffer_getSGList(m_buffer, &m_sglist)!=PDA_SUCCESS)
+    {
+        cout << "SG list lookup failed!" << endl;
+        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+    }
+
+    for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
+    {
+        m_numberOfScatterGatherEntries++;
+    }
 }
+
 
 
 buffer::~buffer()
@@ -99,44 +159,7 @@ buffer::allocate
     int32_t   dma_direction
 )
 {
-    m_device =
-        dev->getPdaPciDevice();
-
-    cout << "buffer id : " << id << endl;
-
-    //TODO: convert direction specifier
-
-    m_buffer = NULL;
-    if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
-    {
-	cout << "reallocate : " << size << endl;
-        if
-        (
-            PDA_SUCCESS !=
-                PciDevice_allocDMABuffer
-                    (m_device, size, PDABUFFER_DIRECTION_BI, &m_buffer)
-        )
-        {
-            cout << "DMA Buffer allocation failed!" << endl;
-            return -1;
-        }
-    }
-
-    /** Wrap map if wanted */
-    if(overmap == 1)
-    {
-        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
-        {
-            cout << "Wrap mapping failed!" << endl;
-            return(-1);
-        }
-    }
-
-    m_dmaDirection = dma_direction;
-    m_id           = id;
-    m_size         = size;
-
-    return connect(dev, id);
+    return 0;
 }
 
 
@@ -149,37 +172,6 @@ buffer::connect
 )
 
 {
-    /**
-     * Check if m_buffer has been set before by allocate(),
-     * else lookup buffer by dev and id
-     **/
-    if ( !m_buffer )
-    {
-        if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
-        {
-            cout << "Buffer lookup failed!" << endl;
-            return -1;
-        }
-    }
-
-    if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
-    {
-        cout << "Mapping failed!" << endl;
-        return -1;
-    }
-
-    DMABuffer_SGNode *sglist;
-    if(DMABuffer_getSGList(m_buffer, &sglist)!=PDA_SUCCESS)
-    {
-        cout << "SG list lookup failed!" << endl;
-        return -1;
-    }
-
-    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
-    {
-        m_numberOfScatterGatherEntries++;
-    }
-
     return 0;
 }
 

@@ -23,6 +23,8 @@
 #include "librorc/include_ext.hh"
 #include "librorc/device.hh"
 
+#define LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED  1
+
 //TODO: put this into an enum!
 #define LIBRORC_DMA_FROM_DEVICE   2
 #define LIBRORC_DMA_TO_DEVICE     1
@@ -43,20 +45,9 @@ librorc_event_descriptor
 };
 #endif
 
-//#if DMA_MODE==128
-//struct librorc_event_descriptor
-//{
-//    uint64_t offset;
-//    uint64_t length;
-//    uint32_t reported_event_size;
-//    uint32_t calc_event_size;
-//    uint64_t dummy; /** do not use! */
-//};
-//#endif
-
-
-typedef struct PciDevice_struct PciDevice;
-typedef struct DMABuffer_struct DMABuffer;
+typedef struct PciDevice_struct        PciDevice;
+typedef struct DMABuffer_struct        DMABuffer;
+typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
 /**
  * @class librorc::buffer
@@ -207,14 +198,15 @@ namespace librorc
 
         private:
 
-            PciDevice *m_device;
-            DMABuffer *m_buffer;
+            PciDevice        *m_device;
+            DMABuffer        *m_buffer;
+            DMABuffer_SGNode *m_sglist;
 
-            uint32_t  *m_mem;
-            uint64_t   m_id;
-            int32_t    m_dmaDirection;
-            uint64_t   m_numberOfScatterGatherEntries;
-            uint64_t   m_size;
+            uint32_t         *m_mem;
+            uint64_t          m_id;
+            int32_t           m_dmaDirection;
+            uint64_t          m_numberOfScatterGatherEntries;
+            uint64_t          m_size;
 
             pthread_mutex_t  m_mtx;
 
