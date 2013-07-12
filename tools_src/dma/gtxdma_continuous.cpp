@@ -240,7 +240,8 @@ int main( int argc, char *argv[])
          << bar1->get(RORC_REG_FIRMWARE_REVISION);
 
     // check if requested channel is implemented in firmware
-    if ( ChannelId >= (bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff)) {
+    if ( ChannelId >= (int32_t)(bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    {
         printf("ERROR: Requsted channel %d is not implemented in "
                 "firmware - exiting\n", ChannelId);
         goto out;
