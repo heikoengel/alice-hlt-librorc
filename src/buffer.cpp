@@ -130,11 +130,9 @@ buffer::connect
 
     for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
     {
-        librorc_sg_entry entry =
-        {
-            .pointer = (uint64_t)sg->d_pointer,
-            .length  = sg->length
-        };
+        librorc_sg_entry entry;
+        entry.pointer = (uint64_t)sg->d_pointer,
+        entry.length  = sg->length;
         m_sglist_vector.push_back(entry);
     }
 }
