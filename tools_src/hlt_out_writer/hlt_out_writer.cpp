@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <sys/shm.h>
+#include <getopt.h>
 
 #include <librorc.h>
 #include <event_handling.h>
@@ -36,6 +37,13 @@
 
 using namespace std;
 
+#define HELP_TEXT "hlt_out_writer usage: \n\
+        hlt_out_writer [parameters] \n\
+parameters: \n\
+        --device [0..255] Destination device ID \n\
+        --channel [0..11] Destination DMA channel \n\
+        --size [value]    Event Size in DWs \n\
+        --help            Show this text \n"
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
@@ -65,11 +73,7 @@ void abort_handler( int s )
 }
 
 
-/**
- * Command line arguments
- * argv[1]: Channel Number
- * argv[2]: Event Fragment Size
- * */
+
 int main( int argc, char *argv[])
 {
     int result = 0;
@@ -84,10 +88,87 @@ int main( int argc, char *argv[])
     timeval last_time, cur_time;
     unsigned long last_bytes_received;
     unsigned long last_events_received;
-    uint64_t EventSize;
-    uint32_t ChannelId;
     uint64_t ebuf_fill_state;
     uint64_t nevents;
+    uint32_t type_channels;
+
+    /** command line arguments */
+    // TODO : this is bad because it fails if the struct changes
+    static struct option long_options[] =
+    {
+        {"device", required_argument, 0, 'd'},
+        {"channel", required_argument, 0, 'c'},
+        {"size", required_argument, 0, 's'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
+
+    /** parse command line arguments **/
+    int32_t  DeviceId  = -1;
+    int32_t  ChannelId = -1;
+    uint32_t EventSize = 0;
+    while(1)
+    {
+        int opt = getopt_long(argc, argv, "", long_options, NULL);
+        if ( opt == -1 )
+        { break; }
+
+        switch(opt)
+        {
+            case 'd':
+            {
+                DeviceId = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'c':
+            {
+                ChannelId = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 's':
+            {
+                EventSize = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'h':
+            {
+                cout << HELP_TEXT;
+                exit(0);
+            }
+            break;
+
+            default:
+            {
+                break;
+            }
+        }
+    }
+
+    /** sanity checks on command line arguments **/
+    if( DeviceId < 0 || DeviceId > 255 )
+    {
+        cout << "DeviceId invalid or not set: " << DeviceId << endl;
+        cout << HELP_TEXT;
+        exit(-1);
+    }
+
+    if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
+    {
+        cout << "ChannelId invalid or not set: " << ChannelId << endl;
+        cout << HELP_TEXT;
+        exit(-1);
+    }
+
+    if( EventSize == 0 )
+    {
+        cout << "EventSize invalid or not set: 0x" << hex
+             << EventSize << endl;
+        cout << HELP_TEXT;
+        exit(-1);
+    }
 
 
     // catch CTRL+C for abort
@@ -101,38 +182,8 @@ int main( int argc, char *argv[])
     struct ch_stats *chstats = NULL;
     char *shm = NULL;
 
-
-    // charg argument count
-    if (argc!=3 ) {
-        printf("wrong argument count %d\n"
-                "usage: %s [ChannelId] [EventSize]\n"
-                "where [EventSize] is specified as number of DWs "
-                "and has to be >=8 DWs\n",
-                argc, argv[0]);
-        result = -1;
-        exit(-1);
-    }
-
-    // get ChannelID
-    ChannelId= strtoul(argv[1], NULL, 0);
-    if ( errno || ChannelId>MAX_CHANNEL) {
-        perror("illegal ChannelId");
-        result = -1;
-        exit(-1);
-    }
-
-    // get EventSize
-    EventSize = strtoul(argv[2], NULL, 0);
-    if ((errno == ERANGE && EventSize == ULONG_MAX)
-            || (errno != 0 && EventSize== 0)
-            || EventSize<8 ) {
-        perror("illegal EventSize");
-        result = -1;
-        exit(-1);
-    }
-
     //allocate shared mem
-    shID = shmget(SHM_KEY_OFFSET + ChannelId,
+    shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
             sizeof(struct ch_stats), IPC_CREAT | 0666);
     if(shID==-1) {
         perror("shmget");
@@ -148,7 +199,7 @@ int main( int argc, char *argv[])
 
 
     // create new device instance
-    try{ dev = new librorc::device(0); }
+    try{ dev = new librorc::device(DeviceId); }
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
@@ -171,10 +222,19 @@ int main( int argc, char *argv[])
 
     printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
 
+    type_channels = bar1->get(RORC_REG_TYPE_CHANNELS);
+
     // check if requested channel is implemented in firmware
-    if ( ChannelId >= (bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff)) {
+    if ( ChannelId >= (int32_t)(type_channels & 0xffff)) {
         printf("ERROR: Requsted channel %d is not implemented in "
                 "firmware - exiting\n", ChannelId);
+        goto out;
+    }
+
+    // check if firmware is HLT_OUT
+    if ( (type_channels>>16) != 1 )
+    {
+        cout << "Firmware is not HLT_OUT - exiting." << endl;
         goto out;
     }
 
