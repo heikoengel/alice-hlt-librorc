@@ -112,19 +112,6 @@ namespace librorc
             int32_t
             deallocate();
 
-//            /**
-//             * Connect to an existing buffer
-//             * @param dev parent librorc::device
-//             * @param id buffer ID of exisiting buffer
-//             * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
-//             **/
-//            int32_t
-//            connect
-//            (
-//                device *dev,
-//                uint64_t  id
-//            );
-
             /**
              * get Buffer-ID
              * @return Buffer-ID
@@ -215,6 +202,20 @@ namespace librorc
             {
                 return m_buffer;
             }
+
+            /**
+             * Connect to an existing buffer
+             * @param dev parent librorc::device
+             * @param id buffer ID of exisiting buffer
+             * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
+             **/
+            void
+            connect
+            (
+                device   *dev,
+                uint64_t  id
+            );
+
 
     };
 }

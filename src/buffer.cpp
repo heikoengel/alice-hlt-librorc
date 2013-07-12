@@ -68,7 +68,7 @@ buffer::buffer
     }
 
 
-    buffer(dev, id);
+    connect(dev, id);
 }
 
 
@@ -78,6 +78,19 @@ buffer::buffer
     device   *dev,
     uint64_t  id
 )
+{
+    connect(dev, id);
+}
+
+
+
+void
+buffer::connect
+(
+    device   *dev,
+    uint64_t  id
+)
+
 {
     m_size                         = 0;
     m_sglist                       = NULL;
