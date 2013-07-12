@@ -99,7 +99,7 @@ buffer::buffer
     if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
         cout << "Failed to get buffer size!" << endl;
-        return -1;
+        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
