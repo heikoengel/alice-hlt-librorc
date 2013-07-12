@@ -3,8 +3,14 @@ add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 
 # Build DMA buffer allocator
-add_executable( crorc_preallocator ${LIBRORC_SOURCE_DIR}/tools_src/crorc_preallocator/crorc_preallocator.cpp)
+add_executable( crorc_preallocator
+  ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/crorc_preallocator.cpp)
 target_link_libraries( crorc_preallocator rorc pthread ${EXTRA_LIBS})
+
+# Build DMA buffer stat tool
+add_executable( bufferstats
+  ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/bufferstats.cpp)
+target_link_libraries( bufferstats rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test with pattern generator
 add_executable( pgdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp)

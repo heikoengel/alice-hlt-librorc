@@ -87,11 +87,22 @@ buffer::buffer
     m_device = dev->getPdaPciDevice();
     m_id     = id;
 
+    /** Lookup buffer by dev and id **/
     if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
     {
         cout << "Buffer lookup failed!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
+
+    /** get buffer size **/
+    if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
+    {
+        cout << "Failed to get buffer size!" << endl;
+        return -1;
+    }
+
+    /** set m_id **/
+    m_id = id;
 
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     {
