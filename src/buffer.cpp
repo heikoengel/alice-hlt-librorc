@@ -26,52 +26,6 @@
 namespace librorc
 {
 
-<<<<<<< HEAD
-=======
-buffer::buffer()
-{
-    m_id                           = 0;
-    m_dmaDirection                 = 0;
-    m_mem                          = NULL;
-    m_buffer                       = NULL;
-    m_numberOfScatterGatherEntries = 0;
-    m_size                         = 0;
-}
-
-
-
-buffer::~buffer()
-{
-
-}
-
-
-
-int32_t
-buffer::isOvermapped()
-{
-    void *map_two = NULL;
-
-    if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
-    {
-        if(map_two != NULL)
-        {
-            return 1;
-        }
-    }
-
-    return 0;
-}
-
-
-
-uint64_t
-buffer::getSize()
-{
-    return m_size;
-}
-
->>>>>>> 58ae16a97ecc0cc8fc416bac28a83343a8c3da1c
 
 
 buffer::buffer
@@ -119,13 +73,8 @@ buffer::buffer
         }
     }
 
-<<<<<<< HEAD
-    buffer(dev, id);
-=======
-    m_dmaDirection = dma_direction;
 
-    return connect(dev, id);
->>>>>>> 58ae16a97ecc0cc8fc416bac28a83343a8c3da1c
+    buffer(dev, id);
 }
 
 
@@ -136,17 +85,13 @@ buffer::buffer
     uint64_t  id
 )
 {
-<<<<<<< HEAD
     m_device = dev->getPdaPciDevice();
     m_id     = id;
 
-=======
->>>>>>> 58ae16a97ecc0cc8fc416bac28a83343a8c3da1c
     /** Lookup buffer by dev and id **/
     if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
     {
         cout << "Buffer lookup failed!" << endl;
-<<<<<<< HEAD
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
@@ -156,21 +101,6 @@ buffer::buffer
         cout << "Failed to get buffer size!" << endl;
         return -1;
     }
-
-=======
-        return -1;
-    }
-
-    /** get buffer size **/
-    if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
-    {
-        cout << "Failed to get buffer size!" << endl;
-        return -1;
-    }
-
->>>>>>> 58ae16a97ecc0cc8fc416bac28a83343a8c3da1c
-    /** set m_id **/
-    m_id = id;
 
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     {
