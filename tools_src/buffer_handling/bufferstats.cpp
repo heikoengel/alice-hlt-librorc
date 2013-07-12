@@ -106,14 +106,16 @@ int main( int argc, char *argv[])
 
 
     /** Connect to buffer **/
-    buf = new librorc::buffer();
-    if ( buf->connect(dev, BufferId) != 0 )
+    try
+    {
+        buf = new librorc::buffer(dev, BufferId);
+    }
+    catch(...)
     {
         perror("ERROR: buf->connect");
         delete dev;
         exit(-1);
     }
-
 
     cout << "Device " << DeviceId << ", Buffer " << BufferId << endl;
     cout << "Number of SG Entries: " << buf->getnSGEntries() << endl;
