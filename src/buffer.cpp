@@ -37,14 +37,8 @@ buffer::buffer
     int32_t   dma_direction
 )
 {
-
-    m_dmaDirection                 = dma_direction;
-    m_size                         = size;
-
-    m_sglist                       = NULL;
-    m_mem                          = NULL;
-    m_id                           = -1;
-    m_numberOfScatterGatherEntries = 0;
+    m_dmaDirection = dma_direction;
+    m_device       = dev->getPdaPciDevice();
 
     //TODO: convert direction specifier
     m_buffer = NULL;
@@ -85,8 +79,12 @@ buffer::buffer
     uint64_t  id
 )
 {
-    m_device = dev->getPdaPciDevice();
-    m_id     = id;
+    m_size                         = 0;
+    m_sglist                       = NULL;
+    m_mem                          = NULL;
+    m_id                           = id;
+    m_numberOfScatterGatherEntries = 0;
+    m_device                       = dev->getPdaPciDevice();
 
     /** Lookup buffer by dev and id **/
     if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
