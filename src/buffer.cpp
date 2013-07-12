@@ -166,34 +166,6 @@ buffer::getSize()
 
 
 
-//int32_t
-//buffer::allocate
-//(
-//    device   *dev,
-//    uint64_t  size,
-//    uint64_t  id,
-//    int32_t   overmap,
-//    int32_t   dma_direction
-//)
-//{
-//    return 0;
-//}
-//
-//
-//
-//int32_t
-//buffer::connect
-//(
-//    device   *dev,
-//    uint64_t  id
-//)
-//
-//{
-//    return 0;
-//}
-
-
-
 int32_t
 buffer::deallocate()
 {
