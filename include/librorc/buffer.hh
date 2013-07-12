@@ -45,6 +45,14 @@ librorc_event_descriptor
 };
 #endif
 
+typedef struct
+librorc_sg_entry_struct
+{
+    uint64_t pointer;
+    uint64_t length;
+}librorc_sg_entry;
+
+
 typedef struct PciDevice_struct        PciDevice;
 typedef struct DMABuffer_struct        DMABuffer;
 typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
@@ -166,13 +174,15 @@ namespace librorc
             DMABuffer        *m_buffer;
             DMABuffer_SGNode *m_sglist;
 
+            vector<librorc_sg_entry> m_sglist_vector;
+
             uint32_t         *m_mem;
             uint64_t          m_id;
             int32_t           m_dmaDirection;
             uint64_t          m_numberOfScatterGatherEntries;
             uint64_t          m_size;
 
-            pthread_mutex_t  m_mtx;
+            pthread_mutex_t   m_mtx;
 
             DMABuffer*
             getPDABuffer()

@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
+#include <vector>
 
 #ifndef MODELSIM_SERVER
     #define MODELSIM_SERVER "localhost"
