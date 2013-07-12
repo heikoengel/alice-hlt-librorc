@@ -11,6 +11,8 @@ namespace librorc
     {
     public:
 
+    virtual ~bar() {}
+
     /**
      * read DWORD from BAR address
      * @param addr (unsigned int) aligned address within the

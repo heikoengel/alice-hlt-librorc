@@ -117,11 +117,9 @@ alloc_channel
     }
 
     /** create a new DMA event buffer */
+    librorc::buffer *ebuf;
     try
-    {
-        librorc::buffer *ebuf
-            = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE);
-    }
+    { ebuf = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
@@ -129,16 +127,17 @@ alloc_channel
     }
 
     /** create new DMA report buffer */
+    librorc::buffer *rbuf;
     try
-    {
-        librorc::buffer *rbuf
-            = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE);
-    }
+    { rbuf = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: rbuf->allocate");
         abort();
     }
+
+    delete ebuf;
+    delete rbuf;
 
     return 0;
 }

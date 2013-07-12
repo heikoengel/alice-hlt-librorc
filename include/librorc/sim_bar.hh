@@ -82,6 +82,7 @@ namespace librorc
             /**
              * Deconstructor: free fname, unmap BAR, close file
              */
+             virtual
             ~sim_bar();
 
             /**

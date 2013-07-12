@@ -37,7 +37,6 @@ sim_bar::sim_bar
     device  *dev,
     int32_t  n
 )
-
 {
     m_parent_dev = dev;
     m_number     = n;
