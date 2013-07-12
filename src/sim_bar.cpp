@@ -743,15 +743,14 @@ sim_bar::cmplHandler()
         while ( rdreq.length )
         {
             uint32_t length     = 0;
-            uint32_t byte_count = 0;
+            uint32_t byte_count = rdreq.length;
+
             if( rdreq.length>MAX_PAYLOAD )
             {
-                byte_count = rdreq.length - MAX_PAYLOAD;
                 length = MAX_PAYLOAD;
             }
             else
             {
-                byte_count = 0;
                 length = rdreq.length;
             }
 
