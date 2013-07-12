@@ -157,6 +157,12 @@ namespace librorc
                 return m_numberOfScatterGatherEntries;
             }
 
+            vector<librorc_sg_entry>
+            sgList()
+            {
+                return m_sglist_vector;
+            }
+
             /**
              * Get the maximum number of report buffer entries in the RB
              * @return maximum number of report buffer entries
