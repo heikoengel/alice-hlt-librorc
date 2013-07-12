@@ -92,39 +92,37 @@ buffer::connect
 )
 
 {
-    m_size                         = 0;
-    m_sglist                       = NULL;
-    m_mem                          = NULL;
     m_id                           = id;
-    m_numberOfScatterGatherEntries = 0;
     m_device                       = dev->getPdaPciDevice();
 
-    /** Lookup buffer by dev and id **/
     if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
     {
         cout << "Buffer lookup failed!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
-    /** get buffer size **/
+    m_size = 0;
     if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
         cout << "Failed to get buffer size!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
+    m_mem = NULL;
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     {
         cout << "Mapping failed!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
+    m_sglist = NULL;
     if(DMABuffer_getSGList(m_buffer, &m_sglist)!=PDA_SUCCESS)
     {
         cout << "SG list lookup failed!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
+    m_numberOfScatterGatherEntries = 0;
     for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
     {
         m_numberOfScatterGatherEntries++;
