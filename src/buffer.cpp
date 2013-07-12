@@ -33,6 +33,7 @@ buffer::buffer()
     m_mem                          = NULL;
     m_buffer                       = NULL;
     m_numberOfScatterGatherEntries = 0;
+    m_size                         = 0;
 }
 
 
@@ -114,8 +115,6 @@ buffer::allocate
     }
 
     m_dmaDirection = dma_direction;
-    m_id           = id;
-    m_size         = size;
 
     return connect(dev, id);
 }
@@ -138,18 +137,22 @@ buffer::connect
 )
 
 {
-    /**
-     * Check if m_buffer has been set before by allocate(),
-     * else lookup buffer by dev and id
-     **/
-    if ( !m_buffer )
+    /** Lookup buffer by dev and id **/
+    if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
     {
-        if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
-        {
-            cout << "Buffer lookup failed!" << endl;
-            return -1;
-        }
+        cout << "Buffer lookup failed!" << endl;
+        return -1;
     }
+
+    /** get buffer size **/
+    if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
+    {
+        cout << "Failed to get buffer size!" << endl;
+        return -1;
+    }
+
+    /** set m_id **/
+    m_id = id;
 
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     {

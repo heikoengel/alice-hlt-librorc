@@ -436,7 +436,7 @@ static void sockreader( void *arg )
             set_slv(ip->pWrData[i], tmpvar, 32);
           }
 
-          mti_PrintFormatted("CMD_CMPL_TO_DEVICE, %d DWs\n", msgsize);
+          fli_debug("CMD_CMPL_TO_DEVICE, %d DWs\n", msgsize);
           // send completion request
           mti_ScheduleDriver(ip->cmpl_en, STD_LOGIC_1, 0, MTI_INERTIAL);
 
@@ -581,7 +581,6 @@ static void trn_monitor( void *arg )
               "not comply with #DWs sent (%d)\n", mti_Now(), rx_ndw);
           rx_dvld = 0;
           mti_Free(buffer);
-          fli_debug("free buffer 574\n");
           buffer = NULL;
           buffer_ptr = NULL;
 
@@ -594,7 +593,6 @@ static void trn_monitor( void *arg )
           rx_dvld = 0;
           rx_ndw = 0;
           mti_Free(buffer);
-          fli_debug("free buffer 586\n");
           buffer = NULL;
           buffer_ptr = NULL;
           buffer_size = 0;
@@ -700,7 +698,6 @@ static void trn_monitor( void *arg )
               mti_PrintMessage("ERROR: failed to send "
                   "CMD_READ_FROM_HOST64\n");
             mti_Free(buffer);
-            fli_debug("free buffer 690\n");
             break;
 
           case FMT_MRD32:
@@ -738,7 +735,6 @@ static void trn_monitor( void *arg )
                   "CMD_READ_FROM_HOST32\n");
 
             mti_Free(buffer);
-            fli_debug("free buffer 724\n");
             break;
 
           case FMT_CMPLD:
