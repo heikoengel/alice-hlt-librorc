@@ -238,52 +238,24 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    // create new DMA event buffer
+    /** create new DMA event buffer */
     try
-    {
-        ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_TO_DEVICE);
-    }
+    { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_TO_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
         goto out;
     }
-//    if ( ebuf->allocate(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_TO_DEVICE)!=0 )
-//    {
-//        if ( errno == EEXIST ) {
-//            if ( ebuf->connect(dev, 2*ChannelId) != 0 ) {
-//                perror("ERROR: ebuf->connect");
-//                goto out;
-//            }
-//        } else {
-//            perror("ERROR: ebuf->allocate");
-//            goto out;
-//        }
-//    }
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
 
-    // create new DMA report buffer
+    /** create new DMA report buffer */
     try
-    {
-        rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE);
-    }
+    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: rbuf->allocate");
         goto out;
     }
-//    if ( rbuf->allocate(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE)!=0 ) {
-//        if ( errno == EEXIST ) {
-//            //printf("INFO: Buffer already exists, trying to connect...\n");
-//            if ( rbuf->connect(dev, 2*ChannelId+1) != 0 ) {
-//                perror("ERROR: rbuf->connect");
-//                goto out;
-//            }
-//        } else {
-//            perror("ERROR: rbuf->allocate");
-//            goto out;
-//        }
-//    }
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
 
