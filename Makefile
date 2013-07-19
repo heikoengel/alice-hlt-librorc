@@ -7,3 +7,5 @@ $(TARGETS):
 
 clean:
 	$(RM) -r build
+
+#test
