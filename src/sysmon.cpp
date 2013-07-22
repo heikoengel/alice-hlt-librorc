@@ -16,6 +16,9 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
+ * TODO/Note: i2c_reset, i2c_read_mem and i2c_write_mem shall not be
+ * called from parallel processes. This may result in deadlocks or
+ * data corruption.
  * */
 
 #include <librorc/sysmon.hh>
@@ -24,274 +27,277 @@ namespace librorc
 {
 
 
-sysmon::sysmon
-(
-    bar *parent_bar
-)
-{
-	m_bar = NULL;
-    if( !parent_bar )
-	{
-		throw LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED;
-	}
-
-    m_bar = parent_bar;
-}
-
-
-
-sysmon::~sysmon()
-{
-	m_bar = NULL;
-}
-
-
-
-/** Firmware ******************************************************/
-
-
-
-uint32_t
-sysmon::FwRevision()
-{
-	uint32_t firmware_revision
-        = m_bar->get(RORC_REG_FIRMWARE_REVISION);
-
-	if(firmware_revision == 0xffffffff)
+    sysmon::sysmon
+    (
+         bar *parent_bar
+    )
     {
-        throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
+        m_bar = NULL;
+        if( !parent_bar )
+        {
+            throw LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED;
+        }
+
+        m_bar = parent_bar;
     }
 
-	return firmware_revision;
-}
 
 
-
-uint32_t
-sysmon::FwBuildDate()
-{
-    uint32_t date
-        = m_bar->get(RORC_REG_FIRMWARE_DATE);
-
-	if(date == 0xffffffff)
+    sysmon::~sysmon()
     {
-        throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
+        m_bar = NULL;
     }
 
-	return date;
-}
+
+
+    /** Firmware ******************************************************/
 
 
 
-/** PCI ***********************************************************/
-
-
-
-uint32_t
-sysmon::pcieNumberOfLanes()
-{
-    uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
-    return(1<<(status>>3 & 0x3));
-}
-
-
-
-uint32_t
-sysmon::pcieGeneration()
-{
-    uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
-    return(1<<(status>>5 & 0x01));
-}
-
-
-
-/** SYSTEM Monitoring *********************************************/
-
-
-
-double
-sysmon::FPGATemperature()
-{
-	uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
-	return (double)(value*503.975/1024.0 - 273.15);
-}
-
-
-
-double
-sysmon::VCCINT()
-{
-	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
-	return (double)(value/1024.0 * 3.0);
-}
-
-
-
-double
-sysmon::VCCAUX()
-{
-	uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
-	return (double)(value/1024.0 * 3.0);
-}
-
-
-
-//void librorc_sysmon::setIcapDin ( uint32_t dword )
-//{
-//	bar->set(RORC_REG_ICAP_DIN, dword);
-//}
-
-
-
-//void librorc_sysmon::setIcapDinReorder ( uint32_t )
-//{
-//	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
-//}
-
-
-
-bool
-sysmon::systemClockIsRunning()
-{
-    uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
-    if( ((ddrctrl>>3)&1) == 1 )
-    { return true; }
-    else
-    { return false; }
-}
-
-
-
-bool
-sysmon::systemFanIsEnabled()
-{
-    uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
-    if ( !(fanctrl & (1<<31)) )
-    { return false; }
-    else
-    { return true; }
-}
-
-
-
-bool
-sysmon::systemFanIsRunning()
-{
-    uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
-    if( !(fanctrl & (1<<29)) )
-    { return false; }
-    else
-    { return true; }
-}
-
-
-
-double
-sysmon::systemFanSpeed()
-{
-    uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
-    return 15/((fanctrl & 0x1fffffff)*0.000000004);
-}
-
-
-
-/** QSFP Monitoring ***********************************************/
-
-
-
-bool
-sysmon::qsfpIsPresent
-(
-    uint32_t index
-)
-{
-    uint32_t qsfp_ctrl = m_bar->get(RORC_REG_QSFP_CTRL);
-
-    if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
+    uint32_t
+    sysmon::FwRevision()
     {
-        return true;
+        uint32_t firmware_revision
+            = m_bar->get(RORC_REG_FIRMWARE_REVISION);
+
+        if(firmware_revision == 0xffffffff)
+        {
+            throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
+        }
+
+        return firmware_revision;
     }
 
-    return false;
-}
 
 
-
-bool
-sysmon::qsfpLEDIsOn
-(
-    uint32_t qsfp_index,
-    uint32_t LED_index
-)
-{
-    uint32_t qsfp_ctrl = m_bar->get(RORC_REG_QSFP_CTRL);
-
-    if( ((~qsfp_ctrl)>>(8*qsfp_index+LED_index) & 0x01) == 1 )
+    uint32_t
+    sysmon::FwBuildDate()
     {
-        return true;
+        uint32_t date
+            = m_bar->get(RORC_REG_FIRMWARE_DATE);
+
+        if(date == 0xffffffff)
+        {
+            throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
+        }
+
+        return date;
     }
 
-    return false;
-}
+
+
+    /** PCI ***********************************************************/
 
 
 
-string*
-sysmon::qsfpVendorName
-(
-    uint32_t index
-)
-{
-    qsfp_set_page0_and_config(index);
-    return( qsfp_i2c_string_readout(148, 163) );
-}
+    uint32_t
+    sysmon::pcieNumberOfLanes()
+    {
+        uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
+        return(1<<(status>>3 & 0x3));
+    }
 
 
 
-string*
-sysmon::qsfpPartNumber
-(
-    uint32_t index
-)
-{
-    qsfp_set_page0_and_config(index);
-    return( qsfp_i2c_string_readout(168, 183) );
-}
+    uint32_t
+    sysmon::pcieGeneration()
+    {
+        uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
+        return(1<<(status>>5 & 0x01));
+    }
 
 
 
-float
-sysmon::qsfpTemperature
-(
-    uint32_t index
-)
-{
-    qsfp_set_page0_and_config(index);
-
-    uint8_t data_r;
-    data_r = i2c_read_mem(SLVADDR, 23);
-
-    uint32_t temp = data_r;
-    data_r = i2c_read_mem(SLVADDR, 22);
-
-    temp += ((uint32_t)data_r<<8);
-
-    return ((float)temp/256);
-}
+    /** SYSTEM Monitoring *********************************************/
 
 
 
-/** Protected ***** ***********************************************/
+    double
+    sysmon::FPGATemperature()
+    {
+        uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
+        return (double)(value*503.975/1024.0 - 273.15);
+    }
+
+
+
+    double
+    sysmon::VCCINT()
+    {
+        uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
+        return (double)(value/1024.0 * 3.0);
+    }
+
+
+
+    double
+    sysmon::VCCAUX()
+    {
+        uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
+        return (double)(value/1024.0 * 3.0);
+    }
+
+
+
+    //void librorc_sysmon::setIcapDin ( uint32_t dword )
+    //{
+    //	bar->set(RORC_REG_ICAP_DIN, dword);
+    //}
+
+
+
+    //void librorc_sysmon::setIcapDinReorder ( uint32_t )
+    //{
+    //	bar->set(RORC_REG_ICAP_DIN_REORDER, dword);
+    //}
+
+
+
+    bool
+    sysmon::systemClockIsRunning()
+    {
+        uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
+        if( ((ddrctrl>>3)&1) == 1 )
+        { return true; }
+        else
+        { return false; }
+    }
+
+
+
+    bool
+    sysmon::systemFanIsEnabled()
+    {
+        uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+        if ( !(fanctrl & (1<<31)) )
+        { return false; }
+        else
+        { return true; }
+    }
+
+
+
+    bool
+    sysmon::systemFanIsRunning()
+    {
+        uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+        if( !(fanctrl & (1<<29)) )
+        { return false; }
+        else
+        { return true; }
+    }
+
+
+
+    double
+    sysmon::systemFanSpeed()
+    {
+        uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+        return 15/((fanctrl & 0x1fffffff)*0.000000004);
+    }
+
+
+
+    /** QSFP Monitoring ***********************************************/
+
+
+
+    bool sysmon::qsfpIsPresent
+    (
+        uint8_t index
+    )
+    {
+        uint32_t qsfp_ctrl = m_bar->get(RORC_REG_QSFP_CTRL);
+
+        if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    bool sysmon::qsfpLEDIsOn
+    (
+        uint8_t qsfp_index,
+        uint8_t LED_index
+    )
+    {
+        uint32_t qsfp_ctrl = m_bar->get(RORC_REG_QSFP_CTRL);
+
+        if( ((~qsfp_ctrl)>>(8*qsfp_index+LED_index) & 0x01) == 1 )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    string*
+    sysmon::qsfpVendorName
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+        return( qsfp_i2c_string_readout(index, 148, 163) );
+    }
+
+
+
+    string*
+    sysmon::qsfpPartNumber
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+        return( qsfp_i2c_string_readout(index, 168, 183) );
+    }
+
+
+
+    float
+    sysmon::qsfpTemperature
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+
+        uint8_t data_r;
+        data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, 23);
+
+        uint32_t temp = data_r;
+        data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, 22);
+
+        temp += ((uint32_t)data_r<<8);
+
+        return ((float)temp/256);
+    }
 
 
 
     void
-    sysmon::i2c_reset()
+    sysmon::i2c_reset
+    (
+        uint8_t chain
+    )
     {
-        m_bar->set(RORC_REG_I2C_OPERATION, 0x00040000);
+
+        i2c_module_prepare( chain );
+
+        /** set STO */
+        m_bar->set(RORC_REG_I2C_OPERATION, 0x00400000);
 
         uint32_t status
             = wait_for_tip_to_negate();
+
+        i2c_module_disable();
 
         /** read back not only zeros */
         if ( !(status & 0x00ff0000) )
@@ -305,6 +311,7 @@ sysmon::qsfpTemperature
     uint8_t
     sysmon::i2c_read_mem
     (
+        uint8_t chain,
         uint8_t slvaddr,
         uint8_t memaddr
     )
@@ -312,6 +319,8 @@ sysmon::qsfpTemperature
         /** slave address shifted by one, write bit set */
         uint8_t addr_wr = (slvaddr<<1);
         uint8_t addr_rd = (slvaddr<<1) | 0x01;
+
+        i2c_module_prepare(chain);
 
         /** write addr + write bit to TX register, set STA, set WR */
         m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
@@ -329,6 +338,8 @@ sysmon::qsfpTemperature
         m_bar->set(RORC_REG_I2C_OPERATION, 0x00680000);
         status = wait_for_tip_to_negate();
 
+        i2c_module_disable();
+
         return(status & 0xff);
     }
 
@@ -337,6 +348,7 @@ sysmon::qsfpTemperature
     void
     sysmon::i2c_write_mem
     (
+        uint8_t chain,
         uint8_t slvaddr,
         uint8_t memaddr,
         uint8_t data
@@ -344,6 +356,8 @@ sysmon::qsfpTemperature
     {
         /** slave address shifted by one, write bit set */
         uint8_t addr_wr = (slvaddr<<1);
+
+        i2c_module_prepare(chain);
 
         /** write addr + write bit to TX register, set STA, set WR */
         m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
@@ -354,10 +368,15 @@ sysmon::qsfpTemperature
         check_rxack_is_zero( wait_for_tip_to_negate() );
 
         /** set WR, set ACK=0 (ACK), set STO, set data */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(unsigned int)(data<<8)));
+        m_bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(uint32_t)(data<<8)));
         wait_for_tip_to_negate();
+
+        i2c_module_disable();
     }
 
+
+
+    /** Protected ***** ***********************************************/
 
 
     uint32_t
@@ -397,16 +416,17 @@ sysmon::qsfpTemperature
     string*
     sysmon::qsfp_i2c_string_readout
     (
+        uint8_t index,
         uint8_t start,
         uint8_t end
     )
     {
         string *readout = new string();
-        uint8_t data_r = 0;
+        char data_r = 0;
         for(uint8_t i=start; i<=end; i++)
         {
-            data_r = i2c_read_mem(SLVADDR, i);
-            readout += (char)data_r;
+            data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, i);
+            readout->append(&data_r);
         }
         return readout;
     }
@@ -414,22 +434,62 @@ sysmon::qsfpTemperature
 
 
     void
-    sysmon::qsfp_set_page0_and_config
+    sysmon::qsfp_select_page0
     (
-        uint32_t index
+        uint8_t index
     )
     {
         uint8_t data_r;
 
-        data_r = i2c_read_mem(SLVADDR, 127);
+        /** get current page **/
+        data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, 127);
 
         if( data_r!=0 )
         {
-            i2c_write_mem(SLVADDR, 127, 0);
+            /** set to page 0 **/
+            i2c_write_mem(index, QSFP_I2C_SLVADDR, 127, 0);
         }
 
-        i2c_set_config( 0x01f30081 | ((1<<index)<<8) );
     }
 
+    void
+    sysmon::i2c_module_prepare
+    (
+         uint8_t chain
+    )
+    {
+
+        /** Chain mapping:
+         * 0: QSFP0
+         * 1: QSFP1
+         * 2: QSFP2
+         * 3: DDR3
+         * 4: RefClkGen
+         * 5: FMC
+         * */
+
+        if ( chain > 5 )
+        {
+            throw LIBRORC_SYSMON_ERROR_I2C_INVALID_CHAIN;
+        }
+
+        uint8_t chain_select = (1<<chain);
+
+        /** prescaler values:
+         * 0x01f3: 100 kHz
+         * 0x007c: 400 kHz
+         * */
+        i2c_set_config(
+                (0x01f3<<16) | /** set prescaler to 100kHz **/
+                (chain_select<<8) |   /** target chain **/
+                0x81 );        /** core_en, core_rst_n **/
+    }
+
+    void
+    sysmon::i2c_module_disable()
+    {
+        /** deselect chain, disable core, enable rst_n */
+        i2c_set_config(0);
+    }
 
 }

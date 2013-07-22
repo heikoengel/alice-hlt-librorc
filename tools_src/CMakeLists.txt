@@ -2,6 +2,10 @@
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 
+# Build i2c
+add_executable( i2c ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/i2c.cpp)
+target_link_libraries( i2c rorc pthread ${EXTRA_LIBS})
+
 # Build DMA buffer allocator
 add_executable( crorc_preallocator
   ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/crorc_preallocator.cpp)
