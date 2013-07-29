@@ -193,7 +193,8 @@ int main
 
                 case 's':
                 {
-                    delete flash_status(init_flash(options));
+                    librorc::flash *flash = init_flash(options);
+                    delete flash_status(flash);
                     return 0;
                 }
                 break;
@@ -552,30 +553,38 @@ librorc::flash*
 flash_status
 (
     librorc::flash *flash
-)
+    )
 {
     flash->clearStatusRegister(0);
     uint16_t flashstatus = flash->getStatusRegister(0);
 
-    cout << "Status               : " << hex
-         << setw(4) << flashstatus << endl;
-    dump_flash_status(flash);
+    if ( flashstatus != 0x80 )
+    {
+        dump_flash_status(flash);
+    }
+    else
+    {
 
-    cout << "Manufacturer Code    : "    << hex << setw(4)
-         << flash->getManufacturerCode() << endl;
-    dump_flash_status(flash);
+        cout << "Status               : " << hex
+             << setw(4) << flashstatus << endl;
+        dump_flash_status(flash);
 
-    cout << "Device ID            : " << hex << setw(4)
-         << flash->getDeviceID() << endl;
-    dump_flash_status(flash);
+        cout << "Manufacturer Code    : "    << hex << setw(4)
+             << flash->getManufacturerCode() << endl;
+        dump_flash_status(flash);
 
-    cout << "Read Config Register : " << hex << setw(4)
-         << flash->getReadConfigurationRegister() << endl;
-    dump_flash_status(flash);
+        cout << "Device ID            : " << hex << setw(4)
+             << flash->getDeviceID() << endl;
+        dump_flash_status(flash);
 
-    cout << "Unique Device Number : " << hex
-         << flash->getUniqueDeviceNumber() << endl;
-    dump_flash_status(flash);
+        cout << "Read Config Register : " << hex << setw(4)
+             << flash->getReadConfigurationRegister() << endl;
+        dump_flash_status(flash);
+
+        cout << "Unique Device Number : " << hex
+             << flash->getUniqueDeviceNumber() << endl;
+        dump_flash_status(flash);
+    }
 
     return flash;
 }
