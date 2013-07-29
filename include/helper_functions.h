@@ -336,7 +336,7 @@ int dump_to_file
   fd_log =  fopen(logname, "w");
   if ( fd_ddl == NULL )
   {
-    perror("failed to open destination LOG file : %s\n", ddlname);
+    printf("failed to open destination LOG file : %s\n", ddlname);
     return -1;
   }
 
