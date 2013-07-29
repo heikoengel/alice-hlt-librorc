@@ -40,3 +40,7 @@ target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
 # Build gtxctrl
 add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
 target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
+
+# Build ucctrl
+add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
+target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
