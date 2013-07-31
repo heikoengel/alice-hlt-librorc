@@ -38,6 +38,16 @@ Parameters: \n\
         -p              Program uC \n\
 "
 
+/**
+ * prescaler defines SCK pulse width as number of FPGA clock cycles.
+ * SCK pulse width has to be >2 uC CPU cycles. uC starts up with
+ * 1 MHz CPU frequency -> min SCK width >2us.
+ * Having a 250MHz FPGA clock this results in the following values:
+ * | prescaler | SCK width | SPI bitrate |
+ * |-----------|-----------|-------------|
+ * |      1000 |      4 us |   ~125 kbps |
+ * |       500 |      2 us |   ~250 kbps |
+ * */
 #define SPI_PRESCALER 1000
 /** page size in words */
 #define SPI_PAGESIZE 64
@@ -52,12 +62,28 @@ Parameters: \n\
 #define SPI_READ_LOW    0x20000000
 #define SPI_READ_HIGH   0x28000000
 
+#define UCCTRL_PROG_MODE_FAILED 0
+#define UCCTRL_SPI_NOT_IMPLEMENTED 1
+#define UCCTRL_SEND_CMD_TIMEOUT 2
+
+
+/**
+ * Configure FPGA<->uC interface for SPI:
+ * set SCK and MOSI as output, MISO as input
+ * */
 void
 uc_configure_spi
 (
     librorc::bar *bar
 )
 {
+    if ( bar->get(RORC_REG_UC_SPI_CTRL)==0xa5a5a5a5 )
+    {
+        cout << "ERROR: SPI control is not implemented in firmware! "
+             << endl;
+        throw UCCTRL_SPI_NOT_IMPLEMENTED;
+    }
+
     /** set prescaler */
     bar->set(RORC_REG_UC_SPI_CTRL, SPI_PRESCALER);
 
@@ -79,6 +105,11 @@ uc_configure_spi
     bar->set(RORC_REG_UC_CTRL, ucctrl);
 }
 
+
+
+/**
+ * Set SCK and MOSI IO configuration back to inputs
+ * */
 void
 uc_unconfigure_spi
 (
@@ -94,6 +125,11 @@ uc_unconfigure_spi
     bar->set(RORC_REG_UC_CTRL, ucctrl);
 }
 
+
+
+/**
+ * drive the uC reset line from FPGA
+ * */
 void
 uc_set_reset
 (
@@ -120,6 +156,11 @@ uc_set_reset
 }
 
 
+
+/**
+ * Send command via SPI
+ * a command consists of 4 byte. See ATmega324A Userguide for details
+ * */
 uint32_t
 spi_send_command
 (
@@ -127,19 +168,54 @@ spi_send_command
     uint32_t cmd
     )
 {
+    /** set timeout to 1 sec. */
+    uint32_t timeout = 10000;
+
     /** send command */
     bar->set(RORC_REG_UC_SPI_DATA, cmd);
 
     /** wait for SPI_CE to deassert */
     while ( bar->get(RORC_REG_UC_SPI_CTRL) & (1<<31) )
     {
+        if ( timeout == 0 )
+        {
+            cout << "ERROR: timeout waiting for SPI_CE to deassert "
+                 << endl;
+            throw UCCTRL_SEND_CMD_TIMEOUT;
+        }
+
         usleep(100);
-        // TODO: add timeout
+        timeout --;
     }
 
     return bar->get(RORC_REG_UC_SPI_DATA);
 }
 
+
+
+/**
+ * Enter Programming Mode
+ * */
+void
+spi_enter_prog_mode
+(
+    librorc::bar *bar
+)
+{
+    /** enter programming mode */
+    uint32_t result = spi_send_command(bar, SPI_PROG_ENABLE);
+    if ( (result & 0xff00) != 0x5300)
+    {
+        cout << "Failed to enter programming mode!" << endl;
+        throw UCCTRL_PROG_MODE_FAILED;
+    }
+}
+
+
+
+/**
+ * Read uC device signature
+ * */
 uint32_t
 spi_read_device_signature
 (
@@ -163,6 +239,12 @@ spi_read_device_signature
     return sig;
 }
 
+
+
+/**
+ * print signature and flash size
+ * TODO: is there more usefull information available to print here?
+ * */
 void
 spi_print_device_status
 (
@@ -173,7 +255,7 @@ spi_print_device_status
     uc_set_reset(bar, 1);
 
     /** enter programming mode */
-    spi_send_command(bar, SPI_PROG_ENABLE);
+    spi_enter_prog_mode(bar);
 
     uint32_t sig = spi_read_device_signature(bar);
     cout << "Device Signature: 0x" << hex << setw(6) << setfill('0')
@@ -185,6 +267,10 @@ spi_print_device_status
 }
 
 
+
+/**
+ * Erase Chip. This erases uC flash and EEPROM
+ * */
 void
 spi_earse_chip
 (
@@ -195,8 +281,7 @@ spi_earse_chip
     uc_set_reset(bar, 1);
 
     /** enter programming mode */
-    spi_send_command(bar, SPI_PROG_ENABLE);
-    // TODO: check return value
+    spi_enter_prog_mode(bar);
 
     /** send chip ease command */
     spi_send_command(bar, SPI_ERASE_CHIP);
@@ -208,6 +293,13 @@ spi_earse_chip
     uc_set_reset(bar, 0);
 }
 
+
+
+/**
+ * load extended address. This has to be done only for the first page
+ * or when crossing a 64 KWord boundary. The latter never happens for
+ * ATmega324A...
+ * */
 void
 spi_load_extended_addr
 (
@@ -219,6 +311,11 @@ spi_load_extended_addr
     spi_send_command(bar, SPI_EXT_ADDR | (addr<<8) );
 }
 
+
+
+/**
+ * load flash data into page buffer
+ * */
 void
 spi_load_mem_page
 (
@@ -231,6 +328,11 @@ spi_load_mem_page
     spi_send_command(bar, SPI_PROG_HIGH | (addr<<8) | ((data>>8) & 0xff));
 }
 
+
+
+/**
+ * read flash memory address
+ * */
 uint16_t
 spi_read_mem_page
 (
@@ -243,6 +345,11 @@ spi_read_mem_page
     return (low & 0xff) | ((high&0xff)<<8);
 }
 
+
+
+/**
+ * write page buffer into flash. This completes the programming of a page.
+ * */
 void
 spi_prog_mem_page
 (
@@ -258,6 +365,10 @@ spi_prog_mem_page
 }
 
 
+
+/**
+ * MAIN
+ * */
 int
 main
 (
@@ -265,7 +376,7 @@ main
     char *argv[]
 )
 {
-    int32_t device_number = 0;
+    int32_t device_number = -1;
     int do_reset = 0;
     int do_erase = 0;
     int do_status = 0;
@@ -273,6 +384,8 @@ main
     int do_dump = 0;
     char *filename = NULL;
     int arg;
+
+    /** parse command line arguments */
     while ( (arg = getopt(argc, argv, "hn:rf:pesd")) != -1 )
     {
         switch (arg)
@@ -340,18 +453,18 @@ main
 
     if ( device_number < 0 || device_number > 255 )
     {
-        cout << "Invalid device selected: " << device_number << endl;
+        cout << "No or invalid device selected: " << device_number << endl;
         cout << HELP_TEXT;
         abort();
     }
 
     /** Instantiate device **/
     librorc::device *dev = NULL;
-    try{ 
+    try{
         dev = new librorc::device(device_number);
     }
     catch(...)
-    { 
+    {
         cout << "Failed to intialize device " << device_number
             << endl;
         return -1;
@@ -371,165 +484,164 @@ main
         abort();
     }
 
-    uc_configure_spi(bar);
-
-    /** perform chip erase */
-    if ( do_erase )
+    try
     {
-        cout << "Erasing Chip...";
-        spi_earse_chip(bar);
-        cout << " done." << endl;
-    }
+        /** configure FPGA IOs for SPI */
+        uc_configure_spi(bar);
 
-    /** toggle reset */
-    if ( do_reset )
-    {
-        cout << "Resetting uC...";
-        uc_set_reset(bar, 1);
-        /** sleep additional 20 ms */
-        usleep(20000);
-        uc_set_reset(bar, 0);
-        cout << " done." << endl;
-    }
-        
-    /** print device status */
-    if ( do_status )
-    {
-        spi_print_device_status(bar);
-    }
-
-    /** program from file */
-    if ( do_program )
-    {
-        if (!filename)
+        /** perform chip erase */
+        if ( do_erase )
         {
-            cout << "No filename given!" << endl;
-            uc_unconfigure_spi(bar);
-            abort();
+            cout << "Erasing Chip...";
+            spi_earse_chip(bar);
+            cout << " done." << endl;
         }
 
-        /** open file */
-        int fd = open(filename, O_RDONLY);
-        if ( fd < 0 )
+        /** toggle reset */
+        if ( do_reset )
         {
-            cout << "Failed to read file." << endl;
-            uc_unconfigure_spi(bar);
-            abort();
-        }
-        struct stat stats;
-        if ( fstat(fd, &stats) == -1 )
-        {
-            cout << "Failed to stat file." << endl;
-            uc_unconfigure_spi(bar);
-            abort();
+            cout << "Resetting uC...";
+            uc_set_reset(bar, 1);
+            /** sleep additional 20 ms */
+            usleep(20000);
+            uc_set_reset(bar, 0);
+            cout << " done." << endl;
         }
 
-        if ( stats.st_size & 1 )
+        /** print device status */
+        if ( do_status )
         {
-            cout << "WARNING: odd number of bytes - is this"
-                 << " really a uC firmeware file?" << endl;
+            spi_print_device_status(bar);
         }
 
-        cout << "Filesize: " << stats.st_size << " bytes, " 
-             << (stats.st_size>>1) << " words" << endl;
-        
-        /** enable reset */
-        uc_set_reset(bar, 1);
-
-        /** enter programming mode */
-        uint32_t status = spi_send_command(bar, SPI_PROG_ENABLE);
-        if ( (status & 0xff00) != 0x5300)
+        /** program from file */
+        if ( do_program )
         {
-            cout << "Failed to enter programming mode: " << hex 
-                 << status << endl;
-            close(fd);
-            uc_unconfigure_spi(bar);
-            abort();
-        }
-
-        /** set extended address for page 0 */
-        spi_load_extended_addr(bar, 0);
-
-        uint32_t addr = 0;
-        uint32_t nbytes = 0;
-        uint16_t page[SPI_PAGESIZE];
-
-        /** read page from file */
-        while ( (nbytes = read(fd, &page, SPI_PAGESIZE<<1)) >0 )
-        {
-            for ( int i=0; i<(nbytes>>1); i++ )
+            if (!filename)
             {
-                //cout << hex << i << " " << page[i] << endl;
-                spi_load_mem_page(bar, i, page[i]);
+                cout << "No filename given!" << endl;
+                uc_unconfigure_spi(bar);
+                abort();
             }
-            spi_prog_mem_page(bar, addr);
-            //cout << "Wrote " << nbytes << " bytes to " << addr << endl;
-            addr += SPI_PAGESIZE;
-        }
-        
-        /** release reset */
-        uc_set_reset(bar, 0);
 
-        close(fd);
-    }
-
-    if ( do_dump )
-    {        
-        if (!filename)
-        {
-            cout << "No filename given!" << endl;
-            uc_unconfigure_spi(bar);
-            abort();
-        }
-
-        /** open file */
-        int fd = open(filename, O_RDWR|O_CREAT|O_TRUNC, 0666);
-        if ( fd < 0 )
-        {
-            cout << "Failed to open file." << endl;
-            uc_unconfigure_spi(bar);
-            abort();
-        }
-        
-        uint16_t page[256];
-
-        uint32_t addr = 0;
-        uint32_t nbytes = 0;
-        
-        /** enable reset */
-        uc_set_reset(bar, 1);
-
-        /** enter programming mode */
-        uint32_t status = spi_send_command(bar, SPI_PROG_ENABLE);
-        if ( (status & 0xff00) != 0x5300)
-        {
-            cout << "Failed to enter programming mode: " << hex 
-                 << status << endl;
-            close(fd);
-            uc_unconfigure_spi(bar);
-            abort();
-        }
-
-        /** set extended address for page 0 */
-        spi_load_extended_addr(bar, 0);
-
-        /** read page from device */
-        for (addr=0;addr<0x4000;addr+=SPI_PAGESIZE)
-        {
-            for(int i=0; i<SPI_PAGESIZE; i++)
+            /** open file */
+            int fd = open(filename, O_RDONLY);
+            if ( fd < 0 )
             {
-                page[i] = spi_read_mem_page(bar, i+addr);
+                cout << "Failed to read file." << endl;
+                uc_unconfigure_spi(bar);
+                abort();
             }
-            nbytes = write(fd, &page, SPI_PAGESIZE<<1);
+            struct stat stats;
+            if ( fstat(fd, &stats) == -1 )
+            {
+                cout << "Failed to stat file." << endl;
+                uc_unconfigure_spi(bar);
+                abort();
+            }
+
+            if ( stats.st_size & 1 )
+            {
+                cout << "WARNING: odd number of bytes - is this"
+                    << " really a uC firmeware file?" << endl;
+            }
+
+            cout << "Filesize: " << stats.st_size << " bytes, "
+                << (stats.st_size>>1) << " words" << endl;
+
+            /** enable reset */
+            uc_set_reset(bar, 1);
+
+            /** enter programming mode */
+            spi_enter_prog_mode(bar);
+
+            /** set extended address for page 0 */
+            spi_load_extended_addr(bar, 0);
+
+            uint32_t addr = 0;
+            uint32_t nbytes = 0;
+            uint16_t page[SPI_PAGESIZE];
+
+            /** read page from file */
+            while ( (nbytes = read(fd, &page, SPI_PAGESIZE<<1)) >0 )
+            {
+                for ( int i=0; i<(nbytes>>1); i++ )
+                {
+                    //cout << hex << i << " " << page[i] << endl;
+                    spi_load_mem_page(bar, i, page[i]);
+                }
+                spi_prog_mem_page(bar, addr);
+                //cout << "Wrote " << nbytes << " bytes to " << addr << endl;
+                addr += SPI_PAGESIZE;
+            }
+
+            /** release reset */
+            uc_set_reset(bar, 0);
+
+            close(fd);
         }
-        
-        /** release reset */
-        uc_set_reset(bar, 0);
 
-        close(fd);
+
+        /** dump configuration to file */
+        if ( do_dump )
+        {
+            if (!filename)
+            {
+                cout << "No filename given!" << endl;
+                uc_unconfigure_spi(bar);
+                abort();
+            }
+
+            /** open file */
+            int fd = open(filename, O_RDWR|O_CREAT|O_TRUNC, 0666);
+            if ( fd < 0 )
+            {
+                cout << "Failed to open file." << endl;
+                uc_unconfigure_spi(bar);
+                abort();
+            }
+
+            uint16_t page[256];
+
+            uint32_t addr = 0;
+            uint32_t nbytes = 0;
+
+            /** enable reset */
+            uc_set_reset(bar, 1);
+
+            /** enter programming mode */
+            spi_enter_prog_mode(bar);
+
+            /** set extended address for page 0 */
+            spi_load_extended_addr(bar, 0);
+
+            /** read page from device */
+            for (addr=0;addr<0x4000;addr+=SPI_PAGESIZE)
+            {
+                for(int i=0; i<SPI_PAGESIZE; i++)
+                {
+                    page[i] = spi_read_mem_page(bar, i+addr);
+                }
+                nbytes = write(fd, &page, SPI_PAGESIZE<<1);
+                if ( nbytes != SPI_PAGESIZE<<1 )
+                {
+                    perror("Failed to write to dump file");
+                    break;
+                }
+            }
+
+            /** release reset */
+            uc_set_reset(bar, 0);
+
+            close(fd);
+        }
+
+        uc_unconfigure_spi(bar);
     }
-
-    uc_unconfigure_spi(bar);
+    catch (...)
+    {
+        cout << "ucctrl failed!" << endl;
+    }
 
 
     delete bar;
