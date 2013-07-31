@@ -44,3 +44,8 @@ target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
 # Build ucctrl
 add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
 target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
+
+# Build hwtests
+add_executable( test_fmc ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/test_fmc.cpp)
+target_link_libraries( test_fmc rorc pthread ${EXTRA_LIBS})
+
