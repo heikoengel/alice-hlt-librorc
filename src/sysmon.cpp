@@ -157,7 +157,7 @@ namespace librorc
     sysmon::systemClockIsRunning()
     {
         /** check firmware type */
-        if ( bar->get(RORC_REG_TYPE_CHANNELS)>>16 != 
+        if ( m_bar->get(RORC_REG_TYPE_CHANNELS)>>16 != 
                 RORC_CFG_PROJECT_hwtest )
         {
             /* TODO: the register below is only available in 'hwtest'
