@@ -64,20 +64,21 @@ main
                 break;
         } //switch
     } //while
-    
+
     if ( device_number < 0 || device_number > 255 )
     {
-        cout << "No or invalid device selected, using default device 0" 
+        cout << "No or invalid device selected, using default device 0"
              << endl;
+        device_number = 0;
     }
-    
+
     /** Instantiate device **/
     librorc::device *dev = NULL;
-    try{ 
+    try{
         dev = new librorc::device(device_number);
     }
     catch(...)
-    { 
+    {
         cout << "Failed to intialize device " << device_number
             << endl;
         return -1;
@@ -102,19 +103,21 @@ main
     {
         cout << "Current firmware is no hwtest firmware! "
              << "Won't do anything..." << endl;
-        abort();
+        delete bar;
+        delete dev;
+        return 0;
     }
 
     /** set la_00_p as output and high */
     uint32_t ctrl[3];
 
     cout << "Driving LA_00_P high...";
-    
+
     /** set LA_00_P output to '1' */
     ctrl[0] = bar->get(RORC_REG_FMC_CTRL_LOW);
     ctrl[0] |= 0x01; //drive la_00_p high
     bar->set(RORC_REG_FMC_CTRL_LOW, ctrl[0]);
-    
+
     /** configure LA_00_P as output */
     ctrl[2] = bar->get(RORC_REG_FMC_CTRL_HIGH);
     ctrl[2] &= ~(1<<31); //clear tristate bit (=make output)
@@ -130,8 +133,9 @@ main
             (ctrl[2] & 0x0f) != 0x0f )
     {
         cout << "FAILED!" << endl;
-        cout << "ERROR: expected 0x0000000f_ffffffff_ffffffff but received 0x"
-             << hex << setw(8) << setfill('0') << (ctrl[2]&0x0f) << "_" << ctrl[1]
+        cout << "ERROR: expected 0x0000000f_ffffffff_ffffffff" << endl
+             << "       received 0x" << hex << setw(8) << setfill('0')
+             << (ctrl[2]&0x0f) << "_" << ctrl[1]
              << "_" << ctrl[0] << endl;
     }
     else
@@ -155,8 +159,9 @@ main
     if(ctrl[0] != 0 || ctrl[1] != 0 || (ctrl[2] & 0x0f) != 0 )
     {
         cout << "FAILED!" << endl;
-        cout << "ERROR: expected 0x00000000_00000000_00000000 but received 0x"
-             << hex << setw(8) << setfill('0') << (ctrl[2]&0x0f) << "_" << ctrl[1]
+        cout << "ERROR: expected 0x00000000_00000000_00000000" << endl
+             << "       received 0x" << hex << setw(8) << setfill('0')
+             << (ctrl[2]&0x0f) << "_" << ctrl[1]
              << "_" << ctrl[0] << endl;
     }
     else
@@ -164,7 +169,7 @@ main
         cout << "passed." << endl;
     }
 
-    
+
     /** configure LA_00_P as input again */
     ctrl[2] = bar->get(RORC_REG_FMC_CTRL_HIGH);
     ctrl[2] |= (1<<31); //set tristate bit (=make input)
