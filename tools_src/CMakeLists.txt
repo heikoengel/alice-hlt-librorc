@@ -2,6 +2,15 @@
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 
+# Build i2c
+add_executable( i2c ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/i2c.cpp)
+target_link_libraries( i2c rorc pthread ${EXTRA_LIBS})
+
+# Build refclkgenctrl 
+add_executable( refclkgenctrl
+  ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/refclkgenctrl.cpp)
+target_link_libraries( refclkgenctrl rorc pthread ${EXTRA_LIBS})
+
 # Build DMA buffer allocator
 add_executable( crorc_preallocator
   ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/crorc_preallocator.cpp)
@@ -27,3 +36,16 @@ target_link_libraries( dma_monitor rorc pthread ${EXTRA_LIBS})
 # Build DMA-out testbed
 add_executable( hlt_out_writer ${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer.cpp)
 target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
+
+# Build gtxctrl
+add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
+target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
+
+# Build ucctrl
+add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
+target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
+
+# Build hwtests
+add_executable( test_fmc ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/test_fmc.cpp)
+target_link_libraries( test_fmc rorc pthread ${EXTRA_LIBS})
+

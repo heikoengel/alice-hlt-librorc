@@ -26,12 +26,9 @@
 #define LIBRORC_SYSMON_ERROR_RXACK              20
 #define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
 #define LIBRORC_SYSMON_ERROR_I2C_READ_FAILED    40
+#define LIBRORC_SYSMON_ERROR_I2C_INVALID_CHAIN  50
 
-#ifndef RORC_REG_DDR3_CTRL
-    #define RORC_REG_DDR3_CTRL 0
-#endif
-
-#define SLVADDR          0x50
+#define QSFP_I2C_SLVADDR          0x50
 #define LIBRORC_MAX_QSFP 3
 
 #include "include_ext.hh"
@@ -115,32 +112,32 @@ namespace librorc
             bool
             qsfpIsPresent
             (
-                uint32_t index
+                uint8_t index
             );
 
             bool
             qsfpLEDIsOn
             (
-                uint32_t qsfp_index,
-                uint32_t LED_index
+                uint8_t qsfp_index,
+                uint8_t LED_index
             );
 
             string*
             qsfpVendorName
             (
-                uint32_t index
+                uint8_t index
             );
 
             string*
             qsfpPartNumber
             (
-                uint32_t index
+                uint8_t index
             );
 
             float
             qsfpTemperature
             (
-                uint32_t index
+                uint8_t index
             );
 
             /**
@@ -163,13 +160,13 @@ namespace librorc
             //void setIcapDinReorder( uint32_t dword );
 
 
-
-        protected:
-
             /**
              * reset i2c bus
             **/
-            void i2c_reset();
+            void i2c_reset
+            (
+                uint8_t chain
+            );
 
             /**
              * read byte from i2c memory location
@@ -182,25 +179,29 @@ namespace librorc
             uint8_t
             i2c_read_mem
             (
+                uint8_t chain,
                 uint8_t slvaddr,
                 uint8_t memaddr
             );
 
             /**
-             * read byte from i2c memory location
+             * write byte to i2c memory location
              * @param slvaddr slave address
              * @param memaddr memory address
-             * @param data pointer to unsigned char for
-             * received data
-             * @return 0 on success, -1 on errors
+             * @param data to be written
+             * throws exception on error
             **/
             void
             i2c_write_mem
             (
+                uint8_t chain,
                 uint8_t slvaddr,
                 uint8_t memaddr,
                 uint8_t data
             );
+
+
+        protected:
 
             /**
              * i2c_set_config
@@ -208,6 +209,15 @@ namespace librorc
              * prescaler (31:16) and ctrl (7:0)
             **/
             void i2c_set_config(uint32_t config);
+
+            void
+            i2c_module_prepare
+            (
+                uint8_t chain
+            );
+
+            void i2c_module_disable();
+
 
             uint32_t wait_for_tip_to_negate();
 
@@ -220,15 +230,16 @@ namespace librorc
             string*
             qsfp_i2c_string_readout
             (
+                uint8_t index,
                 uint8_t start,
                 uint8_t end
             );
 
 
             void
-            qsfp_set_page0_and_config
+            qsfp_select_page0
             (
-                uint32_t index
+                uint8_t index
             );
 
             bar *m_bar;
