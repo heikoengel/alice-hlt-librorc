@@ -156,11 +156,23 @@ namespace librorc
     bool
     sysmon::systemClockIsRunning()
     {
-        uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
-        if( ((ddrctrl>>3)&1) == 1 )
-        { return true; }
+        /** check firmware type */
+        if ( m_bar->get(RORC_REG_TYPE_CHANNELS)>>16 != 
+                RORC_CFG_PROJECT_hwtest )
+        {
+            /* TODO: the register below is only available in 'hwtest'
+             * -> need to find a firmware independent detection here.
+             *  */
+            return true;
+        }
         else
-        { return false; }
+        {
+            uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
+            if( ((ddrctrl>>3)&1) == 1 )
+            { return true; }
+            else
+            { return false; }
+        }
     }
 
 

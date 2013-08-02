@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.9)
 project(LIBRORC)
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
-set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
+set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG -lkmod" )
 
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
@@ -37,6 +37,8 @@ find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 
+find_library(KMOD kmod)
+set(EXTRA_LIBS ${EXTRA_LIBS} ${KMOD})
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
