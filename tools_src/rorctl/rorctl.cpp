@@ -586,6 +586,8 @@ flash_status
         dump_flash_status(flash);
     }
 
+    flash->resetChip();
+
     return flash;
 }
 
