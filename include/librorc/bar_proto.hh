@@ -72,15 +72,15 @@ namespace librorc
         const void          *source,
         size_t               num
     ) = 0;
-//
-//    virtual
-//    void
-//    memcpy
-//    (
-//        const void          *source,
-//        librorc_bar_address  addr,
-//        size_t               num
-//    ) = 0;
+
+    virtual
+    void
+    memcopy
+    (
+        const void          *source,
+        librorc_bar_address  addr,
+        size_t               num
+    ) = 0;
 
     /**
      * write DWORD to BAR address

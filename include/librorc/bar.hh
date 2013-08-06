@@ -115,6 +115,14 @@ namespace librorc
                 size_t               num
             );
 
+            void
+            memcopy
+            (
+                const void          *source,
+                librorc_bar_address  addr,
+                size_t               num
+            );
+
             /**
              * write DWORD to BAR address
              * @param addr (unsigned int) aligned address within the

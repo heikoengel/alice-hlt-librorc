@@ -315,6 +315,21 @@ sim_bar::memcopy
 
 
 
+void
+sim_bar::memcopy
+(
+    const void          *source,
+    librorc_bar_address  addr,
+    size_t               num
+)
+{
+    pthread_mutex_lock(&m_mtx);
+    //TODO : needs to be implemented!
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
 uint16_t
 sim_bar::get16
 (

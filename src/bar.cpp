@@ -133,6 +133,7 @@ rorc_bar::memcpy_bar
 }
 
 
+
 void
 rorc_bar::memcopy
 (
@@ -142,8 +143,22 @@ rorc_bar::memcopy
 )
 {
     pthread_mutex_lock(&m_mtx);
-    //memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
-    //msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
+    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+void
+rorc_bar::memcopy
+(
+    const void          *source,
+    librorc_bar_address  addr,
+    size_t               num
+)
+{
+    pthread_mutex_lock(&m_mtx);
+    memcpy( source, (const void*)(m_bar + (addr << 2)), num);
     pthread_mutex_unlock(&m_mtx);
 }
 
