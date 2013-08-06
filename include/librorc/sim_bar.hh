@@ -133,7 +133,7 @@ namespace librorc
             void
             memcopy
             (
-                librorc_bar_address  addr,
+                librorc_bar_address  target,
                 const void          *source,
                 size_t               num
             );
@@ -141,8 +141,8 @@ namespace librorc
             void
             memcopy
             (
-                const void          *source,
-                librorc_bar_address  addr,
+                void                *target,
+                librorc_bar_address  source,
                 size_t               num
             );
 

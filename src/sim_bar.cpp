@@ -262,7 +262,7 @@ sim_bar::memcpy_bar
 void
 sim_bar::memcopy
 (
-    librorc_bar_address  addr,
+    librorc_bar_address  target,
     const void          *source,
     size_t               num
 )
@@ -274,7 +274,7 @@ sim_bar::memcopy
         uint32_t buffer[buffersize];
         buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = m_msgid;
-        buffer[2] = addr<<2;
+        buffer[2] = target<<2;
         if( ndw > 1 )
         {
             /** BAR, BE, length */
@@ -305,7 +305,7 @@ sim_bar::memcopy
             }
             m_write_to_dev_done=0;
 
-            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, addr);
+            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, target);
             m_msgid++;
         }
 
@@ -318,8 +318,8 @@ sim_bar::memcopy
 void
 sim_bar::memcopy
 (
-    const void          *source,
-    librorc_bar_address  addr,
+    void                *target,
+    librorc_bar_address  source,
     size_t               num
 )
 {

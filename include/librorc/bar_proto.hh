@@ -59,7 +59,7 @@ namespace librorc
     ) = 0;
 
     /**
-     * copy buffer range into BAR
+     * copy buffer from host to device and vice versa
      * @param target address
      * @param source address
      * @param num number of bytes to be copied to destination
@@ -68,7 +68,7 @@ namespace librorc
     void
     memcopy
     (
-        librorc_bar_address  addr,
+        librorc_bar_address  target,
         const void          *source,
         size_t               num
     ) = 0;
@@ -77,8 +77,8 @@ namespace librorc
     void
     memcopy
     (
-        const void          *source,
-        librorc_bar_address  addr,
+        void                *target,
+        librorc_bar_address  source,
         size_t               num
     ) = 0;
 

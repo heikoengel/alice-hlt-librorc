@@ -111,13 +111,6 @@ rorc_bar::set
 
 
 
-/**
- * copy a buffer to BAR via memcpy
- * @param addr DW-aligned address
- * @param source source buffer
- * @param num number of bytes to be copied from source to dest
- * */
-
 void
 rorc_bar::memcpy_bar
 (
@@ -137,14 +130,14 @@ rorc_bar::memcpy_bar
 void
 rorc_bar::memcopy
 (
-    librorc_bar_address  addr,
+    librorc_bar_address  target,
     const void          *source,
     size_t               num
 )
 {
     pthread_mutex_lock(&m_mtx);
-    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
-    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    memcpy( (unsigned char*)m_bar + (target << 2), source, num);
+    msync( (m_bar + ( (target << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
 }
 
@@ -152,13 +145,13 @@ rorc_bar::memcopy
 void
 rorc_bar::memcopy
 (
-    const void          *source,
-    librorc_bar_address  addr,
+    void                *target,
+    librorc_bar_address  source,
     size_t               num
 )
 {
     pthread_mutex_lock(&m_mtx);
-    memcpy( source, (const void*)(m_bar + (addr << 2)), num);
+    memcpy( target, (const void*)(m_bar + (source << 2)), num);
     pthread_mutex_unlock(&m_mtx);
 }
 
