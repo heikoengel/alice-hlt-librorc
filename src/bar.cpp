@@ -33,6 +33,15 @@ rorc_bar::rorc_bar
 
     m_pda_pci_device = dev->getPdaPciDevice();
 
+    m_bar = m_parent_dev->getBarMap(m_number);
+
+    if(m_bar == NULL)
+    {
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
+    }
+
+    m_size = m_parent_dev->getBarSize(m_number);
+
     /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
 }
@@ -47,24 +56,25 @@ rorc_bar::~rorc_bar()
 
 
 
-/**
- * Initialize and mmap BAR
- * */
-
-int32_t
-rorc_bar::init()
-{
-    m_bar = m_parent_dev->getBarMap(m_number);
-
-    if(m_bar == NULL)
-    {
-        return -1;
-    }
-
-    m_size = m_parent_dev->getBarSize(m_number);
-
-    return 0;
-}
+///**
+// * Initialize and mmap BAR
+// * */
+//
+//int32_t
+//rorc_bar::init()
+//{
+//    m_bar = m_parent_dev->getBarMap(m_number);
+//
+//    if(m_bar == NULL)
+//    {
+//        return -1;
+//    }
+//
+//    m_size = m_parent_dev->getBarSize(m_number);
+//
+//    return 0;
+//
+//}
 
 
 

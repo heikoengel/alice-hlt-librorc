@@ -79,12 +79,16 @@ int main( int argc, char *argv[])
         catch(...){ break; }
 
         /** bind to BAR1 */
+        librorc::bar *Bar = NULL;
+        try
+        {
         #ifdef SIM
-            librorc::bar *Bar = new librorc::sim_bar(Dev, 1);
+            Bar = new librorc::sim_bar(Dev, 1);
         #else
-            librorc::bar *Bar = new librorc::rorc_bar(Dev, 1);
+            Bar = new librorc::rorc_bar(Dev, 1);
         #endif
-        if( Bar->init() == -1 )
+        }
+        catch(...)
         {
             printf("ERROR: failed to initialize BAR1.\n");
             abort();

@@ -210,12 +210,16 @@ int main( int argc, char *argv[])
             dev->getSlot(),dev->getFunc());
 
     // bind to BAR1
-#ifdef SIM
-    bar1 = new librorc::sim_bar(dev, 1);
-#else
-    bar1 = new librorc::rorc_bar(dev, 1);
-#endif
-    if ( bar1->init() == -1 ) {
+    try
+    {
+    #ifdef SIM
+        bar1 = new librorc::sim_bar(dev, 1);
+    #else
+        bar1 = new librorc::rorc_bar(dev, 1);
+    #endif
+    }
+    catch(...)
+    {
         printf("ERROR: failed to initialize BAR1.\n");
         goto out;
     }

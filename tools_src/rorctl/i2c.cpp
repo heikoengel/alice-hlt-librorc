@@ -68,7 +68,7 @@ int
  )
 {
 
-    confopts options = 
+    confopts options =
     {
         -1, -1, -1, -1, 0
     };
@@ -113,7 +113,7 @@ int
     }
     else if ( options.device_number > 255 || options.device_number < 0 )
     {
-        cout << "ERROR: invalid device ID selected: " 
+        cout << "ERROR: invalid device ID selected: "
              << options.device_number << endl;
         return -1;
     }
@@ -123,10 +123,10 @@ int
         cout << "ERROR: I2C chain was not provided." << endl;
         cout << HELP_TEXT;
         return -1;
-    } 
+    }
     else if ( options.i2c_chain > 5 || options.i2c_chain < 0)
     {
-        cout << "ERROR: invalid I2C chain selected: " << options.i2c_chain 
+        cout << "ERROR: invalid I2C chain selected: " << options.i2c_chain
              << endl;
     }
 
@@ -161,24 +161,27 @@ int
 
     /** Instantiate device **/
     librorc::device *dev = NULL;
-    try{ 
+    try{
         dev = new librorc::device(options.device_number);
     }
     catch(...)
-    { 
+    {
         cout << "Failed to intialize device " << options.device_number
              << endl;
         return -1;
     }
 
     /** Instantiate a new bar */
+    librorc::bar *bar = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar = new librorc::sim_bar(dev, 1);
+        bar = new librorc::sim_bar(dev, 1);
     #else
-        librorc::bar *bar = new librorc::rorc_bar(dev, 1);
+        bar = new librorc::rorc_bar(dev, 1);
     #endif
-
-    if ( bar->init() == -1 )
+    }
+    catch(...)
     {
         cout << "ERROR: failed to initialize BAR." << endl;
         delete dev;
@@ -188,8 +191,8 @@ int
     /** Instantiate a new sysmon */
     librorc::sysmon *sm;
     try
-    { 
-        sm = new librorc::sysmon(bar); 
+    {
+        sm = new librorc::sysmon(bar);
     }
     catch(...)
     {
@@ -215,7 +218,7 @@ int
                  << options.slave_addr << " Mem 0x" << options.mem_addr
                  << endl;
         }
-    } 
+    }
     else
     {
         try
@@ -231,7 +234,7 @@ int
                 << options.slave_addr << " Mem 0x" << options.mem_addr
                 << endl;
         }
-        cout << "0x" << hex << setfill('0') << setw(2) << (int)data_read 
+        cout << "0x" << hex << setfill('0') << setw(2) << (int)data_read
              << endl;
     }
 

@@ -4,6 +4,9 @@
 #include "librorc/include_ext.hh"
 #include "librorc/device.hh"
 
+#define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED  1
+
+
 namespace librorc
 {
 
@@ -94,16 +97,16 @@ namespace librorc
         struct timezone *tz
     ) = 0;
 
-    /**
-     * initialize BAR mapping: open sysfs file, get file stats,
-     * mmap file. This has to be done before using any other
-     * member funtion. This function will fail if the requested
-     * BAR does not exist.
-     * @return 0 on sucess, -1 on errors
-     **/
-    virtual
-    int32_t
-    init() = 0;
+//    /**
+//     * initialize BAR mapping: open sysfs file, get file stats,
+//     * mmap file. This has to be done before using any other
+//     * member funtion. This function will fail if the requested
+//     * BAR does not exist.
+//     * @return 0 on sucess, -1 on errors
+//     **/
+//    virtual
+//    int32_t
+//    init() = 0;
 
     /**
      * get size of mapped BAR. This value is only valid after init()

@@ -218,12 +218,16 @@ int main( int argc, char *argv[])
     printf("Bus %x, Slot %x, Func %x\n", dev->getBus(), dev->getSlot(),dev->getFunc());
 
     /** bind to BAR1 */
+    librorc::bar *bar1 = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar1 = new librorc::sim_bar(dev, 1);
+        bar1 = new librorc::sim_bar(dev, 1);
     #else
-        librorc::bar *bar1 = new librorc::rorc_bar(dev, 1);
+        bar1 = new librorc::rorc_bar(dev, 1);
     #endif
-    if ( bar1->init() == -1 )
+    }
+    catch(...)
     {
         printf("ERROR: failed to initialize BAR1.\n");
         abort();

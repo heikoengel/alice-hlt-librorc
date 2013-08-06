@@ -85,13 +85,16 @@ main
     }
 
     /** Instantiate a new bar */
-#ifdef SIM
-    librorc::bar *bar = new librorc::sim_bar(dev, 1);
-#else
-    librorc::bar *bar = new librorc::rorc_bar(dev, 1);
-#endif
-
-    if ( bar->init() == -1 )
+    librorc::bar *bar = NULL;
+    try
+    {
+    #ifdef SIM
+        bar = new librorc::sim_bar(dev, 1);
+    #else
+        bar = new librorc::rorc_bar(dev, 1);
+    #endif
+    }
+    catch(...)
     {
         cout << "ERROR: failed to initialize BAR." << endl;
         delete dev;

@@ -70,7 +70,7 @@ int main
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
-    
+
     /** parse command line arguments **/
     int32_t  DeviceId  = -1;
     int32_t  ChannelId = -1;
@@ -169,10 +169,8 @@ int main
     }
 
     /** Create new device instance */
-    librorc::device *dev;
-    try{ 
-        dev = new librorc::device(DeviceId); 
-    }
+    librorc::device *dev = NULL;
+    try{ dev = new librorc::device(DeviceId); }
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
@@ -180,12 +178,16 @@ int main
     }
 
     /** bind to BAR1 */
+    librorc::bar *bar = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar = new librorc::sim_bar(dev, 1);
+        bar = new librorc::sim_bar(dev, 1);
     #else
-        librorc::bar *bar = new librorc::rorc_bar(dev, 1);
+        bar = new librorc::rorc_bar(dev, 1);
     #endif
-    if ( bar->init() == -1 )
+    }
+    catch(...)
     {
         printf("ERROR: failed to initialize BAR1.\n");
         abort();
@@ -200,7 +202,7 @@ int main
         /** iterate over all channels */
         startChannel = 0;
         endChannel = (type_channels & 0xffff) - 1;
-    } 
+    }
     else if ( ChannelId < (int32_t)(type_channels & 0xffff) )
     {
         /** use only selected channel */
@@ -209,7 +211,7 @@ int main
     }
     else
     {
-        cout << "ERROR: Selected Channel " << ChannelId 
+        cout << "ERROR: Selected Channel " << ChannelId
              << " is not implemented in Firmware." << endl;
         abort();
     }
@@ -220,14 +222,14 @@ int main
         /** Create DMA channel and bind channel to BAR1 */
         librorc::dma_channel *ch = new librorc::dma_channel();
         ch->init(bar, chID);
-            
+
         /** get current GTX configuration */
         uint32_t gtxasynccfg = ch->getPKT(RORC_REG_GTX_ASYNC_CFG);
 
         if ( status )
         {
-            cout << "CH " << setw(2) << chID << ": 0x" 
-                 << hex << setw(8) << setfill('0') << gtxasynccfg 
+            cout << "CH " << setw(2) << chID << ": 0x"
+                 << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
         }
         else if ( clear )

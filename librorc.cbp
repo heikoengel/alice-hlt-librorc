@@ -54,7 +54,12 @@
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
 		<Unit filename="tools_src/hlt_out_writer/hlt_out_writer.cpp" />
+		<Unit filename="tools_src/hwtest/test_fmc.cpp" />
+		<Unit filename="tools_src/linkctrl/gtxctrl.cpp" />
+		<Unit filename="tools_src/rorctl/i2c.cpp" />
+		<Unit filename="tools_src/rorctl/refclkgenctrl.cpp" />
 		<Unit filename="tools_src/rorctl/rorctl.cpp" />
+		<Unit filename="tools_src/rorctl/ucctrl.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />
