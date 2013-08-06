@@ -67,13 +67,13 @@ namespace librorc
                 uint64_t addr
             );
 
-            void
-            memcpy_bar
-            (
-                uint64_t    addr,
-                const void *source,
-                size_t      num
-            );
+//            void
+//            memcpy_bar
+//            (
+//                uint64_t    addr,
+//                const void *source,
+//                size_t      num
+//            );
 
             void
             memcopy

@@ -43,20 +43,20 @@ namespace librorc
         uint64_t addr
     ) = 0;
 
-    /**
-     * copy buffer range into BAR
-     * @param addr address in current BAR
-     * @param source pointer to source data field
-     * @param num number of bytes to be copied to destination
-     * */
-    virtual
-    void
-    memcpy_bar
-    (
-        uint64_t    addr,
-        const void *source,
-        size_t      num
-    ) = 0;
+//    /**
+//     * copy buffer range into BAR
+//     * @param addr address in current BAR
+//     * @param source pointer to source data field
+//     * @param num number of bytes to be copied to destination
+//     * */
+//    virtual
+//    void
+//    memcpy_bar
+//    (
+//        uint64_t    addr,
+//        const void *source,
+//        size_t      num
+//    ) = 0;
 
     /**
      * copy buffer from host to device and vice versa

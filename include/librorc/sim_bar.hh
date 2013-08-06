@@ -88,13 +88,13 @@ namespace librorc
                 uint32_t data
             );
 
-            void
-            memcpy_bar
-            (
-                uint64_t    addr,
-                const void *source,
-                size_t      num
-            );
+//            void
+//            memcpy_bar
+//            (
+//                uint64_t    addr,
+//                const void *source,
+//                size_t      num
+//            );
 
             void
             memcopy

@@ -111,19 +111,19 @@ rorc_bar::set
 
 
 
-void
-rorc_bar::memcpy_bar
-(
-    uint64_t    addr,
-    const void *source,
-    size_t      num
-)
-{
-    pthread_mutex_lock(&m_mtx);
-    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
-    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
-    pthread_mutex_unlock(&m_mtx);
-}
+//void
+//rorc_bar::memcpy_bar
+//(
+//    uint64_t    addr,
+//    const void *source,
+//    size_t      num
+//)
+//{
+//    pthread_mutex_lock(&m_mtx);
+//    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
+//    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+//    pthread_mutex_unlock(&m_mtx);
+//}
 
 
 
@@ -142,6 +142,7 @@ rorc_bar::memcopy
 }
 
 
+
 void
 rorc_bar::memcopy
 (
@@ -154,6 +155,7 @@ rorc_bar::memcopy
     memcpy( target, (const void*)(m_bar + (source << 2)), num);
     pthread_mutex_unlock(&m_mtx);
 }
+
 
 
 unsigned short
