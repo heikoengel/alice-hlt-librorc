@@ -125,6 +125,20 @@ namespace librorc
             );
 
             /**
+            * copy buffer range into BAR
+            * @param target address
+            * @param source address
+            * @param num number of bytes to be copied to destination
+            * */
+            void
+            memcopy
+            (
+                librorc_bar_address  addr,
+                const void          *source,
+                size_t               num
+            );
+
+            /**
              * read DWORD from BAR address
              * @param addr (unsigned int) aligned address within the
              *              BAR to read from.

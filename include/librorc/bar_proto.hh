@@ -6,6 +6,8 @@
 
 #define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED  1
 
+typedef uint64_t librorc_bar_address;
+
 
 namespace librorc
 {
@@ -55,6 +57,30 @@ namespace librorc
         const void *source,
         size_t      num
     ) = 0;
+
+    /**
+     * copy buffer range into BAR
+     * @param target address
+     * @param source address
+     * @param num number of bytes to be copied to destination
+     * */
+    virtual
+    void
+    memcopy
+    (
+        librorc_bar_address  addr,
+        const void          *source,
+        size_t               num
+    ) = 0;
+//
+//    virtual
+//    void
+//    memcpy
+//    (
+//        const void          *source,
+//        librorc_bar_address  addr,
+//        size_t               num
+//    ) = 0;
 
     /**
      * write DWORD to BAR address

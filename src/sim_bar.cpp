@@ -259,6 +259,62 @@ sim_bar::memcpy_bar
 
 
 
+void
+sim_bar::memcopy
+(
+    librorc_bar_address  addr,
+    const void          *source,
+    size_t               num
+)
+{
+    pthread_mutex_lock(&m_mtx);
+    {
+        size_t   ndw = num>>2;
+        int32_t  buffersize = 4 + ndw;
+        uint32_t buffer[buffersize];
+        buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
+        buffer[1] = m_msgid;
+        buffer[2] = addr<<2;
+        if( ndw > 1 )
+        {
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0xff<<16) + ndw;
+        }
+        else
+        {
+            /** BAR, BE, length */
+            buffer[3] = (m_number<<24) + (0x0f<<16) + ndw;
+        }
+
+        memcpy(&(buffer[4]), source, num);
+
+        if
+        (
+            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
+                != (ssize_t)(buffersize*sizeof(uint32_t))
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for FLI acknowledgement */
+            while( !m_write_to_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            m_write_to_dev_done=0;
+
+            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, addr);
+            m_msgid++;
+        }
+
+    }
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
 uint16_t
 sim_bar::get16
 (
