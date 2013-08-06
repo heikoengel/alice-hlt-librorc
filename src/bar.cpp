@@ -56,28 +56,6 @@ rorc_bar::~rorc_bar()
 
 
 
-///**
-// * Initialize and mmap BAR
-// * */
-//
-//int32_t
-//rorc_bar::init()
-//{
-//    m_bar = m_parent_dev->getBarMap(m_number);
-//
-//    if(m_bar == NULL)
-//    {
-//        return -1;
-//    }
-//
-//    m_size = m_parent_dev->getBarSize(m_number);
-//
-//    return 0;
-//
-//}
-
-
-
 /**
  * read 1 DW from BAR
  * @param addr address (DW-aligned)
