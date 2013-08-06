@@ -86,15 +86,6 @@ namespace librorc
             ~sim_bar();
 
             /**
-             * Initialize BAR Mapping: open sysfs file, get file stats,
-             * mmap file. This has to be done before using any other
-             * member function. This function will fail if the requested
-             * BAR does not exist
-             * @return 0 on sucess, -1 on errors
-             */
-            int32_t init();
-
-            /**
              * read DWORD from BAR address
              * @param addr (unsigned int) aligned address within the
              *              BAR to read from.

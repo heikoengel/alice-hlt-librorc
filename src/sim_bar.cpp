@@ -52,13 +52,15 @@ sim_bar::sim_bar
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( m_sockfd < 0 )
     {
-        perror("ERROR opening socket");
+        cout << "ERROR opening socket" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     struct hostent *server = gethostbyname(MODELSIM_SERVER);
     if( server == NULL )
     {
-        perror("ERROR, no sich host");
+        cout << "ERROR, no sich host" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     struct sockaddr_in serv_addr;
@@ -71,7 +73,8 @@ sim_bar::sim_bar
     serv_addr.sin_port = htons(2000);
     if( 0 > connect(m_sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) )
     {
-        perror("ERROR connecting");
+        cout << "ERROR connecting" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     /** create pipe for redirecting read requests to completion handler
@@ -80,7 +83,8 @@ sim_bar::sim_bar
      */
     if( pipe(m_pipefd) == -1 )
     {
-        perror("Failed to create PIPE");
+        cout << "Failed to create PIPE" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     /** completion handler */
@@ -103,14 +107,6 @@ sim_bar::~sim_bar()
 
     pthread_mutex_destroy(&m_mtx);
     /** Further stuff here **/
-}
-
-
-
-int
-sim_bar::init()
-{
-    return 0;
 }
 
 
