@@ -66,43 +66,21 @@ namespace librorc
     class sim_bar : public bar
     {
         public:
-
-            /**
-             * Constructor that sets fname accordingly. No mapping is
-             * performed at this point.
-             * @param dev parent librorc::device
-             * @param n number of BAR to be mapped [0-6]
-             */
             sim_bar
             (
                 device  *dev,
                 int32_t  n
             );
 
-            /**
-             * Deconstructor: free fname, unmap BAR, close file
-             */
              virtual
             ~sim_bar();
 
-            /**
-             * read DWORD from BAR address
-             * @param addr (unsigned int) aligned address within the
-             *              BAR to read from.
-             * @return data read from BAR[addr]
-             */
             unsigned int
             get
             (
                 uint64_t addr
             );
 
-            /**
-             * write DWORD to BAR address
-             * @param addr (unsigned int) aligned address within the
-             *              BAR to write to
-             * @param data (unsigned int) data word to be written.
-             */
             void
             set
             (
@@ -110,12 +88,6 @@ namespace librorc
                 uint32_t data
             );
 
-            /**
-             * copy buffer range into BAR
-             * @param addr address in current BAR
-             * @param source pointer to source data field
-             * @param num number of bytes to be copied to destination
-             */
             void
             memcpy_bar
             (
@@ -124,12 +96,6 @@ namespace librorc
                 size_t      num
             );
 
-            /**
-            * copy buffer range into BAR
-            * @param target address
-            * @param source address
-            * @param num number of bytes to be copied to destination
-            * */
             void
             memcopy
             (
@@ -146,23 +112,12 @@ namespace librorc
                 size_t               num
             );
 
-            /**
-             * read DWORD from BAR address
-             * @param addr (unsigned int) aligned address within the
-             *              BAR to read from.
-             * @return data read from BAR[addr]
-             */
             unsigned short
             get16
             (
                 uint64_t addr
             );
 
-            /**
-             * write WORD to BAR address
-             * @param addr within the BAR to write to
-             * @param data (unsigned int) data word to be written.
-             */
             void
             set16
             (
@@ -170,12 +125,6 @@ namespace librorc
                 uint16_t data
             );
 
-            /**
-             * get current time of day
-             * @param tv pointer to struct timeval
-             * @param tz pointer to struct timezone
-             * @return return valiue from gettimeof day or zero for FLI simulation
-             */
             int32_t
             gettime
             (
@@ -183,18 +132,11 @@ namespace librorc
                 struct timezone *tz
             );
 
-            /**
-             * get size of mapped BAR. This value is only valid after init()
-             * @return size of mapped BAR in bytes
-             */
             size_t getSize();
 
 
         private:
 
-            /**
-             * Initialize member variables
-             */
             int      m_sockfd;
             int      m_pipefd[2];
             int32_t  m_msgid;
@@ -283,7 +225,6 @@ namespace librorc
  * A structure to represent FLI read request
  */
 typedef struct
-
 __attribute__((__packed__))
 {
 	uint64_t buffer_id;     /**< Buffer-ID*/
