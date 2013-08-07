@@ -157,7 +157,7 @@ sim_bar::memcopy
             }
             m_write_to_dev_done=0;
 
-            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, target);
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, target);
             m_msgid++;
         }
 
@@ -214,7 +214,7 @@ uint32_t sim_bar::get32(librorc_bar_address address )
             data = m_read_from_dev_data;
             m_read_from_dev_done = 0;
 
-            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", m_msgid, addr, data);
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get(0x%lx)=%08x\n", m_msgid, address, data);
 
             m_msgid++;
         }
@@ -308,7 +308,7 @@ sim_bar::set32
             }
             m_write_to_dev_done=0;
 
-            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", m_msgid, addr, data);
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set(0x%lx, %08x)\n", m_msgid, address, data);
 
             m_msgid++;
         }
