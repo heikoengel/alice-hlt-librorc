@@ -19,46 +19,6 @@ namespace librorc
     virtual ~bar() {}
 
     /**
-     * read DWORD from BAR address
-     * @param addr (unsigned int) aligned address within the
-     *              BAR to read from.
-     * @return data read from BAR[addr]
-     **/
-    virtual
-    uint32_t
-    get
-    (
-        uint64_t addr
-    ) = 0;
-
-    /**
-     * read WORD from BAR address
-     * @param addr within the BAR to read from.
-     * @return data read from BAR[addr]
-     **/
-    virtual
-    uint16_t
-    get16
-    (
-        uint64_t addr
-    ) = 0;
-
-//    /**
-//     * copy buffer range into BAR
-//     * @param addr address in current BAR
-//     * @param source pointer to source data field
-//     * @param num number of bytes to be copied to destination
-//     * */
-//    virtual
-//    void
-//    memcpy_bar
-//    (
-//        uint64_t    addr,
-//        const void *source,
-//        size_t      num
-//    ) = 0;
-
-    /**
      * copy buffer from host to device and vice versa
      * @param target address
      * @param source address
@@ -83,6 +43,25 @@ namespace librorc
     ) = 0;
 
     /**
+     * read DWORD from BAR address
+     * @param addr (unsigned int) aligned address within the
+     *              BAR to read from.
+     * @return data read from BAR[addr]
+     **/
+    virtual
+    uint32_t
+    get( librorc_bar_address address ) = 0;
+
+    /**
+     * read WORD from BAR address
+     * @param addr within the BAR to read from.
+     * @return data read from BAR[addr]
+     **/
+    virtual
+    uint16_t
+    get16( librorc_bar_address address ) = 0;
+
+    /**
      * write DWORD to BAR address
      * @param addr (unsigned int) aligned address within the
      *              BAR to write to
@@ -92,7 +71,7 @@ namespace librorc
     void
     set
     (
-        uint64_t addr,
+        librorc_bar_address address,
         uint32_t data
     ) = 0;
 
@@ -105,7 +84,7 @@ namespace librorc
     void
     set16
     (
-        uint64_t addr,
+        librorc_bar_address address,
         uint16_t data
     ) = 0;
 

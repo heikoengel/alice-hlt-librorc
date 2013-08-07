@@ -55,26 +55,6 @@ namespace librorc
 
             ~rorc_bar();
 
-            uint32_t
-            get
-            (
-                uint64_t addr
-            );
-
-            uint16_t
-            get16
-            (
-                uint64_t addr
-            );
-
-//            void
-//            memcpy_bar
-//            (
-//                uint64_t    addr,
-//                const void *source,
-//                size_t      num
-//            );
-
             void
             memcopy
             (
@@ -91,17 +71,21 @@ namespace librorc
                 size_t               num
             );
 
+            uint32_t get( librorc_bar_address address );
+
+            uint16_t get16( librorc_bar_address address );
+
             void
             set
             (
-                uint64_t addr,
+                librorc_bar_address address,
                 uint32_t data
             );
 
             void
             set16
             (
-                uint64_t addr,
+                librorc_bar_address address,
                 uint16_t data
             );
 
