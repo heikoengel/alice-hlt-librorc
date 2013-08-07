@@ -182,7 +182,7 @@ sim_bar::memcopy
 
 
 
-uint32_t sim_bar::get(librorc_bar_address address )
+uint32_t sim_bar::get32(librorc_bar_address address )
 {
     uint32_t  data = 0;
     pthread_mutex_lock(&m_mtx);
@@ -274,7 +274,7 @@ uint16_t sim_bar::get16(librorc_bar_address address )
 
 
 void
-sim_bar::set
+sim_bar::set32
 (
     librorc_bar_address address,
     uint32_t data

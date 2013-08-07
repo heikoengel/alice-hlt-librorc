@@ -664,7 +664,7 @@ dma_channel::setPKT
     uint32_t data
 )
 {
-    m_bar->set((m_base + addr), data);
+    m_bar->set32((m_base + addr), data);
 }
 
 
@@ -675,7 +675,7 @@ dma_channel::getPKT
     uint32_t addr
 )
 {
-    return m_bar->get(m_base+addr);
+    return m_bar->get32(m_base+addr);
 }
 
 
@@ -687,7 +687,7 @@ dma_channel::setGTX
     uint32_t data
 )
 {
-    m_bar->set( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
+    m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
 }
 
 
@@ -698,7 +698,7 @@ dma_channel::getGTX
     uint32_t addr
 )
 {
-    return m_bar->get(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
+    return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
 }
 
 }

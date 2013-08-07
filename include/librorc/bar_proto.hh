@@ -48,7 +48,7 @@ namespace librorc
      *              BAR to read from.
      * @return data read from BAR[addr]
      **/
-    virtual uint32_t get(librorc_bar_address address ) = 0;
+    virtual uint32_t get32(librorc_bar_address address ) = 0;
 
     /**
      * read WORD from BAR address
@@ -65,7 +65,7 @@ namespace librorc
      **/
     virtual
     void
-    set
+    set32
     (
         librorc_bar_address address,
         uint32_t data

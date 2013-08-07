@@ -87,7 +87,7 @@ rorc_bar::memcopy
 
 
 uint32_t
-rorc_bar::get(librorc_bar_address address )
+rorc_bar::get32(librorc_bar_address address )
 {
     assert( m_bar != NULL );
 
@@ -128,7 +128,7 @@ rorc_bar::get16(librorc_bar_address address )
 
 
 void
-rorc_bar::set
+rorc_bar::set32
 (
     librorc_bar_address address,
     uint32_t data

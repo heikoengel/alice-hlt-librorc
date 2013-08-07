@@ -91,12 +91,12 @@ namespace librorc
                 size_t               num
             );
 
+            uint32_t get32(librorc_bar_address address );
+
             uint16_t get16(librorc_bar_address address );
 
-            uint32_t get(librorc_bar_address address );
-
             void
-            set
+            set32
             (
                 librorc_bar_address address,
                 uint32_t data
