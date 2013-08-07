@@ -233,10 +233,10 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
+    printf("FirmwareDate: %08x\n", bar1->get32(RORC_REG_FIRMWARE_DATE));
 
     /** Check if requested channel is implemented in firmware */
-    if( ChannelId >= (int32_t)(bar1->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if( ChannelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                "firmware - exiting\n", ChannelId);

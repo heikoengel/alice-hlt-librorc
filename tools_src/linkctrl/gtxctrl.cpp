@@ -194,7 +194,7 @@ int main
     }
 
     /** get number channels implemented in firmware */
-    uint32_t type_channels = bar->get(RORC_REG_TYPE_CHANNELS);
+    uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
 
     uint32_t startChannel, endChannel;
     if ( ChannelId==-1 )

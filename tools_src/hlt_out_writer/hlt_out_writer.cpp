@@ -224,9 +224,9 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    printf("FirmwareDate: %08x\n", bar1->get(RORC_REG_FIRMWARE_DATE));
+    printf("FirmwareDate: %08x\n", bar1->get32(RORC_REG_FIRMWARE_DATE));
 
-    type_channels = bar1->get(RORC_REG_TYPE_CHANNELS);
+    type_channels = bar1->get32(RORC_REG_TYPE_CHANNELS);
 
     // check if requested channel is implemented in firmware
     if ( ChannelId >= (int32_t)(type_channels & 0xffff)) {
