@@ -33,14 +33,20 @@ using namespace std;
 #define HELP_TEXT "gtxctrl usage: \n\
         gtxctrl [parameters] \n\
 parameters: \n\
-        --device [0...255]   Target device ID \n\
-        --channel [0...11]   Channel ID \n\
-        --clear              Clear error counters \n\
-        --rxreset [0/1]      Set RX reset value \n\
-        --txreset [0/1]      Set TX reset value \n\
-        --gtxreset [0/1]     Set GTX reset value \n\
-        --loopback [0...7]   Set GTX loopback value \n\
-        --help               Show this text \n\
+        -n [0...255]  Target device ID \n\
+        -c [0...11]   Channel ID \n\
+        -x            Clear error counters \n\
+        -r [0...7]    Set GTX reset values, see below\n\
+        -l [0...7]    Set GTX loopback value \n\
+        -h            Show this text \n\
+\n\
+GTX reset consists of 3 bits, MSB to LSB: {TXreset, RXreset, GTXreset}. \n\
+In order to set GTXreset=1, RXreset=0, TXreset=0, do \n\
+        gtxctrl -n [...] -c [...] -r 0x01 \n\
+In order to set GTXreset=0, RXreset=1, TXreset=1, do \n\
+        gtxctrl -n [...] -c [...] -r 0x06 \n\
+To release all resets, do \n\
+        gtxctrl -n [...] -r 0 \n\
 "
 
 
@@ -50,39 +56,23 @@ int main
     char *argv[]
 )
 {
-    int clear = 0;
-    int status = 0;
-    int32_t rxreset = 0;
-    int32_t txreset = 0;
+    int do_clear = 0;
+    int do_status = 0;
+    int do_reset = 0;
+    int do_loopback = 0;
+
+    /** parse command line arguments **/
+    int32_t DeviceId  = -1;
+    int32_t ChannelId = -1;
     int32_t gtxreset = 0;
     int32_t loopback = 0;
 
-    static struct option long_options[] =
+    int arg;
+    while( (arg = getopt(argc, argv, "hn:c:r:l:xs")) != -1 )
     {
-        {"device", required_argument, 0, 'd'},
-        {"channel", required_argument, 0, 'c'},
-        {"clear", no_argument, &clear, 1},
-        {"rxreset", required_argument, 0, 'r'},
-        {"txreset", required_argument, 0, 't'},
-        {"gtxreset", required_argument, 0, 'g'},
-        {"loopback", required_argument, 0, 'l'},
-        {"status", no_argument, &status, 1},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-    
-    /** parse command line arguments **/
-    int32_t  DeviceId  = -1;
-    int32_t  ChannelId = -1;
-    while(1)
-    {
-        int opt = getopt_long(argc, argv, "", long_options, NULL);
-        if ( opt == -1 )
-        { break; }
-
-        switch(opt)
+        switch(arg)
         {
-            case 'd':
+            case 'n':
             {
                 DeviceId = strtol(optarg, NULL, 0);
             }
@@ -96,25 +86,27 @@ int main
 
             case 'r':
             {
-                rxreset = strtol(optarg, NULL, 0);
-            }
-            break;
-
-            case 't':
-            {
-                txreset = strtol(optarg, NULL, 0);
-            }
-            break;
-
-            case 'g':
-            {
                 gtxreset = strtol(optarg, NULL, 0);
+                do_reset = 1;
             }
             break;
 
             case 'l':
             {
                 loopback = strtol(optarg, NULL, 0);
+                do_loopback = 1;
+            }
+            break;
+
+            case 's':
+            {
+                do_status = 1;
+            }
+            break;
+
+            case 'x':
+            {
+                do_clear = 1;
             }
             break;
 
@@ -127,7 +119,9 @@ int main
 
             default:
             {
-                break;
+                cout << "Unknown parameter (" << arg << ")!" << endl;
+                cout << HELP_TEXT;
+                return -1;
             }
         }
     }
@@ -140,23 +134,9 @@ int main
         abort();
     }
 
-    if ( gtxreset > 1 )
+    if ( gtxreset > 7 )
     {
-        cout << "gtxreset value invalid, allowed values are 0,1." << endl;
-        cout << HELP_TEXT;
-        abort();
-    }
-
-    if ( txreset > 1 )
-    {
-        cout << "txreset value invalid, allowed values are 0,1." << endl;
-        cout << HELP_TEXT;
-        abort();
-    }
-
-    if ( rxreset > 1 )
-    {
-        cout << "rxreset value invalid, allowed values are 0,1." << endl;
+        cout << "gtxreset value invalid, allowed values are 0...7" << endl;
         cout << HELP_TEXT;
         abort();
     }
@@ -170,8 +150,8 @@ int main
 
     /** Create new device instance */
     librorc::device *dev;
-    try{ 
-        dev = new librorc::device(DeviceId); 
+    try{
+        dev = new librorc::device(DeviceId);
     }
     catch(...)
     {
@@ -197,10 +177,10 @@ int main
     uint32_t startChannel, endChannel;
     if ( ChannelId==-1 )
     {
-        /** iterate over all channels */
+        /** no specific channel selected, iterate over all channels */
         startChannel = 0;
         endChannel = (type_channels & 0xffff) - 1;
-    } 
+    }
     else if ( ChannelId < (int32_t)(type_channels & 0xffff) )
     {
         /** use only selected channel */
@@ -209,7 +189,7 @@ int main
     }
     else
     {
-        cout << "ERROR: Selected Channel " << ChannelId 
+        cout << "ERROR: Selected Channel " << ChannelId
              << " is not implemented in Firmware." << endl;
         abort();
     }
@@ -220,17 +200,19 @@ int main
         /** Create DMA channel and bind channel to BAR1 */
         librorc::dma_channel *ch = new librorc::dma_channel();
         ch->init(bar, chID);
-            
+
         /** get current GTX configuration */
         uint32_t gtxasynccfg = ch->getPKT(RORC_REG_GTX_ASYNC_CFG);
 
-        if ( status )
+        if ( do_status )
         {
-            cout << "CH " << setw(2) << chID << ": 0x" 
-                 << hex << setw(8) << setfill('0') << gtxasynccfg 
+            cout << "CH " << setw(2) << chID << ": 0x"
+                 << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
+            /** TODO: also provide error counter values here */
         }
-        else if ( clear )
+
+        if ( do_clear )
         {
             /** make sure GTX clock is running */
             if ( (gtxasynccfg & (1<<8)) != 0 )
@@ -252,26 +234,40 @@ int main
             /** clear RX-Byte-Realign count */
             ch->setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
 
+            /** also clear GTX error counter for HWTest firmwares */
+            if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
+            {
+                ch->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+            }
+
         }
-        else /** set {rx/tx/gtx}reset, loopback */
+
+        /** set {tx/rx/gtx}reset */
+        if ( do_reset )
         {
             /** clear previous reset bits (0,1,3) */
             gtxasynccfg &= ~(0x0000000b);
 
+            /** set new reset values */
+            gtxasynccfg |= (gtxreset&1); //GTXreset
+            gtxasynccfg |= (((gtxreset>>1)&1)<<1); //RXreset
+            gtxasynccfg |= (((gtxreset>>2)&1)<<3); //TXreset
+        }
+
+        /** set loopback values */
+        if ( do_loopback )
+        {
             /** clear previous loopback bits */
             gtxasynccfg &= ~(0x00000007<<9);
 
-            /** set new reset values */
-            gtxasynccfg |= (gtxreset&1);
-            gtxasynccfg |= ((rxreset&1)<<1);
-            gtxasynccfg |= ((txreset&1)<<3);
-
             /** set new loopback value */
             gtxasynccfg |= ((loopback&7)<<9);
+        }
 
+        if ( do_reset || do_loopback )
+        {
             /** write new values to RORC */
             ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
-
         }
 
         delete ch;
