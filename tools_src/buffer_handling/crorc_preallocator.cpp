@@ -113,7 +113,8 @@ alloc_channel
 )
 {
     /** check if requested channel is implemented in firmware */
-    if( ChannelID >= (Bar->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    //TODO: put this into API
+    if( ChannelID >= (Bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
             "firmware - exiting\n", ChannelID);

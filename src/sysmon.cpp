@@ -58,7 +58,7 @@ namespace librorc
     sysmon::FwRevision()
     {
         uint32_t firmware_revision
-            = m_bar->get(RORC_REG_FIRMWARE_REVISION);
+            = m_bar->get32(RORC_REG_FIRMWARE_REVISION);
 
         if(firmware_revision == 0xffffffff)
         {
@@ -74,7 +74,7 @@ namespace librorc
     sysmon::FwBuildDate()
     {
         uint32_t date
-            = m_bar->get(RORC_REG_FIRMWARE_DATE);
+            = m_bar->get32(RORC_REG_FIRMWARE_DATE);
 
         if(date == 0xffffffff)
         {
@@ -93,7 +93,7 @@ namespace librorc
     uint32_t
     sysmon::pcieNumberOfLanes()
     {
-        uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
+        uint32_t status = m_bar->get32(RORC_REG_PCIE_CTRL);
         return(1<<(status>>3 & 0x3));
     }
 
@@ -102,7 +102,7 @@ namespace librorc
     uint32_t
     sysmon::pcieGeneration()
     {
-        uint32_t status = m_bar->get(RORC_REG_PCIE_CTRL);
+        uint32_t status = m_bar->get32(RORC_REG_PCIE_CTRL);
         return(1<<(status>>5 & 0x01));
     }
 
@@ -115,7 +115,7 @@ namespace librorc
     double
     sysmon::FPGATemperature()
     {
-        uint32_t value = m_bar->get(RORC_REG_FPGA_TEMPERATURE);
+        uint32_t value = m_bar->get32(RORC_REG_FPGA_TEMPERATURE);
         return (double)(value*503.975/1024.0 - 273.15);
     }
 
@@ -124,7 +124,7 @@ namespace librorc
     double
     sysmon::VCCINT()
     {
-        uint32_t value = m_bar->get(RORC_REG_FPGA_VCCINT);
+        uint32_t value = m_bar->get32(RORC_REG_FPGA_VCCINT);
         return (double)(value/1024.0 * 3.0);
     }
 
@@ -133,7 +133,7 @@ namespace librorc
     double
     sysmon::VCCAUX()
     {
-        uint32_t value = m_bar->get(RORC_REG_FPGA_VCCAUX);
+        uint32_t value = m_bar->get32(RORC_REG_FPGA_VCCAUX);
         return (double)(value/1024.0 * 3.0);
     }
 
@@ -157,8 +157,7 @@ namespace librorc
     sysmon::systemClockIsRunning()
     {
         /** check firmware type */
-        if ( m_bar->get(RORC_REG_TYPE_CHANNELS)>>16 != 
-                RORC_CFG_PROJECT_hwtest )
+        if( (m_bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hwtest )
         {
             /* TODO: the register below is only available in 'hwtest'
              * -> need to find a firmware independent detection here.
@@ -167,7 +166,7 @@ namespace librorc
         }
         else
         {
-            uint32_t ddrctrl = m_bar->get(RORC_REG_DDR3_CTRL);
+            uint32_t ddrctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
             if( ((ddrctrl>>3)&1) == 1 )
             { return true; }
             else
@@ -180,7 +179,7 @@ namespace librorc
     bool
     sysmon::systemFanIsEnabled()
     {
-        uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+        uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
         if ( !(fanctrl & (1<<31)) )
         { return false; }
         else
@@ -192,7 +191,7 @@ namespace librorc
     bool
     sysmon::systemFanIsRunning()
     {
-        uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+        uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
         if( !(fanctrl & (1<<29)) )
         { return false; }
         else
@@ -204,7 +203,7 @@ namespace librorc
     double
     sysmon::systemFanSpeed()
     {
-        uint32_t fanctrl = m_bar->get(RORC_REG_FAN_CTRL);
+        uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
         return 15/((fanctrl & 0x1fffffff)*0.000000004);
     }
 
@@ -219,7 +218,7 @@ namespace librorc
         uint8_t index
     )
     {
-        uint32_t qsfp_ctrl = m_bar->get(RORC_REG_QSFP_CTRL);
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
 
         if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
         {
@@ -237,7 +236,7 @@ namespace librorc
         uint8_t LED_index
     )
     {
-        uint32_t qsfp_ctrl = m_bar->get(RORC_REG_QSFP_CTRL);
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
 
         if( ((~qsfp_ctrl)>>(8*qsfp_index+LED_index) & 0x01) == 1 )
         {
@@ -304,7 +303,7 @@ namespace librorc
         i2c_module_prepare( chain );
 
         /** set STO */
-        m_bar->set(RORC_REG_I2C_OPERATION, 0x00400000);
+        m_bar->set32(RORC_REG_I2C_OPERATION, 0x00400000);
 
         uint32_t status
             = wait_for_tip_to_negate();
@@ -335,19 +334,19 @@ namespace librorc
         i2c_module_prepare(chain);
 
         /** write addr + write bit to TX register, set STA, set WR */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
         check_rxack_is_zero( wait_for_tip_to_negate() );
 
         /** set mem addr, set WR bit */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
+        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
         check_rxack_is_zero( wait_for_tip_to_negate() );
 
         /** set slave addr + read bit, set STA, set WR */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_rd<<8)) );
+        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_rd<<8)) );
         uint32_t status = wait_for_tip_to_negate();
 
         /** set RD, set ACK=1 (NACK), set STO */
-        m_bar->set(RORC_REG_I2C_OPERATION, 0x00680000);
+        m_bar->set32(RORC_REG_I2C_OPERATION, 0x00680000);
         status = wait_for_tip_to_negate();
 
         i2c_module_disable();
@@ -372,15 +371,15 @@ namespace librorc
         i2c_module_prepare(chain);
 
         /** write addr + write bit to TX register, set STA, set WR */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
+        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
         check_rxack_is_zero( wait_for_tip_to_negate() );
 
         /** set mem addr, set WR bit */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
+        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
         check_rxack_is_zero( wait_for_tip_to_negate() );
 
         /** set WR, set ACK=0 (ACK), set STO, set data */
-        m_bar->set(RORC_REG_I2C_OPERATION, (0x00500000|(uint32_t)(data<<8)));
+        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00500000|(uint32_t)(data<<8)));
         wait_for_tip_to_negate();
 
         i2c_module_disable();
@@ -394,11 +393,11 @@ namespace librorc
     uint32_t
     sysmon::wait_for_tip_to_negate()
     {
-        uint32_t status = m_bar->get(RORC_REG_I2C_OPERATION);
+        uint32_t status = m_bar->get32(RORC_REG_I2C_OPERATION);
         while( status & 0x02000000 )
         {
             usleep(100);
-            status = m_bar->get(RORC_REG_I2C_OPERATION);
+            status = m_bar->get32(RORC_REG_I2C_OPERATION);
         }
 
         return status;
@@ -420,7 +419,7 @@ namespace librorc
     void
     sysmon::i2c_set_config( uint32_t config )
     {
-        m_bar->set(RORC_REG_I2C_CONFIG, config);
+        m_bar->set32(RORC_REG_I2C_CONFIG, config);
     }
 
 
