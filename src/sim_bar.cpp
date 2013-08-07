@@ -111,98 +111,6 @@ sim_bar::~sim_bar()
 
 
 
-uint32_t
-sim_bar::get
-(
-    uint64_t addr
-)
-{
-    uint32_t  data = 0;
-    pthread_mutex_lock(&m_mtx);
-    {
-        uint32_t buffersize = 4;
-        uint32_t buffer[buffersize];
-        buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
-        buffer[1] = m_msgid;
-        buffer[2] = addr<<2;
-        /** BAR, BE, length */
-        buffer[3] = (m_number<<24) + (0x0f<<16) + 1;
-
-        if
-        (
-            write( m_sockfd, buffer, sizeof(uint32_t)*buffersize )
-                != (ssize_t)(sizeof(uint32_t)*buffersize)
-        )
-        {
-            cout << "ERROR writing to socket" << endl;
-        }
-        else
-        {
-            /** wait for completion */
-            while( !m_read_from_dev_done )
-            {
-                usleep(USLEEP_TIME);
-            }
-
-            data = m_read_from_dev_data;
-            m_read_from_dev_done = 0;
-
-            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", m_msgid, addr, data);
-
-            m_msgid++;
-        }
-    }
-    pthread_mutex_unlock(&m_mtx);
-    return data;
-}
-
-
-
-void
-sim_bar::set
-(
-    uint64_t addr,
-    uint32_t data
-)
-{
-    /** send write command to Modelsim FLI server */
-    pthread_mutex_lock(&m_mtx);
-    {
-        int32_t  buffersize = 5;
-        uint32_t buffer[buffersize];
-        buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
-        buffer[1] = m_msgid;
-        buffer[2] = addr<<2;
-        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
-        buffer[4] = data;
-
-        if
-        (
-            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != (ssize_t)(buffersize*sizeof(uint32_t))
-        )
-        {
-            cout << "ERROR writing to socket" << endl;
-        }
-        else
-        {
-            /** wait for FLI acknowledgement */
-            while( !m_write_to_dev_done )
-            {
-                usleep(USLEEP_TIME);
-            }
-            m_write_to_dev_done=0;
-
-            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", m_msgid, addr, data);
-
-            m_msgid++;
-        }
-    }
-    pthread_mutex_unlock(&m_mtx);
-}
-
-
-
 void
 sim_bar::memcopy
 (
@@ -274,11 +182,50 @@ sim_bar::memcopy
 
 
 
-uint16_t
-sim_bar::get16
-(
-    uint64_t addr
-)
+uint32_t sim_bar::get(librorc_bar_address address )
+{
+    uint32_t  data = 0;
+    pthread_mutex_lock(&m_mtx);
+    {
+        uint32_t buffersize = 4;
+        uint32_t buffer[buffersize];
+        buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
+        buffer[1] = m_msgid;
+        buffer[2] = address<<2;
+        /** BAR, BE, length */
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1;
+
+        if
+        (
+            write( m_sockfd, buffer, sizeof(uint32_t)*buffersize )
+                != (ssize_t)(sizeof(uint32_t)*buffersize)
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for completion */
+            while( !m_read_from_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+
+            data = m_read_from_dev_data;
+            m_read_from_dev_done = 0;
+
+            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", m_msgid, addr, data);
+
+            m_msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+    return data;
+}
+
+
+
+uint16_t sim_bar::get16(librorc_bar_address address )
 {
     uint16_t data = 0;
     pthread_mutex_lock(&m_mtx);
@@ -287,8 +234,8 @@ sim_bar::get16
         uint32_t buffer[buffersize];
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
         buffer[1] = m_msgid;
-        buffer[2] = (addr<<1) & ~(0x03);
-        if ( addr & 0x01 )
+        buffer[2] = (address<<1) & ~(0x03);
+        if( address & 0x01 )
         {
             /** BAR, BE, length */
             buffer[3] = (m_number<<24) + (0x0c<<16) + 1;
@@ -327,9 +274,54 @@ sim_bar::get16
 
 
 void
+sim_bar::set
+(
+    librorc_bar_address address,
+    uint32_t data
+)
+{
+    /** send write command to Modelsim FLI server */
+    pthread_mutex_lock(&m_mtx);
+    {
+        int32_t  buffersize = 5;
+        uint32_t buffer[buffersize];
+        buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
+        buffer[1] = m_msgid;
+        buffer[2] = address<<2;
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
+        buffer[4] = data;
+
+        if
+        (
+            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
+                != (ssize_t)(buffersize*sizeof(uint32_t))
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for FLI acknowledgement */
+            while( !m_write_to_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            m_write_to_dev_done=0;
+
+            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", m_msgid, addr, data);
+
+            m_msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
+void
 sim_bar::set16
 (
-    uint64_t addr,
+    librorc_bar_address address,
     uint16_t data
 )
 {
@@ -340,8 +332,8 @@ sim_bar::set16
         uint32_t buffer[buffersize];
         buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = m_msgid;
-        buffer[2] = (addr<<1) & ~(0x03);
-        if ( addr & 0x01 )
+        buffer[2] = (address<<1) & ~(0x03);
+        if ( address & 0x01 )
         {
             /** BAR, BE, length */
             buffer[3] = (m_number<<24) + (0x0c<<16) + 1;
