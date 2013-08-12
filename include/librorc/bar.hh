@@ -96,7 +96,7 @@ namespace librorc
                 struct timezone *tz
             );
 
-            size_t getSize();
+            size_t size();
 
     };
 

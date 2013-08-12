@@ -102,7 +102,7 @@ namespace librorc
      * get size of mapped BAR. This value is only valid after init()
      * @return size of mapped BAR in bytes
      **/
-    virtual size_t getSize() = 0;
+    virtual size_t size() = 0;
 
     protected:
         device          *m_parent_dev;

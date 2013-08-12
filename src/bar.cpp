@@ -183,7 +183,7 @@ rorc_bar::gettime
 
 
 size_t
-rorc_bar::getSize()
+rorc_bar::size()
 {
     return m_size;
 }

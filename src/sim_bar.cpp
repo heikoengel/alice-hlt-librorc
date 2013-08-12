@@ -814,7 +814,7 @@ sim_bar::cmplHandler()
 
 
 size_t
-sim_bar::getSize()
+sim_bar::size()
 {
     return m_size;
 }
