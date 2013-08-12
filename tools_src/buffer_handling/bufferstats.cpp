@@ -30,9 +30,10 @@ using namespace std;
 #define HELP_TEXT "bufferstats usage: \n\
         bufferstats [parameters] \n\
 parameters: \n\
-        --device [0..255]   Device ID \n\
-        --buffer [BufferID] BufferID \n\
-        --help              Show this text \n"
+        -n      [0..255]   Device ID \n\
+        -b      [BufferID] BufferID \n\
+        -v      be verbose \n\
+        --help  Show this text \n"
 
 int main( int argc, char *argv[])
 {
@@ -44,42 +45,32 @@ int main( int argc, char *argv[])
     int64_t BufferId= -1;
     int32_t verbose = 0;
 
-    // command line arguments
-    static struct option long_options[] = {
-        {"device", required_argument, 0, 'd'},
-        {"buffer", required_argument, 0, 'b'},
-        {"verbose", no_argument, &verbose, 1},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-
-
-    /** parse command line arguments **/
-    while (1)
+    int opt;
+    while ( (opt = getopt(argc, argv, "n:b:vh")) != -1)
     {
-        int opt = getopt_long(argc, argv, "", long_options, NULL);
-        if ( opt == -1 )
+        switch (opt)
         {
-            break;
-        }
-
-        switch(opt)
-        {
-            case 'd':
+            case 'h':
+                cout << HELP_TEXT;
+                return 0;
+                break;
+            case 'n':
                 DeviceId = strtol(optarg, NULL, 0);
                 break;
             case 'b':
                 BufferId = strtol(optarg, NULL, 0);
                 break;
-            case 'h':
-                cout << HELP_TEXT;
-                exit(0);
+            case 'v':
+                verbose = 1;
                 break;
             default:
+                cout << "Unknown parameter (" << opt << ")!" << endl;
+                cout << HELP_TEXT;
+                abort();
                 break;
-        }
-    }
 
+        } //switch
+    } //while
 
     /** sanity checks on command line arguments **/
     if ( DeviceId < 0 || DeviceId > 255 )
@@ -119,6 +110,21 @@ int main( int argc, char *argv[])
     cout << "Overmapped:           " << buf->isOvermapped() << endl;
     cout << "Size:                 " << buf->getSize()
         << " Bytes (" << dec << (buf->getSize()/(1<<20)) << " MB)" << endl;
+
+    if ( verbose )
+    {
+        cout << "SGList:" << endl;
+        /** print scatter-gather list */
+        vector<librorc_sg_entry> sglist = buf->sgList();
+        for ( uint64_t i=0; i< sglist.size(); i++ )
+        {
+            uint32_t addr_high = sglist[i].pointer>>32;
+            cout << "                 [" << i << "]: addr=0x" << hex;
+            cout << setw(8) << setfill('0') << addr_high << "_";
+            cout << (sglist[i].pointer & 0xffffffff)
+                 << ", len=0x" << sglist[i].length <<endl;
+        }
+    }
 
     delete buf;
     delete dev;
