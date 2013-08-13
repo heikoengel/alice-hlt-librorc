@@ -50,6 +50,8 @@
 		<Unit filename="src/sysmon.cpp" />
 		<Unit filename="tools_src/buffer_handling/bufferstats.cpp" />
 		<Unit filename="tools_src/buffer_handling/crorc_preallocator.cpp" />
+		<Unit filename="tools_src/dma/dma_handling.cpp" />
+		<Unit filename="tools_src/dma/dma_handling.hh" />
 		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
