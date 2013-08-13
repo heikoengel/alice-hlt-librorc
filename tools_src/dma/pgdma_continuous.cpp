@@ -43,10 +43,6 @@ void abort_handler( int s )
 int main(int argc, char *argv[])
 {
 
-//    int32_t  DeviceId  = -1;
-//    int32_t  ChannelId = -1;
-//    uint32_t EventSize = 0;
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
 //    /** sanity checks on command line arguments **/

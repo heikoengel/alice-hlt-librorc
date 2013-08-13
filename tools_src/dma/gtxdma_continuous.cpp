@@ -44,56 +44,7 @@ int main( int argc, char *argv[])
 {
     int result = 0;
 
-    /** command line arguments */
-    static struct option long_options[] =
-    {
-        {"device", required_argument, 0, 'd'},
-        {"channel", required_argument, 0, 'c'},
-        {"file", required_argument, 0, 'f'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-
-    /** parse command line arguments **/
-    int32_t DeviceId = -1;
-    int32_t ChannelId = -1;
-    char *refname;
-    int32_t use_reffile = 0;
-    while (1)
-    {
-        int opt = getopt_long(argc, argv, "", long_options, NULL);
-        if ( opt == -1 )
-        { break; }
-
-        switch(opt)
-        {
-            case 'd':
-            {
-                DeviceId = strtol(optarg, NULL, 0);
-            }
-            break;
-            case 'c':
-            {
-                ChannelId = strtol(optarg, NULL, 0);
-            }
-            break;
-            case 'f':
-            {
-                refname = (char *)malloc(strlen(optarg));
-                strcpy(refname, optarg);
-                use_reffile = 1;
-            }
-            break;
-            case 'h':
-            {
-                printf(HELP_TEXT, argv[0]);
-                exit(0);
-            }
-            break;
-            default:
-                break;
-        }
-    }
+    DMAOptions opts = evaluateArguments(argc, argv);
 
 //    /** sanity checks on command line arguments **/
 //    if ( DeviceId < 0 || DeviceId > 255 )
@@ -123,10 +74,9 @@ int main( int argc, char *argv[])
     uint64_t ddlref_size = 0;
     uint32_t *ddlref = NULL;
     struct stat ddlref_stat;
-    if(use_reffile==1)
+    if(opts.useRefFile==true)
     {
-        ddlref_fd = open(refname, O_RDONLY);
-        free(refname);
+        ddlref_fd = open(opts.refname, O_RDONLY);
         if(ddlref_fd<0)
         {
             perror("failed to open reference DDL file");
@@ -154,7 +104,7 @@ int main( int argc, char *argv[])
 
     /** allocate shared mem */
     int shID =
-        shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
+        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
             sizeof(channelStatus), IPC_CREAT | 0666);
     if(shID==-1)
     {
@@ -175,13 +125,13 @@ int main( int argc, char *argv[])
     memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
-    chstats->channel = (unsigned int)ChannelId;
+    chstats->channel = (unsigned int)opts.channelId;
 
 
     /** create new device instance */
     librorc::device *dev = NULL;
     try
-    { dev = new librorc::device(DeviceId); }
+    { dev = new librorc::device(opts.deviceId); }
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
@@ -213,17 +163,17 @@ int main( int argc, char *argv[])
          << bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
     /** check if requested channel is implemented in firmware */
-    if ( ChannelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if(opts.channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-                "firmware - exiting\n", ChannelId);
+                "firmware - exiting\n", opts.channelId);
         abort();
     }
 
     /** Create new DMA event buffer */
     librorc::buffer *ebuf;
     try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*ChannelId), 1, LIBRORC_DMA_FROM_DEVICE); }
+    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*opts.channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
@@ -233,7 +183,7 @@ int main( int argc, char *argv[])
     /** create new DMA report buffer */
     librorc::buffer *rbuf;
     try
-    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
+    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: rbuf->allocate");
@@ -247,7 +197,7 @@ int main( int argc, char *argv[])
 
     /** Create DMA channel and bind channel to BAR1 */
     librorc::dma_channel *ch = new librorc::dma_channel();
-    ch->init(bar1, ChannelId);
+    ch->init(bar1, opts.channelId);
 
     /** prepare EventBufferDescriptorManager with scatter-gather list */
     if(ch->prepareEB(ebuf) < 0)
@@ -373,7 +323,7 @@ int main( int argc, char *argv[])
 
         if(result < 0)
         {
-            printf("handle_channel_data failed for channel %d\n", ChannelId);
+            printf("handle_channel_data failed for channel %d\n", opts.channelId);
             abort();
         }
         else if(result==0)
@@ -436,11 +386,11 @@ int main( int argc, char *argv[])
 
     if(!chstats->set_offset_count) //avoid DivByZero Exception
     {
-        printf("CH%d: No Events\n", ChannelId);
+        printf("CH%d: No Events\n", opts.channelId);
     }
     else
         printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
-                "avg_epi=%ld, set_offset_count=%ld\n", ChannelId,
+                "avg_epi=%ld, set_offset_count=%ld\n", opts.channelId,
                 chstats->n_events, chstats->max_epi,
                 chstats->min_epi,
                 chstats->n_events/chstats->set_offset_count,
