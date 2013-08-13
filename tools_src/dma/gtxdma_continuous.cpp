@@ -111,7 +111,6 @@ int main( int argc, char *argv[])
     sigIntHandler.sa_flags = 0;
 
     /** shared memory */
-    int shID;
     struct ch_stats *chstats = NULL;
     char *shm = NULL;
 
@@ -149,7 +148,8 @@ int main( int argc, char *argv[])
     }
 
     /** allocate shared mem */
-    shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
+    int shID =
+        shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
             sizeof(struct ch_stats), IPC_CREAT | 0666);
     if(shID==-1)
     {
@@ -376,40 +376,47 @@ int main( int argc, char *argv[])
                 ddlref,
                 ddlref_size);
 
-        if ( result < 0 )
+        if(result < 0)
         {
             printf("handle_channel_data failed for channel %d\n", ChannelId);
             abort();
-        } else if ( result==0 ) {
-            // no events available
+        }
+        else if(result==0)
+        {
+            /** no events available */
             usleep(100);
         }
 
         bar1->gettime(&cur_time, 0);
 
-        // print status line each second
-        if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
+        /** print status line each second */
+        if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL)
+        {
             printf("Events: %10ld, DataSize: %8.3f GB ",
                     chstats->n_events,
                     (double)chstats->bytes_received/(double)(1<<30));
 
-            if ( chstats->bytes_received-last_bytes_received)
+            if(chstats->bytes_received-last_bytes_received)
             {
                 printf(" DataRate: %9.3f MB/s",
                         (double)(chstats->bytes_received-last_bytes_received)/
                         gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
-            } else {
+            }
+            else
+            {
                 printf(" DataRate: -");
-                //dump_dma_state(ch);
-                //dump_diu_state(ch);
+                /** dump_dma_state(ch); */
+                /** dump_diu_state(ch); */
             }
 
-            if ( chstats->n_events - last_events_received)
+            if(chstats->n_events - last_events_received)
             {
                 printf(" EventRate: %9.3f kHz/s",
                         (double)(chstats->n_events-last_events_received)/
                         gettimeofday_diff(last_time, cur_time)/1000.0);
-            } else {
+            }
+            else
+            {
                 printf(" EventRate: -");
             }
             printf(" Errors: %ld\n", chstats->error_count);
@@ -420,11 +427,11 @@ int main( int argc, char *argv[])
 
     }
 
-    // EOR
+    /** EOR */
     timeval end_time;
     bar1->gettime(&end_time, 0);
 
-    // print summary
+    /** print summary */
     printf("%ld Byte / %ld events in %.2f sec"
             "-> %.1f MB/s.\n",
             (chstats->bytes_received), chstats->n_events,
@@ -433,7 +440,9 @@ int main( int argc, char *argv[])
              gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
 
     if(!chstats->set_offset_count) //avoid DivByZero Exception
+    {
         printf("CH%d: No Events\n", ChannelId);
+    }
     else
         printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
                 "avg_epi=%ld, set_offset_count=%ld\n", ChannelId,
@@ -442,53 +451,53 @@ int main( int argc, char *argv[])
                 chstats->n_events/chstats->set_offset_count,
                 chstats->set_offset_count);
 
-    // check if link is still up: LD_N == 1
-    if ( ch->getGTX(RORC_REG_DDL_CTRL) & (1<<5) ) {
-
-        // disable BUSY -> drop current data in chain
+    /** check if link is still up: LD_N == 1 */
+    if ( ch->getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
+    {
+        /** disable BUSY -> drop current data in chain */
         ch->setGTX(RORC_REG_DDL_CTRL, 0x00000001);
 
-        // wait for LF_N to go high
+        /** wait for LF_N to go high */
         while(!(ch->getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
-            usleep(100);
+            {usleep(100);}
 
-        // clear DIU_IF IFSTW
+        /** clear DIU_IF IFSTW */
         ch->setGTX(RORC_REG_DDL_IFSTW, 0);
         ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
-        // Send EOBTR command
+        /** Send EOBTR command */
         ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
-        // wait for command transmission status word (CTST)
-        // in response to the EOBTR:
-        // STS[7:4]="0000"
+        /** wait for command transmission status word (CTST)
+         * in response to the EOBTR:
+         * STS[7:4]="0000"
+         */
         while(ch->getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
-            usleep(100);
+            {usleep(100);}
 
-        // disable DIU_IF
+        /** disable DIU_IF */
         ch->setGTX(RORC_REG_DDL_CTRL, 0x00000000);
     }
     else
-    { //link is down -> unable to send EOBTR
+    { /**link is down -> unable to send EOBTR */
         printf("Link is down - unable to send EOBTR\n");
     }
 
-    // disable EBDM -> no further sg-entries to PKT
+    /** disable EBDM -> no further sg-entries to PKT */
     ch->setEnableEB(0);
 
-    // wait for pending transfers to complete (dma_busy->0)
+    /** wait for pending transfers to complete (dma_busy->0) */
     while( ch->getDMABusy() )
-        usleep(100);
+        {usleep(100);}
 
-    // disable RBDM
+    /** disable RBDM */
     ch->setEnableRB(0);
 
-    // reset DFIFO, disable DMA PKT
+    /** reset DFIFO, disable DMA PKT */
     ch->setDMAConfig(0X00000002);
 
-    // clear reportbuffer
+    /** clear reportbuffer */
     memset(reportbuffer, 0, rbuf->getMappingSize());
-
 
     if (shm)
     {
