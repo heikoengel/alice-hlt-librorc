@@ -27,17 +27,17 @@
 
 using namespace std;
 
-/** maximum channel number allowed **/
-#define MAX_CHANNEL 11
-
 int done = 0;
-
 
 void abort_handler( int s )
 {
     printf("Caught signal %d\n", s);
-    done = 1;
+    if( done==1 )
+    { exit(-1); }
+    else
+    { done = 1; }
 }
+
 
 
 int main( int argc, char *argv[])
@@ -101,7 +101,7 @@ int main( int argc, char *argv[])
                 use_reffile = 1;
                 break;
             case 'h':
-                printf(HELP_TEXT, "gtxdma_continous");
+                printf(HELP_TEXT, argv[0]);
                 exit(0);
                 break;
             default:
@@ -113,14 +113,14 @@ int main( int argc, char *argv[])
     if ( DeviceId < 0 || DeviceId > 255 )
     {
         cout << "DeviceId invalid or not set: " << DeviceId << endl;
-        printf(HELP_TEXT, "gtxdma_continous");
+        printf(HELP_TEXT, argv[0]);
         exit(-1);
     }
 
     if ( ChannelId < 0 || ChannelId > MAX_CHANNEL)
     {
         cout << "ChannelId invalid or not set: " << ChannelId << endl;
-        printf(HELP_TEXT, "gtxdma_continous");
+        printf(HELP_TEXT, argv[0]);
         exit(-1);
     }
 

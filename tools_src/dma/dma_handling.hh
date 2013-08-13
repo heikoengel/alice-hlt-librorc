@@ -35,4 +35,8 @@ parameters:                                                  \n\
         --size [value]    PatternGenerator Event Size in DWs \n\
         --help            Show this text                     \n"
 
+/** maximum channel number allowed **/
+#define MAX_CHANNEL 11
+
+
 #endif /** DMA_HANDLING_H */
