@@ -131,7 +131,7 @@ int main( int argc, char *argv[])
     /** Allocate shared mem */
     int shID =
         shmget( (SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId),
-                sizeof(struct ch_stats), IPC_CREAT | 0666);
+                sizeof(channelStatus), IPC_CREAT | 0666);
     if(shID==-1)
     {
         perror("shmget");
@@ -145,10 +145,10 @@ int main( int argc, char *argv[])
         perror("shmat");
         abort();
     }
-    ch_stats *chstats = (ch_stats*)shm;
+    channelStatus *chstats = (channelStatus*)shm;
 
     /** Wipe SHM */
-    memset(chstats, 0, sizeof(struct ch_stats));
+    memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
     chstats->channel = (unsigned int)ChannelId;

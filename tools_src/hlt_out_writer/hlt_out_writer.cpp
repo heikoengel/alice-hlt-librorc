@@ -179,12 +179,12 @@ int main( int argc, char *argv[])
 
     //shared memory
     int shID;
-    struct ch_stats *chstats = NULL;
+    channelStatus *chstats = NULL;
     char *shm = NULL;
 
     //allocate shared mem
     shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
-            sizeof(struct ch_stats), IPC_CREAT | 0666);
+            sizeof(channelStatus), IPC_CREAT | 0666);
     if(shID==-1) {
         perror("shmget");
         goto out;
@@ -195,7 +195,7 @@ int main( int argc, char *argv[])
         perror("shmat");
         goto out;
     }
-    chstats = (struct ch_stats*)shm;
+    chstats = (channelStatus*)shm;
 
 
     // create new device instance
@@ -263,7 +263,7 @@ int main( int argc, char *argv[])
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
 
-    memset(chstats, 0, sizeof(struct ch_stats));
+    memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
     chstats->channel = (uint32_t)ChannelId;

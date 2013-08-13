@@ -112,12 +112,12 @@ int main( int argc, char *argv[])
     sigaction(SIGINT, &sigIntHandler, NULL);
 
     /** Innitialize shm channels */
-    uint64_t           last_bytes_received[LIBRORC_MAX_DMA_CHANNELS];
-    uint64_t           last_events_received[LIBRORC_MAX_DMA_CHANNELS];
-    uint64_t           channel_bytes[LIBRORC_MAX_DMA_CHANNELS];
-    struct   ch_stats *chstats[LIBRORC_MAX_DMA_CHANNELS];
-    int32_t            shID[LIBRORC_MAX_DMA_CHANNELS];
-    char              *shm[LIBRORC_MAX_DMA_CHANNELS];
+    uint64_t       last_bytes_received[LIBRORC_MAX_DMA_CHANNELS];
+    uint64_t       last_events_received[LIBRORC_MAX_DMA_CHANNELS];
+    uint64_t       channel_bytes[LIBRORC_MAX_DMA_CHANNELS];
+    channelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
+    int32_t        shID[LIBRORC_MAX_DMA_CHANNELS];
+    char          *shm[LIBRORC_MAX_DMA_CHANNELS];
 
     for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
     {
@@ -125,8 +125,8 @@ int main( int argc, char *argv[])
         last_events_received[i] = 0;
         channel_bytes[i] = 0;
 
-        shID[i] = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + i, 
-                sizeof(struct ch_stats), IPC_CREAT | 0666);
+        shID[i] = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + i,
+                sizeof(channelStatus), IPC_CREAT | 0666);
         if( shID[i]==-1)
         {
             perror("shmget");
@@ -142,7 +142,7 @@ int main( int argc, char *argv[])
         }
 
         chstats[i] = NULL;
-        chstats[i] = (struct ch_stats*)shm[i];
+        chstats[i] = (channelStatus*)shm[i];
     }
 
     /** capture starting time */
@@ -157,7 +157,7 @@ int main( int argc, char *argv[])
         /** print status line each second */
         for(int32_t i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++)
         {
-            cout << "CH" << setw(2) << i << " - Events: " 
+            cout << "CH" << setw(2) << i << " - Events: "
                 << setw(10) << chstats[i]->n_events << ", DataSize: "
                 << setw(10) << (double)chstats[i]->bytes_received/(double)(1<<30) << " GB";
 
@@ -182,7 +182,7 @@ int main( int argc, char *argv[])
                  chstats[i]->n_events - last_events_received[i]
                 )
                 {
-                    cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) << 
+                    cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) <<
                         (double)(chstats[i]->n_events-last_events_received[i])/
                         gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
                 }

@@ -32,7 +32,7 @@ typedef struct
     uint64_t error_count;
     int64_t  last_id;
     uint32_t channel;
-}ch_stats;
+}channelStatus;
 
 #include <helper_functions.h>
 
@@ -305,7 +305,7 @@ int handle_channel_data
     librorc::buffer      *rbuf,
     librorc::buffer      *ebuf,
     librorc::dma_channel *channel,
-    struct ch_stats      *stats,
+    channelStatus        *stats,
     int                   do_sanity_check,
     uint32_t             *ddlref,
     uint64_t              ddlref_size
