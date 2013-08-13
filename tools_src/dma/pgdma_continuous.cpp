@@ -38,15 +38,6 @@ void abort_handler( int s )
     { done = 1; }
 }
 
-typedef struct
-{
-    int32_t   deviceId;
-    int32_t   channelId;
-    uint32_t  eventSize;
-    char      refname[4096];
-    bool      useReffile;
-} DMAOptions;
-
 DMAOptions
 evaluateArguments(int argc, char *argv[])
 {
@@ -56,7 +47,7 @@ evaluateArguments(int argc, char *argv[])
     ret.deviceId  = -1;
     ret.channelId = -1;
     ret.eventSize = 0;
-    ret.useReffile = false;
+    ret.useRefFile = false;
 
     /** command line arguments */
     static struct option long_options[] =
@@ -93,7 +84,7 @@ evaluateArguments(int argc, char *argv[])
             case 'f':
             {
                 strcpy(ret.refname, optarg);
-                ret.useReffile = true;
+                ret.useRefFile = true;
             }
             break;
 

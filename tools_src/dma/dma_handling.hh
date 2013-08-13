@@ -39,4 +39,16 @@ parameters:                                                  \n\
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
+typedef struct
+{
+    int32_t   deviceId;
+    int32_t   channelId;
+    uint32_t  eventSize;
+    char      refname[4096];
+    bool      useRefFile;
+} DMAOptions;
+
+
+DMAOptions evaluateArguments(int argc, char *argv[]);
+
 #endif /** DMA_HANDLING_H */
