@@ -1,7 +1,6 @@
 /**
  * @file
- * @author Heiko Engel <hengel@cern.ch>
- * @version 0.1
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @date 2012-11-14
  *
  * @section LICENSE
@@ -21,46 +20,12 @@
  *
  **/
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <errno.h>
-#include <limits.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdint.h>
-#include <sys/shm.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <getopt.h>
-
 #include <librorc.h>
 #include <event_handling.h>
 
+#include "dma_handling.hh"
+
 using namespace std;
-
-#define HELP_TEXT "pgdma_continuous usage: \n\
-        pgdma_continuous [parameters] \n\
-parameters: \n\
-        --device [0..255] Source device ID \n\
-        --channel [0..11] Source DMA channel \n\
-        --size [value]    PatternGenerator Event Size in DWs \n\
-        --help            Show this text \n"
-
-
-/** Buffer Sizes (in Bytes) **/
-#ifndef SIM
-    #define EBUFSIZE (((uint64_t)1) << 28)
-    #define RBUFSIZE (((uint64_t)1) << 26)
-    #define STAT_INTERVAL 1.0
-#else
-    #define EBUFSIZE (((uint64_t)1) << 19)
-    #define RBUFSIZE (((uint64_t)1) << 17)
-    #define STAT_INTERVAL 0.00001
-#endif
-
 
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
@@ -135,7 +100,7 @@ int main( int argc, char *argv[])
 
             case 'h':
             {
-                cout << HELP_TEXT;
+                printf(HELP_TEXT, "pgdma_continous");
                 exit(0);
             }
             break;
@@ -151,14 +116,14 @@ int main( int argc, char *argv[])
     if( DeviceId < 0 || DeviceId > 255 )
     {
         cout << "DeviceId invalid or not set: " << DeviceId << endl;
-        cout << HELP_TEXT;
+        printf(HELP_TEXT, "pgdma_continous");
         exit(-1);
     }
 
     if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
     {
         cout << "ChannelId invalid or not set: " << ChannelId << endl;
-        cout << HELP_TEXT;
+        printf(HELP_TEXT, "pgdma_continous");
         exit(-1);
     }
 
@@ -166,7 +131,7 @@ int main( int argc, char *argv[])
     {
         cout << "EventSize invalid or not set: 0x" << hex
              << EventSize << endl;
-        cout << HELP_TEXT;
+        printf(HELP_TEXT, "pgdma_continous");
         exit(-1);
     }
 
