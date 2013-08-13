@@ -22,7 +22,10 @@ add_executable( bufferstats
 target_link_libraries( bufferstats rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test with pattern generator
-add_executable( pgdma_continuous ${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp)
+add_executable( pgdma_continuous 
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
 target_link_libraries( pgdma_continuous rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test
