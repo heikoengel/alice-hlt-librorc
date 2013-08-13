@@ -43,6 +43,7 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
     int result = 0;
+
     librorc::device      *dev  = NULL;
     librorc::bar         *bar1 = NULL;
     librorc::buffer      *ebuf = NULL;
@@ -55,19 +56,9 @@ int main( int argc, char *argv[])
     uint64_t last_bytes_received;
     uint64_t last_events_received;
 
-    int32_t DeviceId = -1;
-    int32_t ChannelId = -1;
 
-    char *refname;
-    int32_t use_reffile = 0;
-    uint32_t *ddlref = NULL;
-    int ddlref_fd = -1;
-    struct stat ddlref_stat;
-    uint64_t ddlref_size = 0;
 
-    int32_t sanity_checks;
-    uint8_t ddl_trn_id = 1;
-    uint32_t ctstw;
+    //struct stat ddlref_stat;
 
     // command line arguments
     static struct option long_options[] = {
@@ -79,6 +70,10 @@ int main( int argc, char *argv[])
     };
 
     /** parse command line arguments **/
+    int32_t DeviceId = -1;
+    int32_t ChannelId = -1;
+    char *refname;
+    int32_t use_reffile = 0;
     while (1)
     {
         int opt = getopt_long(argc, argv, "", long_options, NULL);
@@ -136,19 +131,23 @@ int main( int argc, char *argv[])
     char *shm = NULL;
 
     // get optional DDL reference file
+    int ddlref_fd = -1;
+    uint64_t ddlref_size = 0;
+    uint32_t *ddlref = NULL;
+    struct stat ddlref_stat;
     if ( use_reffile==1 )
     {
         ddlref_fd = open(refname, O_RDONLY);
         free(refname);
         if ( ddlref_fd<0 ) {
             perror("failed to open reference DDL file");
-            goto out;
+            abort();
         }
 
         //get file size
         if (fstat(ddlref_fd, &ddlref_stat)==-1) {
             perror("fstat DDL reference file");
-            goto out;
+            abort();
         }
 
         ddlref_size = ddlref_stat.st_size;
@@ -157,7 +156,7 @@ int main( int argc, char *argv[])
                 PROT_READ, MAP_SHARED, ddlref_fd, 0);
         if (ddlref == MAP_FAILED) {
             perror("failed to mmap file");
-            goto out;
+            abort();
         }
     }
 
@@ -166,13 +165,13 @@ int main( int argc, char *argv[])
             sizeof(struct ch_stats), IPC_CREAT | 0666);
     if(shID==-1) {
         perror("shmget");
-        goto out;
+        abort();
     }
     //attach to shared memory
     shm = (char*)shmat(shID, 0, 0);
     if (shm==(char*)-1) {
         perror("shmat");
-        goto out;
+        abort();
     }
     chstats = (struct ch_stats*)shm;
 
@@ -183,7 +182,7 @@ int main( int argc, char *argv[])
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
-        goto out;
+        abort();
     }
 
     printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
@@ -201,7 +200,7 @@ int main( int argc, char *argv[])
     catch(...)
     {
         printf("ERROR: failed to initialize BAR1.\n");
-        goto out;
+        abort();
     }
 
     cout << "FirmwareDate: " << setw(8) << hex
@@ -214,7 +213,7 @@ int main( int argc, char *argv[])
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                 "firmware - exiting\n", ChannelId);
-        goto out;
+        abort();
     }
 
     /** create new DMA event buffer */
@@ -223,7 +222,7 @@ int main( int argc, char *argv[])
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
-        goto out;
+        abort();
     }
 
     /** create new DMA report buffer */
@@ -232,7 +231,7 @@ int main( int argc, char *argv[])
     catch(...)
     {
         perror("ERROR: rbuf->allocate");
-        goto out;
+        abort();
     }
 
     memset(chstats, 0, sizeof(struct ch_stats));
@@ -253,7 +252,7 @@ int main( int argc, char *argv[])
     if (result < 0) {
         perror("prepareEB()");
         result = -1;
-        goto out;
+        abort();
     }
 
     // prepare ReportBufferDescriptorManager
@@ -262,7 +261,7 @@ int main( int argc, char *argv[])
     if (result < 0) {
         perror("prepareRB()");
         result = -1;
-        goto out;
+        abort();
     }
 
     // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
@@ -270,7 +269,7 @@ int main( int argc, char *argv[])
     if (result < 0) {
         perror("configureChannel()");
         result = -1;
-        goto out;
+        abort();
     }
 
 
@@ -310,11 +309,14 @@ int main( int argc, char *argv[])
     ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
     // wait for command transmission status word (CTSTW) from DIU
+    uint32_t ctstw;
     ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
     while( ctstw == 0xffffffff ) {
         usleep(100);
         ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
     }
+
+    uint8_t ddl_trn_id = 1;
     ddl_trn_id = (ddl_trn_id+2) & 0x0f;
 
     // TODO: check status
@@ -351,6 +353,7 @@ int main( int argc, char *argv[])
 
     sigaction(SIGINT, &sigIntHandler, NULL);
 
+    int32_t sanity_checks;
     while( !done ) {
 
         // this can be aborted by abort_handler(),
@@ -372,7 +375,7 @@ int main( int argc, char *argv[])
 
         if ( result < 0 ) {
             printf("handle_channel_data failed for channel %d\n", ChannelId);
-            goto out;
+            abort();
         } else if ( result==0 ) {
             // no events available
             usleep(100);
@@ -482,9 +485,8 @@ int main( int argc, char *argv[])
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
 
-out:
-
-    if (shm) {
+    if (shm)
+    {
         //free(chstats);
         shmdt(shm);
         shm = NULL;
