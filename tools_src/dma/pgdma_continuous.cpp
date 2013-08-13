@@ -128,8 +128,6 @@ int main( int argc, char *argv[])
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
 
-
-    /** Shared memory for DMA monitoring */
     /** Allocate shared mem */
     int shID =
         shmget( (SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId),
@@ -147,8 +145,7 @@ int main( int argc, char *argv[])
         perror("shmat");
         abort();
     }
-    struct ch_stats *chstats
-        = (struct ch_stats*)shm;
+    ch_stats *chstats = (ch_stats*)shm;
 
     /** Wipe SHM */
     memset(chstats, 0, sizeof(struct ch_stats));

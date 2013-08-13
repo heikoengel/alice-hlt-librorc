@@ -110,10 +110,8 @@ int main( int argc, char *argv[])
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
 
-    /** shared memory */
-    struct ch_stats *chstats = NULL;
-    char *shm = NULL;
 
+//THAT'S GTX SPECIFIC !!!
     /** get optional DDL reference file */
     int ddlref_fd = -1;
     uint64_t ddlref_size = 0;
@@ -146,6 +144,7 @@ int main( int argc, char *argv[])
             abort();
         }
     }
+//THAT'S GTX SPECIFIC !!!
 
     /** allocate shared mem */
     int shID =
@@ -156,14 +155,21 @@ int main( int argc, char *argv[])
         perror("shmget");
         abort();
     }
+
     /** attach to shared memory */
-    shm = (char*)shmat(shID, 0, 0);
+    char *shm = (char*)shmat(shID, 0, 0);
     if(shm==(char*)-1)
     {
         perror("shmat");
         abort();
     }
-    chstats = (struct ch_stats*)shm;
+    ch_stats *chstats = (ch_stats*)shm;
+
+    /** Wipe SHM */
+    memset(chstats, 0, sizeof(struct ch_stats));
+    chstats->index = 0;
+    chstats->last_id = -1;
+    chstats->channel = (unsigned int)ChannelId;
 
 
     /** create new device instance */

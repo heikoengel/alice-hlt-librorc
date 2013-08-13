@@ -21,7 +21,7 @@
 #define CHK_FILE (1<<8)
 
 /** struct to store statistics on received data for a single channel **/
-struct ch_stats
+typedef struct
 {
     uint64_t n_events;
     uint64_t bytes_received;
@@ -32,7 +32,7 @@ struct ch_stats
     uint64_t error_count;
     int64_t  last_id;
     uint32_t channel;
-};
+}ch_stats;
 
 #include <helper_functions.h>
 
