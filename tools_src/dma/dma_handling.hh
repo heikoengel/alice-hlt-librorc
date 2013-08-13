@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <iostream>
+
 #include <errno.h>
 #include <limits.h>
 #include <sys/time.h>
@@ -50,5 +52,8 @@ typedef struct
 
 
 DMAOptions evaluateArguments(int argc, char *argv[]);
+bool checkDeviceID(int32_t deviceID, char *argv);
+bool checkChannelID(int32_t channelID, char *argv);
+bool checkEventSize(uint32_t eventSize, char *argv);
 
 #endif /** DMA_HANDLING_H */

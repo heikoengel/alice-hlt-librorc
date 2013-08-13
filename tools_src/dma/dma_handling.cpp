@@ -1,5 +1,8 @@
 #include "dma_handling.hh"
 
+using namespace std;
+
+
 DMAOptions
 evaluateArguments(int argc, char *argv[])
 {
@@ -72,3 +75,44 @@ evaluateArguments(int argc, char *argv[])
 
     return ret;
 }
+
+
+
+bool checkDeviceID(int32_t deviceID, char *argv)
+{
+    if( (deviceID<0) || (deviceID>255) )
+    {
+        cout << "DeviceId invalid or not set: " << deviceID << endl;
+        printf(HELP_TEXT, argv);
+        return false;
+    }
+    return true;
+}
+
+
+
+bool checkChannelID(int32_t channelID, char *argv)
+{
+    if( (channelID<0) || (channelID>MAX_CHANNEL) )
+    {
+        cout << "ChannelId invalid or not set: " << channelID << endl;
+        printf(HELP_TEXT, argv);
+        return false;
+    }
+    return true;
+}
+
+
+
+bool checkEventSize(uint32_t eventSize, char *argv)
+{
+    if( eventSize == 0 )
+    {
+        cout << "EventSize invalid or not set: 0x" << hex
+        << eventSize << endl;
+        printf(HELP_TEXT, argv);
+        return false;
+    }
+    return true;
+}
+

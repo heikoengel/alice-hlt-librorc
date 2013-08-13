@@ -46,20 +46,14 @@ int main( int argc, char *argv[])
 
     DMAOptions opts = evaluateArguments(argc, argv);
 
-//    /** sanity checks on command line arguments **/
-//    if ( DeviceId < 0 || DeviceId > 255 )
-//    {
-//        cout << "DeviceId invalid or not set: " << DeviceId << endl;
-//        printf(HELP_TEXT, argv[0]);
-//        exit(-1);
-//    }
-//
-//    if ( ChannelId < 0 || ChannelId > MAX_CHANNEL)
-//    {
-//        cout << "ChannelId invalid or not set: " << ChannelId << endl;
-//        printf(HELP_TEXT, argv[0]);
-//        exit(-1);
-//    }
+    if
+    (!(
+        checkDeviceID(opts.deviceId, argv[0])   &&
+        checkChannelID(opts.channelId, argv[0])
+    ) )
+    { exit(-1); }
+
+//ready
 
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
