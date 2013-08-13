@@ -1,4 +1,4 @@
-TARGETS=release debug sim_release sim_debug
+TARGETS=release sim_release
 
 all: $(TARGETS)
 

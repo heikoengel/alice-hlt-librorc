@@ -294,7 +294,7 @@ int main( int argc, char *argv[])
     }
 
     // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-    result = ch->configureChannel(ebuf, rbuf, 512);
+    result = ch->configureChannel(ebuf, rbuf, 128);
     if (result < 0) {
         perror("configureChannel()");
         result = -1;
@@ -337,10 +337,10 @@ int main( int argc, char *argv[])
                 &ebuf_fill_state, // event buffer fill state
                 EventSize // event size to be used for event generation
                 );
-        if ( nevents > 0 )
+        /*if ( nevents > 0 )
         {
             printf("Pushed %ld events into EB\n", nevents);
-        }
+        }*/
 
         result = handle_channel_data(
                 rbuf,
