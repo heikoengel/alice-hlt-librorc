@@ -214,10 +214,10 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    /** create new DMA event buffer */
+    /** Create new DMA event buffer */
     librorc::buffer *ebuf;
     try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE); }
+    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*ChannelId), 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
@@ -234,54 +234,35 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    memset(chstats, 0, sizeof(channelStatus));
-    chstats->index = 0;
-    chstats->last_id = -1;
-    chstats->channel = (uint32_t)ChannelId;
-
-
-    /** create DMA channel */
-    librorc::dma_channel *ch = new librorc::dma_channel();
-
-    /** bind channel to BAR1, channel offset [ChannelId] */
-    ch->init(bar1, ChannelId);
-
-    /** prepare EventBufferDescriptorManager
-     *  with scatter-gather list
-     */
-    result = ch->prepareEB(ebuf);
-    if(result < 0)
-    {
-        perror("prepareEB()");
-        result = -1;
-        abort();
-    }
-
-    /** prepare ReportBufferDescriptorManager
-     * with scatter-gather list
-     */
-    result = ch->prepareRB(rbuf);
-    if(result < 0)
-    {
-        perror("prepareRB()");
-        result = -1;
-        abort();
-    }
-
-    /** set MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
-    result = ch->configureChannel(ebuf, rbuf, 256);
-    if(result < 0)
-    {
-        perror("configureChannel()");
-        result = -1;
-        abort();
-    }
-
-
     /** clear report buffer */
     struct librorc_event_descriptor *reportbuffer
         = (struct librorc_event_descriptor *)rbuf->getMem();
     memset(reportbuffer, 0, rbuf->getMappingSize());
+
+    /** Create DMA channel and bind channel to BAR1 */
+    librorc::dma_channel *ch = new librorc::dma_channel();
+    ch->init(bar1, ChannelId);
+
+    /** prepare EventBufferDescriptorManager with scatter-gather list */
+    if(ch->prepareEB(ebuf) < 0)
+    {
+        perror("prepareEB()");
+        abort();
+    }
+
+    /** prepare ReportBufferDescriptorManager with scatter-gather list */
+    if(ch->prepareRB(rbuf) < 0)
+    {
+        perror("prepareRB()");
+        abort();
+    }
+
+    /** set MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
+    if(ch->configureChannel(ebuf, rbuf, MAX_PAYLOAD) < 0)
+    {
+        perror("configureChannel()");
+        abort();
+    }
 
     /** enable BDMs */
     ch->setEnableEB(1);

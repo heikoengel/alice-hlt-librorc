@@ -199,13 +199,12 @@ int main( int argc, char *argv[])
     /** Create new DMA event buffer */
     librorc::buffer *ebuf;
     try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE); }
+    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*ChannelId), 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
         abort();
     }
-
 
     /** Create new DMA report buffer */
     librorc::buffer *rbuf;
@@ -217,7 +216,7 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    /* clear report buffer */
+    /** clear report buffer */
     struct rorcfs_event_descriptor *reportbuffer
         = (struct rorcfs_event_descriptor *)rbuf->getMem();
     memset(reportbuffer, 0, rbuf->getMappingSize());
@@ -227,33 +226,26 @@ int main( int argc, char *argv[])
     librorc::dma_channel *ch = new librorc::dma_channel();
     ch->init(bar1, ChannelId);
 
-    /* Prepare EventBufferDescriptorManager with scatter-gather list */
-    result = ch->prepareEB( ebuf );
-    if(result < 0)
+    /** Prepare EventBufferDescriptorManager with scatter-gather list */
+    if(ch->prepareEB(ebuf) < 0)
     {
         perror("prepareEB()");
-        result = -1;
         abort();
     }
 
-    /* Prepare ReportBufferDescriptorManager with scatter-gather list */
-    result = ch->prepareRB( rbuf );
-    if(result < 0)
+    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
+    if(ch->prepareRB(rbuf) < 0)
     {
         perror("prepareRB()");
-        result = -1;
         abort();
     }
 
-    /* Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
-    result = ch->configureChannel(ebuf, rbuf, 128);
-    if (result < 0)
+    /** Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
+    if(ch->configureChannel(ebuf, rbuf, 128) < 0)
     {
         perror("configureChannel()");
-        result = -1;
         abort();
     }
-
 
     /** Enable Buffer Description Managers (BDMs) */
     ch->setEnableEB(1);
