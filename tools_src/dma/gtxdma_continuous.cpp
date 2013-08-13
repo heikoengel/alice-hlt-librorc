@@ -215,8 +215,7 @@ int main( int argc, char *argv[])
     }
 
     /** create new DMA event buffer */
-    librorc::buffer *ebuf = NULL;
-    librorc::buffer *rbuf = NULL;
+    librorc::buffer *ebuf;
     try
     { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
@@ -226,6 +225,7 @@ int main( int argc, char *argv[])
     }
 
     /** create new DMA report buffer */
+    librorc::buffer *rbuf;
     try
     { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)

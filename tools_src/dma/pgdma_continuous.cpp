@@ -163,7 +163,8 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(), dev->getSlot(),dev->getFunc());
+    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
+           dev->getSlot(),dev->getFunc());
 
     /** bind to BAR1 */
     librorc::bar *bar1 = NULL;
@@ -181,7 +182,10 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    printf("FirmwareDate: %08x\n", bar1->get32(RORC_REG_FIRMWARE_DATE));
+    cout << "FirmwareDate: " << setw(8) << hex
+         << bar1->get32(RORC_REG_FIRMWARE_DATE);
+    cout << "FirmwareRevision: " << setw(8) << hex
+         << bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
     /** Check if requested channel is implemented in firmware */
     if( ChannelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
