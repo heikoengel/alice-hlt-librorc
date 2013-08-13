@@ -38,6 +38,8 @@ void abort_handler( int s )
     { done = 1; }
 }
 
+
+
 bool checkDeviceID(int32_t deviceID, char *argv)
 {
     if( (deviceID<0) || (deviceID>255) )
@@ -49,6 +51,8 @@ bool checkDeviceID(int32_t deviceID, char *argv)
     return true;
 }
 
+
+
 bool checkChannelID(int32_t channelID, char *argv)
 {
     if( (channelID<0) || (channelID>MAX_CHANNEL) )
@@ -59,34 +63,36 @@ bool checkChannelID(int32_t channelID, char *argv)
     }
     return true;
 }
+
+
+
+bool checkEventSize(uint32_t eventSize, char *argv)
+{
+    if( eventSize == 0 )
+    {
+        cout << "EventSize invalid or not set: 0x" << hex
+        << eventSize << endl;
+        printf(HELP_TEXT, argv);
+        return false;
+    }
+    return true;
+}
+
+
 int main(int argc, char *argv[])
 {
 
     DMAOptions opts = evaluateArguments(argc, argv);
 
-//    /** sanity checks on command line arguments **/
-//    if( DeviceId < 0 || DeviceId > 255 )
-//    {
-//        cout << "DeviceId invalid or not set: " << DeviceId << endl;
-//        printf(HELP_TEXT, argv[0]);
-//        exit(-1);
-//    }
-//
-//    if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
-//    {
-//        cout << "ChannelId invalid or not set: " << ChannelId << endl;
-//        printf(HELP_TEXT, argv[0]);
-//        exit(-1);
-//    }
-//
-//    if( EventSize == 0 )
-//    {
-//        cout << "EventSize invalid or not set: 0x" << hex
-//             << EventSize << endl;
-//        printf(HELP_TEXT, argv[0]);
-//        exit(-1);
-//    }
+    if
+    (!(
+        checkDeviceID(opts.deviceId, argv[0])   &&
+        checkChannelID(opts.channelId, argv[0]) &&
+        checkEventSize(opts.eventSize, argv[0])
+    ) )
+    { exit(-1); }
 
+//ready
 
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
