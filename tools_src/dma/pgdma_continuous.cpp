@@ -38,8 +38,27 @@ void abort_handler( int s )
     { done = 1; }
 }
 
+bool checkDeviceID(int32_t deviceID, char *argv)
+{
+    if( (deviceID<0) || (deviceID>255) )
+    {
+        cout << "DeviceId invalid or not set: " << deviceID << endl;
+        printf(HELP_TEXT, argv);
+        return false;
+    }
+    return true;
+}
 
-
+bool checkChannelID(int32_t channelID, char *argv)
+{
+    if( (channelID<0) || (channelID>MAX_CHANNEL) )
+    {
+        cout << "ChannelId invalid or not set: " << channelID << endl;
+        printf(HELP_TEXT, argv);
+        return false;
+    }
+    return true;
+}
 int main(int argc, char *argv[])
 {
 
