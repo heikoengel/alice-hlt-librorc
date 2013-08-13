@@ -44,8 +44,9 @@ int main( int argc, char *argv[])
 {
     int result = 0;
 
-    // command line arguments
-    static struct option long_options[] = {
+    /** command line arguments */
+    static struct option long_options[] =
+    {
         {"device", required_argument, 0, 'd'},
         {"channel", required_argument, 0, 'c'},
         {"file", required_argument, 0, 'f'},
@@ -62,9 +63,7 @@ int main( int argc, char *argv[])
     {
         int opt = getopt_long(argc, argv, "", long_options, NULL);
         if ( opt == -1 )
-        {
-            break;
-        }
+        { break; }
 
         switch(opt)
         {
@@ -80,9 +79,11 @@ int main( int argc, char *argv[])
                 use_reffile = 1;
                 break;
             case 'h':
+            {
                 printf(HELP_TEXT, argv[0]);
                 exit(0);
-                break;
+            }
+            break;
             default:
                 break;
         }
@@ -103,33 +104,35 @@ int main( int argc, char *argv[])
         exit(-1);
     }
 
-    // catch CTRL+C for abort
+    /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = abort_handler;
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
 
-    //shared memory
+    /** shared memory */
     int shID;
     struct ch_stats *chstats = NULL;
     char *shm = NULL;
 
-    // get optional DDL reference file
+    /** get optional DDL reference file */
     int ddlref_fd = -1;
     uint64_t ddlref_size = 0;
     uint32_t *ddlref = NULL;
     struct stat ddlref_stat;
-    if ( use_reffile==1 )
+    if(use_reffile==1)
     {
         ddlref_fd = open(refname, O_RDONLY);
         free(refname);
-        if ( ddlref_fd<0 ) {
+        if(ddlref_fd<0)
+        {
             perror("failed to open reference DDL file");
             abort();
         }
 
-        //get file size
-        if (fstat(ddlref_fd, &ddlref_stat)==-1) {
+        /** get file size */
+        if(fstat(ddlref_fd, &ddlref_stat)==-1)
+        {
             perror("fstat DDL reference file");
             abort();
         }
@@ -138,22 +141,25 @@ int main( int argc, char *argv[])
 
         ddlref = (uint32_t *)mmap(0, ddlref_size,
                 PROT_READ, MAP_SHARED, ddlref_fd, 0);
-        if (ddlref == MAP_FAILED) {
+        if(ddlref == MAP_FAILED)
+        {
             perror("failed to mmap file");
             abort();
         }
     }
 
-    //allocate shared mem
+    /** allocate shared mem */
     shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
             sizeof(struct ch_stats), IPC_CREAT | 0666);
-    if(shID==-1) {
+    if(shID==-1)
+    {
         perror("shmget");
         abort();
     }
-    //attach to shared memory
+    /** attach to shared memory */
     shm = (char*)shmat(shID, 0, 0);
-    if (shm==(char*)-1) {
+    if(shm==(char*)-1)
+    {
         perror("shmat");
         abort();
     }
@@ -194,7 +200,7 @@ int main( int argc, char *argv[])
     cout << "FirmwareRevision: " << setw(8) << hex
          << bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
-    // check if requested channel is implemented in firmware
+    /** check if requested channel is implemented in firmware */
     if ( ChannelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
@@ -229,144 +235,149 @@ int main( int argc, char *argv[])
 
 
     /** create DMA channel */
-    librorc::dma_channel *ch   = NULL;
-    ch = new librorc::dma_channel();
+    librorc::dma_channel *ch = new librorc::dma_channel();
 
-    // bind channel to BAR1, channel offset [ChannelId]
+    /** bind channel to BAR1, channel offset [ChannelId] */
     ch->init(bar1, ChannelId);
 
-    // prepare EventBufferDescriptorManager
-    // with scatter-gather list
-    result = ch->prepareEB( ebuf );
-    if (result < 0) {
+    /** prepare EventBufferDescriptorManager
+     *  with scatter-gather list
+     */
+    result = ch->prepareEB(ebuf);
+    if(result < 0)
+    {
         perror("prepareEB()");
         result = -1;
         abort();
     }
 
-    // prepare ReportBufferDescriptorManager
-    // with scatter-gather list
-    result = ch->prepareRB( rbuf );
-    if (result < 0) {
+    /** prepare ReportBufferDescriptorManager
+     * with scatter-gather list
+     */
+    result = ch->prepareRB(rbuf);
+    if(result < 0)
+    {
         perror("prepareRB()");
         result = -1;
         abort();
     }
 
-    // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
+    /** set MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
     result = ch->configureChannel(ebuf, rbuf, 256);
-    if (result < 0) {
+    if(result < 0)
+    {
         perror("configureChannel()");
         result = -1;
         abort();
     }
 
 
-    /* clear report buffer */
+    /** clear report buffer */
     struct librorc_event_descriptor *reportbuffer
         = (struct librorc_event_descriptor *)rbuf->getMem();
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
-    // enable BDMs
+    /** enable BDMs */
     ch->setEnableEB(1);
     ch->setEnableRB(1);
 
-    // enable DMA channel
+    /** enable DMA channel */
     ch->setDMAConfig( ch->getDMAConfig() | 0x01 );
 
 
-    // wait for GTX domain to be ready
-    // read asynchronous GTX status
-    // wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
-    // & !gtx_in_rst
+    /** wait for GTX domain to be ready
+     * read asynchronous GTX status
+     * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
+     * & !gtx_in_rst
+     */
     printf("Waiting for GTX to be ready...\n");
     while( (ch->getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
-        usleep(100);
+        {usleep(100);}
 
-    // set ENABLE, activate flow control (DIU_IF:busy)
+    /** set ENABLE, activate flow control (DIU_IF:busy) */
     ch->setGTX(RORC_REG_DDL_CTRL, 0x00000003);
 
-    // wait for riLD_N='1'
+    /** wait for riLD_N='1' */
     printf("Waiting for LD_N to deassert...\n");
     while( (ch->getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
-        usleep(100);
+        {usleep(100);}
 
-    // clear DIU_IF IFSTW, CTSTW
+    /** clear DIU_IF IFSTW, CTSTW */
     ch->setGTX(RORC_REG_DDL_IFSTW, 0);
     ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
-    // send EOBTR to close any open transaction
+    /** send EOBTR to close any open transaction */
     ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
-    // wait for command transmission status word (CTSTW) from DIU
-    uint32_t ctstw;
-    ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
-    while( ctstw == 0xffffffff ) {
+    /** wait for command transmission status word (CTSTW) from DIU */
+    uint32_t ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
+    while( ctstw == 0xffffffff )
+    {
         usleep(100);
         ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
     }
 
-    uint8_t ddl_trn_id = 1;
-    ddl_trn_id = (ddl_trn_id+2) & 0x0f;
+    uint8_t ddl_trn_id = (ddl_trn_id+2) & 0x0f;
 
-    // TODO: check status
     printf("DIU CTSTW: %08x\n", ctstw);
     printf("DIU IFSTW: %08x\n", ch->getGTX(RORC_REG_DDL_IFSTW));
 
-    // clear DIU_IF IFSTW
+    /** clear DIU_IF IFSTW */
     ch->setGTX(RORC_REG_DDL_IFSTW, 0);
     ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
-    // send RdyRx to SIU
-    ch->setGTX(RORC_REG_DDL_CMD, 0x00000014); //RdyRX
+    /** send RdyRx to SIU */
+    ch->setGTX(RORC_REG_DDL_CMD, 0x00000014);
 
-    // wait for command transmission status word (CTSTW) from DIU
+    /** wait for command transmission status word (CTSTW) from DIU */
     ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
-    while( ctstw == 0xffffffff ) {
+    while( ctstw == 0xffffffff )
+    {
         usleep(100);
         ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
     }
     ddl_trn_id = (ddl_trn_id+2) & 0x0f;
 
-    // clear DIU_IF IFSTW
+    /** clear DIU_IF IFSTW */
     ch->setGTX(RORC_REG_DDL_IFSTW, 0);
     ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
-    // capture starting time
+    /** capture starting time */
     timeval start_time;
     bar1->gettime(&start_time, 0);
 
     timeval last_time = start_time;
     timeval cur_time = start_time;
 
-    uint64_t last_bytes_received;
-    uint64_t last_events_received;
-    last_bytes_received = 0;
-    last_events_received = 0;
+    uint64_t last_bytes_received = 0;
+    uint64_t last_events_received = 0;
 
     sigaction(SIGINT, &sigIntHandler, NULL);
 
     int32_t sanity_checks;
-    while( !done ) {
+    while( !done )
+    {
 
-        // this can be aborted by abort_handler(),
-        // triggered from CTRL+C
+        /** this can be aborted by abort_handler(),
+         * triggered from CTRL+C
+         */
 
-        if (ddlref && ddlref_size)
-            sanity_checks = CHK_FILE;
+        if(ddlref && ddlref_size)
+            {sanity_checks = CHK_FILE;}
         else
-            sanity_checks = CHK_SIZES;
+            {sanity_checks = CHK_SIZES;}
 
         result =  handle_channel_data(
                 rbuf,
                 ebuf,
-                ch, // channe struct
+                ch, // channel struct
                 chstats, // stats struct
                 sanity_checks, // do sanity check
                 ddlref,
                 ddlref_size);
 
-        if ( result < 0 ) {
+        if ( result < 0 )
+        {
             printf("handle_channel_data failed for channel %d\n", ChannelId);
             abort();
         } else if ( result==0 ) {

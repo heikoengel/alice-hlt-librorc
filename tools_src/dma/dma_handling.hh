@@ -32,7 +32,8 @@
 parameters:                                                  \n\
         --device [0..255] Source device ID                   \n\
         --channel [0..11] Source DMA channel                 \n\
-        --size [value]    PatternGenerator Event Size in DWs \n\
+        --size [value]    PatternGenerator event size in DWs \n\
+        --file [filename] DDL reference file                 \n\
         --help            Show this text                     \n"
 
 /** maximum channel number allowed **/

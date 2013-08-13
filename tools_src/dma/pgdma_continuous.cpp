@@ -45,7 +45,6 @@ int main( int argc, char *argv[])
     int result = 0;
 
     /** command line arguments */
-    // TODO : this is bad because it fails if the struct changes
     static struct option long_options[] =
     {
         {"device", required_argument, 0, 'd'},
