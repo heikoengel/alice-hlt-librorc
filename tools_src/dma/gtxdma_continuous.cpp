@@ -44,22 +44,6 @@ int main( int argc, char *argv[])
 {
     int result = 0;
 
-    librorc::device      *dev  = NULL;
-    librorc::bar         *bar1 = NULL;
-    librorc::buffer      *ebuf = NULL;
-    librorc::buffer      *rbuf = NULL;
-    librorc::dma_channel *ch   = NULL;
-
-    struct librorc_event_descriptor *reportbuffer = NULL;
-    timeval start_time, end_time;
-    timeval last_time, cur_time;
-    uint64_t last_bytes_received;
-    uint64_t last_events_received;
-
-
-
-    //struct stat ddlref_stat;
-
     // command line arguments
     static struct option long_options[] = {
         {"device", required_argument, 0, 'd'},
@@ -176,7 +160,8 @@ int main( int argc, char *argv[])
     chstats = (struct ch_stats*)shm;
 
 
-    // create new device instance
+    /** create new device instance */
+    librorc::device *dev = NULL;
     try
     { dev = new librorc::device(DeviceId); }
     catch(...)
@@ -189,6 +174,7 @@ int main( int argc, char *argv[])
             dev->getSlot(),dev->getFunc());
 
     /** bind to BAR1 */
+    librorc::bar *bar1 = NULL;
     try
     {
     #ifdef SIM
@@ -217,6 +203,8 @@ int main( int argc, char *argv[])
     }
 
     /** create new DMA event buffer */
+    librorc::buffer *ebuf = NULL;
+    librorc::buffer *rbuf = NULL;
     try
     { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
@@ -240,7 +228,8 @@ int main( int argc, char *argv[])
     chstats->channel = (uint32_t)ChannelId;
 
 
-    // create DMA channel
+    /** create DMA channel */
+    librorc::dma_channel *ch   = NULL;
     ch = new librorc::dma_channel();
 
     // bind channel to BAR1, channel offset [ChannelId]
@@ -274,7 +263,8 @@ int main( int argc, char *argv[])
 
 
     /* clear report buffer */
-    reportbuffer = (struct librorc_event_descriptor *)rbuf->getMem();
+    struct librorc_event_descriptor *reportbuffer
+        = (struct librorc_event_descriptor *)rbuf->getMem();
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
     // enable BDMs
@@ -343,11 +333,14 @@ int main( int argc, char *argv[])
     ch->setGTX(RORC_REG_DDL_CTSTW, 0);
 
     // capture starting time
+    timeval start_time;
     bar1->gettime(&start_time, 0);
 
-    last_time = start_time;
-    cur_time = start_time;
+    timeval last_time = start_time;
+    timeval cur_time = start_time;
 
+    uint64_t last_bytes_received;
+    uint64_t last_events_received;
     last_bytes_received = 0;
     last_events_received = 0;
 
@@ -417,6 +410,7 @@ int main( int argc, char *argv[])
     }
 
     // EOR
+    timeval end_time;
     bar1->gettime(&end_time, 0);
 
     // print summary
