@@ -39,7 +39,4 @@ parameters:                                                  \n\
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
-#define MAX_PAYLOAD 256
-
-
 #endif /** DMA_HANDLING_H */

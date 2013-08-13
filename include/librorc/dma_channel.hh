@@ -32,7 +32,7 @@
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
 // TODO get this from PDA
-#define MAX_PAYLOAD 128
+#define MAX_PAYLOAD 256 //was 128 before, but it seemed wrong
 #define MAX_READ_REQ 256
 
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
@@ -210,7 +210,7 @@ namespace librorc
              * configure DMA engine for current set of buffers
              * @param ebuf pointer to struct librorc::buffer to be used as event buffer
              * @param rbuf pointer to struct librorc::buffer to be used as report buffer
-             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or 
+             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or
              * PCIe read requests (hlt_out)
              * @return 0 on sucess, <0 on error
              * */

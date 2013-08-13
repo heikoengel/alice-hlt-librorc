@@ -38,26 +38,38 @@ void abort_handler( int s )
     { done = 1; }
 }
 
-
-
-int main( int argc, char *argv[])
+typedef struct
 {
-    int result = 0;
+    int32_t   deviceId;
+    int32_t   channelId;
+    uint32_t  eventSize;
+    char      refname[4096];
+    bool      useReffile;
+} DMAOptions;
+
+DMAOptions
+evaluateArguments(int argc, char *argv[])
+{
+    DMAOptions ret;
+    memset(&ret, 0, sizeof(DMAOptions));
+
+    ret.deviceId  = -1;
+    ret.channelId = -1;
+    ret.eventSize = 0;
+    ret.useReffile = false;
 
     /** command line arguments */
     static struct option long_options[] =
     {
         {"device", required_argument, 0, 'd'},
         {"channel", required_argument, 0, 'c'},
+        {"file", required_argument, 0, 'f'},
         {"size", required_argument, 0, 's'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
 
-    /** parse command line arguments **/
-    int32_t  DeviceId  = -1;
-    int32_t  ChannelId = -1;
-    uint32_t EventSize = 0;
+    /** Parse command line arguments **/
     while(1)
     {
         int opt = getopt_long(argc, argv, "", long_options, NULL);
@@ -68,19 +80,26 @@ int main( int argc, char *argv[])
         {
             case 'd':
             {
-                DeviceId = strtol(optarg, NULL, 0);
+                ret.deviceId = strtol(optarg, NULL, 0);
             }
             break;
 
             case 'c':
             {
-                ChannelId = strtol(optarg, NULL, 0);
+                ret.channelId = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'f':
+            {
+                strcpy(ret.refname, optarg);
+                ret.useReffile = true;
             }
             break;
 
             case 's':
             {
-                EventSize = strtol(optarg, NULL, 0);
+                ret.eventSize = strtol(optarg, NULL, 0);
             }
             break;
 
@@ -98,28 +117,41 @@ int main( int argc, char *argv[])
         }
     }
 
-    /** sanity checks on command line arguments **/
-    if( DeviceId < 0 || DeviceId > 255 )
-    {
-        cout << "DeviceId invalid or not set: " << DeviceId << endl;
-        printf(HELP_TEXT, argv[0]);
-        exit(-1);
-    }
+    return ret;
+}
 
-    if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
-    {
-        cout << "ChannelId invalid or not set: " << ChannelId << endl;
-        printf(HELP_TEXT, argv[0]);
-        exit(-1);
-    }
 
-    if( EventSize == 0 )
-    {
-        cout << "EventSize invalid or not set: 0x" << hex
-             << EventSize << endl;
-        printf(HELP_TEXT, argv[0]);
-        exit(-1);
-    }
+int main(int argc, char *argv[])
+{
+
+//    int32_t  DeviceId  = -1;
+//    int32_t  ChannelId = -1;
+//    uint32_t EventSize = 0;
+
+    DMAOptions opts = evaluateArguments(argc, argv);
+
+//    /** sanity checks on command line arguments **/
+//    if( DeviceId < 0 || DeviceId > 255 )
+//    {
+//        cout << "DeviceId invalid or not set: " << DeviceId << endl;
+//        printf(HELP_TEXT, argv[0]);
+//        exit(-1);
+//    }
+//
+//    if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
+//    {
+//        cout << "ChannelId invalid or not set: " << ChannelId << endl;
+//        printf(HELP_TEXT, argv[0]);
+//        exit(-1);
+//    }
+//
+//    if( EventSize == 0 )
+//    {
+//        cout << "EventSize invalid or not set: 0x" << hex
+//             << EventSize << endl;
+//        printf(HELP_TEXT, argv[0]);
+//        exit(-1);
+//    }
 
 
     /** catch CTRL+C for abort */
@@ -130,7 +162,7 @@ int main( int argc, char *argv[])
 
     /** Allocate shared mem */
     int shID =
-        shmget( (SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId),
+        shmget( (SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId),
                 sizeof(channelStatus), IPC_CREAT | 0666);
     if(shID==-1)
     {
@@ -151,12 +183,12 @@ int main( int argc, char *argv[])
     memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
-    chstats->channel = (unsigned int)ChannelId;
+    chstats->channel = (unsigned int)opts.channelId;
 
 
     /** Create new device instance */
     librorc::device *dev;
-    try{ dev = new librorc::device(DeviceId); }
+    try{ dev = new librorc::device(opts.deviceId); }
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
@@ -188,10 +220,10 @@ int main( int argc, char *argv[])
          << bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
     /** Check if requested channel is implemented in firmware */
-    if( ChannelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if( opts.channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-               "firmware - exiting\n", ChannelId);
+               "firmware - exiting\n", opts.channelId);
         abort();
     }
 
@@ -199,7 +231,7 @@ int main( int argc, char *argv[])
     /** Create new DMA event buffer */
     librorc::buffer *ebuf;
     try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*ChannelId), 1, LIBRORC_DMA_FROM_DEVICE); }
+    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*opts.channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
@@ -209,7 +241,7 @@ int main( int argc, char *argv[])
     /** Create new DMA report buffer */
     librorc::buffer *rbuf;
     try
-    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
+    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: rbuf->allocate");
@@ -224,7 +256,7 @@ int main( int argc, char *argv[])
 
     /** Create DMA channel and bind channel to BAR1 */
     librorc::dma_channel *ch = new librorc::dma_channel();
-    ch->init(bar1, ChannelId);
+    ch->init(bar1, opts.channelId);
 
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
     if(ch->prepareEB(ebuf) < 0)
@@ -241,7 +273,7 @@ int main( int argc, char *argv[])
     }
 
     /** Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
-    if(ch->configureChannel(ebuf, rbuf, 128) < 0)
+    if(ch->configureChannel(ebuf, rbuf, MAX_PAYLOAD) < 0)
     {
         perror("configureChannel()");
         abort();
@@ -263,30 +295,25 @@ int main( int argc, char *argv[])
      **/
     printf("Waiting for GTX to be ready...\n");
     while( (ch->getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
-    {
-        usleep(100);
-    }
+        { usleep(100); }
 
+//PG SPECIFIC
     /** Configure Pattern Generator */
-    //TODO: refactor this into sepparate methods
-    ch->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize);
-    //set PG mode
+    ch->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, opts.eventSize);
     ch->setGTX(RORC_REG_DDL_CTRL, ch->getGTX(RORC_REG_DDL_CTRL) | 0x600);
-    //enable PG
     ch->setGTX(RORC_REG_DDL_CTRL, ch->getGTX(RORC_REG_DDL_CTRL) | 0x100);
-
+//PG SPECIFIC
 
     /** capture starting time */
     timeval start_time;
-        bar1->gettime(&start_time, 0);
+    bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval cur_time = start_time;
 
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
-    /**
-     *  This can be aborted by abort_handler() ... */
+    int result = 0;
     sigaction(SIGINT, &sigIntHandler, NULL);
     while( !done )
     {
@@ -305,7 +332,7 @@ int main( int argc, char *argv[])
 
         if( result < 0 )
         {
-            printf("handle_channel_data failed for channel %d\n", ChannelId);
+            printf("handle_channel_data failed for channel %d\n", opts.channelId);
             abort();
         }
         else if( result==0 )
@@ -374,14 +401,14 @@ int main( int argc, char *argv[])
 
     if(!chstats->set_offset_count)
     {
-        printf("CH%d: No Events\n", ChannelId);
+        printf("CH%d: No Events\n", opts.channelId);
     }
     else
     {
         printf
         (
             "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
-            ChannelId,
+            opts.channelId,
             chstats->n_events,
             chstats->max_epi,
             chstats->min_epi,

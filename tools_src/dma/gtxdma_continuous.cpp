@@ -68,16 +68,22 @@ int main( int argc, char *argv[])
         switch(opt)
         {
             case 'd':
+            {
                 DeviceId = strtol(optarg, NULL, 0);
-                break;
+            }
+            break;
             case 'c':
+            {
                 ChannelId = strtol(optarg, NULL, 0);
-                break;
+            }
+            break;
             case 'f':
+            {
                 refname = (char *)malloc(strlen(optarg));
                 strcpy(refname, optarg);
                 use_reffile = 1;
-                break;
+            }
+            break;
             case 'h':
             {
                 printf(HELP_TEXT, argv[0]);
@@ -89,20 +95,20 @@ int main( int argc, char *argv[])
         }
     }
 
-    /** sanity checks on command line arguments **/
-    if ( DeviceId < 0 || DeviceId > 255 )
-    {
-        cout << "DeviceId invalid or not set: " << DeviceId << endl;
-        printf(HELP_TEXT, argv[0]);
-        exit(-1);
-    }
-
-    if ( ChannelId < 0 || ChannelId > MAX_CHANNEL)
-    {
-        cout << "ChannelId invalid or not set: " << ChannelId << endl;
-        printf(HELP_TEXT, argv[0]);
-        exit(-1);
-    }
+//    /** sanity checks on command line arguments **/
+//    if ( DeviceId < 0 || DeviceId > 255 )
+//    {
+//        cout << "DeviceId invalid or not set: " << DeviceId << endl;
+//        printf(HELP_TEXT, argv[0]);
+//        exit(-1);
+//    }
+//
+//    if ( ChannelId < 0 || ChannelId > MAX_CHANNEL)
+//    {
+//        cout << "ChannelId invalid or not set: " << ChannelId << endl;
+//        printf(HELP_TEXT, argv[0]);
+//        exit(-1);
+//    }
 
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
@@ -272,15 +278,17 @@ int main( int argc, char *argv[])
     ch->setDMAConfig( ch->getDMAConfig() | 0x01 );
 
 
-    /** wait for GTX domain to be ready
+    /**
+     * wait for GTX domain to be ready
      * read asynchronous GTX status
      * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
      * & !gtx_in_rst
      */
     printf("Waiting for GTX to be ready...\n");
     while( (ch->getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
-        {usleep(100);}
+        { usleep(100); }
 
+//GTX SPECIFIC
     /** set ENABLE, activate flow control (DIU_IF:busy) */
     ch->setGTX(RORC_REG_DDL_CTRL, 0x00000003);
 
@@ -304,7 +312,7 @@ int main( int argc, char *argv[])
         ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
     }
 
-    uint8_t ddl_trn_id = (ddl_trn_id+2) & 0x0f;
+    uint8_t ddl_trn_id = 2 & 0x0f;
 
     printf("DIU CTSTW: %08x\n", ctstw);
     printf("DIU IFSTW: %08x\n", ch->getGTX(RORC_REG_DDL_IFSTW));
@@ -328,11 +336,12 @@ int main( int argc, char *argv[])
     /** clear DIU_IF IFSTW */
     ch->setGTX(RORC_REG_DDL_IFSTW, 0);
     ch->setGTX(RORC_REG_DDL_CTSTW, 0);
+//GTX SPECIFIC
+
 
     /** capture starting time */
     timeval start_time;
     bar1->gettime(&start_time, 0);
-
     timeval last_time = start_time;
     timeval cur_time = start_time;
 
@@ -340,7 +349,6 @@ int main( int argc, char *argv[])
     uint64_t last_events_received = 0;
 
     sigaction(SIGINT, &sigIntHandler, NULL);
-
     int32_t sanity_checks;
     while( !done )
     {
