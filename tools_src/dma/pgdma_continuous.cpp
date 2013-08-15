@@ -40,8 +40,6 @@ int main(int argc, char *argv[])
     ) )
     { exit(-1); }
 
-//ready
-
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = abort_handler;
@@ -52,6 +50,8 @@ int main(int argc, char *argv[])
         = prepareSharedMemory(opts);
     if(chstats == NULL)
     { exit(-1); }
+
+    //ready
 
     /** Create new device instance */
     librorc::device *dev;

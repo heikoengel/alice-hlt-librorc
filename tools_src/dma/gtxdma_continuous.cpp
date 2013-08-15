@@ -29,6 +29,59 @@ using namespace std;
 
 DMA_ABORT_HANDLER
 
+typedef struct
+{
+    uint64_t  size;
+    int       fd;
+    uint32_t *map;
+} DDLRefFile;
+
+
+DDLRefFile
+getDDLReferenceFile
+(
+    DMAOptions opts
+)
+{
+    DDLRefFile ret;
+    ret.size = 0;
+    ret.fd   = 0;
+    ret.map  = NULL;
+
+    /** get optional DDL reference file */
+    //int          ddlref_fd = -1;
+    //uint64_t     ddlref_size = 0;
+    //uint32_t    *ddlref = NULL;
+    struct stat  ddlref_stat;
+    if(opts.useRefFile==true)
+    {
+        ret.fd = open(opts.refname, O_RDONLY);
+        if(ret.fd<0)
+        {
+            perror("failed to open reference DDL file");
+            abort();
+        }
+
+        if(fstat(ret.fd, &ddlref_stat)==-1)
+        {
+            perror("fstat DDL reference file");
+            abort();
+        }
+
+        ret.size = ddlref_stat.st_size;
+        ret.map =
+            (uint32_t *)
+                mmap(0, ret.size, PROT_READ, MAP_SHARED, ret.fd, 0);
+        if(ret.map == MAP_FAILED)
+        {
+            perror("failed to mmap file");
+            abort();
+        }
+    }
+
+    return(ret);
+}
+
 int main( int argc, char *argv[])
 {
     int result = 0;
@@ -42,8 +95,6 @@ int main( int argc, char *argv[])
     ) )
     { exit(-1); }
 
-//ready
-
     /** catch CTRL+C for abort */
     struct sigaction sigIntHandler;
     sigIntHandler.sa_handler = abort_handler;
@@ -55,38 +106,10 @@ int main( int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
+    //ready
+
 //THAT'S GTX SPECIFIC !!!
-    /** get optional DDL reference file */
-    int ddlref_fd = -1;
-    uint64_t ddlref_size = 0;
-    uint32_t *ddlref = NULL;
-    struct stat ddlref_stat;
-    if(opts.useRefFile==true)
-    {
-        ddlref_fd = open(opts.refname, O_RDONLY);
-        if(ddlref_fd<0)
-        {
-            perror("failed to open reference DDL file");
-            abort();
-        }
-
-        /** get file size */
-        if(fstat(ddlref_fd, &ddlref_stat)==-1)
-        {
-            perror("fstat DDL reference file");
-            abort();
-        }
-
-        ddlref_size = ddlref_stat.st_size;
-
-        ddlref = (uint32_t *)mmap(0, ddlref_size,
-                PROT_READ, MAP_SHARED, ddlref_fd, 0);
-        if(ddlref == MAP_FAILED)
-        {
-            perror("failed to mmap file");
-            abort();
-        }
-    }
+    DDLRefFile ddlref = getDDLReferenceFile(opts);
 //THAT'S GTX SPECIFIC !!!
 
 
@@ -269,7 +292,7 @@ int main( int argc, char *argv[])
          * triggered from CTRL+C
          */
 
-        if(ddlref && ddlref_size)
+        if(ddlref.map && ddlref.size)
             {sanity_checks = CHK_FILE;}
         else
             {sanity_checks = CHK_SIZES;}
@@ -280,8 +303,8 @@ int main( int argc, char *argv[])
                 ch, // channel struct
                 chstats, // stats struct
                 sanity_checks, // do sanity check
-                ddlref,
-                ddlref_size);
+                ddlref.map,
+                ddlref.size);
 
         if(result < 0)
         {
@@ -413,14 +436,14 @@ int main( int argc, char *argv[])
         chstats = NULL;
     }
 
-    if(ddlref)
+    if(ddlref.map)
     {
-        if( munmap(ddlref, ddlref_size)==-1 )
+        if( munmap(ddlref.map, ddlref.size)==-1 )
         { perror("ERROR: failed to unmap file"); }
     }
 
-    if(ddlref_fd>=0)
-    { close(ddlref_fd); }
+    if(ddlref.fd>=0)
+    { close(ddlref.fd); }
 
     if(ch)
     { delete ch; }
