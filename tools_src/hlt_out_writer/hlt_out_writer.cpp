@@ -294,7 +294,7 @@ int main( int argc, char *argv[])
     }
 
     // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-    result = ch->configureChannel(ebuf, rbuf, 128);
+    result = ch->configureChannel(ebuf, rbuf, 64);
     if (result < 0) {
         perror("configureChannel()");
         result = -1;
@@ -348,7 +348,7 @@ int main( int argc, char *argv[])
                 ebuf,
                 ch, // channe struct
                 chstats, // stats struct
-                CHK_SIZES|CHK_PATTERN|CHK_SOE|CHK_ID, // do sanity check
+                CHK_SIZES|CHK_PATTERN|CHK_SOE, // do sanity check
                 NULL, // no DDL reference file
                 0); //DDL reference size
 

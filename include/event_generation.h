@@ -30,28 +30,28 @@
 void 
 create_event
 (
-    uint32_t *dest, 
-    uint32_t event_id, 
+    volatile uint32_t *dest,
+    uint64_t event_id,
     uint32_t length
 )
 {
-	uint32_t i;
+    uint32_t i;
 
-        //TODO: make sure length is >=8
+    //TODO: make sure length is >=8
 
-	// first 8 DWs are CDH
-	dest[0] = 0xffffffff;
-	dest[1] = event_id & 0xfff;
-	dest[2] = (event_id>>12);
-	dest[3] = 0x00000000; // PGMode / participating subdetectors
-	dest[4] = 0x00000000; // mini event id, error flags, MBZ
-	dest[5] = 0xaffeaffe; // trigger classes low
-	dest[6] = 0x00000000; // trigger classes high, MBZ, ROI
-	dest[7] = 0xdeadbeaf; // ROI high
+    // first 8 DWs are CDH
+    dest[0] = 0xffffffff;
+    dest[1] = event_id & 0xfff;
+    dest[2] = ((event_id>>12) & 0x00ffffff);
+    dest[3] = 0x00000000; // PGMode / participating subdetectors
+    dest[4] = 0x00000000; // mini event id, error flags, MBZ
+    dest[5] = 0xaffeaffe; // trigger classes low
+    dest[6] = 0x00000000; // trigger classes high, MBZ, ROI
+    dest[7] = 0xdeadbeaf; // ROI high
 
-	for (i=0; i<length-8; i++) {
-		dest[8+i] = i;
-	}
+    for (i=0; i<length-8; i++) {
+        dest[8+i] = i;
+    }
 }
 
 
@@ -127,17 +127,25 @@ fill_eventbuffer
         nevents = MAX_EVENTS_PER_ITERATION;
     }
     
-    uint32_t *eventbuffer = ebuf->getMem();
+    volatile uint32_t *eventbuffer = ebuf->getMem();
 
     for ( uint64_t i=0; i < nevents; i++ )
     {
         // write event data to buffer
-        // TODO: new event has to start on a MAX_READ_REQ boundary
         create_event(
-                 eventbuffer + i*(fragment_size>>2), // destination pointer
+                 eventbuffer + ((*event_generation_offset)>>2) +
+                 i*(fragment_size>>2), // destination pointer
                  i, // event ID
                  EventSize ); // event size
+    }
 
+    /** TODO: this is buggy:
+     * if both for-loops are combined to one, the data written
+     * with create_event is not yet available when the RB is handled
+     * with handle_channel_data() (memory still empty or previous contents)
+     * */
+    for ( uint64_t i=0; i < nevents; i++ )
+    {
         // push event size into EL FIFO
         channel->setPKT(RORC_REG_DMA_ELFIFO, EventSize);
 

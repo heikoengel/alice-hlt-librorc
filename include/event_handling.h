@@ -47,7 +47,7 @@ struct ch_stats
  * @param check_mask mask of checks to be done on the recived data
  * @return (int64_t)(-1) or error, (int64_t)EventID on success
  **/
-int event_sanity_check
+int64_t event_sanity_check
 (
     struct librorc_event_descriptor *reportbuffer,
     volatile uint32_t *eventbuffer,
@@ -80,7 +80,7 @@ int event_sanity_check
           DEBUG_PRINTF(PDADEBUG_ERROR,
                   "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
                   ch, i);
-          return -1;
+          return -CHK_SIZES;
       } else if (calc_event_size != reported_event_size)
       {
           DEBUG_PRINTF(PDADEBUG_ERROR,
@@ -90,7 +90,7 @@ int event_sanity_check
                   calc_event_size,reported_event_size,
                   reportbuffer->offset,
                   i*sizeof(struct librorc_event_descriptor) );
-          return -1;
+          return -CHK_SIZES;
       }
   }
 
@@ -118,7 +118,7 @@ int event_sanity_check
       dump_event(eventbuffer, offset, reported_event_size);
       dump_rb(reportbuffer, i, ch);
       free(eb);
-      return -1;
+      return -CHK_SOE;
   }
 
   if ( check_mask & CHK_PATTERN )
@@ -137,14 +137,14 @@ int event_sanity_check
               dump_event(eventbuffer, offset, reported_event_size);
               dump_rb(reportbuffer, i, ch);
               free(eb);
-              return -1;
+              return -CHK_PATTERN;
           }
         }
         break;
 
       default:
         printf("ERROR: specified unknown pattern matching algorithm\n");
-        return -1;
+        return -CHK_PATTERN;
     }
   }
 
@@ -162,7 +162,7 @@ int event_sanity_check
         dump_event(eventbuffer, offset, reported_event_size);
         dump_rb(reportbuffer, i, ch);
         free(eb);
-        return -1;
+        return -CHK_FILE;
     }
 
 
@@ -175,7 +175,7 @@ int event_sanity_check
             dump_event(eventbuffer, offset, reported_event_size);
             dump_rb(reportbuffer, i, ch);
             free(eb);
-            return -1;
+            return -CHK_FILE;
       }
     }
   }
@@ -202,7 +202,7 @@ int event_sanity_check
           dump_event(eventbuffer, offset, calc_event_size);
           dump_rb(reportbuffer, i, ch);
           free(eb);
-          return -1;
+          return -CHK_EOE;
       }
 
   } // CHK_EOE
@@ -227,7 +227,7 @@ int event_sanity_check
       dump_event(eventbuffer, offset, calc_event_size);
       dump_rb(reportbuffer, i, ch);
       free(eb);
-      return -1;
+      return -CHK_ID;
   }
 
   free(eb);
@@ -310,7 +310,8 @@ int handle_channel_data
                 stats->index, // reportbuffer index
                 stats->error_count, // file index
                 reportbuffer, // Report Buffer
-                ebuf // Event Buffer
+                ebuf, // Event Buffer
+                EventID // Error flags
                 );
 #ifdef SIM
           //return -1;

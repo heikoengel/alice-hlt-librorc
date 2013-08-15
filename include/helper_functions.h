@@ -58,6 +58,7 @@ void dump_event(
     uint64_t offset,
     uint64_t len)
 {
+#ifdef SIM
   uint64_t i = 0;
   for(i=0;i<len;i++) {
     printf("%03ld: %08x\n",
@@ -80,6 +81,7 @@ void dump_event(
   i++;
   printf("%03ld: EOE dummy: %08x\n", i,
       (uint32_t)*(eventbuffer + offset + i));
+#endif
 #endif
 }
 
@@ -294,7 +296,8 @@ int dump_to_file
     uint64_t         rb_index,
     uint32_t         file_index,
     struct librorc_event_descriptor *reportbuffer,
-    librorc::buffer *ebuf
+    librorc::buffer *ebuf,
+    uint32_t        error_flags
 )
 {
   char *ddlname = NULL;
@@ -348,10 +351,12 @@ int dump_to_file
   // dump RB entry to log
   fprintf(fd_log, "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
       "reported_size=%08x\n"
-      "offset=%lx\n\n",
+      "offset=%lx\n"
+      "Error=%d\n\n",
       ch_index, rb_index, reportbuffer[rb_index].calc_event_size,
       reportbuffer[rb_index].reported_event_size,
-      reportbuffer[rb_index].offset);
+      reportbuffer[rb_index].offset,
+      -error_flags);
 
   // check for reasonable calculated event size
   if (reportbuffer[rb_index].calc_event_size > (ebuf->getPhysicalSize()>>2))
