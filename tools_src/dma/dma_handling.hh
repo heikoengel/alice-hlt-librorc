@@ -29,6 +29,7 @@
     #define STAT_INTERVAL 0.00001
 #endif
 
+/** Help text, that is displayed when -h is used */
 #define HELP_TEXT "%s usage:                                 \n\
         pgdma_continuous [parameters]                        \n\
 parameters:                                                  \n\
@@ -37,6 +38,16 @@ parameters:                                                  \n\
         --size [value]    PatternGenerator event size in DWs \n\
         --file [filename] DDL reference file                 \n\
         --help            Show this text                     \n"
+
+#define DMA_ABORT_HANDLER int done = 0;  \
+void abort_handler( int s )              \
+{                                        \
+    printf("Caught signal %d\n", s);     \
+    if( done==1 )                        \
+    { exit(-1); }                        \
+    else                                 \
+    { done = 1; }                        \
+}
 
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11

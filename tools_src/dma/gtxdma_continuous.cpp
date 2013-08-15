@@ -27,18 +27,7 @@
 
 using namespace std;
 
-int done = 0;
-
-void abort_handler( int s )
-{
-    printf("Caught signal %d\n", s);
-    if( done==1 )
-    { exit(-1); }
-    else
-    { done = 1; }
-}
-
-
+DMA_ABORT_HANDLER
 
 int main( int argc, char *argv[])
 {
