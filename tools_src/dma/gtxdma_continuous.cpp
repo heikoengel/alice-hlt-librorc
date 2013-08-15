@@ -44,6 +44,8 @@ prepareSharedMemory
     DMAOptions opts
 )
 {
+    channelStatus *chstats = NULL;
+
     /** allocate shared mem */
     int shID =
         shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
@@ -51,7 +53,7 @@ prepareSharedMemory
     if(shID==-1)
     {
         perror("Shared memory getching failed!");
-        abort();
+        return(chstats);
     }
 
     /** attach to shared memory */
@@ -59,15 +61,18 @@ prepareSharedMemory
     if(shm==(char*)-1)
     {
         perror("Attaching of shared memory failed");
-        abort();
+        return(chstats);
     }
-    channelStatus *chstats = (channelStatus*)shm;
+
+    chstats = (channelStatus*)shm;
 
     /** Wipe SHM */
     memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
     chstats->channel = (unsigned int)opts.channelId;
+
+    return(chstats);
 }
 
 
