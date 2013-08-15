@@ -38,6 +38,38 @@ void abort_handler( int s )
     { done = 1; }
 }
 
+channelStatus*
+prepareSharedMemory
+(
+    DMAOptions opts
+)
+{
+    /** allocate shared mem */
+    int shID =
+        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
+            sizeof(channelStatus), IPC_CREAT | 0666);
+    if(shID==-1)
+    {
+        perror("Shared memory getching failed!");
+        abort();
+    }
+
+    /** attach to shared memory */
+    char *shm = (char*)shmat(shID, 0, 0);
+    if(shm==(char*)-1)
+    {
+        perror("Attaching of shared memory failed");
+        abort();
+    }
+    channelStatus *chstats = (channelStatus*)shm;
+
+    /** Wipe SHM */
+    memset(chstats, 0, sizeof(channelStatus));
+    chstats->index = 0;
+    chstats->last_id = -1;
+    chstats->channel = (unsigned int)opts.channelId;
+}
+
 
 
 int main( int argc, char *argv[])
@@ -61,6 +93,8 @@ int main( int argc, char *argv[])
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
 
+    channelStatus *chstats
+        = prepareSharedMemory(opts);
 
 //THAT'S GTX SPECIFIC !!!
     /** get optional DDL reference file */
@@ -95,31 +129,6 @@ int main( int argc, char *argv[])
         }
     }
 //THAT'S GTX SPECIFIC !!!
-
-    /** allocate shared mem */
-    int shID =
-        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(channelStatus), IPC_CREAT | 0666);
-    if(shID==-1)
-    {
-        perror("shmget");
-        abort();
-    }
-
-    /** attach to shared memory */
-    char *shm = (char*)shmat(shID, 0, 0);
-    if(shm==(char*)-1)
-    {
-        perror("shmat");
-        abort();
-    }
-    channelStatus *chstats = (channelStatus*)shm;
-
-    /** Wipe SHM */
-    memset(chstats, 0, sizeof(channelStatus));
-    chstats->index = 0;
-    chstats->last_id = -1;
-    chstats->channel = (unsigned int)opts.channelId;
 
 
     /** create new device instance */
@@ -438,12 +447,12 @@ int main( int argc, char *argv[])
     /** clear reportbuffer */
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
-    if (shm)
+    if(chstats)
     {
-        //free(chstats);
-        shmdt(shm);
-        shm = NULL;
+        shmdt(chstats);
+        chstats = NULL;
     }
+
     if (ddlref)
         if( munmap(ddlref, ddlref_size)==-1 )
             perror("ERROR: failed to unmap file");
