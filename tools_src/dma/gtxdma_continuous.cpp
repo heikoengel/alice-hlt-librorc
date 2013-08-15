@@ -29,13 +29,6 @@ using namespace std;
 
 DMA_ABORT_HANDLER
 
-typedef struct
-{
-    uint64_t  size;
-    int       fd;
-    uint32_t *map;
-} DDLRefFile;
-
 
 DDLRefFile
 getDDLReferenceFile
@@ -49,9 +42,6 @@ getDDLReferenceFile
     ret.map  = NULL;
 
     /** get optional DDL reference file */
-    //int          ddlref_fd = -1;
-    //uint64_t     ddlref_size = 0;
-    //uint32_t    *ddlref = NULL;
     struct stat  ddlref_stat;
     if(opts.useRefFile==true)
     {

@@ -85,6 +85,14 @@ typedef struct
     bool      useRefFile;
 } DMAOptions;
 
+/** sruct to hanlde DDL refernce file */
+typedef struct
+{
+    uint64_t  size;
+    int       fd;
+    uint32_t *map;
+} DDLRefFile;
+
 
 DMAOptions evaluateArguments(int argc, char *argv[]);
 bool checkDeviceID(int32_t deviceID, char *argv);
