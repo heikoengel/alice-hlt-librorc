@@ -417,32 +417,36 @@ int main( int argc, char *argv[])
     /** clear reportbuffer */
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
+    /** cleanup */
     if(chstats)
     {
         shmdt(chstats);
         chstats = NULL;
     }
 
-    if (ddlref)
+    if(ddlref)
     {
         if( munmap(ddlref, ddlref_size)==-1 )
         { perror("ERROR: failed to unmap file"); }
     }
 
-    if (ddlref_fd>=0)
-        close(ddlref_fd);
+    if(ddlref_fd>=0)
+    { close(ddlref_fd); }
 
-    if (ch)
-        delete ch;
-    if (ebuf)
-        delete ebuf;
-    if (rbuf)
-        delete rbuf;
+    if(ch)
+    { delete ch; }
 
-    if (bar1)
-        delete bar1;
-    if (dev)
-        delete dev;
+    if(ebuf)
+    { delete ebuf; }
+
+    if(rbuf)
+    { delete rbuf; }
+
+    if(bar1)
+    { delete bar1; }
+
+    if(dev)
+    { delete dev; }
 
     return result;
 }
