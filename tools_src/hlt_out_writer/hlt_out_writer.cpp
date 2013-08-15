@@ -337,17 +337,18 @@ int main( int argc, char *argv[])
                 &ebuf_fill_state, // event buffer fill state
                 EventSize // event size to be used for event generation
                 );
-        /*if ( nevents > 0 )
+        if ( nevents > 0 )
         {
-            printf("Pushed %ld events into EB\n", nevents);
-        }*/
+            DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+                    "Pushed %ld events into EB\n", nevents);
+        }
 
         result = handle_channel_data(
                 rbuf,
                 ebuf,
                 ch, // channe struct
                 chstats, // stats struct
-                0, // do sanity check
+                CHK_SIZES|CHK_PATTERN|CHK_SOE|CHK_ID, // do sanity check
                 NULL, // no DDL reference file
                 0); //DDL reference size
 

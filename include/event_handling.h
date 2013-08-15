@@ -34,6 +34,7 @@ struct ch_stats
     uint32_t channel;
 };
 
+#include <pda.h>
 #include <helper_functions.h>
 
 /**
@@ -64,25 +65,38 @@ int event_sanity_check
   uint32_t *eb;
   int64_t EventID;
 
+  /** upper two bits of the sizes are reserved for flags */
+  uint32_t reported_event_size = (reportbuffer->reported_event_size & 0x3fffffff);
+  uint32_t calc_event_size = (reportbuffer->calc_event_size & 0x3fffffff);
+
+  /** Bit31 of calc_event_size is read completion timeout flag */
+  uint32_t timeout_flag = (reportbuffer->calc_event_size>>31);
+
   // compare calculated and reported event sizes
-  if ( (check_mask & CHK_SIZES) &&
-      (reportbuffer->calc_event_size != reportbuffer->reported_event_size) ) {
-#ifdef DEBUG
-    printf("CH%2d ERROR: Event[%ld] sizes do not match: \n"
-        "calculated: 0x%x, reported: 0x%x\n"
-        "offset=0x%lx, rbdm_offset=0x%lx\n", ch, i,
-        reportbuffer->calc_event_size,
-        reportbuffer->reported_event_size,
-        reportbuffer->offset,
-        i*sizeof(struct librorc_event_descriptor) );
-#endif
-    return -1;
+  if (check_mask & CHK_SIZES)
+  {
+      if (timeout_flag)
+      {
+          DEBUG_PRINTF(PDADEBUG_ERROR,
+                  "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
+                  ch, i);
+          return -1;
+      } else if (calc_event_size != reported_event_size)
+      {
+          DEBUG_PRINTF(PDADEBUG_ERROR,
+                  "CH%2d ERROR: Event[%ld] sizes do not match: \n"
+                  "calculated: 0x%x, reported: 0x%x\n"
+                  "offset=0x%lx, rbdm_offset=0x%lx\n", ch, i,
+                  calc_event_size,reported_event_size,
+                  reportbuffer->offset,
+                  i*sizeof(struct librorc_event_descriptor) );
+          return -1;
+      }
   }
 
   /// reportbuffer->offset is a multiple of bytes
   offset = reportbuffer->offset/4;
-  eb = (uint32_t*)malloc(
-      (reportbuffer->reported_event_size+4)*sizeof(uint32_t));
+  eb = (uint32_t*)malloc((reported_event_size+4)*sizeof(uint32_t));
   if ( eb==NULL ) {
     perror("Malloc EB");
     return -1;
@@ -90,22 +104,21 @@ int event_sanity_check
   // local copy of the event.
   // TODO: replace this with something more meaningful
   memcpy(eb, (uint8_t *)eventbuffer + reportbuffer->offset,
-      (reportbuffer->reported_event_size+4)*sizeof(uint32_t));
+      (reported_event_size+4)*sizeof(uint32_t));
 
   // sanity check on SOF
   if( (check_mask & CHK_SOE) &&
-      ((uint32_t)*(eb)!=0xffffffff) ) {
-#ifdef DEBUG
-    printf("ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
-        "offset=%ld, rbdm_offset=%ld\n",
-        i, (uint32_t)*(eb),
-        reportbuffer->offset,
-        i*sizeof(struct librorc_event_descriptor) );
-    dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
-    dump_rb(reportbuffer, i, ch);
-#endif
-    free(eb);
-    return -1;
+          ((uint32_t)*(eb)!=0xffffffff) ) {
+      DEBUG_PRINTF(PDADEBUG_ERROR,
+              "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
+              "offset=%ld, rbdm_offset=%ld\n",
+              i, (uint32_t)*(eb),
+              reportbuffer->offset,
+              i*sizeof(struct librorc_event_descriptor) );
+      dump_event(eventbuffer, offset, reported_event_size);
+      dump_rb(reportbuffer, i, ch);
+      free(eb);
+      return -1;
   }
 
   if ( check_mask & CHK_PATTERN )
@@ -116,17 +129,15 @@ int event_sanity_check
       case PG_PATTERN_RAMP:
 
         // check PG pattern
-        for (j=8;j<reportbuffer->calc_event_size;j++) {
+        for (j=8;j<calc_event_size;j++) {
           if ( (uint32_t)*(eb + j) != j-8 ) {
-#ifdef DEBUG
-            printf("ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                i, j, j-8, (uint32_t)*(eventbuffer + offset + j));
-            dump_event(eventbuffer, offset,
-                reportbuffer->reported_event_size);
-            dump_rb(reportbuffer, i, ch);
-#endif
-            free(eb);
-            return -1;
+              DEBUG_PRINTF(PDADEBUG_ERROR,
+                      "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                      i, j, j-8, (uint32_t)*(eventbuffer + offset + j));
+              dump_event(eventbuffer, offset, reported_event_size);
+              dump_rb(reportbuffer, i, ch);
+              free(eb);
+              return -1;
           }
         }
         break;
@@ -141,34 +152,30 @@ int event_sanity_check
   // compare with reference DDL file
   if ( check_mask & CHK_FILE )
   {
-    if ( ((uint64_t)reportbuffer->calc_event_size<<2) != ddlref_size )
+    if ( ((uint64_t)calc_event_size<<2) != ddlref_size )
     {
-#ifdef DEBUG
-        printf("ERROR: Eventsize %lx does not match "
-            "reference DDL file size %lx\n",
-            ((uint64_t)reportbuffer->calc_event_size<<2),
-            ddlref_size);
-        dump_event(eventbuffer, offset,
-            reportbuffer->reported_event_size);
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "ERROR: Eventsize %lx does not match "
+                "reference DDL file size %lx\n",
+                ((uint64_t)calc_event_size<<2),
+                ddlref_size);
+        dump_event(eventbuffer, offset, reported_event_size);
         dump_rb(reportbuffer, i, ch);
-#endif
         free(eb);
         return -1;
     }
 
 
 
-    for (j=0;j<reportbuffer->calc_event_size;j++) {
-      if ( eb[j] != ddlref[j] ) {
-#ifdef DEBUG
-        printf("ERROR: Event[%ld][%d] expected %08x read %08x\n",
-            i, j, ddlref[j], eb[j]);
-        dump_event(eventbuffer, offset,
-            reportbuffer->reported_event_size);
-        dump_rb(reportbuffer, i, ch);
-#endif
-        free(eb);
-        return -1;
+    for (j=0;j<calc_event_size;j++) {
+        if ( eb[j] != ddlref[j] ) {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                    i, j, ddlref[j], eb[j]);
+            dump_event(eventbuffer, offset, reported_event_size);
+            dump_rb(reportbuffer, i, ch);
+            free(eb);
+            return -1;
       }
     }
   }
@@ -178,59 +185,6 @@ int event_sanity_check
 
   if ( check_mask & CHK_EOE )
   {
-    if (DMA_MODE==128)
-    {
-      /**
-       * 128 bit DMA mode
-       *
-       * DMA data is written in multiples of 128 bit
-       * if an EOE occured the EOE words starts at the next 128bit boundary
-       * the EOE actually is also a 128bit word consisting of
-       * {32bit calc_event_size, 32bit reported_event_size, 64bit dummy}
-       **/
-
-      // jump to EOE words
-      j = reportbuffer->calc_event_size;
-      j &= (uint32_t)0xfffffffc; // cut to 128bit boundary
-      if ( reportbuffer->calc_event_size & 0x3 )
-        j+=4;
-
-      // first EOE DW is calculated event size
-      if ( (uint32_t)*(eb + j) !=
-          reportbuffer->calc_event_size ) {
-#ifdef DEBUG
-        printf("ERROR: could not find matching calculated event size "
-            "at Event[%d], expected %08x found %08x\n",
-            j, reportbuffer->calc_event_size,
-            (uint32_t)*(eb + j) );
-        dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
-        dump_rb(reportbuffer, i, ch);
-#endif
-        free(eb);
-        return -1;
-      }
-
-      // advance 1DW
-      j++;
-
-      // second EOE DW is reported event size
-      if ( (uint32_t)*(eb + j) !=
-          reportbuffer->reported_event_size ) {
-#ifdef DEBUG
-        printf("ERROR: could not find matching reported event size "
-            "at Event[%d] expected %08x found %08x\n",
-            j, reportbuffer->reported_event_size,
-            (uint32_t)*(eb + j) );
-        dump_event(eventbuffer, offset, reportbuffer->reported_event_size);
-        dump_rb(reportbuffer, i, ch);
-#endif
-        free(eb);
-        return -1;
-      }
-    } // DMA_MODE
-
-    else if (DMA_MODE==32)
-    {
       /**
        * 32 bit DMA mode
        *
@@ -239,21 +193,18 @@ int event_sanity_check
        * The EOE word contains the EOE status word received from the DIU
        **/
 
-      if ( (uint32_t)*(eb + reportbuffer->calc_event_size) !=
-          reportbuffer->reported_event_size ) {
-#ifdef DEBUG
-        printf("ERROR: could not find matching reported event size "
-            "at Event[%d] expected %08x found %08x\n",
-            j, reportbuffer->calc_event_size,
-            (uint32_t)*(eb + j) );
-        dump_event(eventbuffer, offset, reportbuffer->calc_event_size);
-        dump_rb(reportbuffer, i, ch);
-#endif
-        free(eb);
-        return -1;
+      if ( (uint32_t)*(eb + calc_event_size) != reported_event_size ) {
+          DEBUG_PRINTF(PDADEBUG_ERROR,
+                  "ERROR: could not find matching reported event size "
+                  "at Event[%d] expected %08x found %08x\n",
+                  j, calc_event_size,
+                  (uint32_t)*(eb + j) );
+          dump_event(eventbuffer, offset, calc_event_size);
+          dump_rb(reportbuffer, i, ch);
+          free(eb);
+          return -1;
       }
 
-    } //DMA_MODE
   } // CHK_EOE
 
 
@@ -267,17 +218,16 @@ int event_sanity_check
   // make sure EventIDs increment with each event.
   // missing EventIDs are an indication of lost event data
   if ( (check_mask & CHK_ID) &&
-      last_id!=-1 &&
-      (EventID & 0xfffffffff) !=
-      ((last_id +1) & 0xfffffffff) ) {
-#ifdef DEBUG
-    printf("ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-        "current ID: %ld\n", ch, last_id, EventID);
-    dump_event(eventbuffer, offset, reportbuffer->calc_event_size);
-    dump_rb(reportbuffer, i, ch);
-#endif
-    free(eb);
-    return -1;
+          last_id!=-1 &&
+          (EventID & 0xfffffffff) !=
+          ((last_id +1) & 0xfffffffff) ) {
+      DEBUG_PRINTF(PDADEBUG_ERROR,
+              "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
+              "current ID: %ld\n", ch, last_id, EventID);
+      dump_event(eventbuffer, offset, calc_event_size);
+      dump_rb(reportbuffer, i, ch);
+      free(eb);
+      return -1;
   }
 
   free(eb);
@@ -363,7 +313,7 @@ int handle_channel_data
                 ebuf // Event Buffer
                 );
 #ifdef SIM
-          return -1;
+          //return -1;
 #endif
         }
 
@@ -417,10 +367,9 @@ int handle_channel_data
     channel->setEBOffset(eboffset);
     channel->setRBOffset(rboffset);
 
-#ifdef DEBUG
-    printf("CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+    "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
         stats->channel, rboffset, eboffset);
-#endif
   }
 
   return events_processed;

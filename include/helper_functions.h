@@ -22,6 +22,7 @@
 #define HELPER_FUNCTIONS_H
 
 #include <fcntl.h>
+#include <pda.h>
 
 
 
@@ -90,17 +91,21 @@ void dump_event(
  * reportbuffer
  * @param ch DMA channel number
  * */
-void dump_rb(
+void
+dump_rb
+(
     struct librorc_event_descriptor *reportbuffer,
     uint64_t i,
-    uint32_t ch )
+    uint32_t ch
+)
 {
-  printf("CH%2d - RB[%3ld]: calc_size=%08x\t"
-      "reported_size=%08x\t"
-      "offset=%lx\n",
-      ch, i, reportbuffer->calc_event_size,
-      reportbuffer->reported_event_size,
-      reportbuffer->offset);
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+            "CH%2d - RB[%3ld]: calc_size=%08x\t"
+            "reported_size=%08x\t"
+            "offset=%lx\n",
+            ch, i, reportbuffer->calc_event_size,
+            reportbuffer->reported_event_size,
+            reportbuffer->offset);
 }
 
 
