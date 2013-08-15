@@ -82,6 +82,22 @@ getDDLReferenceFile
     return(ret);
 }
 
+void
+deleteDDLReferenceFile
+(
+    DDLRefFile ddlref
+)
+{
+    if(ddlref.map)
+    {
+        if( munmap(ddlref.map, ddlref.size)==-1 )
+        { perror("ERROR: failed to unmap file"); }
+    }
+
+    if(ddlref.fd>=0)
+    { close(ddlref.fd); }
+}
+
 int main( int argc, char *argv[])
 {
     int result = 0;
@@ -427,20 +443,8 @@ int main( int argc, char *argv[])
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
     /** cleanup */
-    if(chstats)
-    {
-        shmdt(chstats);
-        chstats = NULL;
-    }
 
-    if(ddlref.map)
-    {
-        if( munmap(ddlref.map, ddlref.size)==-1 )
-        { perror("ERROR: failed to unmap file"); }
-    }
-
-    if(ddlref.fd>=0)
-    { close(ddlref.fd); }
+    deleteDDLReferenceFile(ddlref);
 
     if(ch)
     { delete ch; }
