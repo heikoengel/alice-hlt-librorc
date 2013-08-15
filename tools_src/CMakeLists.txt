@@ -52,6 +52,9 @@ target_link_libraries( reset_error_counters rorc pthread ${EXTRA_LIBS})
 # Build hwtests
 add_executable( test_fmc ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/test_fmc.cpp)
 target_link_libraries( test_fmc rorc pthread ${EXTRA_LIBS})
+
 add_executable( ledctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ledctrl.cpp)
 target_link_libraries( ledctrl rorc pthread ${EXTRA_LIBS})
 
+add_executable( lvdsctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/lvdsctrl.cpp)
+target_link_libraries( lvdsctrl rorc pthread ${EXTRA_LIBS})
