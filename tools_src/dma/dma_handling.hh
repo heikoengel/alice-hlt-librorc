@@ -7,14 +7,17 @@
 #include <ctime>
 #include <iostream>
 
-#include <errno.h>
-#include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/time.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdint.h>
 #include <sys/shm.h>
 #include <sys/mman.h>
+
+#include <unistd.h>
+#include <stdint.h>
+#include <errno.h>
+#include <limits.h>
+#include <signal.h>
 #include <fcntl.h>
 #include <getopt.h>
 
@@ -100,5 +103,7 @@ bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
 channelStatus *prepareSharedMemory(DMAOptions opts);
+DDLRefFile getDDLReferenceFile(DMAOptions opts);
+void deleteDDLReferenceFile(DDLRefFile ddlref);
 
 #endif /** DMA_HANDLING_H */

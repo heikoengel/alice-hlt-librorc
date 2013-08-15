@@ -117,7 +117,7 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 }
 
 
-
+//TODO: that should be a part of the dma channel class
 channelStatus*
 prepareSharedMemory
 (
@@ -153,4 +153,66 @@ prepareSharedMemory
     chstats->channel = (unsigned int)opts.channelId;
 
     return(chstats);
+}
+
+
+
+DDLRefFile
+getDDLReferenceFile
+(
+    DMAOptions opts
+)
+{
+    DDLRefFile ret;
+    ret.size = 0;
+    ret.fd   = 0;
+    ret.map  = NULL;
+
+    /** get optional DDL reference file */
+    struct stat  ddlref_stat;
+    if(opts.useRefFile==true)
+    {
+        ret.fd = open(opts.refname, O_RDONLY);
+        if(ret.fd<0)
+        {
+            perror("failed to open reference DDL file");
+            abort();
+        }
+
+        if(fstat(ret.fd, &ddlref_stat)==-1)
+        {
+            perror("fstat DDL reference file");
+            abort();
+        }
+
+        ret.size = ddlref_stat.st_size;
+        ret.map =
+            (uint32_t *)
+                mmap(0, ret.size, PROT_READ, MAP_SHARED, ret.fd, 0);
+        if(ret.map == MAP_FAILED)
+        {
+            perror("failed to mmap file");
+            abort();
+        }
+    }
+
+    return(ret);
+}
+
+
+
+void
+deleteDDLReferenceFile
+(
+    DDLRefFile ddlref
+)
+{
+    if(ddlref.map)
+    {
+        if( munmap(ddlref.map, ddlref.size)==-1 )
+        { perror("ERROR: failed to unmap file"); }
+    }
+
+    if(ddlref.fd>=0)
+    { close(ddlref.fd); }
 }
