@@ -100,6 +100,8 @@ int main( int argc, char *argv[])
 
     channelStatus *chstats
         = prepareSharedMemory(opts);
+    if(chstats == NULL)
+    { exit(-1); }
 
 //THAT'S GTX SPECIFIC !!!
     /** get optional DDL reference file */
