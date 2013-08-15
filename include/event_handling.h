@@ -4,11 +4,6 @@
 /** limit the number of corrupted events to be written to disk **/
 #define MAX_FILES_TO_DISK 100
 
-/** Shared mem key offset **/
-#define SHM_KEY_OFFSET 2048
-/** Shared mem device offset **/
-#define SHM_DEV_OFFSET 32
-
 /** Pattern Generator Mode: Ramp **/
 #define PG_PATTERN_RAMP (1<<0)
 
@@ -20,19 +15,30 @@
 #define CHK_ID (1<<4)
 #define CHK_FILE (1<<8)
 
-/** struct to store statistics on received data for a single channel **/
-typedef struct
-{
-    uint64_t n_events;
-    uint64_t bytes_received;
-    uint64_t min_epi;
-    uint64_t max_epi;
-    uint64_t index;
-    uint64_t set_offset_count;
-    uint64_t error_count;
-    int64_t  last_id;
-    uint32_t channel;
-}channelStatus;
+/**ABOUT TO BE REMOVED************************************************************/
+#ifndef EH_LEGACY
+#define EH_LEGACY
+
+    /** Shared mem key offset **/
+    #define SHM_KEY_OFFSET 2048
+    /** Shared mem device offset **/
+    #define SHM_DEV_OFFSET 32
+
+    typedef struct
+    {
+        uint64_t n_events;
+        uint64_t bytes_received;
+        uint64_t min_epi;
+        uint64_t max_epi;
+        uint64_t index;
+        uint64_t set_offset_count;
+        uint64_t error_count;
+        int64_t  last_id;
+        uint32_t channel;
+    }channelStatus;
+
+#endif /** EH_LEGACY */
+/*********************************************************************************/
 
 #include <helper_functions.h>
 

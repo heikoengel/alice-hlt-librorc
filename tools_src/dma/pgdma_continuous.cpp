@@ -61,31 +61,10 @@ int main(int argc, char *argv[])
     sigemptyset(&sigIntHandler.sa_mask);
     sigIntHandler.sa_flags = 0;
 
-    /** Allocate shared mem */
-    int shID =
-        shmget( (SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId),
-                sizeof(channelStatus), IPC_CREAT | 0666);
-    if(shID==-1)
-    {
-        perror("shmget");
-        abort();
-    }
-
-    /** Attach to shared memory */
-    char *shm = (char*)shmat(shID, 0, 0);
-    if (shm==(char*)-1)
-    {
-        perror("shmat");
-        abort();
-    }
-    channelStatus *chstats = (channelStatus*)shm;
-
-    /** Wipe SHM */
-    memset(chstats, 0, sizeof(channelStatus));
-    chstats->index = 0;
-    chstats->last_id = -1;
-    chstats->channel = (unsigned int)opts.channelId;
-
+    channelStatus *chstats
+        = prepareSharedMemory(opts);
+    if(chstats == NULL)
+    { exit(-1); }
 
     /** Create new device instance */
     librorc::device *dev;

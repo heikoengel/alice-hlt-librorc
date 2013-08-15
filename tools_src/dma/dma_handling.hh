@@ -41,6 +41,30 @@ parameters:                                                  \n\
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
+#ifndef EH_LEGACY
+#define EH_LEGACY
+
+    /** Shared memory parameters for the DMA monitor **/
+    #define SHM_KEY_OFFSET 2048
+    #define SHM_DEV_OFFSET 32
+
+    /** struct to store statistics on received data for a single channel **/
+    typedef struct
+    {
+        uint64_t n_events;
+        uint64_t bytes_received;
+        uint64_t min_epi;
+        uint64_t max_epi;
+        uint64_t index;
+        uint64_t set_offset_count;
+        uint64_t error_count;
+        int64_t  last_id;
+        uint32_t channel;
+    }channelStatus;
+
+#endif /** EH_LEGACY */
+
+/** struct to store command line parameters */
 typedef struct
 {
     int32_t   deviceId;
@@ -55,5 +79,7 @@ DMAOptions evaluateArguments(int argc, char *argv[]);
 bool checkDeviceID(int32_t deviceID, char *argv);
 bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
+
+channelStatus *prepareSharedMemory(DMAOptions opts);
 
 #endif /** DMA_HANDLING_H */

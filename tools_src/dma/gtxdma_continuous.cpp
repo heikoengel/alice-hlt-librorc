@@ -38,43 +38,6 @@ void abort_handler( int s )
     { done = 1; }
 }
 
-channelStatus*
-prepareSharedMemory
-(
-    DMAOptions opts
-)
-{
-    channelStatus *chstats = NULL;
-
-    /** allocate shared mem */
-    int shID =
-        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(channelStatus), IPC_CREAT | 0666);
-    if(shID==-1)
-    {
-        perror("Shared memory getching failed!");
-        return(chstats);
-    }
-
-    /** attach to shared memory */
-    char *shm = (char*)shmat(shID, 0, 0);
-    if(shm==(char*)-1)
-    {
-        perror("Attaching of shared memory failed");
-        return(chstats);
-    }
-
-    chstats = (channelStatus*)shm;
-
-    /** Wipe SHM */
-    memset(chstats, 0, sizeof(channelStatus));
-    chstats->index = 0;
-    chstats->last_id = -1;
-    chstats->channel = (unsigned int)opts.channelId;
-
-    return(chstats);
-}
-
 
 
 int main( int argc, char *argv[])
@@ -461,8 +424,11 @@ int main( int argc, char *argv[])
     }
 
     if (ddlref)
+    {
         if( munmap(ddlref, ddlref_size)==-1 )
-            perror("ERROR: failed to unmap file");
+        { perror("ERROR: failed to unmap file"); }
+    }
+
     if (ddlref_fd>=0)
         close(ddlref_fd);
 
