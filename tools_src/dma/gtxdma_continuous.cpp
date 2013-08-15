@@ -106,12 +106,9 @@ int main( int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-    //ready
-
-//THAT'S GTX SPECIFIC !!!
     DDLRefFile ddlref = getDDLReferenceFile(opts);
-//THAT'S GTX SPECIFIC !!!
 
+    //ready
 
     /** create new device instance */
     librorc::device *dev = NULL;
