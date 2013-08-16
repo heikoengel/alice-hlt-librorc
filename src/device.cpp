@@ -32,6 +32,8 @@ device::device
     int32_t device_index
 )
 {
+    PDAInit();
+
     /** A list of PCI ID to which PDA has to attach. */
     const char *pci_ids[] =
     {
