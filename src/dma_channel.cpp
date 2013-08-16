@@ -25,6 +25,8 @@
 
 using namespace std;
 
+
+//TODO : this has to be typedefed !!!
 /** struct holding both read pointers and the
  *  DMA engine configuration register contents
  **/
