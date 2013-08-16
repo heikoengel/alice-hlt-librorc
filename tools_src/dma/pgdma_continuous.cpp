@@ -120,9 +120,16 @@ int main(int argc, char *argv[])
     memset(reportbuffer, 0, rbuf->getMappingSize());
 
 
-    /** Create DMA channel and bind channel to BAR1 */
-    librorc::dma_channel *ch
-        = new librorc::dma_channel(bar1, opts.channelId, ebuf, rbuf);
+    /** Create DMA channel */
+    librorc::dma_channel *ch;
+    try
+    { ch = new librorc::dma_channel(opts.channelId, bar1, ebuf, rbuf); }
+    catch(...)
+    {
+        cout << "DMA channel failed!" << endl;
+        abort();
+    }
+
 
 //    /** Prepare EventBufferDescriptorManager with scatter-gather list */
 //    if(ch->prepareEB(ebuf) < 0)

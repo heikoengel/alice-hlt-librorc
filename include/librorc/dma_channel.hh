@@ -23,7 +23,7 @@
 #include "librorc/include_ext.hh"
 #include "librorc/include_int.hh"
 
-
+#define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED  1
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value
@@ -65,8 +65,8 @@ namespace librorc
 
              dma_channel::dma_channel
              (
-                bar      *dma_bar,
                 uint32_t  channel_number,
+                bar      *dma_bar,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer
              );

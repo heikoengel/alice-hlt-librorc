@@ -69,8 +69,8 @@ namespace librorc
  * */
 dma_channel::dma_channel
 (
-    bar      *dma_bar,
     uint32_t  channel_number,
+    bar      *dma_bar,
     buffer   *eventBuffer,
     buffer   *reportBuffer
 )
@@ -88,17 +88,11 @@ dma_channel::dma_channel
 
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
     if(prepareEB(eventBuffer) < 0)
-    {
-        perror("prepareEB()");
-        abort();
-    }
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
     /** Prepare ReportBufferDescriptorManager with scatter-gather list */
     if(prepareRB(reportBuffer) < 0)
-    {
-        perror("prepareRB()");
-        abort();
-    }
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
 }
 
