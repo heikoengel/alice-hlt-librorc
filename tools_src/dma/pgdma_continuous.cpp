@@ -50,40 +50,44 @@ int main(int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-    //ready
-
-    /** Create new device instance */
-    librorc::device *dev;
-    try{ dev = new librorc::device(opts.deviceId); }
-    catch(...)
+    librorc::event_stream *eventStream = NULL;
+    try
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId); }
+    catch( int error )
     {
-        printf("ERROR: failed to initialize device.\n");
-        return(-1);
+        switch(error)
+        {
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED:
+            { cout << "ERROR: failed to initialize device." << endl; }
+            break;
+
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED:
+            { cout << "ERROR: failed to initialize BAR1." << endl; }
+            break;
+
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED:
+            { cout << "ERROR: failed to allocate buffer." << endl; }
+            break;
+        }
+        exit(-1);
     }
 
-    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
-           dev->getSlot(),dev->getFunc());
+    /** Print some stats */
+    printf("Bus %x, Slot %x, Func %x\n",
+            eventStream->m_dev->getBus(),
+            eventStream->m_dev->getSlot(),
+            eventStream->m_dev->getFunc());
 
-    /** Bind to BAR1 */
-    librorc::bar *bar1 = NULL;
     try
     {
-    #ifdef SIM
-        bar1 = new librorc::sim_bar(dev, 1);
-    #else
-        bar1 = new librorc::rorc_bar(dev, 1);
-    #endif
+        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+        delete sm;
     }
     catch(...)
-    {
-        printf("ERROR: failed to initialize BAR1.\n");
-        return(-1);
-    }
-
-    cout << "FirmwareDate: " << setw(8) << hex
-         << bar1->get32(RORC_REG_FIRMWARE_DATE);
-    cout << "FirmwareRevision: " << setw(8) << hex
-         << bar1->get32(RORC_REG_FIRMWARE_REVISION);
+    { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Check if requested channel is implemented in firmware */
     if( dev->DMAChannelIsImplemented(opts.channelId) )
@@ -93,33 +97,14 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
-
-    /** Create new DMA event buffer */
-    librorc::buffer *ebuf;
-    try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*opts.channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: ebuf->allocate");
-        abort();
-    }
-
-    /** Create new DMA report buffer */
-    librorc::buffer *rbuf;
-    try
-    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: rbuf->allocate");
-        abort();
-    }
-
-
     /** Create DMA channel */
     librorc::dma_channel *ch;
     try
     {
-        ch = new librorc::dma_channel(opts.channelId, MAX_PAYLOAD, bar1, ebuf, rbuf);
+        ch =
+            new librorc::dma_channel(opts.channelId, MAX_PAYLOAD,
+                eventStream->m_bar1, eventStream->m_eventBuffer,
+                    eventStream->m_reportBuffer);
         ch->enable();
     }
     catch(...)
@@ -127,6 +112,8 @@ int main(int argc, char *argv[])
         cout << "DMA channel failed!" << endl;
         abort();
     }
+
+//ready
 
     /**
      * wait for GTX domain to be ready
