@@ -52,8 +52,6 @@ int main( int argc, char *argv[])
 
     DDLRefFile ddlref = getDDLReferenceFile(opts);
 
-    //ready
-
     librorc::event_stream *eventStream = NULL;
     try
     { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId); }
@@ -76,15 +74,23 @@ int main( int argc, char *argv[])
         exit(-1);
     }
 
+    /** Print some stats */
     printf("Bus %x, Slot %x, Func %x\n",
             eventStream->m_dev->getBus(),
             eventStream->m_dev->getSlot(),
             eventStream->m_dev->getFunc());
 
-    cout << "FirmwareDate: " << setw(8) << hex
-         << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_DATE);
-    cout << "FirmwareRevision: " << setw(8) << hex
-         << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_REVISION);
+    try
+    {
+        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+        delete sm;
+    }
+    catch(...)
+    { cout << "Firmware Rev. and Date not available!" << endl; }
+
 
     /** Check if requested channel is implemented in firmware */
     if( eventStream->m_dev->DMAChannelIsImplemented(opts.channelId) )
@@ -109,6 +115,8 @@ int main( int argc, char *argv[])
         cout << "DMA channel failed!" << endl;
         abort();
     }
+
+//ready
 
     /**
      * wait for GTX domain to be ready
