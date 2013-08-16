@@ -71,19 +71,36 @@ namespace librorc
 dma_channel::dma_channel
 (
     uint32_t  channel_number,
-    bar      *dma_bar
+    device   *dev
 )
 {
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
 
-    m_base             = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    m_channel          = channel_number;
-    m_bar              = dma_bar;
+    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel      = channel_number;
+    m_dev          = dev;
 
     m_eventBuffer  = NULL;
     m_reportBuffer = NULL;
+
+    /** Bind to BAR1 */
+    try
+    {
+    #ifdef SIM
+        m_bar = new sim_bar(m_dev, 1);
+    #else
+        m_bar = new rorc_bar(m_dev, 1);
+    #endif
+    }
+    catch(...)
+    { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
+
+    /** Check if requested channel is implemented in firmware */
+    if( m_dev->DMAChannelIsImplemented(channel_number) )
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
 }
 
 
@@ -92,7 +109,7 @@ dma_channel::dma_channel
 (
     uint32_t  channel_number,
     uint32_t  pcie_packet_size,
-    bar      *dma_bar,
+    device   *dev,
     buffer   *eventBuffer,
     buffer   *reportBuffer
 )
@@ -101,14 +118,30 @@ dma_channel::dma_channel
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
 
-    m_base             = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    m_channel          = channel_number;
-    m_bar              = dma_bar;
+    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel      = channel_number;
+    m_dev          = dev;
 
     m_eventBuffer  = eventBuffer;
     m_reportBuffer = reportBuffer;
 
     m_reportBuffer->clear();
+
+    /** Bind to BAR1 */
+    try
+    {
+    #ifdef SIM
+        m_bar = new sim_bar(m_dev, 1);
+    #else
+        m_bar = new rorc_bar(m_dev, 1);
+    #endif
+    }
+    catch(...)
+    { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
+
+    /** Check if requested channel is implemented in firmware */
+    if( m_dev->DMAChannelIsImplemented(channel_number) )
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
     if(prepareEB(eventBuffer) < 0)
@@ -132,6 +165,7 @@ dma_channel::dma_channel
 dma_channel::~dma_channel()
 {
     m_reportBuffer->clear();
+    delete m_bar;
 }
 
 

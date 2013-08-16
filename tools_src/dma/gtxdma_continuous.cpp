@@ -91,15 +91,6 @@ int main( int argc, char *argv[])
     catch(...)
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
-
-    /** Check if requested channel is implemented in firmware */
-    if( eventStream->m_dev->DMAChannelIsImplemented(opts.channelId) )
-    {
-        printf("ERROR: Requsted channel %d is not implemented in "
-               "firmware - exiting\n", opts.channelId);
-        return(-1);
-    }
-
     /** Create DMA channel */
     librorc::dma_channel *ch;
     try
