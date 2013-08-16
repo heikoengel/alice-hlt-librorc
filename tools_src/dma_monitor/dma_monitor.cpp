@@ -34,8 +34,6 @@
 #include <librorc.h>
 #include <event_handling.h>
 
-#define STAT_INTERVAL 1
-
 using namespace std;
 
 #define HELP_TEXT "dma_monitor usage: \n\
