@@ -164,10 +164,10 @@ buffer::isOvermapped()
 
 
 
-uint64_t
-buffer::getSize()
+void
+buffer::clear()
 {
-    return m_size;
+    memset(m_mem, 0, m_size);
 }
 
 

@@ -119,7 +119,10 @@ namespace librorc
              * boundary.
              * @return number of bytes allocated as Buffer
              **/
-            uint64_t getSize();
+            uint64_t getSize()
+            {
+                return m_size;
+            }
 
             uint64_t
             getPhysicalSize()
@@ -146,6 +149,8 @@ namespace librorc
             {
                 return m_mem;
             }
+
+            void clear();
 
             /**
              * Get number of scatter-gather entries for the Buffer
