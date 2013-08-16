@@ -46,10 +46,11 @@ namespace librorc
 
     event_stream::~event_stream()
     {
-        delete dev;
+        delete m_dev;
     }
 
-    prepareChannel
+    void
+    event_stream::generateDMAChannel
     (
         int32_t   deviceId,
         int32_t   channelId
@@ -58,7 +59,7 @@ namespace librorc
         /** Create new device instance */
         m_dev = NULL;
         try
-        { dev = new librorc::device(deviceId); }
+        { m_dev = new librorc::device(deviceId); }
         catch(...)
         {
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED;
@@ -71,9 +72,9 @@ namespace librorc
         try
         {
         #ifdef SIM
-            bar1 = new librorc::sim_bar(m_dev, 1);
+            m_bar1 = new librorc::sim_bar(m_dev, 1);
         #else
-            bar1 = new librorc::rorc_bar(m_dev, 1);
+            m_bar1 = new librorc::rorc_bar(m_dev, 1);
         #endif
         }
         catch(...)

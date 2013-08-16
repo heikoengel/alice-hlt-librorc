@@ -56,7 +56,8 @@ namespace librorc
 
         protected:
 
-            prepareChannel
+            void
+            generateDMAChannel
             (
                 int32_t deviceId,
                 int32_t channelId
