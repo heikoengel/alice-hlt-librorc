@@ -57,13 +57,13 @@ namespace librorc
     class dma_channel
     {
         public:
-//             dma_channel
-//             (
-//                bar *dma_bar,
-//                uint32_t  channel_number
-//             );
+             dma_channel
+             (
+                uint32_t  channel_number,
+                bar      *dma_bar
+             );
 
-             dma_channel::dma_channel
+             dma_channel
              (
                 uint32_t  channel_number,
                 bar      *dma_bar,
@@ -470,8 +470,8 @@ namespace librorc
             uint64_t  m_last_rbdm_offset;
 
             bar      *m_bar;
-            buffer   *m_eventBuffer,
-            buffer   *m_reportBuffer
+            buffer   *m_eventBuffer;
+            buffer   *m_reportBuffer;
 
             /**
              * Prepare EventBuffer: copy scatterlist from

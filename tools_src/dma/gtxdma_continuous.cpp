@@ -159,20 +159,6 @@ int main( int argc, char *argv[])
         abort();
     }
 
-//    /** prepare EventBufferDescriptorManager with scatter-gather list */
-//    if(ch->prepareEB(eventStream->m_eventBuffer) < 0)
-//    {
-//        perror("prepareEB()");
-//        abort();
-//    }
-//
-//    /** prepare ReportBufferDescriptorManager with scatter-gather list */
-//    if(ch->prepareRB(eventStream->m_reportBuffer) < 0)
-//    {
-//        perror("prepareRB()");
-//        abort();
-//    }
-
     /** set MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
     if(ch->configureChannel(eventStream->m_eventBuffer, eventStream->m_reportBuffer, MAX_PAYLOAD) < 0)
     {

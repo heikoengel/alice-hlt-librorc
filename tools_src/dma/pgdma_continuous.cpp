@@ -130,21 +130,6 @@ int main(int argc, char *argv[])
         abort();
     }
 
-
-//    /** Prepare EventBufferDescriptorManager with scatter-gather list */
-//    if(ch->prepareEB(ebuf) < 0)
-//    {
-//        perror("prepareEB()");
-//        abort();
-//    }
-//
-//    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
-//    if(ch->prepareRB(rbuf) < 0)
-//    {
-//        perror("prepareRB()");
-//        abort();
-//    }
-
     /** Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
     if(ch->configureChannel(ebuf, rbuf, MAX_PAYLOAD) < 0)
     {

@@ -257,25 +257,13 @@ int main( int argc, char *argv[])
     chstats->channel = (uint32_t)ChannelId;
 
 
-    // create DMA channel
-    ch = new librorc::dma_channel(bar1, ChannelId);
-
-    // prepare EventBufferDescriptorManager
-    // with scatter-gather list
-    result = ch->prepareEB( ebuf );
-    if (result < 0) {
-        perror("prepareEB()");
-        result = -1;
-        goto out;
-    }
-
-    // prepare ReportBufferDescriptorManager
-    // with scatter-gather list
-    result = ch->prepareRB( rbuf );
-    if (result < 0) {
-        perror("prepareRB()");
-        result = -1;
-        goto out;
+    /** Create DMA channel */
+    try
+    { ch = new librorc::dma_channel(ChannelId, bar1, ebuf, rbuf); }
+    catch(...)
+    {
+        cout << "DMA channel failed!" << endl;
+        abort();
     }
 
     // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...

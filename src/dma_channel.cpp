@@ -67,6 +67,24 @@ namespace librorc
 /**
  * Constructor
  * */
+
+dma_channel::dma_channel
+(
+    uint32_t  channel_number,
+    bar      *dma_bar
+)
+{
+    m_last_ebdm_offset = 0;
+    m_last_rbdm_offset = 0;
+    m_pcie_packet_size = 0;
+
+    m_base             = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel          = channel_number;
+    m_bar              = dma_bar;
+}
+
+
+
 dma_channel::dma_channel
 (
     uint32_t  channel_number,
