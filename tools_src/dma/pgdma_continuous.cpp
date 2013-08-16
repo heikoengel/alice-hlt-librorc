@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
-        abort();
+        return(-1);
     }
 
 //ready

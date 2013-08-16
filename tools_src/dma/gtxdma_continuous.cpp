@@ -113,7 +113,7 @@ int main( int argc, char *argv[])
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
-        abort();
+        return(-1);
     }
 
 //ready
@@ -202,17 +202,16 @@ int main( int argc, char *argv[])
         else
             {sanity_checks = CHK_SIZES;}
 
-        result =
-            handle_channel_data
-            (
-                eventStream->m_reportBuffer,
-                eventStream->m_eventBuffer,
-                ch, // channel struct
-                chstats, // stats struct
-                sanity_checks, // do sanity check
-                ddlref.map,
-                ddlref.size
-            );
+        result = handle_channel_data
+        (
+            eventStream->m_reportBuffer,
+            eventStream->m_eventBuffer,
+            ch, // channel struct
+            chstats, // stats struct
+            sanity_checks, // do sanity check
+            ddlref.map,
+            ddlref.size
+        );
 
         if(result < 0)
         {
@@ -336,6 +335,11 @@ int main( int argc, char *argv[])
 
     /** cleanup */
     deleteDDLReferenceFile(ddlref);
+    if(chstats)
+    {
+        shmdt(chstats);
+        chstats = NULL;
+    }
 
     if(ch)
     { delete ch; }
