@@ -34,6 +34,7 @@
 		<Unit filename="include/librorc/defines.hh" />
 		<Unit filename="include/librorc/device.hh" />
 		<Unit filename="include/librorc/dma_channel.hh" />
+		<Unit filename="include/librorc/event_stream.hh" />
 		<Unit filename="include/librorc/flash.hh" />
 		<Unit filename="include/librorc/include_ext.hh" />
 		<Unit filename="include/librorc/include_int.hh" />
@@ -45,6 +46,7 @@
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/device.cpp" />
 		<Unit filename="src/dma_channel.cpp" />
+		<Unit filename="src/event_stream.cpp" />
 		<Unit filename="src/flash.cpp" />
 		<Unit filename="src/sim_bar.cpp" />
 		<Unit filename="src/sysmon.cpp" />
