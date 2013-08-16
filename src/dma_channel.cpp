@@ -25,81 +25,36 @@
 
 using namespace std;
 
-
-//TODO : this has to be typedefed !!!
-/** struct holding both read pointers and the
- *  DMA engine configuration register contents
- **/
-struct
+typedef struct
 __attribute__((__packed__))
-librorc_buffer_software_pointers
 {
-    /** EBDM read pointer low **/
-    uint32_t ebdm_software_read_pointer_low;
+    volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
+    volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
+    volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
+    volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
+    volatile uint32_t dma_ctrl;                        /** DMA control register **/
+} librorc_buffer_software_pointers;
 
-    /** EBDM read pointer high **/
-    uint32_t ebdm_software_read_pointer_high;
-
-    /** RBDM read pointer low **/
-    uint32_t rbdm_software_read_pointer_low;
-
-    /** RBDM read pointer high **/
-    uint32_t rbdm_software_read_pointer_high;
-
-    /** DMA control register **/
-    uint32_t dma_ctrl;
-};
-
-
-
-struct
+typedef struct
 __attribute__((__packed__))
-librorc_channel_config
 {
-    /** EBDM number of sg entries **/
-    uint32_t ebdm_n_sg_config;
+    volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
+    volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
+    volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
+    volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
+    volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
+    volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
+    volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
+} librorc_channel_config;
 
-    /** EBDM buffer size low (in bytes) **/
-    uint32_t ebdm_buffer_size_low;
-
-    /** EBDM buffer size high (in bytes) **/
-    uint32_t ebdm_buffer_size_high;
-
-    /** RBDM number of sg entries **/
-    uint32_t rbdm_n_sg_config;
-
-    /** RBDM buffer size low (in bytes) **/
-    uint32_t rbdm_buffer_size_low;
-
-    /** RBDM buffer size high (in bytes) **/
-    uint32_t rbdm_buffer_size_high;
-
-    /** struct for read pointers nad control register **/
-    struct librorc_buffer_software_pointers swptrs;
-
-};
-
-
-
-/** struct t_sg_entry_cfg **/
-struct
+typedef struct
 __attribute__((__packed__))
-t_sg_entry_cfg
 {
-    /** lower part of sg address **/
-    uint32_t sg_addr_low;
-
-    /** higher part of sg address **/
-    uint32_t sg_addr_high;
-
-    /** total length of sg entry in bytes **/
-    uint32_t sg_len;
-
-    /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
-    uint32_t ctrl;
-};
-
-
+    uint32_t sg_addr_low;  /** lower part of sg address **/
+    uint32_t sg_addr_high; /** higher part of sg address **/
+    uint32_t sg_len;       /** total length of sg entry in bytes **/
+    uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
+} librorc_sg_entry_config;
 
 /** extern error number **/
 extern int errno;
@@ -213,7 +168,7 @@ dma_channel::_prepare
 
     /** fetch all sg-entries from sglist */
     uint64_t i = 0;
-    struct t_sg_entry_cfg  sg_entry;
+    librorc_sg_entry_config sg_entry;
     for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
     {
         /** convert sg list into CRORC compatible format */
@@ -316,7 +271,7 @@ dma_channel::configureChannel
     }
 
     //TODO refactor this into a sepparate method
-    struct librorc_channel_config config;
+    librorc_channel_config config;
     config.ebdm_n_sg_config      = ebuf->getnSGEntries();
     config.ebdm_buffer_size_low  = ebuf->getPhysicalSize() & 0xffffffff;
     config.ebdm_buffer_size_high = ebuf->getPhysicalSize() >> 32;
@@ -347,7 +302,7 @@ dma_channel::configureChannel
      * at the address of the lowest register(EBDM_N_SG_CONFIG)
      */
     m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
-                    &config, sizeof(struct librorc_channel_config) );
+                    &config, sizeof(librorc_channel_config) );
 
     m_pcie_packet_size = pcie_packet_size;
     m_last_ebdm_offset = ebuf->getPhysicalSize() - pcie_packet_size;
@@ -471,7 +426,7 @@ dma_channel::setOffsets
 )
 {
     assert(m_bar!=NULL);
-    struct librorc_buffer_software_pointers offsets;
+    librorc_buffer_software_pointers offsets;
 
     offsets.ebdm_software_read_pointer_low =
         (uint32_t)(eboffset & 0xffffffff);
