@@ -22,12 +22,16 @@
 #include "librorc/include_ext.hh"
 #include "librorc/include_int.hh"
 
+
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED 1
+
 namespace librorc
 {
 
     class event_stream
     {
         public:
+
              event_stream
              (
                 int32_t   deviceId,
@@ -44,10 +48,19 @@ namespace librorc
             ~event_stream();
 
             /** Member Variables */
-            librorc::device *dev;
-            librorc::bar    *bar1;
-            librorc::buffer *ebuf;
-            librorc::buffer *rbuf;
+            librorc::device *m_dev;
+            librorc::bar    *m_bar1;
+            librorc::buffer *m_ebuf;
+            librorc::buffer *m_rbuf;
+
+
+        protected:
+
+            prepareChannel
+            (
+                int32_t deviceId,
+                int32_t channelId
+            );
 
     };
 

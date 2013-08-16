@@ -58,15 +58,15 @@ int main( int argc, char *argv[])
 
     //ready
 
-    /** create new device instance */
-    librorc::device *dev = NULL;
-    try
-    { dev = new librorc::device(opts.deviceId); }
-    catch(...)
-    {
-        printf("ERROR: failed to initialize device.\n");
-        abort();
-    }
+//    /** create new device instance */
+//    librorc::device *dev = NULL;
+//    try
+//    { dev = new librorc::device(opts.deviceId); }
+//    catch(...)
+//    {
+//        printf("ERROR: failed to initialize device.\n");
+//        abort();
+//    }
 
     printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
             dev->getSlot(),dev->getFunc());
@@ -390,8 +390,8 @@ int main( int argc, char *argv[])
     if(bar1)
     { delete bar1; }
 
-    if(dev)
-    { delete dev; }
+//    if(dev)
+//    { delete dev; }
 
     return result;
 }

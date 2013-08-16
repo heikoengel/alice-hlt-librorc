@@ -46,6 +46,41 @@ namespace librorc
 
     event_stream::~event_stream()
     {
+        delete dev;
+    }
+
+    prepareChannel
+    (
+        int32_t   deviceId,
+        int32_t   channelId
+    )
+    {
+        /** Create new device instance */
+        m_dev = NULL;
+        try
+        { dev = new librorc::device(deviceId); }
+        catch(...)
+        {
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED;
+            //printf("ERROR: failed to initialize device.\n");
+            //abort();
+        }
+
+        /** Bind to BAR1 */
+        m_bar1 = NULL;
+        try
+        {
+        #ifdef SIM
+            bar1 = new librorc::sim_bar(m_dev, 1);
+        #else
+            bar1 = new librorc::rorc_bar(m_dev, 1);
+        #endif
+        }
+        catch(...)
+        {
+            printf("ERROR: failed to initialize BAR1.\n");
+            abort();
+        }
 
     }
 
