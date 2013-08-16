@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
            dev->getSlot(),dev->getFunc());
 
-    /** bind to BAR1 */
+    /** Bind to BAR1 */
     librorc::bar *bar1 = NULL;
     try
     {
@@ -113,11 +113,6 @@ int main(int argc, char *argv[])
         perror("ERROR: rbuf->allocate");
         abort();
     }
-
-    /** clear report buffer */
-    struct rorcfs_event_descriptor *reportbuffer
-        = (struct rorcfs_event_descriptor *)rbuf->getMem();
-    memset(reportbuffer, 0, rbuf->getMappingSize());
 
 
     /** Create DMA channel */
@@ -292,9 +287,6 @@ int main(int argc, char *argv[])
 
     /** Reset DFIFO, disable DMA PKT */
     ch->setDMAConfig(0X00000002);
-
-    /** Clear reportbuffer */
-    memset(reportbuffer, 0, rbuf->getMappingSize());
 
     /** cleanup */
     if(chstats)

@@ -107,6 +107,8 @@ dma_channel::dma_channel
     m_eventBuffer  = eventBuffer;
     m_reportBuffer = reportBuffer;
 
+    memset(m_reportBuffer->getMem(), 0, m_reportBuffer->getMappingSize());
+
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
     if(prepareEB(eventBuffer) < 0)
     { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
@@ -124,6 +126,7 @@ dma_channel::dma_channel
  * */
 dma_channel::~dma_channel()
 {
+    memset(m_reportBuffer->getMem(), 0, m_reportBuffer->getMappingSize());
 }
 
 

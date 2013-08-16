@@ -274,11 +274,6 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-
-    /* clear report buffer */
-    reportbuffer = (struct rorcfs_event_descriptor *)rbuf->getMem();
-    memset(reportbuffer, 0, rbuf->getMappingSize());
-
     // enable BDMs
     ch->setEnableEB(1);
     ch->setEnableRB(1);

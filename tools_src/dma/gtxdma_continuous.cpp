@@ -94,11 +94,6 @@ int main( int argc, char *argv[])
         exit(-1);
     }
 
-    /** clear report buffer */
-    struct librorc_event_descriptor *reportbuffer
-        = (struct librorc_event_descriptor *)eventStream->m_reportBuffer->getMem();
-    memset(reportbuffer, 0, eventStream->m_reportBuffer->getMappingSize());
-
     /** Create DMA channel */
     librorc::dma_channel *ch;
     try
@@ -342,9 +337,6 @@ int main( int argc, char *argv[])
 
     /** reset DFIFO, disable DMA PKT */
     ch->setDMAConfig(0X00000002);
-
-    /** clear reportbuffer */
-    memset(reportbuffer, 0, eventStream->m_reportBuffer->getMappingSize());
 
     /** cleanup */
     deleteDDLReferenceFile(ddlref);
