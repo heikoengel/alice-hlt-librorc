@@ -62,11 +62,7 @@ namespace librorc
         try
         { m_dev = new librorc::device(deviceId); }
         catch(...)
-        {
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED;
-            //printf("ERROR: failed to initialize device.\n");
-            //abort();
-        }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
 
         /** Bind to BAR1 */
         m_bar1 = NULL;
@@ -79,12 +75,7 @@ namespace librorc
         #endif
         }
         catch(...)
-        {
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED;
-//            printf("ERROR: failed to initialize BAR1.\n");
-//            abort();
-        }
-
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
     }
 
 }

@@ -54,6 +54,24 @@ int main( int argc, char *argv[])
 
     //ready
 
+    librorc::event_stream *eventStream = NULL;
+    try
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId); }
+    catch( int error )
+    {
+        switch(error)
+        {
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED:
+            { cout << "ERROR: failed to initialize device." << endl; }
+            break;
+
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED:
+            { cout << "ERROR: failed to initialize BAR1." << endl; }
+            break;
+        }
+        abort();
+    }
+
 //    /** create new device instance */
 //    librorc::device *dev = NULL;
 //    try
