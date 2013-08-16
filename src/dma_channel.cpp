@@ -140,7 +140,7 @@ dma_channel::dma_channel
     { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
 
     /** Check if requested channel is implemented in firmware */
-    if( m_dev->DMAChannelIsImplemented(channel_number) )
+    if( !m_dev->DMAChannelIsImplemented(channel_number) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
