@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
-        abort();
+        return(-1);
     }
 
     printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     catch(...)
     {
         printf("ERROR: failed to initialize BAR1.\n");
-        abort();
+        return(-1);
     }
 
     cout << "FirmwareDate: " << setw(8) << hex
@@ -86,11 +86,11 @@ int main(int argc, char *argv[])
          << bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
     /** Check if requested channel is implemented in firmware */
-    if( opts.channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if( dev->DMAChannelIsImplemented(opts.channelId) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                "firmware - exiting\n", opts.channelId);
-        abort();
+        return(-1);
     }
 
 

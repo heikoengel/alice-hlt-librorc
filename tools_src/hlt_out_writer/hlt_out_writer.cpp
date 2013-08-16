@@ -214,17 +214,16 @@ int main( int argc, char *argv[])
 
     printf("FirmwareDate: %08x\n", bar1->get32(RORC_REG_FIRMWARE_DATE));
 
-    type_channels = bar1->get32(RORC_REG_TYPE_CHANNELS);
-
-    // check if requested channel is implemented in firmware
-    if ( ChannelId >= (int32_t)(type_channels & 0xffff)) {
+    /** Check if requested channel is implemented in firmware */
+    if( dev->DMAChannelIsImplemented(ChannelId) )
+    {
         printf("ERROR: Requsted channel %d is not implemented in "
-                "firmware - exiting\n", ChannelId);
-        goto out;
+               "firmware - exiting\n", ChannelId);
+        return(-1);
     }
 
     // check if firmware is HLT_OUT
-    if ( (type_channels>>16) != 1 )
+    if ( (bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != 1 )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         goto out;

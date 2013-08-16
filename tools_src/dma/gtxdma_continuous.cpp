@@ -86,12 +86,12 @@ int main( int argc, char *argv[])
     cout << "FirmwareRevision: " << setw(8) << hex
          << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
-    /** check if requested channel is implemented in firmware */
-    if(opts.channelId >= (int32_t)(eventStream->m_bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    /** Check if requested channel is implemented in firmware */
+    if( dev->DMAChannelIsImplemented(opts.channelId) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-                "firmware - exiting\n", opts.channelId);
-        exit(-1);
+               "firmware - exiting\n", opts.channelId);
+        return(-1);
     }
 
     /** Create DMA channel */
