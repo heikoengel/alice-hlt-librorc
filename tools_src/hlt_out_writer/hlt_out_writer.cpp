@@ -194,8 +194,11 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
-            dev->getSlot(),dev->getFunc());
+    /** Print some stats */
+    printf("Bus %x, Slot %x, Func %x\n",
+            dev->getBus(),
+            dev->getSlot(),
+            dev->getFunc());
 
     // bind to BAR1
     try
@@ -212,7 +215,16 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    printf("FirmwareDate: %08x\n", bar1->get32(RORC_REG_FIRMWARE_DATE));
+    try
+    {
+        librorc::sysmon *sm = new librorc::sysmon(bar1);
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+        delete sm;
+    }
+    catch(...)
+    { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Check if requested channel is implemented in firmware */
     if( dev->DMAChannelIsImplemented(ChannelId) )
