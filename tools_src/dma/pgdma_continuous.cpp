@@ -104,9 +104,9 @@ int main(int argc, char *argv[])
             );
         ch->enable();
     }
-    catch(...)
+    catch( int error )
     {
-        cout << "DMA channel failed!" << endl;
+        cout << "DMA channel failed (ERROR :" << error << ")" << endl;
         return(-1);
     }
 
