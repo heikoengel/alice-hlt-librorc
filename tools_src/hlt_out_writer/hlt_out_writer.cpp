@@ -259,19 +259,15 @@ int main( int argc, char *argv[])
 
     /** Create DMA channel */
     try
-    { ch = new librorc::dma_channel(ChannelId, 64, bar1, ebuf, rbuf); }
+    {
+        ch = new librorc::dma_channel(ChannelId, 64, bar1, ebuf, rbuf);
+        ch->enable();
+    }
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
         abort();
     }
-
-    // enable BDMs
-    ch->setEnableEB(1);
-    ch->setEnableRB(1);
-
-    // enable DMA channel
-    ch->enable();
 
     //TODO: all SIU interface handling
 

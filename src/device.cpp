@@ -20,6 +20,8 @@
 #include <librorc/registers.h>
 #include <pda.h>
 
+#include <librorc/bar.hh>
+
 using namespace std;
 
 namespace librorc
@@ -182,5 +184,31 @@ device::deviceDescription()
 
     return( new string(description_buffer) );
 }
+
+
+
+bool
+device::DMAChannelIsImplemented
+(
+    int32_t channelId
+)
+{
+    #ifdef SIM
+        bar *bar1 = new sim_bar(this, 1);
+    #else
+        bar *bar1 = new rorc_bar(this, 1);
+    #endif
+
+    if( channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    {
+        delete(bar1);
+        return false;
+    }
+
+    delete(bar1);
+    return true;
+}
+
+
 
 }

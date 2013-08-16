@@ -142,6 +142,9 @@ dma_channel::enable()
     if(!m_eventBuffer || !m_reportBuffer)
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
+    setEnableEB(1);
+    setEnableRB(1);
+
     setDMAConfig( getDMAConfig() | 0x01 );
 }
 

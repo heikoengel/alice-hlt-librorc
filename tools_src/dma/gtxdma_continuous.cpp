@@ -102,19 +102,13 @@ int main( int argc, char *argv[])
             new librorc::dma_channel(opts.channelId, MAX_PAYLOAD,
                 eventStream->m_bar1, eventStream->m_eventBuffer,
                     eventStream->m_reportBuffer);
+        ch->enable();
     }
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
         abort();
     }
-
-    /** enable BDMs */
-    ch->setEnableEB(1);
-    ch->setEnableRB(1);
-
-    ch->enable();
-
 
     /**
      * wait for GTX domain to be ready

@@ -118,20 +118,15 @@ int main(int argc, char *argv[])
     /** Create DMA channel */
     librorc::dma_channel *ch;
     try
-    { ch = new librorc::dma_channel(opts.channelId, MAX_PAYLOAD, bar1, ebuf, rbuf); }
+    {
+        ch = new librorc::dma_channel(opts.channelId, MAX_PAYLOAD, bar1, ebuf, rbuf);
+        ch->enable();
+    }
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
         abort();
     }
-
-    /** Enable Buffer Description Managers (BDMs) */
-    ch->setEnableEB(1);
-    ch->setEnableRB(1);
-
-    /** Enable DMA channel */
-    ch->enable();
-
 
     /**
      * wait for GTX domain to be ready
