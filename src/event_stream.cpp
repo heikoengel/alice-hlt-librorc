@@ -31,7 +31,7 @@ namespace librorc
         int32_t   channelId
     )
     {
-
+        generateDMAChannel(deviceId, channelId);
     }
 
     event_stream::event_stream
@@ -41,7 +41,7 @@ namespace librorc
         uint32_t  eventSize
     )
     {
-
+        generateDMAChannel(deviceId, channelId);
     }
 
     event_stream::~event_stream()
