@@ -96,9 +96,14 @@ int main( int argc, char *argv[])
     try
     {
         ch =
-            new librorc::dma_channel(opts.channelId, MAX_PAYLOAD,
-                eventStream->m_bar1, eventStream->m_eventBuffer,
-                    eventStream->m_reportBuffer);
+            new librorc::dma_channel
+            (
+                opts.channelId,
+                MAX_PAYLOAD,
+                eventStream->m_dev,
+                eventStream->m_eventBuffer,
+                eventStream->m_reportBuffer
+            );
         ch->enable();
     }
     catch(...)

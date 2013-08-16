@@ -61,10 +61,10 @@ namespace librorc
             ~event_stream();
 
             /** Member Variables */
-            librorc::device *m_dev;
-            librorc::bar    *m_bar1;
-            librorc::buffer *m_eventBuffer;
-            librorc::buffer *m_reportBuffer;
+            device *m_dev;
+            bar    *m_bar1;
+            buffer *m_eventBuffer;
+            buffer *m_reportBuffer;
 
 
         protected:
