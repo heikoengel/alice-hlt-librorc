@@ -52,6 +52,11 @@ void abort_handler( int s )              \
     { done = 1; }                        \
 }
 
+#define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler; \
+sigIntHandler.sa_handler = abort_handler;                          \
+sigemptyset(&sigIntHandler.sa_mask);                               \
+sigIntHandler.sa_flags = 0;
+
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 

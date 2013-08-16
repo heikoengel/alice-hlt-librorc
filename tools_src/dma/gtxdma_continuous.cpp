@@ -43,11 +43,7 @@ int main( int argc, char *argv[])
     ) )
     { exit(-1); }
 
-    /** catch CTRL+C for abort */
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = abort_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
+    DMA_ABORT_HANDLER_REGISTER
 
     channelStatus *chstats
         = prepareSharedMemory(opts);
@@ -387,8 +383,8 @@ int main( int argc, char *argv[])
     if(rbuf)
     { delete rbuf; }
 
-    if(bar1)
-    { delete bar1; }
+//    if(bar1)
+//    { delete bar1; }
 
 //    if(dev)
 //    { delete dev; }

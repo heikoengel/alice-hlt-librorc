@@ -46,6 +46,7 @@ namespace librorc
 
     event_stream::~event_stream()
     {
+        delete m_bar1;
         delete m_dev;
     }
 
@@ -79,8 +80,9 @@ namespace librorc
         }
         catch(...)
         {
-            printf("ERROR: failed to initialize BAR1.\n");
-            abort();
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED;
+//            printf("ERROR: failed to initialize BAR1.\n");
+//            abort();
         }
 
     }
