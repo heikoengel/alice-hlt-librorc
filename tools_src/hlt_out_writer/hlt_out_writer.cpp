@@ -294,7 +294,7 @@ int main( int argc, char *argv[])
     }
 
     // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-    result = ch->configureChannel(ebuf, rbuf, 512);
+    result = ch->configureChannel(ebuf, rbuf, 64);
     if (result < 0) {
         perror("configureChannel()");
         result = -1;
@@ -339,7 +339,8 @@ int main( int argc, char *argv[])
                 );
         if ( nevents > 0 )
         {
-            printf("Pushed %ld events into EB\n", nevents);
+            DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+                    "Pushed %ld events into EB\n", nevents);
         }
 
         result = handle_channel_data(
@@ -347,7 +348,7 @@ int main( int argc, char *argv[])
                 ebuf,
                 ch, // channe struct
                 chstats, // stats struct
-                0, // do sanity check
+                CHK_SIZES|CHK_PATTERN|CHK_SOE, // do sanity check
                 NULL, // no DDL reference file
                 0); //DDL reference size
 

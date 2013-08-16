@@ -49,6 +49,233 @@ To release all resets, do \n\
         gtxctrl -n [...] -r 0 \n\
 "
 
+struct
+gtxpll_settings
+{
+    uint8_t clk25_div;
+    uint8_t n1;
+    uint8_t n2;
+    uint8_t d;
+    uint8_t m;
+};
+
+
+const struct gtxpll_settings available_configs[] =
+{
+    //div,n1,n2,d, m
+    {  9, 5, 2, 2, 1}, // 2.125 Gbps with RefClk=212.5 Mhz
+    {  9, 5, 2, 1, 1}, // 4.250 Gbps with RefClk=212.5 MHz
+    { 10, 5, 2, 1, 1}, // 5.000 Gbps with RefClk=250.0 MHz
+};
+
+/** Conversions between PLL values and their register representations */
+uint8_t divselout_reg2val ( uint8_t reg )
+{
+    if (reg==0) return 1;
+    else if (reg==1) return 2;
+    else return 4;
+}
+
+uint8_t divselout_val2reg ( uint8_t val )
+{
+    if (val==1) return 0;
+    else if (val==2) return 1;
+    else return 2;
+}
+
+uint8_t divselfb_reg2val ( uint8_t reg )
+{
+    if (reg==0) return 2;
+    else if (reg==2) return 4;
+    else return 5;
+}
+
+uint8_t divselfb_val2reg ( uint8_t val )
+{
+    if (val==2) return 0;
+    else if (val==4) return 2;
+    else return 3;
+}
+
+uint8_t divselfb45_reg2val ( uint8_t reg )
+{
+    if (reg==1) return 5;
+    else return 4;
+}
+
+uint8_t divselfb45_val2reg ( uint8_t val )
+{
+    if (val==5) return 1;
+    else return 0;
+}
+
+uint8_t clk25div_reg2val ( uint8_t reg )
+{
+    if (reg==5) { return 6; }
+    else if (reg<=4) { return reg-1; }
+    else { return reg+1; }
+}
+
+uint8_t clk25div_val2reg ( uint8_t val )
+{
+    if (val==6) { return 5; }
+    else if (val<=5) { return val+1; }
+    else { return val-1; }
+}
+
+uint8_t divselref_reg2val ( uint8_t reg )
+{
+    if (reg==16) return 1;
+    else return 2;
+}
+
+uint8_t divselref_val2reg ( uint8_t val )
+{
+    if (val==1) return 16;
+    else return 0;
+}
+
+
+
+/**
+ * Read from GTX DRP port
+ * @param ch pointer to dma_channel instance
+ * @param drp_addr DRP address to read from
+ * @return DRP value
+ * */
+uint16_t
+drp_read
+(
+    librorc::dma_channel *ch,
+    uint8_t drp_addr
+)
+{
+  uint32_t drp_status;
+  uint32_t drp_cmd = (0<<24) | //read
+    (drp_addr<<16) | //DRP addr
+    (0x00); // data
+
+  ch->setPKT(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+
+  /** wait for drp_den to deassert */
+  do {
+    usleep(100);
+    drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
+  } while (drp_status & (1<<31));
+
+  printf("drp_read(%x)=%04x\n", drp_addr, (drp_status & 0xffff));
+
+  return (drp_status & 0xffff);
+}
+
+
+
+/**
+ * Write to GTX DRP port
+ * @param ch pointer to dma_channel instane
+ * @param drp_addr DRP address to write to
+ * @param drp_data data to be written
+ * */
+void
+drp_write
+(
+    librorc::dma_channel *ch,
+    uint8_t drp_addr,
+    uint16_t drp_data
+)
+{
+  uint32_t drp_status;
+  uint32_t drp_cmd = (1<<24) | //write
+    (drp_addr<<16) | //DRP addr
+    (drp_data); // data
+
+  ch->setPKT(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+
+  /** wait for drp_den to deassert */
+  do {
+    usleep(100);
+    drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
+  } while (drp_status & (1<<31));
+}
+
+
+
+/**
+ * get current PLL configuration
+ * @param ch pointer to dma_channel instance
+ * @return struct gtxpll_settings
+ * */
+struct gtxpll_settings
+drp_get_pll_config
+(
+    librorc::dma_channel *ch
+)
+{
+    uint16_t drpdata;
+    struct gtxpll_settings pll;
+
+    drpdata = drp_read(ch, 0x1f);
+    pll.n1 = divselfb45_reg2val((drpdata>>6)&0x1);
+    pll.n2 = divselfb_reg2val((drpdata>>1)&0x1f);
+    pll.d = divselout_reg2val((drpdata>>14)&0x3);
+
+    drpdata = drp_read(ch, 0x20);
+    pll.m = divselref_reg2val((drpdata>>1)&0x1f);
+
+    drpdata = drp_read(ch, 0x23);
+    pll.clk25_div = clk25div_reg2val((drpdata>>10)&0x1f);
+
+    //Frequency = refclk_freq*gtx_n1*gtx_n2/gtx_m*2/gtx_d;
+    return pll;
+}
+
+
+
+
+/**
+ * set new PLL configuration
+ * @param ch pointer to dma_channel instance
+ * @param pll struct gtxpll_settings with new values
+ * */
+void
+drp_set_pll_config
+(
+    librorc::dma_channel *ch,
+    struct gtxpll_settings pll
+)
+{
+    uint8_t n1_reg = divselfb45_val2reg(pll.n1);
+    uint8_t n2_reg = divselfb_val2reg(pll.n2);
+    uint8_t d_reg = divselout_val2reg(pll.d);
+    uint8_t m_reg = divselref_val2reg(pll.m);
+    uint8_t clkdiv = clk25div_val2reg(pll.clk25_div);
+
+    uint16_t drp_data = drp_read(ch, 0x1f);
+    drp_data &= 0x3f81; //clear all fields
+    drp_data |= ((n1_reg&0x01)<<6 | (n2_reg&0x1f)<<1 | (d_reg&0x03)<<14);
+    drp_write(ch, 0x1f, drp_data);
+
+    /** dummy read */
+    drp_read(ch, 0x0);
+
+    drp_data = drp_read(ch, 0x20);
+    drp_data &= 0xffc1; //clear TXPLL_DIVSEL_REF
+    drp_data |= (m_reg&0x1f)<<1;
+    drp_write(ch, 0x20, drp_data);
+
+    /** dummy read */
+    drp_read(ch, 0x0);
+
+    drp_data = drp_read(ch, 0x23);
+    drp_data &= 0x7c00; // clear TX_CLK25_DIVIDER
+    drp_data |= (clkdiv&0x1f)<<10;
+    drp_write(ch, 0x23, drp_data);
+
+    /** dummy read */
+    drp_read(ch, 0x0);
+}
+
+
 
 int main
 (
@@ -212,6 +439,11 @@ int main
             cout << "CH " << setw(2) << chID << ": 0x"
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
+            struct gtxpll_settings pll = drp_get_pll_config(ch);
+            cout << "PLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
+                 << " D=" << (int)pll.d << " M=" << (int)pll.m
+                 << " CLK25DIV=" << (int)pll.clk25_div << endl;
+
             /** TODO: also provide error counter values here */
         }
 
