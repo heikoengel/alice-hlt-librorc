@@ -25,6 +25,18 @@
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED 1
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED    2
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED 3
+
+/** Buffer Sizes (in Bytes) **/
+#ifndef SIM
+    #define EBUFSIZE (((uint64_t)1) << 28)
+    #define RBUFSIZE (((uint64_t)1) << 26)
+    #define STAT_INTERVAL 1.0
+#else
+    #define EBUFSIZE (((uint64_t)1) << 19)
+    #define RBUFSIZE (((uint64_t)1) << 17)
+    #define STAT_INTERVAL 0.00001
+#endif
 
 namespace librorc
 {
@@ -51,8 +63,8 @@ namespace librorc
             /** Member Variables */
             librorc::device *m_dev;
             librorc::bar    *m_bar1;
-            librorc::buffer *m_ebuf;
-            librorc::buffer *m_rbuf;
+            librorc::buffer *m_eventBuffer;
+            librorc::buffer *m_reportBuffer;
 
 
         protected:

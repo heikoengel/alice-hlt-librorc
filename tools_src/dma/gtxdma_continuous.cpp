@@ -68,6 +68,10 @@ int main( int argc, char *argv[])
             case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED:
             { cout << "ERROR: failed to initialize BAR1." << endl; }
             break;
+
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED:
+            { cout << "ERROR: failed to allocate buffer." << endl; }
+            break;
         }
         abort();
     }
@@ -116,51 +120,51 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    /** Create new DMA event buffer */
-    librorc::buffer *ebuf;
-    try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*opts.channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: ebuf->allocate");
-        abort();
-    }
-
-    /** create new DMA report buffer */
-    librorc::buffer *rbuf;
-    try
-    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: rbuf->allocate");
-        abort();
-    }
+//    /** Create new DMA event buffer */
+//    librorc::buffer *ebuf;
+//    try
+//    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*opts.channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
+//    catch(...)
+//    {
+//        perror("ERROR: ebuf->allocate");
+//        abort();
+//    }
+//
+//    /** create new DMA report buffer */
+//    librorc::buffer *rbuf;
+//    try
+//    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
+//    catch(...)
+//    {
+//        perror("ERROR: rbuf->allocate");
+//        abort();
+//    }
 
     /** clear report buffer */
     struct librorc_event_descriptor *reportbuffer
-        = (struct librorc_event_descriptor *)rbuf->getMem();
-    memset(reportbuffer, 0, rbuf->getMappingSize());
+        = (struct librorc_event_descriptor *)eventStream->m_reportBuffer->getMem();
+    memset(reportbuffer, 0, eventStream->m_reportBuffer->getMappingSize());
 
     /** Create DMA channel and bind channel to BAR1 */
     librorc::dma_channel *ch = new librorc::dma_channel();
     ch->init(eventStream->m_bar1, opts.channelId);
 
     /** prepare EventBufferDescriptorManager with scatter-gather list */
-    if(ch->prepareEB(ebuf) < 0)
+    if(ch->prepareEB(eventStream->m_eventBuffer) < 0)
     {
         perror("prepareEB()");
         abort();
     }
 
     /** prepare ReportBufferDescriptorManager with scatter-gather list */
-    if(ch->prepareRB(rbuf) < 0)
+    if(ch->prepareRB(eventStream->m_reportBuffer) < 0)
     {
         perror("prepareRB()");
         abort();
     }
 
     /** set MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
-    if(ch->configureChannel(ebuf, rbuf, MAX_PAYLOAD) < 0)
+    if(ch->configureChannel(eventStream->m_eventBuffer, eventStream->m_reportBuffer, MAX_PAYLOAD) < 0)
     {
         perror("configureChannel()");
         abort();
@@ -258,14 +262,17 @@ int main( int argc, char *argv[])
         else
             {sanity_checks = CHK_SIZES;}
 
-        result =  handle_channel_data(
-                rbuf,
-                ebuf,
+        result =
+            handle_channel_data
+            (
+                eventStream->m_reportBuffer,
+                eventStream->m_eventBuffer,
                 ch, // channel struct
                 chstats, // stats struct
                 sanity_checks, // do sanity check
                 ddlref.map,
-                ddlref.size);
+                ddlref.size
+            );
 
         if(result < 0)
         {
@@ -388,7 +395,7 @@ int main( int argc, char *argv[])
     ch->setDMAConfig(0X00000002);
 
     /** clear reportbuffer */
-    memset(reportbuffer, 0, rbuf->getMappingSize());
+    memset(reportbuffer, 0, eventStream->m_reportBuffer->getMappingSize());
 
     /** cleanup */
 
@@ -397,11 +404,11 @@ int main( int argc, char *argv[])
     if(ch)
     { delete ch; }
 
-    if(ebuf)
-    { delete ebuf; }
-
-    if(rbuf)
-    { delete rbuf; }
+//    if(ebuf)
+//    { delete ebuf; }
+//
+//    if(rbuf)
+//    { delete rbuf; }
 
 //    if(bar1)
 //    { delete bar1; }

@@ -46,6 +46,8 @@ namespace librorc
 
     event_stream::~event_stream()
     {
+        delete m_eventBuffer;
+        delete m_reportBuffer;
         delete m_bar1;
         delete m_dev;
     }
@@ -58,14 +60,12 @@ namespace librorc
     )
     {
         /** Create new device instance */
-        m_dev = NULL;
         try
         { m_dev = new librorc::device(deviceId); }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
 
         /** Bind to BAR1 */
-        m_bar1 = NULL;
         try
         {
         #ifdef SIM
@@ -76,6 +76,18 @@ namespace librorc
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
+
+        /** Create new DMA event buffer */
+        try
+        { m_eventBuffer = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
+        catch(...)
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
+
+        /** create new DMA report buffer */
+        try
+        { m_reportBuffer = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE); }
+        catch(...)
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
     }
 
 }
