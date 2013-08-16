@@ -87,7 +87,7 @@ int main( int argc, char *argv[])
          << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
     /** Check if requested channel is implemented in firmware */
-    if( dev->DMAChannelIsImplemented(opts.channelId) )
+    if( eventStream->m_dev->DMAChannelIsImplemented(opts.channelId) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                "firmware - exiting\n", opts.channelId);
