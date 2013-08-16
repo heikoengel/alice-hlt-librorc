@@ -25,7 +25,10 @@
 
 #include "dma_handling.hh"
 
+using namespace std;
+
 DMA_ABORT_HANDLER
+
 
 int main(int argc, char *argv[])
 {
