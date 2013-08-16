@@ -131,26 +131,24 @@ fill_eventbuffer
 
     for ( uint64_t i=0; i < nevents; i++ )
     {
+        // byte offset of next event
+        uint64_t offset = *event_generation_offset;
+
         // write event data to buffer
         create_event(
-                 eventbuffer + ((*event_generation_offset)>>2) +
-                 i*(fragment_size>>2), // destination pointer
+                 eventbuffer + (offset>>2), // destination pointer
                  i, // event ID
                  EventSize ); // event size
-    }
+        /*DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x), "
+                "ego=%lx, fs=%x\n",
+                offset, i, EventSize, *event_generation_offset, 
+                fragment_size);*/
 
-    /** TODO: this is buggy:
-     * if both for-loops are combined to one, the data written
-     * with create_event is not yet available when the RB is handled
-     * with handle_channel_data() (memory still empty or previous contents)
-     * */
-    for ( uint64_t i=0; i < nevents; i++ )
-    {
         // push event size into EL FIFO
         channel->setPKT(RORC_REG_DMA_ELFIFO, EventSize);
 
         // adjust event buffer fill state
-        *event_generation_offset += (EventSize<<2);
+        *event_generation_offset += fragment_size;
 
         // wrap fill state if neccessary
         if ( *event_generation_offset >= ebuf->getSize() )
