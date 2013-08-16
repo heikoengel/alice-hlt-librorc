@@ -99,19 +99,13 @@ int main( int argc, char *argv[])
     try
     {
         ch =
-            new librorc::dma_channel(opts.channelId, eventStream->m_bar1,
-                eventStream->m_eventBuffer, eventStream->m_reportBuffer);
+            new librorc::dma_channel(opts.channelId, MAX_PAYLOAD,
+                eventStream->m_bar1, eventStream->m_eventBuffer,
+                    eventStream->m_reportBuffer);
     }
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
-        abort();
-    }
-
-    /** set MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
-    if(ch->configureChannel(eventStream->m_eventBuffer, eventStream->m_reportBuffer, MAX_PAYLOAD) < 0)
-    {
-        perror("configureChannel()");
         abort();
     }
 

@@ -67,6 +67,7 @@ namespace librorc
              dma_channel
              (
                 uint32_t  channel_number,
+                uint32_t  pcie_packet_size,
                 bar      *dma_bar,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer
@@ -159,22 +160,6 @@ namespace librorc
              * @return buffer size in bytes
              **/
             uint64_t getRBSize();
-
-            /**
-             * configure DMA engine for current set of buffers
-             * @param ebuf pointer to struct librorc::buffer to be used as event buffer
-             * @param rbuf pointer to struct librorc::buffer to be used as report buffer
-             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or
-             * PCIe read requests (hlt_out)
-             * @return 0 on sucess, <0 on error
-             * */
-            int32_t
-            configureChannel
-            (
-                buffer   *ebuf,
-                buffer   *rbuf,
-                uint32_t  pcie_packet_size
-            );
 
             /**
              * get base
@@ -439,6 +424,14 @@ namespace librorc
                 buffer   *buf,
                 uint32_t  flag
             );
+
+            /**
+             * configure DMA engine for current set of buffers
+             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or
+             * PCIe read requests (hlt_out)
+             * @return 0 on sucess, <0 on error
+             **/
+            int32_t configureChannel(uint32_t pcie_packet_size);
     };
 
 }

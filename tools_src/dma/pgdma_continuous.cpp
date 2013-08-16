@@ -118,17 +118,10 @@ int main(int argc, char *argv[])
     /** Create DMA channel */
     librorc::dma_channel *ch;
     try
-    { ch = new librorc::dma_channel(opts.channelId, bar1, ebuf, rbuf); }
+    { ch = new librorc::dma_channel(opts.channelId, MAX_PAYLOAD, bar1, ebuf, rbuf); }
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
-        abort();
-    }
-
-    /** Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
-    if(ch->configureChannel(ebuf, rbuf, MAX_PAYLOAD) < 0)
-    {
-        perror("configureChannel()");
         abort();
     }
 

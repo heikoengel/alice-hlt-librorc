@@ -259,19 +259,11 @@ int main( int argc, char *argv[])
 
     /** Create DMA channel */
     try
-    { ch = new librorc::dma_channel(ChannelId, bar1, ebuf, rbuf); }
+    { ch = new librorc::dma_channel(ChannelId, 64, bar1, ebuf, rbuf); }
     catch(...)
     {
         cout << "DMA channel failed!" << endl;
         abort();
-    }
-
-    // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-    result = ch->configureChannel(ebuf, rbuf, 64);
-    if (result < 0) {
-        perror("configureChannel()");
-        result = -1;
-        goto out;
     }
 
     // enable BDMs

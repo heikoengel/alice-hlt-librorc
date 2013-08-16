@@ -91,6 +91,7 @@ dma_channel::dma_channel
 dma_channel::dma_channel
 (
     uint32_t  channel_number,
+    uint32_t  pcie_packet_size,
     bar      *dma_bar,
     buffer   *eventBuffer,
     buffer   *reportBuffer
@@ -107,7 +108,7 @@ dma_channel::dma_channel
     m_eventBuffer  = eventBuffer;
     m_reportBuffer = reportBuffer;
 
-    memset(m_reportBuffer->getMem(), 0, m_reportBuffer->getMappingSize());
+    m_reportBuffer->clear();
 
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
     if(prepareEB(eventBuffer) < 0)
@@ -115,6 +116,10 @@ dma_channel::dma_channel
 
     /** Prepare ReportBufferDescriptorManager with scatter-gather list */
     if(prepareRB(reportBuffer) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+    /** set max payload, buffer sizes, #sgEntries, ... */
+    if(configureChannel(pcie_packet_size) < 0)
     { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
 }
@@ -126,7 +131,7 @@ dma_channel::dma_channel
  * */
 dma_channel::~dma_channel()
 {
-    memset(m_reportBuffer->getMem(), 0, m_reportBuffer->getMappingSize());
+    m_reportBuffer->clear();
 }
 
 
@@ -138,90 +143,6 @@ dma_channel::enable()
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
     setDMAConfig( getDMAConfig() | 0x01 );
-}
-
-
-/**
- * configure DMA engine for the current
- * set of buffers
- * */
-
-int32_t
-dma_channel::configureChannel
-(
-    buffer   *ebuf,
-    buffer   *rbuf,
-    uint32_t  pcie_packet_size
-)
-{
-
-    /**
-     * N_SG_CONFIG:
-     * [15:0] : actual number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     */
-    uint32_t rbdmnsgcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
-    uint32_t ebdmnsgcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
-
-    /** check if sglist fits into FPGA buffers */
-    if( ( (rbdmnsgcfg >> 16) < rbuf->getnSGEntries() ) |
-        ( (ebdmnsgcfg >> 16) < ebuf->getnSGEntries() ) )
-    {
-        errno = -EFBIG;
-        return errno;
-    }
-
-    if(pcie_packet_size & 0xf)
-    {
-        /** packet size must be a multiple of 4 DW / 16 bytes */
-        errno = -EINVAL;
-        return errno;
-    }
-    else if(pcie_packet_size > 1024)
-    {
-        errno = -ERANGE;
-        return errno;
-    }
-
-    //TODO refactor this into a sepparate method
-    librorc_channel_config config;
-    config.ebdm_n_sg_config      = ebuf->getnSGEntries();
-    config.ebdm_buffer_size_low  = ebuf->getPhysicalSize() & 0xffffffff;
-    config.ebdm_buffer_size_high = ebuf->getPhysicalSize() >> 32;
-    config.rbdm_n_sg_config      = rbuf->getnSGEntries();
-    config.rbdm_buffer_size_low  = rbuf->getPhysicalSize() & 0xffffffff;
-    config.rbdm_buffer_size_high = rbuf->getPhysicalSize() >> 32;
-
-    config.swptrs.ebdm_software_read_pointer_low =
-        (ebuf->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
-    config.swptrs.ebdm_software_read_pointer_high =
-        (ebuf->getPhysicalSize() - pcie_packet_size) >> 32;
-    config.swptrs.rbdm_software_read_pointer_low =
-        (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) &
-        0xffffffff;
-    config.swptrs.rbdm_software_read_pointer_high =
-        (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
-
-    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (m_channel << 16); // set channel as PCIe tag
-
-    /**
-     * Set PCIe packet size
-     **/
-    setPciePacketSize(pcie_packet_size);
-
-    /**
-     * copy configuration struct to RORC, starting
-     * at the address of the lowest register(EBDM_N_SG_CONFIG)
-     */
-    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
-                    &config, sizeof(librorc_channel_config) );
-
-    m_pcie_packet_size = pcie_packet_size;
-    m_last_ebdm_offset = ebuf->getPhysicalSize() - pcie_packet_size;
-    m_last_rbdm_offset = rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
-
-    return 0;
 }
 
 
@@ -688,6 +609,81 @@ dma_channel::prepare
 
     return(0);
 }
+
+
+
+/** configure DMA engine for the current set of buffers */
+int32_t
+dma_channel::configureChannel(uint32_t pcie_packet_size)
+{
+
+    /**
+     * N_SG_CONFIG:
+     * [15:0] : actual number of sg entries in RAM
+     * [31:16]: maximum number of entries
+     */
+    uint32_t rbdmnsgcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
+    uint32_t ebdmnsgcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
+
+    /** check if sglist fits into FPGA buffers */
+    if( ( (rbdmnsgcfg >> 16) < m_reportBuffer->getnSGEntries() ) |
+        ( (ebdmnsgcfg >> 16) < m_eventBuffer->getnSGEntries() ) )
+    {
+        errno = -EFBIG;
+        return errno;
+    }
+
+    if(pcie_packet_size & 0xf)
+    {
+        /** packet size must be a multiple of 4 DW / 16 bytes */
+        errno = -EINVAL;
+        return errno;
+    }
+    else if(pcie_packet_size > 1024)
+    {
+        errno = -ERANGE;
+        return errno;
+    }
+
+    librorc_channel_config config;
+    config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+    config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
+    config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
+    config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
+    config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
+    config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
+
+    config.swptrs.ebdm_software_read_pointer_low =
+        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
+    config.swptrs.ebdm_software_read_pointer_high =
+        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) >> 32;
+    config.swptrs.rbdm_software_read_pointer_low =
+        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
+    config.swptrs.rbdm_software_read_pointer_high =
+        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
+
+    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
+                             (m_channel << 16); // set channel as PCIe tag
+
+    /**
+     * Set PCIe packet size
+     **/
+    setPciePacketSize(pcie_packet_size);
+
+    /**
+     * copy configuration struct to RORC, starting
+     * at the address of the lowest register(EBDM_N_SG_CONFIG)
+     */
+    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
+                    &config, sizeof(librorc_channel_config) );
+
+    m_pcie_packet_size = pcie_packet_size;
+    m_last_ebdm_offset = m_eventBuffer->getPhysicalSize() - pcie_packet_size;
+    m_last_rbdm_offset = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
+
+    return 0;
+}
+
 
 
 }
