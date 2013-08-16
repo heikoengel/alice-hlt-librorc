@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
     ch->setEnableRB(1);
 
     /** Enable DMA channel */
-    ch->setDMAConfig( ch->getDMAConfig() | 0x01 );
+    ch->enable();
 
 
     /**

@@ -81,6 +81,9 @@ dma_channel::dma_channel
     m_base             = (channel_number + 1) * RORC_CHANNEL_OFFSET;
     m_channel          = channel_number;
     m_bar              = dma_bar;
+
+    m_eventBuffer  = NULL;
+    m_reportBuffer = NULL;
 }
 
 
@@ -123,6 +126,16 @@ dma_channel::~dma_channel()
 {
 }
 
+
+
+void
+dma_channel::enable()
+{
+    if(!m_eventBuffer || !m_reportBuffer)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
+
+    setDMAConfig( getDMAConfig() | 0x01 );
+}
 
 
 /**

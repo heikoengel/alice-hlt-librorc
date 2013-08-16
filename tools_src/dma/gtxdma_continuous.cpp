@@ -73,39 +73,13 @@ int main( int argc, char *argv[])
             { cout << "ERROR: failed to allocate buffer." << endl; }
             break;
         }
-        abort();
+        exit(-1);
     }
-
-//    /** create new device instance */
-//    librorc::device *dev = NULL;
-//    try
-//    { dev = new librorc::device(opts.deviceId); }
-//    catch(...)
-//    {
-//        printf("ERROR: failed to initialize device.\n");
-//        abort();
-//    }
 
     printf("Bus %x, Slot %x, Func %x\n",
             eventStream->m_dev->getBus(),
             eventStream->m_dev->getSlot(),
             eventStream->m_dev->getFunc());
-
-//    /** bind to BAR1 */
-//    librorc::bar *bar1 = NULL;
-//    try
-//    {
-//    #ifdef SIM
-//        bar1 = new librorc::sim_bar(dev, 1);
-//    #else
-//        bar1 = new librorc::rorc_bar(dev, 1);
-//    #endif
-//    }
-//    catch(...)
-//    {
-//        printf("ERROR: failed to initialize BAR1.\n");
-//        abort();
-//    }
 
     cout << "FirmwareDate: " << setw(8) << hex
          << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_DATE);
@@ -117,28 +91,8 @@ int main( int argc, char *argv[])
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                 "firmware - exiting\n", opts.channelId);
-        abort();
+        exit(-1);
     }
-
-//    /** Create new DMA event buffer */
-//    librorc::buffer *ebuf;
-//    try
-//    { ebuf = new librorc::buffer(dev, EBUFSIZE, (2*opts.channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
-//    catch(...)
-//    {
-//        perror("ERROR: ebuf->allocate");
-//        abort();
-//    }
-//
-//    /** create new DMA report buffer */
-//    librorc::buffer *rbuf;
-//    try
-//    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
-//    catch(...)
-//    {
-//        perror("ERROR: rbuf->allocate");
-//        abort();
-//    }
 
     /** clear report buffer */
     struct librorc_event_descriptor *reportbuffer
@@ -170,8 +124,7 @@ int main( int argc, char *argv[])
     ch->setEnableEB(1);
     ch->setEnableRB(1);
 
-    /** enable DMA channel */
-    ch->setDMAConfig( ch->getDMAConfig() | 0x01 );
+    ch->enable();
 
 
     /**
@@ -394,23 +347,10 @@ int main( int argc, char *argv[])
     memset(reportbuffer, 0, eventStream->m_reportBuffer->getMappingSize());
 
     /** cleanup */
-
     deleteDDLReferenceFile(ddlref);
 
     if(ch)
     { delete ch; }
-
-//    if(ebuf)
-//    { delete ebuf; }
-//
-//    if(rbuf)
-//    { delete rbuf; }
-
-//    if(bar1)
-//    { delete bar1; }
-
-//    if(dev)
-//    { delete dev; }
 
     return result;
 }

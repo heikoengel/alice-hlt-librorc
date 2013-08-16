@@ -24,6 +24,7 @@
 #include "librorc/include_int.hh"
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED  1
+#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED       2
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value
@@ -73,39 +74,31 @@ namespace librorc
 
             ~dma_channel();
 
+            void enable();
+
             /**
              * set Enable Bit of EBDM
              * @param enable nonzero param will enable, zero will disable
              **/
-            void
-            setEnableEB
-            (
-                int32_t enable
-            );
+            void setEnableEB(int32_t enable);
 
             /**
              * set Enable Bit of RBDM
              * @param enable nonzero param will enable, zero will disable
              **/
-            void
-            setEnableRB
-            (
-                int32_t enable
-            );
+            void setEnableRB(int32_t enable);
 
             /**
              * get Enable Bit of EBDM
              * @return enable bit
              **/
-            uint32_t
-            getEnableEB();
+            uint32_t getEnableEB();
 
             /**
              * get Enable Bit of RBDM
              * @return enable bit
              **/
-            uint32_t
-            getEnableRB();
+            uint32_t getEnableRB();
 
             /**
              * setDMAConfig set the DMA Controller operation mode
@@ -113,56 +106,44 @@ namespace librorc
              * TODO
              **/
             void
-            setDMAConfig
-            (
-                uint32_t config
-            );
+            setDMAConfig(uint32_t config);
 
             /**
              * getDMAConfig
              * @return DMA Packetizer COnfiguration and Status
              **/
-            uint32_t
-            getDMAConfig();
+            uint32_t getDMAConfig();
 
             /**
              * set maximum PCIe packet size. This is MAX_PAYLOAD for
              * hlt_in and MAX_READ_REQ for hlt_out channels.
              * @param size maximum packet size in bytes
              **/
-            void
-            setPciePacketSize
-            (
-                uint32_t packet_size
-            );
+            void setPciePacketSize(uint32_t packet_size);
 
             /**
              * get last value set as PCIe packet size
              * @return maximum payload size in bytes
              **/
-            uint32_t
-            getPciePacketSize();
+            uint32_t getPciePacketSize();
 
             /**
              * get number of Scatter Gather entries for the Event buffer
              * @return number of entries
              **/
-            uint32_t
-            getEBDMnSGEntries();
+            uint32_t getEBDMnSGEntries();
 
             /**
              * get number of Scatter Gather entries for the Report buffer
              * @return number of entries
              **/
-            uint32_t
-            getRBDMnSGEntries();
+            uint32_t getRBDMnSGEntries();
 
             /**
              * get DMA Packetizer 'Busy' flag
              * @return 1 if busy, 0 if idle
              **/
-            uint32_t
-            getDMABusy();
+            uint32_t getDMABusy();
 
             /**
              * get buffer size set in EBDM. This returns the size of the
@@ -170,16 +151,14 @@ namespace librorc
              * size of the associated DMA buffer.
              * @return buffer size in bytes
              **/
-            uint64_t
-            getEBSize();
+            uint64_t getEBSize();
 
             /**
              * get buffer size set in RBDM. As the RB is not overmapped this size
              * should be equal to the sysfs file size and buf->getRBSize()
              * @return buffer size in bytes
              **/
-            uint64_t
-            getRBSize();
+            uint64_t getRBSize();
 
             /**
              * configure DMA engine for current set of buffers
@@ -201,9 +180,7 @@ namespace librorc
              * get base
              * @return channel base address
              **/
-
-            uint64_t
-            getBase()
+            uint64_t getBase()
             {
                 return m_base;
             }
@@ -212,9 +189,7 @@ namespace librorc
              * get BAR
              * @return bound librorc::bar
              **/
-
-            bar*
-            getBar()
+            bar *getBar()
             {
                 return m_bar;
             }
@@ -227,34 +202,24 @@ namespace librorc
              * set EBOffset to (BufferSize-MaxPayload).
              * IMPORTANT: offset has always to be a multiple of MaxPayload!
              **/
-            void
-            setEBOffset
-            (
-                uint64_t offset
-            );
+            void setEBOffset(uint64_t offset);
 
             /**
              * get current Event Buffer File Offset
              * @return offset
              **/
-            uint64_t
-            getEBOffset();
+            uint64_t getEBOffset();
 
             /**
              * set Report Buffer File Offset
              **/
-            void
-            setRBOffset
-            (
-                uint64_t offset
-            );
+            void setRBOffset(uint64_t offset);
 
             /**
              * get Report Buffer File Offset
              * @return offset
              **/
-            uint64_t
-            getRBOffset();
+            uint64_t getRBOffset();
 
             /**
              * setOffsets
@@ -273,31 +238,27 @@ namespace librorc
              * DMA destination
              * @return 64bit offset in report buffer file
              **/
-            uint64_t
-            getRBDMAOffset();
+            uint64_t getRBDMAOffset();
 
             /**
              * get buffer offset that is currently used as
              * DMA destination
              * @return 64bit offset in event buffer file
              **/
-            uint64_t
-            getEBDMAOffset();
+            uint64_t getEBDMAOffset();
 
             /**
              * get last event buffer read offset written to channel
              * @return 64bit offset in event buffer file
              **/
-            uint64_t
-            getLastEBOffset();
+            uint64_t getLastEBOffset();
 
 
             /**
              * get last report buffer read offset written to channel
              * @return 64bit offset in report buffer file
              **/
-            uint64_t
-            getLastRBOffset();
+            uint64_t getLastRBOffset();
 
             /**
              * set DW in EBDM
@@ -316,11 +277,7 @@ namespace librorc
              * @param addr address in EBDM component
              * @return data read from EBDM
              **/
-            uint32_t
-            getEBDM
-            (
-                uint32_t addr
-            );
+            uint32_t getEBDM(uint32_t addr);
 
             /**
              * set DW in RBDM
@@ -339,11 +296,7 @@ namespace librorc
              * @param addr address in RBDM component
              * @return data read from RBDM
              **/
-            uint32_t
-            getRBDM
-            (
-                uint32_t addr
-            );
+            uint32_t getRBDM(uint32_t addr);
 
             /**
              * set DW in EBDRAM
@@ -374,11 +327,7 @@ namespace librorc
              * @param addr address in EBDRAM component
              * @return data read from EBDRAM
              **/
-            uint32_t
-            getEBDRAM
-            (
-                uint32_t addr
-            );
+            uint32_t getEBDRAM(uint32_t addr);
 
             /**
              * set DW in RBDRAM
@@ -409,11 +358,7 @@ namespace librorc
              * @param addr address in RBDRAM component
              * @return data read from RBDRAM
              **/
-            uint32_t
-            getRBDRAM
-            (
-                uint32_t addr
-            );
+            uint32_t getRBDRAM(uint32_t addr);
 
             /**
              * set DW in Packtizer
@@ -432,11 +377,7 @@ namespace librorc
              * @param addr address in PKT component
              * @return data read from PKT
              **/
-            uint32_t
-            getPKT
-            (
-                uint32_t addr
-            );
+            uint32_t getPKT(uint32_t addr);
 
             /**
              * set DW in GTX Domain
@@ -455,11 +396,7 @@ namespace librorc
              * @param addr address in GTX component
              * @return data read from GTX
              **/
-            unsigned int
-            getGTX
-            (
-                uint32_t addr
-            );
+            unsigned int getGTX(uint32_t addr);
 
         protected:
 
@@ -480,11 +417,7 @@ namespace librorc
              * @param buf librorc::buffer instance to be used as event destination buffer
              * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
              **/
-            int32_t
-            prepareEB
-            (
-                buffer *buf
-            );
+            int32_t prepareEB(buffer *buf);
 
             /**
              * prepare ReportBuffer: copy scatterlist from
@@ -493,11 +426,7 @@ namespace librorc
              * @param buf librorc::buffer instance to be used as report destination buffer
              * @return 0 on sucess, -1 on errors
              **/
-            int32_t
-            prepareRB
-            (
-                buffer *buf
-            );
+            int32_t prepareRB(buffer *buf);
 
             /**
              * This method is the generic version of the
