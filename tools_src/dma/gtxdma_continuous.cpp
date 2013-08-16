@@ -82,8 +82,10 @@ int main( int argc, char *argv[])
 //        abort();
 //    }
 
-    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
-            dev->getSlot(),dev->getFunc());
+    printf("Bus %x, Slot %x, Func %x\n",
+            eventStream->m_dev->getBus(),
+            eventStream->m_dev->getSlot(),
+            eventStream->m_dev->getFunc());
 
 //    /** bind to BAR1 */
 //    librorc::bar *bar1 = NULL;
@@ -102,12 +104,12 @@ int main( int argc, char *argv[])
 //    }
 
     cout << "FirmwareDate: " << setw(8) << hex
-         << bar1->get32(RORC_REG_FIRMWARE_DATE);
+         << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_DATE);
     cout << "FirmwareRevision: " << setw(8) << hex
-         << bar1->get32(RORC_REG_FIRMWARE_REVISION);
+         << eventStream->m_bar1->get32(RORC_REG_FIRMWARE_REVISION);
 
     /** check if requested channel is implemented in firmware */
-    if(opts.channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if(opts.channelId >= (int32_t)(eventStream->m_bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                 "firmware - exiting\n", opts.channelId);
@@ -141,7 +143,7 @@ int main( int argc, char *argv[])
 
     /** Create DMA channel and bind channel to BAR1 */
     librorc::dma_channel *ch = new librorc::dma_channel();
-    ch->init(bar1, opts.channelId);
+    ch->init(eventStream->m_bar1, opts.channelId);
 
     /** prepare EventBufferDescriptorManager with scatter-gather list */
     if(ch->prepareEB(ebuf) < 0)
@@ -235,7 +237,7 @@ int main( int argc, char *argv[])
 
     /** capture starting time */
     timeval start_time;
-    bar1->gettime(&start_time, 0);
+    eventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval cur_time = start_time;
 
@@ -276,7 +278,7 @@ int main( int argc, char *argv[])
             usleep(100);
         }
 
-        bar1->gettime(&cur_time, 0);
+        eventStream->m_bar1->gettime(&cur_time, 0);
 
         /** print status line each second */
         if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL)
@@ -318,7 +320,7 @@ int main( int argc, char *argv[])
 
     /** EOR */
     timeval end_time;
-    bar1->gettime(&end_time, 0);
+    eventStream->m_bar1->gettime(&end_time, 0);
 
     /** print summary */
     printf("%ld Byte / %ld events in %.2f sec"
