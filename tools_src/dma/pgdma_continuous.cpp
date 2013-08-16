@@ -122,21 +122,21 @@ int main(int argc, char *argv[])
 
     /** Create DMA channel and bind channel to BAR1 */
     librorc::dma_channel *ch
-        = new librorc::dma_channel(bar1, opts.channelId);
+        = new librorc::dma_channel(bar1, opts.channelId, ebuf, rbuf);
 
-    /** Prepare EventBufferDescriptorManager with scatter-gather list */
-    if(ch->prepareEB(ebuf) < 0)
-    {
-        perror("prepareEB()");
-        abort();
-    }
-
-    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
-    if(ch->prepareRB(rbuf) < 0)
-    {
-        perror("prepareRB()");
-        abort();
-    }
+//    /** Prepare EventBufferDescriptorManager with scatter-gather list */
+//    if(ch->prepareEB(ebuf) < 0)
+//    {
+//        perror("prepareEB()");
+//        abort();
+//    }
+//
+//    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
+//    if(ch->prepareRB(rbuf) < 0)
+//    {
+//        perror("prepareRB()");
+//        abort();
+//    }
 
     /** Aet MAX_PAYLOAD, buffer sizes, #sgEntries, ... */
     if(ch->configureChannel(ebuf, rbuf, MAX_PAYLOAD) < 0)

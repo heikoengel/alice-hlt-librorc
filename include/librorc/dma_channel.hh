@@ -57,38 +57,21 @@ namespace librorc
     class dma_channel
     {
         public:
-             dma_channel
+//             dma_channel
+//             (
+//                bar *dma_bar,
+//                uint32_t  channel_number
+//             );
+
+             dma_channel::dma_channel
              (
-                bar *dma_bar,
-                uint32_t  channel_number
+                bar      *dma_bar,
+                uint32_t  channel_number,
+                buffer   *eventBuffer,
+                buffer   *reportBuffer
              );
+
             ~dma_channel();
-
-            /**
-             * Prepare EventBuffer: copy scatterlist from
-             * librorc::buffer into the EventBufferDescriptorManager
-             * in the RORC
-             * @param buf librorc::buffer instance to be used as event destination buffer
-             * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
-             **/
-            int32_t
-            prepareEB
-            (
-                buffer *buf
-            );
-
-            /**
-             * prepare ReportBuffer: copy scatterlist from
-             * librorc::buffer into the ReportBufferDescriptorManager
-             * in the RORC
-             * @param buf librorc::buffer instance to be used as report destination buffer
-             * @return 0 on sucess, -1 on errors
-             **/
-            int32_t
-            prepareRB
-            (
-                buffer *buf
-            );
 
             /**
              * set Enable Bit of EBDM
@@ -480,13 +463,41 @@ namespace librorc
 
         protected:
 
-            uint32_t m_base;
-            uint32_t m_channel;
-            uint32_t m_pcie_packet_size;
-            uint64_t m_last_ebdm_offset;
-            uint64_t m_last_rbdm_offset;
+            uint32_t  m_base;
+            uint32_t  m_channel;
+            uint32_t  m_pcie_packet_size;
+            uint64_t  m_last_ebdm_offset;
+            uint64_t  m_last_rbdm_offset;
 
-            bar *m_bar;
+            bar      *m_bar;
+            buffer   *m_eventBuffer,
+            buffer   *m_reportBuffer
+
+            /**
+             * Prepare EventBuffer: copy scatterlist from
+             * librorc::buffer into the EventBufferDescriptorManager
+             * in the RORC
+             * @param buf librorc::buffer instance to be used as event destination buffer
+             * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
+             **/
+            int32_t
+            prepareEB
+            (
+                buffer *buf
+            );
+
+            /**
+             * prepare ReportBuffer: copy scatterlist from
+             * librorc::buffer into the ReportBufferDescriptorManager
+             * in the RORC
+             * @param buf librorc::buffer instance to be used as report destination buffer
+             * @return 0 on sucess, -1 on errors
+             **/
+            int32_t
+            prepareRB
+            (
+                buffer *buf
+            );
 
             /**
              * This method is the generic version of the
@@ -494,7 +505,7 @@ namespace librorc
              * CRORC bars.
              **/
             int32_t
-            _prepare
+            prepare
             (
                 buffer   *buf,
                 uint32_t  flag
