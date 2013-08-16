@@ -57,20 +57,12 @@ namespace librorc
     class dma_channel
     {
         public:
-             dma_channel();
+             dma_channel
+             (
+                bar *dma_bar,
+                uint32_t  channel_number
+             );
             ~dma_channel();
-
-            /**
-             * Initialize DMA base address within BAR
-             * @param dma_base -> base address
-             * @param dma_bar according instance of librorc::bar
-             **/
-            void
-            init
-            (
-                bar      *dma_bar,
-                uint32_t  dma_base
-            );
 
             /**
              * Prepare EventBuffer: copy scatterlist from

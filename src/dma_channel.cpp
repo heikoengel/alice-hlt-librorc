@@ -67,13 +67,19 @@ namespace librorc
 /**
  * Constructor
  * */
-dma_channel::dma_channel()
+dma_channel::dma_channel
+(
+    bar      *dma_bar,
+    uint32_t  channel_number
+)
 {
-    m_bar              = NULL;
-    m_base             = 0;
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
+
+    m_base             = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel          = channel_number;
+    m_bar              = dma_bar;
 }
 
 
@@ -83,26 +89,6 @@ dma_channel::dma_channel()
  * */
 dma_channel::~dma_channel()
 {
-}
-
-
-
-/**
- * Initialize Channel:
- * bind to specific BAR, set offset address for register access
- * */
-
-void
-dma_channel::init
-(
-    bar      *dma_bar,
-    uint32_t  channel_number
-)
-{
-    m_base    = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    m_channel = channel_number;
-
-    m_bar = dma_bar;
 }
 
 

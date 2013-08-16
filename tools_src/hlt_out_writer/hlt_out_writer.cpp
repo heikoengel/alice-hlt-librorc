@@ -45,18 +45,6 @@ parameters: \n\
         --size [value]    Event Size in DWs \n\
         --help            Show this text \n"
 
-/** Buffer Sizes (in Bytes) **/
-#ifndef SIM
-#define EBUFSIZE (((uint64_t)1) << 28)
-#define RBUFSIZE (((uint64_t)1) << 26)
-#define STAT_INTERVAL 1.0
-#else
-#define EBUFSIZE (((uint64_t)1) << 19)
-#define RBUFSIZE (((uint64_t)1) << 17)
-#define STAT_INTERVAL 0.00001
-#endif
-
-
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
@@ -270,10 +258,7 @@ int main( int argc, char *argv[])
 
 
     // create DMA channel
-    ch = new librorc::dma_channel();
-
-    // bind channel to BAR1
-    ch->init(bar1, ChannelId);
+    ch = new librorc::dma_channel(bar1, ChannelId);
 
     // prepare EventBufferDescriptorManager
     // with scatter-gather list

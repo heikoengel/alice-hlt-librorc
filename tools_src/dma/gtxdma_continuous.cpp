@@ -146,8 +146,8 @@ int main( int argc, char *argv[])
     memset(reportbuffer, 0, eventStream->m_reportBuffer->getMappingSize());
 
     /** Create DMA channel and bind channel to BAR1 */
-    librorc::dma_channel *ch = new librorc::dma_channel();
-    ch->init(eventStream->m_bar1, opts.channelId);
+    librorc::dma_channel *ch
+        = new librorc::dma_channel(eventStream->m_bar1, opts.channelId);
 
     /** prepare EventBufferDescriptorManager with scatter-gather list */
     if(ch->prepareEB(eventStream->m_eventBuffer) < 0)

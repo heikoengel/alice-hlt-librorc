@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
 
 
     /** Create DMA channel and bind channel to BAR1 */
-    librorc::dma_channel *ch = new librorc::dma_channel();
-    ch->init(bar1, opts.channelId);
+    librorc::dma_channel *ch
+        = new librorc::dma_channel(bar1, opts.channelId);
 
     /** Prepare EventBufferDescriptorManager with scatter-gather list */
     if(ch->prepareEB(ebuf) < 0)
