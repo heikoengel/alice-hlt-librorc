@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Check if requested channel is implemented in firmware */
-    if( dev->DMAChannelIsImplemented(opts.channelId) )
+    if( eventStream->m_dev->DMAChannelIsImplemented(opts.channelId) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                "firmware - exiting\n", opts.channelId);
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 
     /** capture starting time */
     timeval start_time;
-    bar1->gettime(&start_time, 0);
+    eventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval cur_time = start_time;
 
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
 
         result = handle_channel_data
         (
-            rbuf,
-            ebuf,
+            eventStream->m_reportBuffer,
+            eventStream->m_eventBuffer,
             ch,      /** channel struct     */
             chstats, /** stats struct       */
             0xff,    /** do sanity check    */
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
             usleep(100);
         }
 
-        bar1->gettime(&cur_time, 0);
+        eventStream->m_bar1->gettime(&cur_time, 0);
 
         /** print status line each second */
         if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL)
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
     }
 
     timeval end_time;
-    bar1->gettime(&end_time, 0);
+    eventStream->m_bar1->gettime(&end_time, 0);
     printf
     (
         "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
@@ -270,29 +270,8 @@ int main(int argc, char *argv[])
         chstats = NULL;
     }
 
-//    if(ddlref)
-//    {
-//        if( munmap(ddlref, ddlref_size)==-1 )
-//        { perror("ERROR: failed to unmap file"); }
-//    }
-//
-//    if(ddlref_fd>=0)
-//    { close(ddlref_fd); }
-
     if(ch)
     { delete ch; }
-
-    if(ebuf)
-    { delete ebuf; }
-
-    if(rbuf)
-    { delete rbuf; }
-
-    if(bar1)
-    { delete bar1; }
-
-    if(dev)
-    { delete dev; }
 
     return result;
 }
