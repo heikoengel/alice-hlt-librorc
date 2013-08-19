@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <getopt.h>
 #include <stdint.h>
+#include <pda.h>
 
 #include "librorc.h"
 
@@ -38,6 +39,7 @@ parameters: \n\
         -x            Clear error counters \n\
         -r [0...7]    Set GTX reset values, see below\n\
         -l [0...7]    Set GTX loopback value \n\
+        -p [number]   Set PLL config from list below \n\
         -h            Show this text \n\
 \n\
 GTX reset consists of 3 bits, MSB to LSB: {TXreset, RXreset, GTXreset}. \n\
@@ -46,7 +48,7 @@ In order to set GTXreset=1, RXreset=0, TXreset=0, do \n\
 In order to set GTXreset=0, RXreset=1, TXreset=1, do \n\
         gtxctrl -n [...] -c [...] -r 0x06 \n\
 To release all resets, do \n\
-        gtxctrl -n [...] -r 0 \n\
+        gtxctrl -n [...] -r 0 \n\n\
 "
 
 struct
@@ -57,15 +59,17 @@ gtxpll_settings
     uint8_t n2;
     uint8_t d;
     uint8_t m;
+    float refclk;
 };
 
 
 const struct gtxpll_settings available_configs[] =
 {
     //div,n1,n2,d, m
-    {  9, 5, 2, 2, 1}, // 2.125 Gbps with RefClk=212.5 Mhz
-    {  9, 5, 2, 1, 1}, // 4.250 Gbps with RefClk=212.5 MHz
-    { 10, 5, 2, 1, 1}, // 5.000 Gbps with RefClk=250.0 MHz
+    {  9, 5, 2, 2, 1, 212.5}, // 2.125 Gbps with RefClk=212.5 MHz
+    {  9, 5, 2, 1, 1, 212.5}, // 4.250 Gbps with RefClk=212.5 MHz
+    { 10, 5, 2, 1, 1, 250.0}, // 5.000 Gbps with RefClk=250.0 MHz
+    {  4, 5, 4, 2, 1, 100.0}, // 2.000 Gbps with RefClk=100.0 MHz
 };
 
 /** Conversions between PLL values and their register representations */
@@ -111,16 +115,12 @@ uint8_t divselfb45_val2reg ( uint8_t val )
 
 uint8_t clk25div_reg2val ( uint8_t reg )
 {
-    if (reg==5) { return 6; }
-    else if (reg<=4) { return reg-1; }
-    else { return reg+1; }
+    return reg+1;
 }
 
 uint8_t clk25div_val2reg ( uint8_t val )
 {
-    if (val==6) { return 5; }
-    else if (val<=5) { return val+1; }
-    else { return val-1; }
+    return val-1;
 }
 
 uint8_t divselref_reg2val ( uint8_t reg )
@@ -163,7 +163,8 @@ drp_read
     drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
   } while (drp_status & (1<<31));
 
-  printf("drp_read(%x)=%04x\n", drp_addr, (drp_status & 0xffff));
+  DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+          "drp_read(%x)=%04x\n", drp_addr, (drp_status & 0xffff));
 
   return (drp_status & 0xffff);
 }
@@ -196,6 +197,8 @@ drp_write
     usleep(100);
     drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
   } while (drp_status & (1<<31));
+  DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+          "drp_write(%x, %04x)\n", drp_addr, drp_data);
 }
 
 
@@ -251,24 +254,33 @@ drp_set_pll_config
     uint8_t clkdiv = clk25div_val2reg(pll.clk25_div);
 
     uint16_t drp_data = drp_read(ch, 0x1f);
-    drp_data &= 0x3f81; //clear all fields
+    /** clear TXPLL_DIVSEL_FB45, TXPLL_DIVSEL_FB, TXPLL_DIVSEL_OUT */
+    drp_data &= 0x3f81;
+    /** set new values */
     drp_data |= ((n1_reg&0x01)<<6 | (n2_reg&0x1f)<<1 | (d_reg&0x03)<<14);
+    /* write back */
     drp_write(ch, 0x1f, drp_data);
 
     /** dummy read */
     drp_read(ch, 0x0);
 
     drp_data = drp_read(ch, 0x20);
-    drp_data &= 0xffc1; //clear TXPLL_DIVSEL_REF
+    /** clear TXPLL_DIVSEL_REF */
+    drp_data &= 0xffc1;
+    /** set new values */
     drp_data |= (m_reg&0x1f)<<1;
+    /* write back */
     drp_write(ch, 0x20, drp_data);
 
     /** dummy read */
     drp_read(ch, 0x0);
 
     drp_data = drp_read(ch, 0x23);
-    drp_data &= 0x7c00; // clear TX_CLK25_DIVIDER
+    /** clear TX_CLK25_DIVIDER */
+    drp_data &= 0x83ff;
+    /** set new values */
     drp_data |= (clkdiv&0x1f)<<10;
+    /* write back */
     drp_write(ch, 0x23, drp_data);
 
     /** dummy read */
@@ -287,15 +299,20 @@ int main
     int do_status = 0;
     int do_reset = 0;
     int do_loopback = 0;
+    int do_pllcfg = 0;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int32_t gtxreset = 0;
     int32_t loopback = 0;
+    int32_t pllcfgnum = 0;
+
+    int32_t nconfigs = sizeof(available_configs) /
+                       sizeof(struct gtxpll_settings);
 
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:r:l:xs")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:")) != -1 )
     {
         switch(arg)
         {
@@ -337,9 +354,28 @@ int main
             }
             break;
 
+            case 'p':
+            {
+                pllcfgnum = strtol(optarg, NULL, 0);
+                do_pllcfg = 1;
+            }
+            break;
+
             case 'h':
             {
                 cout << HELP_TEXT;
+                cout << "Available PLL Configurations:" << endl;
+                for ( int i=0; i<nconfigs; i++ )
+                {
+                    struct gtxpll_settings pll = available_configs[i];
+                    float link_rate = pll.refclk * pll.n1 *
+                        pll.n2 * 2 / pll.m / pll.d / 1000.0;
+                    cout << "[" << i << "] RefClk="
+                         << fixed << setprecision(3)
+                         << available_configs[i].refclk
+                         << " MHz, LinkRate=" << link_rate
+                         << " Gbps" << endl;
+                }
                 exit(0);
             }
             break;
@@ -372,6 +408,12 @@ int main
     {
         cout << "loopback value invalid, allowed values are 0...7." << endl;
         cout << HELP_TEXT;
+        abort();
+    }
+
+    if ( pllcfgnum > nconfigs )
+    {
+        cout << "Invalid PLL config number!" << endl;
         abort();
     }
 
@@ -439,8 +481,9 @@ int main
             cout << "CH " << setw(2) << chID << ": 0x"
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
+
             struct gtxpll_settings pll = drp_get_pll_config(ch);
-            cout << "PLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
+            cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
                  << " CLK25DIV=" << (int)pll.clk25_div << endl;
 
@@ -503,6 +546,12 @@ int main
         {
             /** write new values to RORC */
             ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+        }
+
+        if ( do_pllcfg )
+        {
+            /** TODO: sanity check on pllcfgnum */
+            drp_set_pll_config(ch, available_configs[pllcfgnum]);
         }
 
         delete ch;
