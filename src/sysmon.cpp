@@ -293,32 +293,6 @@ namespace librorc
 
 
 
-    void
-    sysmon::i2c_reset
-    (
-        uint8_t chain
-    )
-    {
-
-        i2c_module_prepare( chain );
-
-        /** set STO */
-        m_bar->set32(RORC_REG_I2C_OPERATION, 0x00400000);
-
-        uint32_t status
-            = wait_for_tip_to_negate();
-
-        i2c_module_disable();
-
-        /** read back not only zeros */
-        if ( !(status & 0x00ff0000) )
-        {
-            throw LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED;
-        }
-    }
-
-
-
     uint8_t
     sysmon::i2c_read_mem
     (
@@ -327,31 +301,18 @@ namespace librorc
         uint8_t memaddr
     )
     {
-        /** slave address shifted by one, write bit set */
-        uint8_t addr_wr = (slvaddr<<1);
-        uint8_t addr_rd = (slvaddr<<1) | 0x01;
+        uint32_t opdata = memaddr;
+        m_bar->set32(RORC_REG_I2C_OPERATION, opdata);
 
-        i2c_module_prepare(chain);
+        i2c_module_start(chain, 
+                slvaddr,
+                I2C_READ,
+                0, /** mode */
+                1); /** byte_enable */
 
-        /** write addr + write bit to TX register, set STA, set WR */
-        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-        check_rxack_is_zero( wait_for_tip_to_negate() );
+        i2c_wait_for_cmpl();
 
-        /** set mem addr, set WR bit */
-        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
-        check_rxack_is_zero( wait_for_tip_to_negate() );
-
-        /** set slave addr + read bit, set STA, set WR */
-        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_rd<<8)) );
-        uint32_t status = wait_for_tip_to_negate();
-
-        /** set RD, set ACK=1 (NACK), set STO */
-        m_bar->set32(RORC_REG_I2C_OPERATION, 0x00680000);
-        status = wait_for_tip_to_negate();
-
-        i2c_module_disable();
-
-        return(status & 0xff);
+        return ((m_bar->get32(RORC_REG_I2C_OPERATION)>>8) & 0xff);
     }
 
 
@@ -365,24 +326,42 @@ namespace librorc
         uint8_t data
     )
     {
-        /** slave address shifted by one, write bit set */
-        uint8_t addr_wr = (slvaddr<<1);
+        uint32_t opdata = (data<<8) | (memaddr);
+        m_bar->set32(RORC_REG_I2C_OPERATION, opdata);
 
-        i2c_module_prepare(chain);
+        i2c_module_start(chain, 
+                slvaddr,
+                I2C_WRITE,
+                0, /** mode */
+                1); /** byte_enable */
 
-        /** write addr + write bit to TX register, set STA, set WR */
-        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00900000 | (addr_wr<<8)) );
-        check_rxack_is_zero( wait_for_tip_to_negate() );
+        i2c_wait_for_cmpl();
+    }
 
-        /** set mem addr, set WR bit */
-        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00100000 | (memaddr<<8)) );
-        check_rxack_is_zero( wait_for_tip_to_negate() );
 
-        /** set WR, set ACK=0 (ACK), set STO, set data */
-        m_bar->set32(RORC_REG_I2C_OPERATION, (0x00500000|(uint32_t)(data<<8)));
-        wait_for_tip_to_negate();
 
-        i2c_module_disable();
+    void
+    sysmon::i2c_write_mem_dual
+    (
+        uint8_t chain,
+        uint8_t slvaddr,
+        uint8_t memaddr0,
+        uint8_t data0,
+        uint8_t memaddr1,
+        uint8_t data1
+    )
+    {
+        uint32_t opdata = (data1<<24) | (memaddr1<<16) | 
+            (data0<<8) | (memaddr0);
+        m_bar->set32(RORC_REG_I2C_OPERATION, opdata);
+
+        i2c_module_start(chain, 
+                slvaddr,
+                I2C_WRITE,
+                0, /** mode */
+                3); /** byte_enable */
+
+        i2c_wait_for_cmpl();
     }
 
 
@@ -391,29 +370,21 @@ namespace librorc
 
 
     uint32_t
-    sysmon::wait_for_tip_to_negate()
+    sysmon::i2c_wait_for_cmpl()
     {
-        uint32_t status = m_bar->get32(RORC_REG_I2C_OPERATION);
-        while( status & 0x02000000 )
+        uint32_t status = m_bar->get32(RORC_REG_I2C_CONFIG);
+        while( (status & 0x1)==0 )
         {
             usleep(100);
-            status = m_bar->get32(RORC_REG_I2C_OPERATION);
+            status = m_bar->get32(RORC_REG_I2C_CONFIG);
         }
 
-        return status;
-    }
-
-
-
-    void
-    sysmon::check_rxack_is_zero( uint32_t status )
-    {
-        if( status & 0x80000000 )
+        if ( status & (0xc0) ) /** error flags: bits 6,7 */
         {
             throw LIBRORC_SYSMON_ERROR_RXACK;
         }
+        return status;
     }
-
 
 
     void
@@ -464,9 +435,13 @@ namespace librorc
     }
 
     void
-    sysmon::i2c_module_prepare
+    sysmon::i2c_module_start
     (
-         uint8_t chain
+         uint8_t chain,
+         uint8_t slvaddr,
+         uint8_t cmd,
+         uint8_t mode,
+         uint8_t byte_enable
     )
     {
 
@@ -477,30 +452,32 @@ namespace librorc
          * 3: DDR3
          * 4: RefClkGen
          * 5: FMC
+         *
+         * bytes_enable:
+         * 0x1: lower byte
+         * 0x2: upper byte
+         * 0x3: both bytes
+         *
+         * mode:
+         * 0: 100 kHz
+         * 1: 400 kHz
          * */
 
-        if ( chain > 5 )
+        if ( (chain > 5) || (byte_enable > 3) || 
+                (cmd!=I2C_READ && cmd!=I2C_WRITE) || (mode>1) )
         {
-            throw LIBRORC_SYSMON_ERROR_I2C_INVALID_CHAIN;
+            throw LIBRORC_SYSMON_ERROR_I2C_INVALID_PARAM;
         }
 
         uint8_t chain_select = (1<<chain);
 
-        /** prescaler values:
-         * 0x01f3: 100 kHz
-         * 0x007c: 400 kHz
-         * */
-        i2c_set_config(
-                (0x01f3<<16) | /** set prescaler to 100kHz **/
-                (chain_select<<8) |   /** target chain **/
-                0x81 );        /** core_en, core_rst_n **/
-    }
+        uint32_t cfgcmd = (chain_select<<24) |
+            (slvaddr<<8) |
+            (mode<<5) |
+            (byte_enable<<3) |
+            cmd;
 
-    void
-    sysmon::i2c_module_disable()
-    {
-        /** deselect chain, disable core, enable rst_n */
-        i2c_set_config(0);
+        m_bar->set32(RORC_REG_I2C_CONFIG, cfgcmd);
     }
 
 }

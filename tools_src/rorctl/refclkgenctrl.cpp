@@ -168,6 +168,32 @@ void refclk_write
             addr, value);
 }
 
+void
+refclk_release
+(
+   librorc::sysmon *sm,
+   uint8_t freeze_val,
+   uint8_t rfmval
+)
+{
+    try
+    {
+        sm->i2c_write_mem_dual(REFCLK_CHAIN,
+                REFCLK_I2C_SLAVE, 137, freeze_val, 135, rfmval);
+    }
+    catch (...)
+    {
+        cout << "i2c_write_mem_dual failed" << endl;
+        abort();
+    }
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, 
+            "i2c_write_mem_dual(%02x->%02x, %02x->%02x)\n",
+            137, freeze_val, 135, rfmval);
+}
+
+
+
+
 
 
 
@@ -453,6 +479,17 @@ main
         refclk_waitForClearance( sm, M_RECALL );
     }
 
+    if (do_freeze)
+    {
+        uint8_t val = refclk_read(sm, 137);
+        val |= FREEZE_DCO;
+        /** Freeze oscillator */
+        refclk_write(sm, 137, val);
+        val &= 0xef;
+
+        refclk_release(sm, val, M_NEWFREQ);
+    }
+
 
     clkopts opts = refclk_getCurrentOpts( sm );
     double fxtal = REFCLK_DEFAULT_FOUT * refclk_hsdiv_reg2val(opts.hs_div) *
@@ -494,19 +531,6 @@ main
 
         refclk_setOpts(sm, new_opts);
 
-    }
-
-    if (do_freeze)
-    {
-        uint8_t val = refclk_read(sm, 137);
-        val |= FREEZE_DCO;
-        /** Freeze oscillator */
-        refclk_write(sm, 137, val);
-        val &= 0xef;
-        /** release DCO Freeze */
-        refclk_write(sm, 137, val);
-        /** set NewFreq */
-        refclk_setRFMCtrl(sm, M_NEWFREQ);
     }
 
 
