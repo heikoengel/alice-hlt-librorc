@@ -33,13 +33,13 @@ using namespace std;
 usage: refclkgenctrl [parameters] \n\
 parameters: \n\
         -h              Print this help screen \n\
-        -d [0..255]     Target device ID \n\
+        -n [0..255]     Target device ID \n\
         -w [freq]       Target frequency in MHz \n\
 Examples: \n\
 get current configuration from device 0 \n\
-        refclkgenctrl -d 0 \n\
+        refclkgenctrl -n 0 \n\
 set new frequency to 125.00 MHz for device 0 \n\
-        refclkgenctrl -d 0 -s 125.00 \n\
+        refclkgenctrl -n 0 -w 125.00 \n\
 "
 
 #define REFCLK_I2C_SLAVE 0x55
@@ -61,6 +61,7 @@ typedef struct
     uint64_t rfreq_int;
     double rfreq_float;
     double fdco;
+    double fxtal;
 }clkopts;
 
 
@@ -190,23 +191,18 @@ refclk_releaseDCO
         cout << "i2c_write_mem_dual failed" << endl;
         abort();
     }
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, 
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
             "i2c_write_mem_dual(%02x->%02x, %02x->%02x)\n",
             137, freeze_val, 135, M_NEWFREQ);
 }
 
 
 
-
-
-
-
-
-
 clkopts
 refclk_getCurrentOpts
 (
-        librorc::sysmon *sm
+        librorc::sysmon *sm,
+        double fout
 )
 {
     /** get current RFREQ, HSDIV, N1 */
@@ -231,58 +227,72 @@ refclk_getCurrentOpts
 
     opts.rfreq_float = refclk_hex2float(opts.rfreq_int);
 
-    double cur_freq = 114.285 * opts.rfreq_float /
-        (refclk_hsdiv_reg2val(opts.hs_div) * refclk_n1_reg2val(opts.n1));
-    opts.fdco = cur_freq * refclk_n1_reg2val(opts.n1) *
-        refclk_hsdiv_reg2val(opts.hs_div);
+    /** fOUT is known -> get accurate fDCO */
+    if ( fout!=0 )
+    {
+        opts.fdco = fout * refclk_n1_reg2val(opts.n1) *
+            refclk_hsdiv_reg2val(opts.hs_div);
+        opts.fxtal = opts.fdco/opts.rfreq_float;
+    }
+    else
+    /** fOUT is unknown -> use default fXTAL to get approximate fDCO */
+    {
+        opts.fdco = 114.285 * opts.rfreq_float;
+        opts.fxtal = 114.285;
+    }
 
     return opts;
 }
 
 
+
 clkopts
 refclk_getNewOpts
 (
-    librorc::sysmon *sm,
     double new_freq,
     double fxtal
 )
 {
-    // N1:     1,2,...,128
-    // HS_DIV: 4,5,6,7,9,11
     // find the lowest value of N1 with the highest value of HS_DIV
     // to get fDCO in the range of 4.85...5.67 GHz
     int32_t vco_found = 0;
     double fDCO_new;
+    double lastfDCO = 5670.0;
     clkopts opts;
 
-    for ( int n=1; n<128; n++ )
+    opts.fxtal = fxtal;
+
+    for ( int n=1; n<=128; n++ )
     {
+        /** N1 can be 1 or any even number up to 128 */
+        if ( n!=1 && (n & 0x1) )
+        {
+            continue;
+        }
+
         for ( int h=11; h>3; h-- )
         {
+            /** valid values for HSDIV are 4, 5, 6, 7, 9 or 11 */
             if ( h==8 || h==10 )
             {
                 continue;
             }
             fDCO_new =  new_freq * h * n;
-            if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 &&
-                    vco_found==0 )
+            if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 )
             {
                 vco_found = 1;
-                opts.hs_div = refclk_hsdiv_val2reg(h);
-                opts.n1 =  refclk_n1_val2reg(n);
-                opts.fdco = fDCO_new;
-                opts.rfreq_float = fDCO_new / fxtal;
-                opts.rfreq_int = refclk_float2hex(opts.rfreq_float);
-                break;
+                /** find lowest possible fDCO for this configuration */
+                if (fDCO_new<lastfDCO)
+                {
+                    opts.hs_div = refclk_hsdiv_val2reg(h);
+                    opts.n1 =  refclk_n1_val2reg(n);
+                    opts.fdco = fDCO_new;
+                    opts.rfreq_float = fDCO_new / fxtal;
+                    opts.rfreq_int = refclk_float2hex(opts.rfreq_float);
+                    lastfDCO = fDCO_new;
+                }
             }
 
-        }
-
-        /** break outer loop if values are found */
-        if ( vco_found==1 )
-        {
-            break;
         }
     }
 
@@ -291,7 +301,6 @@ refclk_getNewOpts
         cout << "Could not get HSDIV/N1 for given frequency." << endl;
         abort();
     }
-
 
     return opts;
 }
@@ -339,6 +348,7 @@ refclk_waitForClearance
 }
 
 
+
 void refclk_setOpts
 (
     librorc::sysmon *sm,
@@ -361,7 +371,7 @@ void refclk_setOpts
         value = ((opts.rfreq_int>>((3-i)*8)) & 0xff);
         refclk_write(sm, 15+i, value);
     }
- 
+
     /** release DCO Freeze */
     refclk_releaseDCO(sm);
 
@@ -370,6 +380,24 @@ void refclk_setOpts
 }
 
 
+
+void
+print_refclk_settings
+(
+    clkopts opts
+)
+{
+    cout << "HS_DIV    : " << dec << refclk_hsdiv_reg2val(opts.hs_div) << endl;
+    cout << "N1        : " << dec << refclk_n1_reg2val(opts.n1) << endl;
+    cout << "RFREQ_INT : 0x" << hex << opts.rfreq_int << dec << endl;
+    cout << "RFREQ     : " << opts.rfreq_float << " MHz" << endl;
+    cout << "F_DCO     : " << opts.fdco << " MHz" << endl;
+    cout << "F_XTAL    : " << opts.fxtal << " MHz" << endl;
+
+    double cur_freq = opts.fxtal * opts.rfreq_float /
+        (refclk_hsdiv_reg2val(opts.hs_div) * refclk_n1_reg2val(opts.n1));
+    cout << "cur FREQ  : " << cur_freq << " MHz" << endl;
+}
 
 
 
@@ -380,7 +408,7 @@ main
     char *argv[]
 )
 {
-
+    double fout = 0;
     int32_t device_number = -1;
     int arg;
     int do_write = 0;
@@ -388,18 +416,16 @@ main
     double new_freq = 0.0;
 
     /** parse command line arguments **/
-    while ( (arg = getopt(argc, argv, "d:c:s:a:w:r")) != -1 )
+    while ( (arg = getopt(argc, argv, "n:w:rh")) != -1 )
     {
         switch (arg)
         {
-            case 'd':
+            case 'n':
                 device_number = strtol(optarg, NULL, 0);
                 break;
             case 'w':
                 new_freq = atof(optarg);
                 do_write = 1;
-                break;
-            case 's':
                 break;
             case 'r':
                 do_reset = 1;
@@ -474,47 +500,31 @@ main
     {
         /** Recall initial conditions */
         refclk_setRFMCtrl( sm, M_RECALL );
+
+        /** Wait for RECALL to complete */
         refclk_waitForClearance( sm, M_RECALL );
+
+        /** fOUT is now the default freqency */
+        fout = REFCLK_DEFAULT_FOUT;
     }
 
-    clkopts opts = refclk_getCurrentOpts( sm );
-    double fxtal = REFCLK_DEFAULT_FOUT * refclk_hsdiv_reg2val(opts.hs_div) *
-        refclk_n1_reg2val(opts.n1) / opts.rfreq_float;
+    /** get current configuration */
+    clkopts opts = refclk_getCurrentOpts( sm, fout );
 
-    cout << "HS_DIV    : " << dec << refclk_hsdiv_reg2val(opts.hs_div) << endl;
-    cout << "N1        : " << dec << refclk_n1_reg2val(opts.n1) << endl;
-    cout << "RFREQ_INT : 0x" << hex << opts.rfreq_int << dec << endl;
-    cout << "RFREQ     : " << opts.rfreq_float << " MHz" << endl;
-    cout << "F_DCO     : " << opts.fdco << " MHz" << endl;
-    cout << "F_XTAL    : " << fxtal << " MHz" << endl;
-
-    double cur_freq = 114.285 * opts.rfreq_float /
-        (refclk_hsdiv_reg2val(opts.hs_div) * refclk_n1_reg2val(opts.n1));
-    cout << "cur FREQ  : " << cur_freq << " MHz (approx.)" << endl;
-
-    uint8_t RFMC = refclk_read(sm, 135);
-    cout << "RFMC      : 0x" << hex << (int)RFMC << endl;
-    uint8_t FR = refclk_read(sm, 137);
-    cout << "DCOfreeze : 0x" << hex << (int)FR << endl;
-
-
+    /** Print configuration */
+    cout << endl << "Current Oscillator Values" << endl;
+    print_refclk_settings( opts );
 
     if ( do_write )
     {
-        clkopts new_opts = refclk_getNewOpts(sm, new_freq, fxtal);
+        /** get new values for desired frequency */
+        clkopts new_opts = refclk_getNewOpts(new_freq, opts.fxtal);
 
+        /** Print new configuration */
         cout << endl << "New Oscillator Values" << endl;
-        cout << "HS_DIV    : " << dec << refclk_hsdiv_reg2val(new_opts.hs_div) << endl;
-        cout << "N1        : " << dec << refclk_n1_reg2val(new_opts.n1) << endl;
-        cout << "RFREQ_INT : 0x" << hex << new_opts.rfreq_int << dec << endl;
-        cout << "RFREQ     : " << new_opts.rfreq_float << " MHz" << endl;
-        cout << "RFREQ_FtH : " << hex << refclk_float2hex(new_opts.rfreq_float) << endl;
-        cout << "F_DCO     : " << new_opts.fdco << " MHz" << endl;
-        cout << "F_OUT     : " << fxtal * new_opts.rfreq_float /
-            (refclk_hsdiv_reg2val(new_opts.hs_div) *
-             refclk_n1_reg2val(new_opts.n1))
-             << endl;
+        print_refclk_settings( new_opts );
 
+        /** write new configuration to device */
         refclk_setOpts(sm, new_opts);
     }
 
