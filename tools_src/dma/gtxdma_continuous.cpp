@@ -101,6 +101,7 @@ int main( int argc, char *argv[])
                 opts.channelId,
                 MAX_PAYLOAD,
                 eventStream->m_dev,
+                eventStream->m_bar1,
                 eventStream->m_eventBuffer,
                 eventStream->m_reportBuffer
             );
