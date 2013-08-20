@@ -271,7 +271,7 @@ int main( int argc, char *argv[])
     /** Create DMA channel */
     try
     {
-        ch = new librorc::dma_channel(ChannelId, 64, dev, ebuf, rbuf);
+        ch = new librorc::dma_channel(ChannelId, 64, dev, bar1, ebuf, rbuf);
         ch->enable();
     }
     catch(...)
