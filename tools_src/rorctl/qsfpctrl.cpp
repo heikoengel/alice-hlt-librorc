@@ -21,6 +21,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 
 #include "librorc.h"
 
@@ -57,6 +58,14 @@ check_bit_yn
 
 
 
+float
+mWatt2dBm
+(
+    float mwatt
+)
+{
+    return 10*log10(mwatt);
+}
 
 
 int
@@ -144,35 +153,6 @@ main
         abort();
     }
 
-    uint32_t qsfpctrl = bar->get32(RORC_REG_QSFP_CTRL);
-
-    if ( do_reset )
-    {
-        /** QSFP Reset is active low */
-
-        /** clear current reset setting */
-        qsfpctrl &= ~(1<<(3+(8*qsfp_number)));
-        if ( !reset_val )
-        {
-            /** Set bit to disable reset */
-            qsfpctrl |= (1<<(3+(8*qsfp_number)));
-        }
-
-        /** write back new value */
-        bar->set32(RORC_REG_QSFP_CTRL, qsfpctrl);
-    }
-
-    cout << "CTRL: 0x" << hex << setw(8) << setfill('0')
-         << qsfpctrl << endl;
-
-    cout << "Module Present: "
-        << check_bit_yn(qsfpctrl, 2+(8*qsfp_number), 0)
-        << endl;
-
-    cout << "Reset         : "
-        << check_bit_yn(qsfpctrl, 3+(8*qsfp_number), 0)
-        << endl;
-
     /** Instantiate a new sysmon */
     librorc::sysmon *sm;
     try
@@ -185,7 +165,18 @@ main
         abort();
     }
 
-    if( sm->qsfpIsPresent(qsfp_number) && !do_reset )
+    if ( do_reset )
+    {
+        cout << "Setting QSFP" << qsfp_number << " Reset to "
+             << reset_val << endl;
+        sm->qsfpSetReset(qsfp_number, reset_val);
+    }
+
+    cout << "Module Present: " << sm->qsfpIsPresent(qsfp_number) << endl;
+    cout << "Module Reset  : " << sm->qsfpGetReset(qsfp_number) << endl;
+
+    if( !do_reset && sm->qsfpIsPresent(qsfp_number) &&
+            !sm->qsfpGetReset(qsfp_number) )
     {
         try
         {
@@ -193,8 +184,32 @@ main
                  << endl;
             cout << "Part Number   : " << *(sm->qsfpPartNumber(qsfp_number))
                  << endl;
+            cout << "Revision      : "
+                 << *(sm->qsfpRevisionNumber(qsfp_number)) << endl;
+            cout << "Serial Number : "
+                 << *(sm->qsfpSerialNumber(qsfp_number)) << endl;
+            cout << "Wavelength    : " << sm->qsfpWavelength(qsfp_number)
+                 << " nm" << endl;
             cout << "Temperature   : " << sm->qsfpTemperature(qsfp_number)
-                 << "°C" << endl;
+                 << " °C" << endl;
+            cout << "Voltage       : " << sm->qsfpVoltage(qsfp_number)
+                 << " V" << endl;
+            cout << "TX Fault Map  : "
+                 << (int)sm->qsfpTxFaultMap(qsfp_number)
+                 << endl;
+            for ( int i=0; i<4; i++ )
+            {
+                float mwatt = sm->qsfpRxPower(qsfp_number, i);
+                cout << "RX Power CH" << i << "  : "
+                     << mwatt << " mW (" << mWatt2dBm(mwatt)
+                     << " dBm)" << endl;
+            }
+            for ( int i=0; i<4; i++ )
+            {
+                float txbias = sm->qsfpTxBias(qsfp_number, i);
+                cout << "TX Bias CH" << i << "   : "
+                     << txbias << " mA" << endl;
+            }
         }
         catch(...)
         {
@@ -202,6 +217,7 @@ main
         }
     }
 
+    delete sm;
     delete bar;
     delete dev;
     return 0;
