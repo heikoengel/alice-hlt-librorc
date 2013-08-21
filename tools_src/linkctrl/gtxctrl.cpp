@@ -63,6 +63,10 @@ gtxpll_settings
 };
 
 
+/**
+ * fPLL = fREF * N1 * N2 / M
+ * fLineRate = fPLL * 2 / D
+ * */
 const struct gtxpll_settings available_configs[] =
 {
     //div,n1,n2,d, m
@@ -70,6 +74,7 @@ const struct gtxpll_settings available_configs[] =
     {  9, 5, 2, 1, 1, 212.5}, // 4.250 Gbps with RefClk=212.5 MHz
     { 10, 5, 2, 1, 1, 250.0}, // 5.000 Gbps with RefClk=250.0 MHz
     {  4, 5, 4, 2, 1, 100.0}, // 2.000 Gbps with RefClk=100.0 MHz
+    { 10, 4, 2, 2, 1, 250.0}, // 2.000 Gbps with RefClk=250.0 MHz
 };
 
 /** Conversions between PLL values and their register representations */
@@ -368,13 +373,13 @@ int main
                 for ( int i=0; i<nconfigs; i++ )
                 {
                     struct gtxpll_settings pll = available_configs[i];
-                    float link_rate = pll.refclk * pll.n1 *
-                        pll.n2 * 2 / pll.m / pll.d / 1000.0;
+                    float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
+                    float link_rate = fPLL * 2 / pll.d / 1000.0;
                     cout << "[" << i << "] RefClk="
                          << fixed << setprecision(3)
                          << available_configs[i].refclk
                          << " MHz, LinkRate=" << link_rate
-                         << " Gbps" << endl;
+                         << " Gbps, PLL=" << fPLL << " MHz" << endl;
                 }
                 exit(0);
             }
