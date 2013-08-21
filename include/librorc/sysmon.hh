@@ -305,6 +305,24 @@ namespace librorc
                 uint8_t data1
             );
 
+            /**
+             * set I2C speed mode:
+             * 0: 100 KHz operation
+             * 1: 400 kHz operation
+             * */
+            void
+            i2c_set_mode
+            (
+                uint8_t mode
+            );
+
+            /**
+             * get I2C speed mode
+             * @return 0 for 100 kHz, 1 for 400 kHZ operation
+             * */
+            uint8_t
+            i2c_get_mode();
+
 
         protected:
 
@@ -343,6 +361,7 @@ namespace librorc
             );
 
             bar *m_bar;
+            uint8_t m_i2c_hsmode;
     };
 
 }

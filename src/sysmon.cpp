@@ -39,6 +39,9 @@ namespace librorc
         }
 
         m_bar = parent_bar;
+
+        /** default to 100 kHz I2C speed */
+        m_i2c_hsmode = 0;
     }
 
 
@@ -498,7 +501,8 @@ namespace librorc
         uint8_t index
     )
     {
-        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<3) != 0);
+        uint8_t reg129 = i2c_read_mem(index, QSFP_I2C_SLVADDR, 129);
+        return ( (reg129 & (1<<3)) != 0);
     }
 
 
@@ -509,7 +513,8 @@ namespace librorc
         uint8_t index
     )
     {
-        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<2) != 0);
+        uint8_t reg129 = i2c_read_mem(index, QSFP_I2C_SLVADDR, 129);
+        return ( (reg129 & (1<<2)) != 0);
     }
 
 
@@ -535,7 +540,7 @@ namespace librorc
         i2c_module_start(chain, 
                 slvaddr,
                 I2C_READ,
-                0, /** mode */
+                m_i2c_hsmode, /** mode */
                 1); /** byte_enable */
 
         i2c_wait_for_cmpl();
@@ -560,7 +565,7 @@ namespace librorc
         i2c_module_start(chain, 
                 slvaddr,
                 I2C_WRITE,
-                0, /** mode */
+                m_i2c_hsmode, /** mode */
                 1); /** byte_enable */
 
         i2c_wait_for_cmpl();
@@ -586,10 +591,31 @@ namespace librorc
         i2c_module_start(chain, 
                 slvaddr,
                 I2C_WRITE,
-                0, /** mode */
+                m_i2c_hsmode, /** mode */
                 3); /** byte_enable */
 
         i2c_wait_for_cmpl();
+    }
+
+
+    void
+    sysmon::i2c_set_mode
+    (
+        uint8_t mode
+    )
+    {
+        if ( mode & (~0x1) )
+        {
+            throw LIBRORC_SYSMON_ERROR_I2C_INVALID_PARAM;
+        }
+        m_i2c_hsmode = mode;
+    }
+
+
+    uint8_t
+    sysmon::i2c_get_mode()
+    {
+        return m_i2c_hsmode;
     }
 
 
