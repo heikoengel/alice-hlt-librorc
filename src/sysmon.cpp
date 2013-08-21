@@ -374,7 +374,7 @@ namespace librorc
 
 
     float
-    sysmon::qsfpRxPower
+    sysmon::qsfpTxBias
     (
         uint8_t index,
         uint8_t channel
@@ -391,7 +391,7 @@ namespace librorc
 
 
     float
-    sysmon::qsfpTxBias
+    sysmon::qsfpRxPower
     (
         uint8_t index,
         uint8_t channel
