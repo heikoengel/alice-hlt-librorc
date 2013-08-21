@@ -442,6 +442,84 @@ namespace librorc
     }
 
 
+    uint8_t
+    sysmon::qsfpGetRateSelectionSupport
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+        /**
+         * rate selection support:
+         * page 0, byte 221, bits [3:2] and
+         * page 0, byte 195, bit 5
+         * */
+        uint8_t options = i2c_read_mem(index, QSFP_I2C_SLVADDR, 195);
+        uint8_t enh_options = i2c_read_mem(index, QSFP_I2C_SLVADDR, 221);
+        uint8_t ext_rate_sel = i2c_read_mem(index, QSFP_I2C_SLVADDR, 141);
+
+        /** enh_options[3:2]==0 and options[5]==0 */
+        if ( (enh_options & 0x0c)==0x00 && (options & (0x20))==0x00 )
+        {
+            return LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION;
+        }
+        /** enh_options[3:2]="10" */
+        else if ( (enh_options & 0x0c)==0x08 && (ext_rate_sel & 0x01)==0x01 )
+        {
+            return LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION;
+        }
+        /** enh_options[3:2]="01" */
+        else if ( (enh_options & 0x0c)==0x40 )
+        {
+            return LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION;
+        }
+        else
+        {
+            return LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION;
+        }
+    }
+
+
+    uint8_t
+    sysmon::qsfpPowerClass
+    (
+        uint8_t index
+    )
+    {
+        /** Extended Identifier Values, Addr=129, Bits 7-6 */
+        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129)>>6) + 1;
+    }
+
+
+
+    bool
+    sysmon::qsfpHasTXCDR
+    (
+        uint8_t index
+    )
+    {
+        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<3) != 0);
+    }
+
+
+
+    bool
+    sysmon::qsfpHasRXCDR
+    (
+        uint8_t index
+    )
+    {
+        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<2) != 0);
+    }
+
+
+
+
+
+
+
+    /** I2C Low Level Access ***********************************************/
+
 
     uint8_t
     sysmon::i2c_read_mem

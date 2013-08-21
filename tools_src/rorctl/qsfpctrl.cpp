@@ -194,6 +194,27 @@ main
                  << " °C" << endl;
             cout << "Voltage       : " << sm->qsfpVoltage(qsfp_number)
                  << " V" << endl;
+            cout << "RateSel Sup.  : " ;
+            switch (sm->qsfpGetRateSelectionSupport(qsfp_number))
+            {
+                case LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION:
+                    cout << "NONE";
+                    break;
+                case LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION:
+                    cout << "EXTENDED";
+                    break;
+                case LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION:
+                    cout << "APT";
+                    break;
+            }
+            cout << endl;
+            cout << "Power Class   : "
+                << (int)sm->qsfpPowerClass(qsfp_number) << endl;
+            cout << "CDR in TX     : "
+                << (int)sm->qsfpHasTXCDR(qsfp_number) << endl;
+            cout << "CDR in RX     : "
+                << (int)sm->qsfpHasRXCDR(qsfp_number) << endl;
+
             cout << "TX Fault Map  : "
                  << (int)sm->qsfpTxFaultMap(qsfp_number)
                  << endl;

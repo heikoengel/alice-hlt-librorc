@@ -33,6 +33,10 @@
 #define I2C_READ                (1<<1)
 #define I2C_WRITE               (1<<2)
 
+#define LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION  0
+#define LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION 1
+#define LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION 2
+
 #include "include_ext.hh"
 #include "include_int.hh"
 
@@ -195,6 +199,30 @@ namespace librorc
 
             uint8_t
             qsfpTxFaultMap
+            (
+                 uint8_t index
+            );
+
+            uint8_t
+            qsfpGetRateSelectionSupport
+            (
+                 uint8_t index
+            );
+
+            uint8_t
+            qsfpPowerClass
+            (
+                 uint8_t index
+            );
+
+            bool
+            qsfpHasRXCDR
+            (
+                 uint8_t index
+            );
+
+            bool
+            qsfpHasTXCDR
             (
                  uint8_t index
             );
