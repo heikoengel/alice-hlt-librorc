@@ -124,6 +124,19 @@ namespace librorc
                 uint8_t LED_index
             );
 
+            bool
+            qsfpGetReset
+            (
+                uint8_t index
+            );
+
+            void
+            qsfpSetReset
+            (
+                uint8_t index,
+                uint8_t reset
+            );
+
             string*
             qsfpVendorName
             (
@@ -136,10 +149,54 @@ namespace librorc
                 uint8_t index
             );
 
+            string*
+            qsfpRevisionNumber
+            (
+                uint8_t index
+            );
+
+            string*
+            qsfpSerialNumber
+            (
+                uint8_t index
+            );
+
             float
             qsfpTemperature
             (
                 uint8_t index
+            );
+
+            float
+            qsfpVoltage
+            (
+                uint8_t index
+            );
+
+            float
+            qsfpRxPower
+            (
+                uint8_t index,
+                uint8_t channel
+            );
+
+            float
+            qsfpTxBias
+            (
+                uint8_t index,
+                uint8_t channel
+            );
+
+            float
+            qsfpWavelength
+            (
+                uint8_t index
+            );
+
+            uint8_t
+            qsfpTxFaultMap
+            (
+                 uint8_t index
             );
 
             /**
