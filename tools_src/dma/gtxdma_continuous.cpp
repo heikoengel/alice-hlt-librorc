@@ -129,7 +129,7 @@ int main( int argc, char *argv[])
     timeval last_time = start_time;
     timeval cur_time = start_time;
 
-    uint64_t last_bytes_received = 0;
+    uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
     int32_t sanity_checks;
