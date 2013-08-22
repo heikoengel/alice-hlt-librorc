@@ -172,25 +172,32 @@ int main( int argc, char *argv[])
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
-    /** print summary */
-    printf("%ld Byte / %ld events in %.2f sec"
-            "-> %.1f MB/s.\n",
-            (chstats->bytes_received), chstats->n_events,
-            gettimeofday_diff(start_time, end_time),
-            ((float)chstats->bytes_received/
-             gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
+    printf
+    (
+        "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
+        chstats->bytes_received,
+        chstats->n_events,
+        gettimeofday_diff(start_time, end_time),
+        ((float)chstats->bytes_received/gettimeofday_diff(start_time, end_time))/(float)(1<<20)
+    );
 
     if(!chstats->set_offset_count) //avoid DivByZero Exception
     {
         printf("CH%d: No Events\n", opts.channelId);
     }
     else
-        printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
-                "avg_epi=%ld, set_offset_count=%ld\n", opts.channelId,
-                chstats->n_events, chstats->max_epi,
-                chstats->min_epi,
-                chstats->n_events/chstats->set_offset_count,
-                chstats->set_offset_count);
+    {
+        printf
+        (
+            "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
+            opts.channelId,
+            chstats->n_events,
+            chstats->max_epi,
+            chstats->min_epi,
+            chstats->n_events/chstats->set_offset_count,
+            chstats->set_offset_count
+        );
+    }
 
     /** check if link is still up: LD_N == 1 */
     if ( ch->getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
