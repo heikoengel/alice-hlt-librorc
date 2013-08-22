@@ -121,8 +121,6 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
-//ready
-
     /** capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
@@ -146,7 +144,7 @@ int main(int argc, char *argv[])
             NULL,          /** no reference DDL   */
             0              /** reference DDL size */
         );
-
+//ready
         if( result < 0 )
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
@@ -195,7 +193,7 @@ int main(int argc, char *argv[])
     /** Disable PG */
     ch->setGTX(RORC_REG_DDL_CTRL, 0x0);
 
-    /** Disable DMA Engine */
+    /** Disable event-buffer -> no further sg-entries to PKT */
     ch->setEnableEB(0);
 
     /** Wait for pending transfers to complete (dma_busy->0) */
@@ -208,7 +206,7 @@ int main(int argc, char *argv[])
     /** Reset DFIFO, disable DMA PKT */
     ch->setDMAConfig(0X00000002);
 
-    /** cleanup */
+    /** Cleanup */
     if(chstats)
     {
         shmdt(chstats);

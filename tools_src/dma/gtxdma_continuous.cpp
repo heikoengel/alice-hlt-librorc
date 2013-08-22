@@ -122,8 +122,6 @@ int main( int argc, char *argv[])
         return(-1);
     }
 
-//ready
-
     /** capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
@@ -152,7 +150,7 @@ int main( int argc, char *argv[])
             ddlref.map,
             ddlref.size
         );
-
+//ready
         if(result < 0)
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
@@ -198,52 +196,25 @@ int main( int argc, char *argv[])
         );
     }
 
-    /** check if link is still up: LD_N == 1 */
-    if ( ch->getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
-    {
-        /** disable BUSY -> drop current data in chain */
-        ch->setGTX(RORC_REG_DDL_CTRL, 0x00000001);
+    try
+    { ch->closeGTX(); }
+    catch(...)
+    { cout << "Link is down - unable to send EOBTR" << endl; }
 
-        /** wait for LF_N to go high */
-        while(!(ch->getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
-            {usleep(100);}
-
-        /** clear DIU_IF IFSTW */
-        ch->setGTX(RORC_REG_DDL_IFSTW, 0);
-        ch->setGTX(RORC_REG_DDL_CTSTW, 0);
-
-        /** Send EOBTR command */
-        ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
-
-        /** wait for command transmission status word (CTST)
-         * in response to the EOBTR:
-         * STS[7:4]="0000"
-         */
-        while(ch->getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
-            {usleep(100);}
-
-        /** disable DIU_IF */
-        ch->setGTX(RORC_REG_DDL_CTRL, 0x00000000);
-    }
-    else
-    { /**link is down -> unable to send EOBTR */
-        printf("Link is down - unable to send EOBTR\n");
-    }
-
-    /** disable EBDM -> no further sg-entries to PKT */
+    /** Disable event-buffer -> no further sg-entries to PKT */
     ch->setEnableEB(0);
 
-    /** wait for pending transfers to complete (dma_busy->0) */
+    /** Wait for pending transfers to complete (dma_busy->0) */
     while( ch->getDMABusy() )
-        {usleep(100);}
+    {usleep(100);}
 
-    /** disable RBDM */
+    /** Disable RBDM */
     ch->setEnableRB(0);
 
-    /** reset DFIFO, disable DMA PKT */
+    /** Reset DFIFO, disable DMA PKT */
     ch->setDMAConfig(0X00000002);
 
-    /** cleanup */
+    /** Cleanup */
     deleteDDLReferenceFile(ddlref);
     if(chstats)
     {

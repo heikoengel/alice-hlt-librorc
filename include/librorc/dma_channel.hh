@@ -27,6 +27,7 @@
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED 3
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED               4
+#define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED                5
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value
@@ -83,6 +84,7 @@ namespace librorc
             void waitForGTXDomain();
             void configurePatternGenerator(uint32_t eventSize);
             void configureGTX();
+            void closeGTX();
             void waitForCommandTransmissionStatusWord();
 
             /**
