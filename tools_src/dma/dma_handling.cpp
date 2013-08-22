@@ -216,3 +216,84 @@ deleteDDLReferenceFile
     if(ddlref.fd>=0)
     { close(ddlref.fd); }
 }
+
+
+
+/**
+ * gettimeofday_diff
+ * @param time1 earlier timestamp
+ * @param time2 later timestamp
+ * @return time difference in seconds as double
+ * */
+double
+gettimeofdayDiff
+(
+    timeval time1,
+    timeval time2
+)
+{
+    timeval diff;
+    diff.tv_sec = time2.tv_sec - time1.tv_sec;
+    diff.tv_usec = time2.tv_usec - time1.tv_usec;
+    while(diff.tv_usec < 0)
+    {
+        diff.tv_usec += 1000000;
+        diff.tv_sec -= 1;
+    }
+
+    return (double)((double)diff.tv_sec + (double)((double)diff.tv_usec / 1000000));
+}
+
+
+timeval
+printStatusLine
+(
+    timeval        last_time,
+    timeval        cur_time,
+    channelStatus *chstats,
+    uint64_t      *last_events_received,
+    uint64_t      *last_bytes_received
+)
+{
+    if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
+    {
+        printf
+        (
+            "Events: %10ld, DataSize: %8.3f GB ",
+            chstats->n_events,
+            (double)chstats->bytes_received/(double)(1<<30)
+        );
+
+        if(chstats->bytes_received - *last_bytes_received)
+        {
+            printf
+            (
+                " DataRate: %9.3f MB/s",
+                (double)(chstats->bytes_received - *last_bytes_received)/
+                gettimeofdayDiff(last_time, cur_time)/(double)(1<<20)
+            );
+        }
+        else
+        { printf(" DataRate: -"); }
+
+        if(chstats->n_events - *last_events_received)
+        {
+            printf
+            (
+                " EventRate: %9.3f kHz/s",
+                (double)(chstats->n_events - *last_events_received)/
+                gettimeofdayDiff(last_time, cur_time)/1000.0
+            );
+        }
+        else
+        { printf(" EventRate: -"); }
+
+        printf(" Errors: %ld\n", chstats->error_count);
+        last_time = cur_time;
+        *last_bytes_received  = chstats->bytes_received;
+        *last_events_received = chstats->n_events;
+    }
+
+    return last_time;
+}
+

@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Create DMA channel */
-    librorc::dma_channel *ch;
+    librorc::dma_channel *ch = NULL;
     try
     {
         ch =
@@ -133,8 +133,6 @@ int main(int argc, char *argv[])
     int result = 0;
     while( !done )
     {
-    /** ... triggered from CTRL+C                  */
-
         result = handle_channel_data
         (
             eventStream->m_reportBuffer,
@@ -179,9 +177,7 @@ int main(int argc, char *argv[])
                 );
             }
             else
-            {
-                printf(" DataRate: -");
-            }
+            { printf(" DataRate: -"); }
 
             if( chstats->n_events - last_events_received)
             {
@@ -193,9 +189,7 @@ int main(int argc, char *argv[])
                 );
             }
             else
-            {
-                printf(" EventRate: -");
-            }
+            { printf(" EventRate: -"); }
 
             printf(" Errors: %ld\n", chstats->error_count);
             last_time = cur_time;
@@ -258,7 +252,7 @@ int main(int argc, char *argv[])
         chstats = NULL;
     }
 
-    if(ch)
+    if(ch != NULL)
     { delete ch; }
 
     return result;

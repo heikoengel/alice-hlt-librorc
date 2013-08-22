@@ -21,6 +21,8 @@
 #include <fcntl.h>
 #include <getopt.h>
 
+#include <librorc.h>
+
 /** Help text, that is displayed when -h is used */
 #define HELP_TEXT "%s usage:                                 \n\
         pgdma_continuous [parameters]                        \n\
@@ -99,5 +101,15 @@ bool checkEventSize(uint32_t eventSize, char *argv);
 channelStatus *prepareSharedMemory(DMAOptions opts);
 DDLRefFile getDDLReferenceFile(DMAOptions opts);
 void deleteDDLReferenceFile(DDLRefFile ddlref);
+
+timeval
+printStatusLine
+(
+    timeval        last_time,
+    timeval        cur_time,
+    channelStatus *chstats,
+    uint64_t      *last_events_received,
+    uint64_t      *last_bytes_received
+);
 
 #endif /** DMA_HANDLING_H */

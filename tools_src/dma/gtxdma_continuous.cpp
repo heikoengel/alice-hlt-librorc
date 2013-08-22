@@ -93,7 +93,7 @@ int main( int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Create DMA channel */
-    librorc::dma_channel *ch;
+    librorc::dma_channel *ch = NULL;
     try
     {
         ch =
@@ -135,11 +135,6 @@ int main( int argc, char *argv[])
     int32_t sanity_checks;
     while( !done )
     {
-
-        /** this can be aborted by abort_handler(),
-         * triggered from CTRL+C
-         */
-
         if(ddlref.map && ddlref.size)
             {sanity_checks = CHK_FILE;}
         else
@@ -162,49 +157,15 @@ int main( int argc, char *argv[])
             abort();
         }
         else if(result==0)
-        {
-            /** no events available */
-            usleep(100);
-        }
+        { usleep(100); } /** no events available */
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
         /** print status line each second */
-        if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL)
-        {
-            printf("Events: %10ld, DataSize: %8.3f GB ",
-                    chstats->n_events,
-                    (double)chstats->bytes_received/(double)(1<<30));
-
-            if(chstats->bytes_received-last_bytes_received)
-            {
-                printf(" DataRate: %9.3f MB/s",
-                        (double)(chstats->bytes_received-last_bytes_received)/
-                        gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
-            }
-            else
-            {
-                printf(" DataRate: -");
-                /** dump_dma_state(ch); */
-                /** dump_diu_state(ch); */
-            }
-
-            if(chstats->n_events - last_events_received)
-            {
-                printf(" EventRate: %9.3f kHz/s",
-                        (double)(chstats->n_events-last_events_received)/
-                        gettimeofday_diff(last_time, cur_time)/1000.0);
-            }
-            else
-            {
-                printf(" EventRate: -");
-            }
-            printf(" Errors: %ld\n", chstats->error_count);
-            last_time = cur_time;
-            last_bytes_received = chstats->bytes_received;
-            last_events_received = chstats->n_events;
-        }
-
+        last_time =
+            printStatusLine
+                (last_time, cur_time, chstats,
+                    &last_events_received, &last_bytes_received);
     }
 
     /** EOR */
@@ -284,7 +245,7 @@ int main( int argc, char *argv[])
         chstats = NULL;
     }
 
-    if(ch)
+    if(ch != NULL)
     { delete ch; }
 
     return result;
