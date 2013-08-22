@@ -32,7 +32,6 @@ DMA_ABORT_HANDLER
 
 int main(int argc, char *argv[])
 {
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -74,10 +73,13 @@ int main(int argc, char *argv[])
     }
 
     /** Print some stats */
-    printf("Bus %x, Slot %x, Func %x\n",
-            eventStream->m_dev->getBus(),
-            eventStream->m_dev->getSlot(),
-            eventStream->m_dev->getFunc());
+    printf
+    (
+        "Bus %x, Slot %x, Func %x\n",
+        eventStream->m_dev->getBus(),
+        eventStream->m_dev->getSlot(),
+        eventStream->m_dev->getFunc()
+    );
 
     try
     {
@@ -130,18 +132,19 @@ int main(int argc, char *argv[])
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
-    int result = 0;
+    int     result        = 0;
+    int32_t sanity_checks = 0xff; /** no checks defaults */
     while( !done )
     {
         result = handle_channel_data
         (
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
-            ch,      /** channel struct     */
-            chstats, /** stats struct       */
-            0xff,    /** do sanity check    */
-            NULL,    /** no reference DDL   */
-            0        /** reference DDL size */
+            ch,            /** channel struct     */
+            chstats,       /** stats struct       */
+            sanity_checks, /** do sanity check    */
+            NULL,          /** no reference DDL   */
+            0              /** reference DDL size */
         );
 
         if( result < 0 )
@@ -150,10 +153,7 @@ int main(int argc, char *argv[])
             abort();
         }
         else if( result==0 )
-        {
-            /** no events available */
-            usleep(100);
-        }
+        { usleep(100); } /** no events available */
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
 
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
+
     printf
     (
         "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
@@ -176,9 +177,7 @@ int main(int argc, char *argv[])
     );
 
     if(!chstats->set_offset_count)
-    {
-        printf("CH%d: No Events\n", opts.channelId);
-    }
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
     {
         printf
@@ -201,9 +200,7 @@ int main(int argc, char *argv[])
 
     /** Wait for pending transfers to complete (dma_busy->0) */
     while( ch->getDMABusy() )
-    {
-        usleep(100);
-    }
+    { usleep(100); }
 
     /** Disable RBDM */
     ch->setEnableRB(0);

@@ -32,8 +32,6 @@ DMA_ABORT_HANDLER
 
 int main( int argc, char *argv[])
 {
-    int result = 0;
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -76,10 +74,13 @@ int main( int argc, char *argv[])
     }
 
     /** Print some stats */
-    printf("Bus %x, Slot %x, Func %x\n",
-            eventStream->m_dev->getBus(),
-            eventStream->m_dev->getSlot(),
-            eventStream->m_dev->getFunc());
+    printf
+    (
+        "Bus %x, Slot %x, Func %x\n",
+        eventStream->m_dev->getBus(),
+        eventStream->m_dev->getSlot(),
+        eventStream->m_dev->getFunc()
+    );
 
     try
     {
@@ -132,7 +133,8 @@ int main( int argc, char *argv[])
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
-    int32_t sanity_checks;
+    int     result        = 0;
+    int32_t sanity_checks = 0xff; /** no checks defaults */
     while( !done )
     {
         if(ddlref.map && ddlref.size)
@@ -144,9 +146,9 @@ int main( int argc, char *argv[])
         (
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
-            ch, // channel struct
-            chstats, // stats struct
-            sanity_checks, // do sanity check
+            ch,            /** channel struct     */
+            chstats,       /** stats struct       */
+            sanity_checks, /** do sanity check    */
             ddlref.map,
             ddlref.size
         );
@@ -168,7 +170,6 @@ int main( int argc, char *argv[])
                     &last_events_received, &last_bytes_received);
     }
 
-    /** EOR */
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
@@ -181,10 +182,8 @@ int main( int argc, char *argv[])
         ((float)chstats->bytes_received/gettimeofday_diff(start_time, end_time))/(float)(1<<20)
     );
 
-    if(!chstats->set_offset_count) //avoid DivByZero Exception
-    {
-        printf("CH%d: No Events\n", opts.channelId);
-    }
+    if(!chstats->set_offset_count)
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
     {
         printf
