@@ -111,17 +111,11 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
-//ready
+    cout << "Waiting for GTX to be ready..." << endl;
+    ch->waitForGTXDomain();
 
-    /**
-     * wait for GTX domain to be ready
-     * read asynchronous GTX status
-     * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
-     * & !gtx_in_rst
-     **/
-    printf("Waiting for GTX to be ready...\n");
-    while( (ch->getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
-        { usleep(100); }
+
+//ready
 
 //PG SPECIFIC
     /** Configure Pattern Generator */

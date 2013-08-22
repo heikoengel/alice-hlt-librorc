@@ -165,6 +165,20 @@ dma_channel::enable()
 
 
 void
+dma_channel::waitForGTXDomain()
+{
+    /**
+     * wait for GTX domain to be ready read asynchronous GTX status
+     * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
+     * & !gtx_in_rst
+    **/
+    while( (getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
+    { usleep(100); }
+}
+
+
+
+void
 dma_channel::setEnableEB
 (
     int32_t enable

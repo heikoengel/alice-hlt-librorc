@@ -78,6 +78,7 @@ namespace librorc
             ~dma_channel();
 
             void enable();
+            void waitForGTXDomain();
 
             /**
              * set Enable Bit of EBDM
