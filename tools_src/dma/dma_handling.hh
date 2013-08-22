@@ -31,14 +31,14 @@ parameters:                                                  \n\
         --file [filename] DDL reference file                 \n\
         --help            Show this text                     \n"
 
-#define DMA_ABORT_HANDLER int done = 0;  \
+#define DMA_ABORT_HANDLER bool done = 0; \
 void abort_handler( int s )              \
 {                                        \
     printf("Caught signal %d\n", s);     \
-    if( done==1 )                        \
+    if( done==true )                     \
     { exit(-1); }                        \
     else                                 \
-    { done = 1; }                        \
+    { done = true; }                     \
 }
 
 #define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler; \
