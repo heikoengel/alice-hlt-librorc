@@ -191,7 +191,10 @@ int main(int argc, char *argv[])
     }
 
     /** Disable PG */
-    ch->setGTX(RORC_REG_DDL_CTRL, 0x0);
+    try
+    { ch->closePatternGenerator(); }
+    catch(...)
+    { cout << "Pattern generator was never configured !!!" << endl; }
 
     /** Disable event-buffer -> no further sg-entries to PKT */
     ch->setEnableEB(0);

@@ -202,6 +202,21 @@ dma_channel::configurePatternGenerator(uint32_t eventSize)
 
 
 void
+dma_channel::closePatternGenerator()
+{
+    if(!m_is_pattern_generator)
+    {
+        throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_PATTERN_GENERATOR_FAILED;
+    }
+
+    setGTX(RORC_REG_DDL_CTRL, 0x0);
+
+    m_is_pattern_generator = false;
+}
+
+
+
+void
 dma_channel::configureGTX()
 {
     if(m_is_pattern_generator)
@@ -278,6 +293,8 @@ dma_channel::closeGTX()
     }
     else
     { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
+
+    m_is_gtx = false;
 }
 
 

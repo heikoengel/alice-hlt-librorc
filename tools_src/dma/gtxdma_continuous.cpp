@@ -199,7 +199,7 @@ int main( int argc, char *argv[])
     try
     { ch->closeGTX(); }
     catch(...)
-    { cout << "Link is down - unable to send EOBTR" << endl; }
+    { cout << "Link is down - unable to send EOBTR !!!" << endl; }
 
     /** Disable event-buffer -> no further sg-entries to PKT */
     ch->setEnableEB(0);
