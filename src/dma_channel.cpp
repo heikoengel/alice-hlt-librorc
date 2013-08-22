@@ -79,6 +79,9 @@ dma_channel::dma_channel
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
 
+    m_is_pattern_generator = false;
+    m_is_gtx               = false;
+
     m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
     m_channel      = channel_number;
     m_dev          = dev;
@@ -108,6 +111,9 @@ dma_channel::dma_channel
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
+
+    m_is_pattern_generator = false;
+    m_is_gtx               = false;
 
     m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
     m_channel      = channel_number;
@@ -179,10 +185,24 @@ dma_channel::waitForGTXDomain()
 
 
 void
-dma_channel::setEnableEB
-(
-    int32_t enable
-)
+dma_channel::configurePatternGenerator(uint32_t eventSize)
+{
+    if(m_is_gtx)
+    {
+        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED;
+    }
+
+    /** Configure Pattern Generator */
+    setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x600) );
+    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x100) );
+    m_is_pattern_generator = true;
+}
+
+
+
+void
+dma_channel::setEnableEB(int32_t enable)
 {
     uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
     if(enable)

@@ -105,17 +105,17 @@ int main( int argc, char *argv[])
                 eventStream->m_eventBuffer,
                 eventStream->m_reportBuffer
             );
+
         ch->enable();
+
+        cout << "Waiting for GTX to be ready..." << endl;
+        ch->waitForGTXDomain();
     }
     catch( int error )
     {
         cout << "DMA channel failed (ERROR :" << error << ")" << endl;
         return(-1);
     }
-
-    cout << "Waiting for GTX to be ready..." << endl;
-    ch->waitForGTXDomain();
-
 
 //ready
 

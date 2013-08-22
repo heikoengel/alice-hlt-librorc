@@ -103,7 +103,14 @@ int main(int argc, char *argv[])
                 eventStream->m_eventBuffer,
                 eventStream->m_reportBuffer
             );
+
         ch->enable();
+
+        cout << "Waiting for GTX to be ready..." << endl;
+        ch->waitForGTXDomain();
+
+        cout << "Configuring pattern generator ..." << endl;
+        ch->configurePatternGenerator(opts.eventSize);
     }
     catch( int error )
     {
@@ -111,18 +118,7 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
-    cout << "Waiting for GTX to be ready..." << endl;
-    ch->waitForGTXDomain();
-
-
 //ready
-
-//PG SPECIFIC
-    /** Configure Pattern Generator */
-    ch->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, opts.eventSize);
-    ch->setGTX(RORC_REG_DDL_CTRL, ch->getGTX(RORC_REG_DDL_CTRL) | 0x600);
-    ch->setGTX(RORC_REG_DDL_CTRL, ch->getGTX(RORC_REG_DDL_CTRL) | 0x100);
-//PG SPECIFIC
 
     /** capture starting time */
     timeval start_time;
