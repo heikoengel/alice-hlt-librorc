@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
     { exit(-1); }
 
     DMA_ABORT_HANDLER_REGISTER
+    sigaction(SIGINT, &sigIntHandler, NULL);
 
     channelStatus *chstats
         = prepareSharedMemory(opts);
@@ -130,7 +131,6 @@ int main(int argc, char *argv[])
     uint64_t last_events_received = 0;
 
     int result = 0;
-    sigaction(SIGINT, &sigIntHandler, NULL);
     while( !done )
     {
     /** ... triggered from CTRL+C                  */
