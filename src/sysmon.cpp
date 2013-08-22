@@ -498,7 +498,7 @@ namespace librorc
         uint8_t index
     )
     {
-        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<3) != 0);
+        return ((i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<3)) != 0);
     }
 
 
@@ -509,7 +509,7 @@ namespace librorc
         uint8_t index
     )
     {
-        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<2) != 0);
+        return ((i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<2)) != 0);
     }
 
 
