@@ -110,6 +110,9 @@ int main( int argc, char *argv[])
 
         cout << "Waiting for GTX to be ready..." << endl;
         ch->waitForGTXDomain();
+
+        cout << "Configuring GTX ..." << endl;
+        ch->configureGTX();
     }
     catch( int error )
     {
@@ -118,57 +121,6 @@ int main( int argc, char *argv[])
     }
 
 //ready
-
-//GTX SPECIFIC
-    /** set ENABLE, activate flow control (DIU_IF:busy) */
-    ch->setGTX(RORC_REG_DDL_CTRL, 0x00000003);
-
-    /** wait for riLD_N='1' */
-    printf("Waiting for LD_N to deassert...\n");
-    while( (ch->getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
-        {usleep(100);}
-
-    /** clear DIU_IF IFSTW, CTSTW */
-    ch->setGTX(RORC_REG_DDL_IFSTW, 0);
-    ch->setGTX(RORC_REG_DDL_CTSTW, 0);
-
-    /** send EOBTR to close any open transaction */
-    ch->setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
-
-    /** wait for command transmission status word (CTSTW) from DIU */
-    uint32_t ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
-    while( ctstw == 0xffffffff )
-    {
-        usleep(100);
-        ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
-    }
-
-    uint8_t ddl_trn_id = 2 & 0x0f;
-
-    printf("DIU CTSTW: %08x\n", ctstw);
-    printf("DIU IFSTW: %08x\n", ch->getGTX(RORC_REG_DDL_IFSTW));
-
-    /** clear DIU_IF IFSTW */
-    ch->setGTX(RORC_REG_DDL_IFSTW, 0);
-    ch->setGTX(RORC_REG_DDL_CTSTW, 0);
-
-    /** send RdyRx to SIU */
-    ch->setGTX(RORC_REG_DDL_CMD, 0x00000014);
-
-    /** wait for command transmission status word (CTSTW) from DIU */
-    ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
-    while( ctstw == 0xffffffff )
-    {
-        usleep(100);
-        ctstw = ch->getGTX(RORC_REG_DDL_CTSTW);
-    }
-    ddl_trn_id = (ddl_trn_id+2) & 0x0f;
-
-    /** clear DIU_IF IFSTW */
-    ch->setGTX(RORC_REG_DDL_IFSTW, 0);
-    ch->setGTX(RORC_REG_DDL_CTSTW, 0);
-//GTX SPECIFIC
-
 
     /** capture starting time */
     timeval start_time;

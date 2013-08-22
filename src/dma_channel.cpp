@@ -202,6 +202,66 @@ dma_channel::configurePatternGenerator(uint32_t eventSize)
 
 
 void
+dma_channel::configureGTX()
+{
+    if(m_is_pattern_generator)
+    {
+        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED;
+    }
+
+    /** set ENABLE, activate flow control (DIU_IF:busy) */
+    setGTX(RORC_REG_DDL_CTRL, 0x00000003);
+
+    /** wait for riLD_N='1' */
+    while( (getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
+        {usleep(100);}
+
+    /** clear DIU_IF IFSTW, CTSTW */
+    setGTX(RORC_REG_DDL_IFSTW, 0);
+    setGTX(RORC_REG_DDL_CTSTW, 0);
+
+    /** send EOBTR to close any open transaction */
+    setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+
+    /** wait for command transmission status word (CTSTW) from DIU */
+    uint32_t ctstw = getGTX(RORC_REG_DDL_CTSTW);
+    while( ctstw == 0xffffffff )
+    {
+        usleep(100);
+        ctstw = getGTX(RORC_REG_DDL_CTSTW);
+    }
+
+    uint8_t ddl_trn_id = 2 & 0x0f;
+
+    //printf("DIU CTSTW: %08x\n", ctstw);
+    //printf("DIU IFSTW: %08x\n", ch->getGTX(RORC_REG_DDL_IFSTW));
+
+    /** clear DIU_IF IFSTW */
+    setGTX(RORC_REG_DDL_IFSTW, 0);
+    setGTX(RORC_REG_DDL_CTSTW, 0);
+
+    /** send RdyRx to SIU */
+    setGTX(RORC_REG_DDL_CMD, 0x00000014);
+
+    /** wait for command transmission status word (CTSTW) from DIU */
+    ctstw = getGTX(RORC_REG_DDL_CTSTW);
+    while( ctstw == 0xffffffff )
+    {
+        usleep(100);
+        ctstw = getGTX(RORC_REG_DDL_CTSTW);
+    }
+    ddl_trn_id = (ddl_trn_id+2) & 0x0f;
+
+    /** clear DIU_IF IFSTW */
+    setGTX(RORC_REG_DDL_IFSTW, 0);
+    setGTX(RORC_REG_DDL_CTSTW, 0);
+
+    m_is_gtx = true;
+}
+
+
+
+void
 dma_channel::setEnableEB(int32_t enable)
 {
     uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
