@@ -223,18 +223,7 @@ dma_channel::configureGTX()
     /** send EOBTR to close any open transaction */
     setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
-    /** wait for command transmission status word (CTSTW) from DIU */
-    uint32_t ctstw = getGTX(RORC_REG_DDL_CTSTW);
-    while( ctstw == 0xffffffff )
-    {
-        usleep(100);
-        ctstw = getGTX(RORC_REG_DDL_CTSTW);
-    }
-
-    uint8_t ddl_trn_id = 2 & 0x0f;
-
-    //printf("DIU CTSTW: %08x\n", ctstw);
-    //printf("DIU IFSTW: %08x\n", ch->getGTX(RORC_REG_DDL_IFSTW));
+    waitForCommandTransmissionStatusWord();
 
     /** clear DIU_IF IFSTW */
     setGTX(RORC_REG_DDL_IFSTW, 0);
@@ -243,20 +232,23 @@ dma_channel::configureGTX()
     /** send RdyRx to SIU */
     setGTX(RORC_REG_DDL_CMD, 0x00000014);
 
-    /** wait for command transmission status word (CTSTW) from DIU */
-    ctstw = getGTX(RORC_REG_DDL_CTSTW);
-    while( ctstw == 0xffffffff )
-    {
-        usleep(100);
-        ctstw = getGTX(RORC_REG_DDL_CTSTW);
-    }
-    ddl_trn_id = (ddl_trn_id+2) & 0x0f;
+    waitForCommandTransmissionStatusWord();
 
     /** clear DIU_IF IFSTW */
     setGTX(RORC_REG_DDL_IFSTW, 0);
     setGTX(RORC_REG_DDL_CTSTW, 0);
 
     m_is_gtx = true;
+}
+
+
+
+void
+dma_channel::waitForCommandTransmissionStatusWord()
+{
+    /** wait for command transmission status word (CTSTW) from DIU */
+    while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
+    { usleep(100); }
 }
 
 

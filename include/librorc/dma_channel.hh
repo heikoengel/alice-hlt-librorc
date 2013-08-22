@@ -83,6 +83,7 @@ namespace librorc
             void waitForGTXDomain();
             void configurePatternGenerator(uint32_t eventSize);
             void configureGTX();
+            void waitForCommandTransmissionStatusWord();
 
             /**
              * set Enable Bit of EBDM
