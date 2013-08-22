@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <getopt.h>
 #include <stdint.h>
+#include <pda.h>
 
 #include "librorc.h"
 
@@ -38,6 +39,7 @@ parameters: \n\
         -x            Clear error counters \n\
         -r [0...7]    Set GTX reset values, see below\n\
         -l [0...7]    Set GTX loopback value \n\
+        -p [number]   Set PLL config from list below \n\
         -h            Show this text \n\
 \n\
 GTX reset consists of 3 bits, MSB to LSB: {TXreset, RXreset, GTXreset}. \n\
@@ -46,7 +48,7 @@ In order to set GTXreset=1, RXreset=0, TXreset=0, do \n\
 In order to set GTXreset=0, RXreset=1, TXreset=1, do \n\
         gtxctrl -n [...] -c [...] -r 0x06 \n\
 To release all resets, do \n\
-        gtxctrl -n [...] -r 0 \n\
+        gtxctrl -n [...] -r 0 \n\n\
 "
 
 struct
@@ -57,15 +59,23 @@ gtxpll_settings
     uint8_t n2;
     uint8_t d;
     uint8_t m;
+    uint8_t tx_tdcc_cfg;
+    float refclk;
 };
 
 
+/**
+ * fPLL = fREF * N1 * N2 / M
+ * fLineRate = fPLL * 2 / D
+ * */
 const struct gtxpll_settings available_configs[] =
 {
-    //div,n1,n2,d, m
-    {  9, 5, 2, 2, 1}, // 2.125 Gbps with RefClk=212.5 Mhz
-    {  9, 5, 2, 1, 1}, // 4.250 Gbps with RefClk=212.5 MHz
-    { 10, 5, 2, 1, 1}, // 5.000 Gbps with RefClk=250.0 MHz
+    //div,n1,n2,d, m, tdcc, refclk
+    {  9, 5, 2, 2, 1, 0, 212.5}, // 2.125 Gbps with RefClk=212.5 MHz
+    {  9, 5, 2, 1, 1, 3, 212.5}, // 4.250 Gbps with RefClk=212.5 MHz
+    { 10, 5, 2, 1, 1, 3, 250.0}, // 5.000 Gbps with RefClk=250.0 MHz
+    {  4, 5, 4, 2, 1, 0, 100.0}, // 2.000 Gbps with RefClk=100.0 MHz
+    { 10, 4, 2, 2, 1, 0, 250.0}, // 2.000 Gbps with RefClk=250.0 MHz
 };
 
 /** Conversions between PLL values and their register representations */
@@ -111,16 +121,12 @@ uint8_t divselfb45_val2reg ( uint8_t val )
 
 uint8_t clk25div_reg2val ( uint8_t reg )
 {
-    if (reg==5) { return 6; }
-    else if (reg<=4) { return reg-1; }
-    else { return reg+1; }
+    return reg+1;
 }
 
 uint8_t clk25div_val2reg ( uint8_t val )
 {
-    if (val==6) { return 5; }
-    else if (val<=5) { return val+1; }
-    else { return val-1; }
+    return val-1;
 }
 
 uint8_t divselref_reg2val ( uint8_t reg )
@@ -133,6 +139,28 @@ uint8_t divselref_val2reg ( uint8_t val )
 {
     if (val==1) return 16;
     else return 0;
+}
+
+
+/**
+ * read-modify-write:
+ * replace rdval[bit+width-1:bit] with data[width-1:0]
+ * */
+uint16_t
+rmw
+(
+    uint16_t rdval,
+    uint16_t data,
+    uint8_t bit,
+    uint8_t width
+)
+{
+    uint16_t mask = ((uint32_t)1<<width) - 1;
+    /**clear current value */
+    uint16_t wval = rdval & ~(mask<<bit);
+    /** set new value */
+    wval |= ((data & mask)<<bit);
+    return wval;
 }
 
 
@@ -163,7 +191,8 @@ drp_read
     drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
   } while (drp_status & (1<<31));
 
-  printf("drp_read(%x)=%04x\n", drp_addr, (drp_status & 0xffff));
+  DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+          "drp_read(%x)=%04x\n", drp_addr, (drp_status & 0xffff));
 
   return (drp_status & 0xffff);
 }
@@ -196,6 +225,8 @@ drp_write
     usleep(100);
     drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
   } while (drp_status & (1<<31));
+  DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+          "drp_write(%x, %04x)\n", drp_addr, drp_data);
 }
 
 
@@ -225,6 +256,9 @@ drp_get_pll_config
     drpdata = drp_read(ch, 0x23);
     pll.clk25_div = clk25div_reg2val((drpdata>>10)&0x1f);
 
+    drpdata = drp_read(ch, 0x39);
+    pll.tx_tdcc_cfg = (drpdata>>14) & 0x03;
+
     //Frequency = refclk_freq*gtx_n1*gtx_n2/gtx_m*2/gtx_d;
     return pll;
 }
@@ -250,28 +284,63 @@ drp_set_pll_config
     uint8_t m_reg = divselref_val2reg(pll.m);
     uint8_t clkdiv = clk25div_val2reg(pll.clk25_div);
 
+
+    /********************* TXPLL *********************/
+
     uint16_t drp_data = drp_read(ch, 0x1f);
-    drp_data &= 0x3f81; //clear all fields
-    drp_data |= ((n1_reg&0x01)<<6 | (n2_reg&0x1f)<<1 | (d_reg&0x03)<<14);
+    /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
+    drp_data = rmw(drp_data, n1_reg, 6, 1);
+    /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
+    drp_data = rmw(drp_data, n2_reg, 1, 5);
+    /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
+    drp_data = rmw(drp_data, d_reg, 14, 2);
     drp_write(ch, 0x1f, drp_data);
-
-    /** dummy read */
     drp_read(ch, 0x0);
 
+    /** set TXPLL_DIVSEL_REF/M: addr 0x20, bits [5:1] */
     drp_data = drp_read(ch, 0x20);
-    drp_data &= 0xffc1; //clear TXPLL_DIVSEL_REF
-    drp_data |= (m_reg&0x1f)<<1;
+    drp_data = rmw(drp_data, m_reg, 1, 5);
     drp_write(ch, 0x20, drp_data);
-
-    /** dummy read */
     drp_read(ch, 0x0);
 
+    /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
     drp_data = drp_read(ch, 0x23);
-    drp_data &= 0x7c00; // clear TX_CLK25_DIVIDER
-    drp_data |= (clkdiv&0x1f)<<10;
+    drp_data = rmw(drp_data, clkdiv, 10, 5);
     drp_write(ch, 0x23, drp_data);
+    drp_read(ch, 0x0);
 
-    /** dummy read */
+
+    /********************* RXPLL *********************/
+
+    drp_data = drp_read(ch, 0x1b);
+    /** set RXPLL_DIVSEL_FB45/N1: addr 0x1b bit [6] */
+    drp_data = rmw(drp_data, n1_reg, 6, 1);
+    /** set RXPLL_DIVSEL_FB/N2: addr 0x1b bits [5:1] */
+    drp_data = rmw(drp_data, n2_reg, 1, 5);
+    /** set RXPLL_DIVSEL_OUT/D: addr 0x1b bits [15:14] */
+    drp_data = rmw(drp_data, d_reg, 14, 2);
+    drp_write(ch, 0x1b, drp_data);
+    drp_read(ch, 0x0);
+
+    /** set RXPLL_DIVSEL_REF/M: addr 0x1c, bits [5:1] */
+    drp_data = drp_read(ch, 0x1c);
+    drp_data = rmw(drp_data, m_reg, 1, 5);
+    drp_write(ch, 0x1c, drp_data);
+    drp_read(ch, 0x0);
+
+    /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
+    drp_data = drp_read(ch, 0x17);
+    drp_data = rmw(drp_data, clkdiv, 5, 5);
+    drp_write(ch, 0x17, drp_data);
+    drp_read(ch, 0x0);
+
+
+    /********************* Common *********************/
+
+    /** TX_TDCC_CFG: addr 0x39, bits [15:14] */
+    drp_data = drp_read(ch, 0x39);
+    drp_data = rmw(drp_data, pll.tx_tdcc_cfg, 14, 2);
+    drp_write(ch, 0x39, drp_data);
     drp_read(ch, 0x0);
 }
 
@@ -287,15 +356,21 @@ int main
     int do_status = 0;
     int do_reset = 0;
     int do_loopback = 0;
+    int do_pllcfg = 0;
+    int do_dump = 0;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int32_t gtxreset = 0;
     int32_t loopback = 0;
+    int32_t pllcfgnum = 0;
+
+    int32_t nconfigs = sizeof(available_configs) /
+                       sizeof(struct gtxpll_settings);
 
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:r:l:xs")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:d")) != -1 )
     {
         switch(arg)
         {
@@ -337,9 +412,34 @@ int main
             }
             break;
 
+            case 'd':
+            {
+                do_dump = 1;
+            }
+            break;
+
+            case 'p':
+            {
+                pllcfgnum = strtol(optarg, NULL, 0);
+                do_pllcfg = 1;
+            }
+            break;
+
             case 'h':
             {
                 cout << HELP_TEXT;
+                cout << "Available PLL Configurations:" << endl;
+                for ( int i=0; i<nconfigs; i++ )
+                {
+                    struct gtxpll_settings pll = available_configs[i];
+                    float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
+                    float link_rate = fPLL * 2 / pll.d / 1000.0;
+                    cout << "[" << i << "] RefClk="
+                         << fixed << setprecision(3)
+                         << available_configs[i].refclk
+                         << " MHz, LinkRate=" << link_rate
+                         << " Gbps, PLL=" << fPLL << " MHz" << endl;
+                }
                 exit(0);
             }
             break;
@@ -372,6 +472,12 @@ int main
     {
         cout << "loopback value invalid, allowed values are 0...7." << endl;
         cout << HELP_TEXT;
+        abort();
+    }
+
+    if ( pllcfgnum > nconfigs )
+    {
+        cout << "Invalid PLL config number!" << endl;
         abort();
     }
 
@@ -439,10 +545,12 @@ int main
             cout << "CH " << setw(2) << chID << ": 0x"
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
+
             struct gtxpll_settings pll = drp_get_pll_config(ch);
-            cout << "PLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
+            cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
-                 << " CLK25DIV=" << (int)pll.clk25_div << endl;
+                 << " CLK25DIV=" << (int)pll.clk25_div 
+                 << " TX_TDCC_CFG=" << (int)pll.tx_tdcc_cfg << endl;
 
             /** TODO: also provide error counter values here */
         }
@@ -503,6 +611,31 @@ int main
         {
             /** write new values to RORC */
             ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+        }
+
+        if ( do_pllcfg )
+        {
+            /** set GTXRESET */
+            gtxasynccfg |= 0x00000001;
+            ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+
+            /** Write new PLL config */
+            drp_set_pll_config(ch, available_configs[pllcfgnum]);
+
+            /** release GTXRESET */
+            gtxasynccfg &= ~(0x00000001);
+            ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+        }
+
+        if ( do_dump )
+        {
+            /** dump all DRP Registers */
+            for ( int i=0x00; i<=0x4f; i++ )
+            {
+                cout << hex << setw(2) << i << ": 0x"
+                     << setw(4) << setfill('0')
+                     << drp_read(ch, i) << endl;
+            }
         }
 
         delete ch;
