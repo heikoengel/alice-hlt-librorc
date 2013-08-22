@@ -43,18 +43,6 @@
 
 using namespace std;
 
-/** Buffer Sizes (in Bytes) **/
-#ifndef SIM
-    #define EBUFSIZE (((unsigned long)1) << 28)
-    #define RBUFSIZE (((unsigned long)1) << 26)
-    #define STAT_INTERVAL 1.0
-#else
-    #define EBUFSIZE (((unsigned long)1) << 19)
-    #define RBUFSIZE (((unsigned long)1) << 17)
-    #define STAT_INTERVAL 0.00001
-#endif
-
-
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
@@ -113,8 +101,7 @@ alloc_channel
 )
 {
     /** check if requested channel is implemented in firmware */
-    //TODO: put this into API
-    if( ChannelID >= (Bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if( Dev->DMAChannelIsImplemented(ChannelID) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
             "firmware - exiting\n", ChannelID);

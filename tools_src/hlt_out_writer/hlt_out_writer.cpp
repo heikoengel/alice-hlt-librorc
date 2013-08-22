@@ -45,18 +45,6 @@ parameters: \n\
         --size [value]    Event Size in DWs \n\
         --help            Show this text \n"
 
-/** Buffer Sizes (in Bytes) **/
-#ifndef SIM
-#define EBUFSIZE (((uint64_t)1) << 28)
-#define RBUFSIZE (((uint64_t)1) << 26)
-#define STAT_INTERVAL 1.0
-#else
-#define EBUFSIZE (((uint64_t)1) << 19)
-#define RBUFSIZE (((uint64_t)1) << 17)
-#define STAT_INTERVAL 0.00001
-#endif
-
-
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
@@ -179,12 +167,12 @@ int main( int argc, char *argv[])
 
     //shared memory
     int shID;
-    struct ch_stats *chstats = NULL;
+    channelStatus *chstats = NULL;
     char *shm = NULL;
 
     //allocate shared mem
     shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
-            sizeof(struct ch_stats), IPC_CREAT | 0666);
+            sizeof(channelStatus), IPC_CREAT | 0666);
     if(shID==-1) {
         perror("shmget");
         goto out;
@@ -195,7 +183,7 @@ int main( int argc, char *argv[])
         perror("shmat");
         goto out;
     }
-    chstats = (struct ch_stats*)shm;
+    chstats = (channelStatus*)shm;
 
 
     // create new device instance
@@ -206,8 +194,11 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    printf("Bus %x, Slot %x, Func %x\n", dev->getBus(),
-            dev->getSlot(),dev->getFunc());
+    /** Print some stats */
+    printf("Bus %x, Slot %x, Func %x\n",
+            dev->getBus(),
+            dev->getSlot(),
+            dev->getFunc());
 
     // bind to BAR1
     try
@@ -224,19 +215,27 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    printf("FirmwareDate: %08x\n", bar1->get32(RORC_REG_FIRMWARE_DATE));
+    try
+    {
+        librorc::sysmon *sm = new librorc::sysmon(bar1);
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+        delete sm;
+    }
+    catch(...)
+    { cout << "Firmware Rev. and Date not available!" << endl; }
 
-    type_channels = bar1->get32(RORC_REG_TYPE_CHANNELS);
-
-    // check if requested channel is implemented in firmware
-    if ( ChannelId >= (int32_t)(type_channels & 0xffff)) {
+    /** Check if requested channel is implemented in firmware */
+    if( dev->DMAChannelIsImplemented(ChannelId) )
+    {
         printf("ERROR: Requsted channel %d is not implemented in "
-                "firmware - exiting\n", ChannelId);
-        goto out;
+               "firmware - exiting\n", ChannelId);
+        return(-1);
     }
 
     // check if firmware is HLT_OUT
-    if ( (type_channels>>16) != 1 )
+    if ( (bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != 1 )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         goto out;
@@ -263,55 +262,23 @@ int main( int argc, char *argv[])
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
 
-    memset(chstats, 0, sizeof(struct ch_stats));
+    memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
     chstats->channel = (uint32_t)ChannelId;
 
 
-    // create DMA channel
-    ch = new librorc::dma_channel();
-
-    // bind channel to BAR1
-    ch->init(bar1, ChannelId);
-
-    // prepare EventBufferDescriptorManager
-    // with scatter-gather list
-    result = ch->prepareEB( ebuf );
-    if (result < 0) {
-        perror("prepareEB()");
-        result = -1;
-        goto out;
+    /** Create DMA channel */
+    try
+    {
+        ch = new librorc::dma_channel(ChannelId, 64, dev, bar1, ebuf, rbuf);
+        ch->enable();
     }
-
-    // prepare ReportBufferDescriptorManager
-    // with scatter-gather list
-    result = ch->prepareRB( rbuf );
-    if (result < 0) {
-        perror("prepareRB()");
-        result = -1;
-        goto out;
+    catch(...)
+    {
+        cout << "DMA channel failed!" << endl;
+        abort();
     }
-
-    // set MAX_PAYLOAD, buffer sizes, #sgEntries, ...
-    result = ch->configureChannel(ebuf, rbuf, 64);
-    if (result < 0) {
-        perror("configureChannel()");
-        result = -1;
-        goto out;
-    }
-
-
-    /* clear report buffer */
-    reportbuffer = (struct rorcfs_event_descriptor *)rbuf->getMem();
-    memset(reportbuffer, 0, rbuf->getMappingSize());
-
-    // enable BDMs
-    ch->setEnableEB(1);
-    ch->setEnableRB(1);
-
-    // enable DMA channel
-    ch->setDMAConfig( ch->getDMAConfig() | 0x01 );
 
     //TODO: all SIU interface handling
 

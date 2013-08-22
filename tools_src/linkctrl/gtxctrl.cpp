@@ -534,8 +534,8 @@ int main
     for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
     {
         /** Create DMA channel and bind channel to BAR1 */
-        librorc::dma_channel *ch = new librorc::dma_channel();
-        ch->init(bar, chID);
+        librorc::dma_channel *ch
+            = new librorc::dma_channel(chID, dev, bar);
 
         /** get current GTX configuration */
         uint32_t gtxasynccfg = ch->getPKT(RORC_REG_GTX_ASYNC_CFG);

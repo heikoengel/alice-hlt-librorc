@@ -162,13 +162,13 @@ void dump_dma_state
  * */
 void print_summary_stats
 (
-    uint32_t n,
-    struct ch_stats *chstats[],
-    uint64_t *ch_last_bytes_received,
-    double timediff
+    uint32_t       n,
+    channelStatus *chstats[],
+    uint64_t      *ch_last_bytes_received,
+    double         timediff
 )
 {
-  struct ch_stats statsum;
+  channelStatus statsum;
   uint64_t last_bytes_received = 0;
   uint32_t i;
   //sum up all channels
@@ -209,11 +209,11 @@ void print_summary_stats
  * */
 void print_channel_stats(
     uint32_t n,
-    struct ch_stats *chstats[],
+    channelStatus *chstats[],
     uint64_t *ch_last_bytes_received,
     double timediff)
 {
-  struct ch_stats statsum;
+  channelStatus statsum;
   uint64_t last_bytes_received = 0;
   uint32_t i;
   //sum up all channels
