@@ -195,11 +195,8 @@ device::DMAChannelIsImplemented
     int32_t channelId
 )
 {
-    #ifdef SIM
-        bar *bar1 = new sim_bar(this, 1);
-    #else
-        bar *bar1 = new rorc_bar(this, 1);
-    #endif
+    #ifndef SIM
+    bar *bar1 = new rorc_bar(this, 1);
 
     if( channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
     {
@@ -208,6 +205,8 @@ device::DMAChannelIsImplemented
     }
 
     delete(bar1);
+    #endif
+
     return true;
 }
 

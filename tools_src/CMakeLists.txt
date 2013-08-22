@@ -8,9 +8,13 @@ add_executable( i2c ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/i2c.cpp)
 target_link_libraries( i2c rorc pthread ${EXTRA_LIBS})
 
 
-# Build refclkgenctrl 
-add_executable( refclkgenctrl
-  ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/refclkgenctrl.cpp)
+# Build qsfpctrl
+add_executable( qsfpctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/qsfpctrl.cpp)
+target_link_libraries( qsfpctrl rorc pthread ${EXTRA_LIBS})
+
+
+# Build refclkgenctrl
+add_executable( refclkgenctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/refclkgenctrl.cpp)
 target_link_libraries( refclkgenctrl rorc pthread ${EXTRA_LIBS})
 
 

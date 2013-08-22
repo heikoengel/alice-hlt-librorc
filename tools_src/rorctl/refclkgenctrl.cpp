@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
+#include <pda.h>
 
 #include "librorc.h"
 
@@ -49,6 +50,8 @@ set new frequency to 125.00 MHz for device 0 \n\
 #define M_RECALL (1<<0)
 #define M_FREEZE (1<<5)
 #define M_NEWFREQ (1<<6)
+/** Register 137 Pin Mapping */
+#define FREEZE_DCO (1<<4)
 
 
 typedef struct
@@ -130,11 +133,6 @@ refclk_read
     {
         value = sm->i2c_read_mem(REFCLK_CHAIN,
                 REFCLK_I2C_SLAVE, addr);
-        /*cout << "Read from refclk addr 0x"
-             << hex << (int)addr
-             << "= 0x" << (int)value << dec << endl;*/
-
-
     }
     catch (...)
     {
@@ -142,6 +140,8 @@ refclk_read
              << hex << (int)addr << dec << endl;
         abort();
     }
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_read(%02x)=%02x\n",
+            addr, value);
     return value;
 }
 
@@ -157,9 +157,6 @@ void refclk_write
     {
         sm->i2c_write_mem(REFCLK_CHAIN,
                 REFCLK_I2C_SLAVE, addr, value);
-        /*cout << "would write 0x" << setw(2) << hex << (int)value
-             << " to refclk addr 0x" << (int)addr << dec << endl;*/
-
     }
     catch (...)
     {
@@ -167,6 +164,8 @@ void refclk_write
              << " to refclk addr 0x" << (int)addr << dec << endl;
         abort();
     }
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_write(%02x, %02x)\n",
+            addr, value);
 }
 
 
@@ -264,13 +263,31 @@ refclk_getNewOpts
     return opts;
 }
 
-void refclk_setRFMCtrl
+
+
+void
+refclk_setRFMCtrl
 (
     librorc::sysmon *sm,
     uint8_t flag
 )
 {
     refclk_write(sm, 135, flag);
+}
+
+
+
+void
+refclk_setFreezeDCO
+(
+    librorc::sysmon *sm,
+    uint8_t flag
+)
+{
+    uint8_t val = refclk_read(sm, 137);
+    val &= 0xef;
+    val |= flag;
+    refclk_write(sm, 137, val);
 }
 
 
@@ -298,7 +315,7 @@ void refclk_setOpts
 )
 {
     /** Freeze oscillator */
-    refclk_setRFMCtrl(sm, M_FREEZE);
+    refclk_setFreezeDCO(sm, FREEZE_DCO);
 
     /** write new osciallator values */
     uint8_t value = (opts.hs_div<<5) | (opts.n1>>2);
@@ -314,7 +331,10 @@ void refclk_setOpts
         refclk_write(sm, i, value);
     }
 
-    /** release Freeze, set NewFreq */
+    /** release DCO Freeze */
+    refclk_setFreezeDCO(sm, 0);
+
+    /** release M_FREEZE, set NewFreq */
     refclk_setRFMCtrl(sm, M_NEWFREQ);
 
     /** wait for NewFreq to be deasserted */
@@ -337,10 +357,11 @@ main
     int arg;
     int do_write = 0;
     int do_reset = 0;
+    int do_freeze = 0;
     double new_freq = 0.0;
 
     /** parse command line arguments **/
-    while ( (arg = getopt(argc, argv, "d:c:s:a:w:r")) != -1 )
+    while ( (arg = getopt(argc, argv, "d:c:s:a:w:rf")) != -1 )
     {
         switch (arg)
         {
@@ -350,6 +371,11 @@ main
             case 'w':
                 new_freq = atof(optarg);
                 do_write = 1;
+                break;
+            case 's':
+                break;
+            case 'f':
+                do_freeze = 1;
                 break;
             case 'r':
                 do_reset = 1;
@@ -443,6 +469,11 @@ main
         (refclk_hsdiv_reg2val(opts.hs_div) * refclk_n1_reg2val(opts.n1));
     cout << "cur FREQ  : " << cur_freq << " MHz (approx.)" << endl;
 
+    uint8_t RFMC = refclk_read(sm, 135);
+    cout << "RFMC      : 0x" << hex << (int)RFMC << endl;
+    uint8_t FR = refclk_read(sm, 137);
+    cout << "DCOfreeze : 0x" << hex << (int)FR << endl;
+
 
 
     if ( do_write )
@@ -464,6 +495,20 @@ main
         refclk_setOpts(sm, new_opts);
 
     }
+
+    if (do_freeze)
+    {
+        uint8_t val = refclk_read(sm, 137);
+        val |= FREEZE_DCO;
+        /** Freeze oscillator */
+        refclk_write(sm, 137, val);
+        val &= 0xef;
+        /** release DCO Freeze */
+        refclk_write(sm, 137, val);
+        /** set NewFreq */
+        refclk_setRFMCtrl(sm, M_NEWFREQ);
+    }
+
 
     delete sm;
     delete bar;

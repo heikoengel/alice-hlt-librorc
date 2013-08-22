@@ -61,7 +61,8 @@ namespace librorc
              dma_channel
              (
                 uint32_t  channel_number,
-                device   *dev
+                device   *dev,
+                bar      *bar
              );
 
              dma_channel
@@ -69,6 +70,7 @@ namespace librorc
                 uint32_t  channel_number,
                 uint32_t  pcie_packet_size,
                 device   *dev,
+                bar      *bar,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer
              );

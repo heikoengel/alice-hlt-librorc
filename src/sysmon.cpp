@@ -230,6 +230,49 @@ namespace librorc
 
 
 
+    bool sysmon::qsfpGetReset
+    (
+        uint8_t index
+    )
+    {
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
+
+        if( ((~qsfp_ctrl)>>(8*index+3) & 0x01) == 1 )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+
+    void sysmon::qsfpSetReset
+    (
+        uint8_t index,
+        uint8_t reset
+    )
+    {
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
+
+        /** QSFP Reset Bit is active LOW */
+        if ( reset==0 )
+        {
+            /** set MOD_RST_N=1 */
+            qsfp_ctrl |= (1<<(8*index+3));
+        }
+        else
+        {
+            /** set MOD_RST_N=0 */
+            qsfp_ctrl &= ~(1<<(8*index+3));
+        }
+
+        /** write new value back */
+        m_bar->set32(RORC_REG_QSFP_CTRL, qsfp_ctrl);
+    }
+
+
+
     bool sysmon::qsfpLEDIsOn
     (
         uint8_t qsfp_index,
@@ -272,14 +315,36 @@ namespace librorc
 
 
 
+    string*
+    sysmon::qsfpSerialNumber
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+        return( qsfp_i2c_string_readout(index, 196, 211) );
+    }
+
+
+
+    string*
+    sysmon::qsfpRevisionNumber
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+        return( qsfp_i2c_string_readout(index, 184, 185) );
+    }
+
+
+
     float
     sysmon::qsfpTemperature
     (
         uint8_t index
     )
     {
-        qsfp_select_page0(index);
-
         uint8_t data_r;
         data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, 23);
 
@@ -291,6 +356,169 @@ namespace librorc
         return ((float)temp/256);
     }
 
+
+
+    float
+    sysmon::qsfpVoltage
+    (
+        uint8_t index
+    )
+    {
+        /** voltage is 16bit unsigned integer (0 to 65535) with
+         * LSB equal to 100 uVolt. This gives a range of 0-6.55 Volts. */
+        uint16_t voltage = (i2c_read_mem(index, QSFP_I2C_SLVADDR, 26)<<8) |
+            i2c_read_mem(index, QSFP_I2C_SLVADDR, 27);
+        return voltage/10000.0;
+    }
+
+
+
+    float
+    sysmon::qsfpTxBias
+    (
+        uint8_t index,
+        uint8_t channel
+    )
+    {
+        /** TX bias current is a 16b uint16_t
+         * with LSB equal to 2 uA */
+        uint16_t ubias = (i2c_read_mem(index, QSFP_I2C_SLVADDR, 42+2*channel)<<8) |
+            i2c_read_mem(index, QSFP_I2C_SLVADDR, 43+2*channel);
+        /** return in mA */
+        return ubias*0.002;
+    }
+
+
+
+    float
+    sysmon::qsfpRxPower
+    (
+        uint8_t index,
+        uint8_t channel
+    )
+    {
+        /** RX received optical power is a 16b uint16_t
+         * with LSB equal to 0.1 uWatt */
+        uint16_t upower = (i2c_read_mem(index, QSFP_I2C_SLVADDR, 34+2*channel)<<8) |
+            i2c_read_mem(index, QSFP_I2C_SLVADDR, 35+2*channel);
+        /** return in mWatt */
+        return upower/10000.0;
+    }
+
+
+
+    float
+    sysmon::qsfpWavelength
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+
+        /** Wavelengthis provided as uint16_t
+         * with LSB equal to 0.05 nm */
+        uint16_t uwl = (i2c_read_mem(index, QSFP_I2C_SLVADDR, 186)<<8) |
+            i2c_read_mem(index, QSFP_I2C_SLVADDR, 187);
+        /** return in nm */
+        return uwl * 0.05;
+    }
+
+
+
+    uint8_t
+    sysmon::qsfpTxFaultMap
+    (
+        uint8_t index
+    )
+    {
+        /**
+         * Addr 4, Bits [0:3]:
+         * [3]: TX4 Fault
+         * [2]: TX3 Fault
+         * [1]: TX2 Fault
+         * [0]: TX1 Fault
+         * */
+        return i2c_read_mem(index, QSFP_I2C_SLVADDR, 4) & 0x0f;
+    }
+
+
+    uint8_t
+    sysmon::qsfpGetRateSelectionSupport
+    (
+        uint8_t index
+    )
+    {
+        qsfp_select_page0(index);
+        /**
+         * rate selection support:
+         * page 0, byte 221, bits [3:2] and
+         * page 0, byte 195, bit 5
+         * */
+        uint8_t options = i2c_read_mem(index, QSFP_I2C_SLVADDR, 195);
+        uint8_t enh_options = i2c_read_mem(index, QSFP_I2C_SLVADDR, 221);
+        uint8_t ext_rate_sel = i2c_read_mem(index, QSFP_I2C_SLVADDR, 141);
+
+        /** enh_options[3:2]==0 and options[5]==0 */
+        if ( (enh_options & 0x0c)==0x00 && (options & (0x20))==0x00 )
+        {
+            return LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION;
+        }
+        /** enh_options[3:2]="10" */
+        else if ( (enh_options & 0x0c)==0x08 && (ext_rate_sel & 0x01)==0x01 )
+        {
+            return LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION;
+        }
+        /** enh_options[3:2]="01" */
+        else if ( (enh_options & 0x0c)==0x40 )
+        {
+            return LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION;
+        }
+        else
+        {
+            return LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION;
+        }
+    }
+
+
+    uint8_t
+    sysmon::qsfpPowerClass
+    (
+        uint8_t index
+    )
+    {
+        /** Extended Identifier Values, Addr=129, Bits 7-6 */
+        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129)>>6) + 1;
+    }
+
+
+
+    bool
+    sysmon::qsfpHasTXCDR
+    (
+        uint8_t index
+    )
+    {
+        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<3) != 0);
+    }
+
+
+
+    bool
+    sysmon::qsfpHasRXCDR
+    (
+        uint8_t index
+    )
+    {
+        return (i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<2) != 0);
+    }
+
+
+
+
+
+
+
+    /** I2C Low Level Access ***********************************************/
 
 
     void
