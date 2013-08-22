@@ -190,7 +190,6 @@ int main(int argc, char *argv[])
         );
     }
 
-    /** Disable PG */
     try
     { ch->closePatternGenerator(); }
     catch(...)
