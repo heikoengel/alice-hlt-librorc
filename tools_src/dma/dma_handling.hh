@@ -112,4 +112,13 @@ printStatusLine
     uint64_t      *last_bytes_received
 );
 
+void
+printFinalStatusLine
+(
+    channelStatus *chstats,
+    DMAOptions     opts,
+    timeval        start_time,
+    timeval        end_time
+);
+
 #endif /** DMA_HANDLING_H */

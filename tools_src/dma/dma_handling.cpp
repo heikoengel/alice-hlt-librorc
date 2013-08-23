@@ -245,6 +245,7 @@ gettimeofdayDiff
 }
 
 
+
 timeval
 printStatusLine
 (
@@ -297,3 +298,38 @@ printStatusLine
     return last_time;
 }
 
+void
+printFinalStatusLine
+(
+    channelStatus *chstats,
+    DMAOptions     opts,
+    timeval        start_time,
+    timeval        end_time
+)
+{
+    printf
+    (
+        "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
+        chstats->bytes_received,
+        chstats->n_events,
+        gettimeofdayDiff(start_time, end_time),
+        ((float)chstats->bytes_received/gettimeofdayDiff(start_time, end_time))/(float)(1<<20)
+    );
+
+    if(!chstats->set_offset_count)
+    { printf("CH%d: No Events\n", opts.channelId); }
+    else
+    {
+        printf
+        (
+            "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
+            opts.channelId,
+            chstats->n_events,
+            chstats->max_epi,
+            chstats->min_epi,
+            chstats->n_events/chstats->set_offset_count,
+            chstats->set_offset_count
+        );
+    }
+
+}
