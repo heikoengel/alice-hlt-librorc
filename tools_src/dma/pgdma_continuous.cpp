@@ -75,10 +75,10 @@ int main(int argc, char *argv[])
     printDeviceStatus(eventStream);
 
     /** Create DMA channel */
-    librorc::dma_channel *ch = NULL;
+    librorc::dma_channel *channel = NULL;
     try
     {
-        ch =
+        channel =
             new librorc::dma_channel
             (
                 opts.channelId,
@@ -89,13 +89,13 @@ int main(int argc, char *argv[])
                 eventStream->m_reportBuffer
             );
 
-        ch->enable();
+        channel->enable();
 
         cout << "Waiting for GTX to be ready..." << endl;
-        ch->waitForGTXDomain();
+        channel->waitForGTXDomain();
 
         cout << "Configuring pattern generator ..." << endl;
-        ch->configurePatternGenerator(opts.eventSize);
+        channel->configurePatternGenerator(opts.eventSize);
     }
     catch( int error )
     {
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
         (
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
-            ch,            /** channel struct     */
+            channel,       /** channel struct     */
             chstats,       /** stats struct       */
             sanity_checks, /** do sanity check    */
             NULL,          /** no reference DDL   */
@@ -152,15 +152,15 @@ int main(int argc, char *argv[])
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
     try
-    { ch->closePatternGenerator(); }
+    { channel->closePatternGenerator(); }
     catch(...)
     { cout << "Pattern generator was never configured !!!" << endl; }
 
-    ch->disable();
+    channel->disable();
 
     /** Cleanup */
     shmdt(chstats);
-    delete ch;
+    delete channel;
     delete eventStream;
 
     return result;
