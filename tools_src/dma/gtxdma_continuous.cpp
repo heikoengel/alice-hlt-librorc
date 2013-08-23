@@ -42,7 +42,6 @@ int main( int argc, char *argv[])
     { exit(-1); }
 
     DMA_ABORT_HANDLER_REGISTER
-    sigaction(SIGINT, &sigIntHandler, NULL);
 
     channelStatus *chstats
         = prepareSharedMemory(opts);
