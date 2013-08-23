@@ -116,13 +116,10 @@ int main( int argc, char *argv[])
     /** Event loop */
     int     result        = 0;
     int32_t sanity_checks = 0xff; /** no checks defaults */
+    if(ddlref.map && ddlref.size) {sanity_checks = CHK_FILE;}
+    else {sanity_checks = CHK_SIZES;}
     while( !done )
     {
-        if(ddlref.map && ddlref.size)
-            {sanity_checks = CHK_FILE;}
-        else
-            {sanity_checks = CHK_SIZES;}
-
         result = handle_channel_data
         (
             eventStream->m_reportBuffer,
@@ -133,7 +130,7 @@ int main( int argc, char *argv[])
             ddlref.map,
             ddlref.size
         );
-//ready
+
         if(result < 0)
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);

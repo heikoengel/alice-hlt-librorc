@@ -115,6 +115,7 @@ int main(int argc, char *argv[])
     /** Event loop */
     int     result        = 0;
     int32_t sanity_checks = 0xff; /** no checks defaults */
+
     while( !done )
     {
         result = handle_channel_data
@@ -127,7 +128,7 @@ int main(int argc, char *argv[])
             NULL,          /** no reference DDL   */
             0              /** reference DDL size */
         );
-//ready
+
         if( result < 0 )
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
