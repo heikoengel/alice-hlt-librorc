@@ -104,7 +104,7 @@ int main( int argc, char *argv[])
         if(result < 0)
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
-            abort();
+            return result;
         }
         else if(result==0)
         { usleep(100); } /** no events available */
