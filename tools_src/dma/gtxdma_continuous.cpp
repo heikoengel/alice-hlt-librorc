@@ -79,21 +79,9 @@ int main( int argc, char *argv[])
 
     printDeviceStatus(eventStream);
 
-    /** Create DMA channel */
-    //librorc::dma_channel *channel = NULL;
+    /** Setup DMA channel */
     try
     {
-//        channel =
-//            new librorc::dma_channel
-//            (
-//                opts.channelId,
-//                MAX_PAYLOAD,
-//                eventStream->m_dev,
-//                eventStream->m_bar1,
-//                eventStream->m_eventBuffer,
-//                eventStream->m_reportBuffer
-//            );
-
         eventStream->m_channel->enable();
 
         cout << "Waiting for GTX to be ready..." << endl;
