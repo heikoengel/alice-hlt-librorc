@@ -19,13 +19,14 @@
 #ifndef LIBRORC_EVENT_STREAM_H
 #define LIBRORC_EVENT_STREAM_H
 
-#include "librorc/include_ext.hh"
-#include "librorc/include_int.hh"
+#include <librorc/include_ext.hh>
 
+#include <librorc/dma_channel.hh>
 
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED 1
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED    2
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED 3
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED   1
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED      2
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED   3
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED 4
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
@@ -61,10 +62,11 @@ namespace librorc
             ~event_stream();
 
             /** Member Variables */
-            device *m_dev;
-            bar    *m_bar1;
-            buffer *m_eventBuffer;
-            buffer *m_reportBuffer;
+            device      *m_dev;
+            bar         *m_bar1;
+            buffer      *m_eventBuffer;
+            buffer      *m_reportBuffer;
+            dma_channel *m_channel;
 
 
         protected:

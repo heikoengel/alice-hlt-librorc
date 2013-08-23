@@ -69,6 +69,10 @@ int main( int argc, char *argv[])
             case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED:
             { cout << "ERROR: failed to allocate buffer." << endl; }
             break;
+
+            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED:
+            { cout << "ERROR: failed to allocate DMA-channel." << endl; }
+            break;
         }
         exit(-1);
     }
@@ -76,27 +80,27 @@ int main( int argc, char *argv[])
     printDeviceStatus(eventStream);
 
     /** Create DMA channel */
-    librorc::dma_channel *channel = NULL;
+    //librorc::dma_channel *channel = NULL;
     try
     {
-        channel =
-            new librorc::dma_channel
-            (
-                opts.channelId,
-                MAX_PAYLOAD,
-                eventStream->m_dev,
-                eventStream->m_bar1,
-                eventStream->m_eventBuffer,
-                eventStream->m_reportBuffer
-            );
+//        channel =
+//            new librorc::dma_channel
+//            (
+//                opts.channelId,
+//                MAX_PAYLOAD,
+//                eventStream->m_dev,
+//                eventStream->m_bar1,
+//                eventStream->m_eventBuffer,
+//                eventStream->m_reportBuffer
+//            );
 
-        channel->enable();
+        eventStream->m_channel->enable();
 
         cout << "Waiting for GTX to be ready..." << endl;
-        channel->waitForGTXDomain();
+        eventStream->m_channel->waitForGTXDomain();
 
         cout << "Configuring GTX ..." << endl;
-        channel->configureGTX();
+        eventStream->m_channel->configureGTX();
     }
     catch( int error )
     {
@@ -124,9 +128,9 @@ int main( int argc, char *argv[])
         (
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
-            channel,       /** channel struct     */
-            chstats,       /** stats struct       */
-            sanity_checks, /** do sanity check    */
+            eventStream->m_channel,
+            chstats,
+            sanity_checks,              /** do sanity check    */
             ddlref.map,
             ddlref.size
         );
@@ -153,16 +157,15 @@ int main( int argc, char *argv[])
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
     try
-    { channel->closeGTX(); }
+    { eventStream->m_channel->closeGTX(); }
     catch(...)
     { cout << "Link is down - unable to send EOBTR !!!" << endl; }
 
-    channel->disable();
+    eventStream->m_channel->disable();
 
     /** Cleanup */
     deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
-    delete channel;
     delete eventStream;
 
     return 0;

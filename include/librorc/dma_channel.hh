@@ -20,8 +20,12 @@
 #ifndef LIBRORC_DMA_CHANNEL_H
 #define LIBRORC_DMA_CHANNEL_H
 
-#include "librorc/include_ext.hh"
-#include "librorc/include_int.hh"
+#include <librorc/include_ext.hh>
+
+#include <librorc/sim_bar.hh>
+#include <librorc/bar.hh>
+#include <librorc/device.hh>
+#include <librorc/buffer.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
