@@ -76,10 +76,10 @@ int main( int argc, char *argv[])
     printDeviceStatus(eventStream);
 
     /** Create DMA channel */
-    librorc::dma_channel *ch = NULL;
+    librorc::dma_channel *channel = NULL;
     try
     {
-        ch =
+        channel =
             new librorc::dma_channel
             (
                 opts.channelId,
@@ -90,13 +90,13 @@ int main( int argc, char *argv[])
                 eventStream->m_reportBuffer
             );
 
-        ch->enable();
+        channel->enable();
 
         cout << "Waiting for GTX to be ready..." << endl;
-        ch->waitForGTXDomain();
+        channel->waitForGTXDomain();
 
         cout << "Configuring GTX ..." << endl;
-        ch->configureGTX();
+        channel->configureGTX();
     }
     catch( int error )
     {
@@ -124,7 +124,7 @@ int main( int argc, char *argv[])
         (
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
-            ch,            /** channel struct     */
+            channel,       /** channel struct     */
             chstats,       /** stats struct       */
             sanity_checks, /** do sanity check    */
             ddlref.map,
@@ -141,7 +141,6 @@ int main( int argc, char *argv[])
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
-        /** print status line each second */
         last_time =
             printStatusLine
                 (last_time, cur_time, chstats,
@@ -154,16 +153,16 @@ int main( int argc, char *argv[])
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
     try
-    { ch->closeGTX(); }
+    { channel->closeGTX(); }
     catch(...)
     { cout << "Link is down - unable to send EOBTR !!!" << endl; }
 
-    ch->disable();
+    channel->disable();
 
     /** Cleanup */
     deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
-    delete ch;
+    delete channel;
     delete eventStream;
 
     return 0;

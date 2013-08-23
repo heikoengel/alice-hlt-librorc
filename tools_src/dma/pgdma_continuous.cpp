@@ -139,7 +139,6 @@ int main(int argc, char *argv[])
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
-        /** print status line each second */
         last_time =
             printStatusLine
                 (last_time, cur_time, chstats,
