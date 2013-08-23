@@ -100,6 +100,7 @@ bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
 channelStatus *prepareSharedMemory(DMAOptions opts);
+librorc::event_stream *prepareEventStream(DMAOptions opts);
 DDLRefFile getDDLReferenceFile(DMAOptions opts);
 void deleteDDLReferenceFile(DDLRefFile ddlref);
 
