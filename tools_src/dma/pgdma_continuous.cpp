@@ -32,7 +32,6 @@ DMA_ABORT_HANDLER
 
 int main(int argc, char *argv[])
 {
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -44,6 +43,7 @@ int main(int argc, char *argv[])
     { exit(-1); }
 
     DMA_ABORT_HANDLER_REGISTER
+    sigaction(SIGINT, &sigIntHandler, NULL);
 
     channelStatus *chstats
         = prepareSharedMemory(opts);
@@ -73,10 +73,13 @@ int main(int argc, char *argv[])
     }
 
     /** Print some stats */
-    printf("Bus %x, Slot %x, Func %x\n",
-            eventStream->m_dev->getBus(),
-            eventStream->m_dev->getSlot(),
-            eventStream->m_dev->getFunc());
+    printf
+    (
+        "Bus %x, Slot %x, Func %x\n",
+        eventStream->m_dev->getBus(),
+        eventStream->m_dev->getSlot(),
+        eventStream->m_dev->getFunc()
+    );
 
     try
     {
@@ -90,7 +93,7 @@ int main(int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Create DMA channel */
-    librorc::dma_channel *ch;
+    librorc::dma_channel *ch = NULL;
     try
     {
         ch =
@@ -103,32 +106,20 @@ int main(int argc, char *argv[])
                 eventStream->m_eventBuffer,
                 eventStream->m_reportBuffer
             );
+
         ch->enable();
+
+        cout << "Waiting for GTX to be ready..." << endl;
+        ch->waitForGTXDomain();
+
+        cout << "Configuring pattern generator ..." << endl;
+        ch->configurePatternGenerator(opts.eventSize);
     }
     catch( int error )
     {
         cout << "DMA channel failed (ERROR :" << error << ")" << endl;
         return(-1);
     }
-
-//ready
-
-    /**
-     * wait for GTX domain to be ready
-     * read asynchronous GTX status
-     * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
-     * & !gtx_in_rst
-     **/
-    printf("Waiting for GTX to be ready...\n");
-    while( (ch->getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
-        { usleep(100); }
-
-//PG SPECIFIC
-    /** Configure Pattern Generator */
-    ch->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, opts.eventSize);
-    ch->setGTX(RORC_REG_DDL_CTRL, ch->getGTX(RORC_REG_DDL_CTRL) | 0x600);
-    ch->setGTX(RORC_REG_DDL_CTRL, ch->getGTX(RORC_REG_DDL_CTRL) | 0x100);
-//PG SPECIFIC
 
     /** capture starting time */
     timeval start_time;
@@ -139,83 +130,41 @@ int main(int argc, char *argv[])
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
-    int result = 0;
-    sigaction(SIGINT, &sigIntHandler, NULL);
+    int     result        = 0;
+    int32_t sanity_checks = 0xff; /** no checks defaults */
     while( !done )
     {
-    /** ... triggered from CTRL+C                  */
-
         result = handle_channel_data
         (
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
-            ch,      /** channel struct     */
-            chstats, /** stats struct       */
-            0xff,    /** do sanity check    */
-            NULL,    /** no reference DDL   */
-            0        /** reference DDL size */
+            ch,            /** channel struct     */
+            chstats,       /** stats struct       */
+            sanity_checks, /** do sanity check    */
+            NULL,          /** no reference DDL   */
+            0              /** reference DDL size */
         );
-
+//ready
         if( result < 0 )
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
             abort();
         }
         else if( result==0 )
-        {
-            /** no events available */
-            usleep(100);
-        }
+        { usleep(100); } /** no events available */
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
         /** print status line each second */
-        if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL)
-        {
-            printf
-            (
-                "Events: %10ld, DataSize: %8.3f GB",
-                chstats->n_events,
-                (double)chstats->bytes_received/(double)(1<<30)
-            );
-
-            if( chstats->bytes_received-last_bytes_received )
-            {
-                printf
-                (
-                    " DataRate: %9.3f MB/s",
-                    (double)(chstats->bytes_received-last_bytes_received)/
-                    gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
-                );
-            }
-            else
-            {
-                printf(" DataRate: -");
-            }
-
-            if( chstats->n_events - last_events_received)
-            {
-                printf
-                (
-                    " EventRate: %9.3f kHz/s",
-                    (double)(chstats->n_events-last_events_received)/
-                    gettimeofday_diff(last_time, cur_time)/1000.0
-                );
-            }
-            else
-            {
-                printf(" EventRate: -");
-            }
-
-            printf(" Errors: %ld\n", chstats->error_count);
-            last_time = cur_time;
-            last_bytes_received = chstats->bytes_received;
-            last_events_received = chstats->n_events;
-        }
+        last_time =
+            printStatusLine
+                (last_time, cur_time, chstats,
+                    &last_events_received, &last_bytes_received);
     }
 
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
+
     printf
     (
         "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
@@ -226,9 +175,7 @@ int main(int argc, char *argv[])
     );
 
     if(!chstats->set_offset_count)
-    {
-        printf("CH%d: No Events\n", opts.channelId);
-    }
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
     {
         printf
@@ -243,17 +190,17 @@ int main(int argc, char *argv[])
         );
     }
 
-    /** Disable PG */
-    ch->setGTX(RORC_REG_DDL_CTRL, 0x0);
+    try
+    { ch->closePatternGenerator(); }
+    catch(...)
+    { cout << "Pattern generator was never configured !!!" << endl; }
 
-    /** Disable DMA Engine */
+    /** Disable event-buffer -> no further sg-entries to PKT */
     ch->setEnableEB(0);
 
     /** Wait for pending transfers to complete (dma_busy->0) */
     while( ch->getDMABusy() )
-    {
-        usleep(100);
-    }
+    { usleep(100); }
 
     /** Disable RBDM */
     ch->setEnableRB(0);
@@ -261,14 +208,14 @@ int main(int argc, char *argv[])
     /** Reset DFIFO, disable DMA PKT */
     ch->setDMAConfig(0X00000002);
 
-    /** cleanup */
+    /** Cleanup */
     if(chstats)
     {
         shmdt(chstats);
         chstats = NULL;
     }
 
-    if(ch)
+    if(ch != NULL)
     { delete ch; }
 
     return result;

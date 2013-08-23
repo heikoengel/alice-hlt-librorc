@@ -79,6 +79,9 @@ dma_channel::dma_channel
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
 
+    m_is_pattern_generator = false;
+    m_is_gtx               = false;
+
     m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
     m_channel      = channel_number;
     m_dev          = dev;
@@ -108,6 +111,9 @@ dma_channel::dma_channel
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
+
+    m_is_pattern_generator = false;
+    m_is_gtx               = false;
 
     m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
     m_channel      = channel_number;
@@ -165,10 +171,146 @@ dma_channel::enable()
 
 
 void
-dma_channel::setEnableEB
-(
-    int32_t enable
-)
+dma_channel::waitForGTXDomain()
+{
+    /**
+     * wait for GTX domain to be ready read asynchronous GTX status
+     * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
+     * & !gtx_in_rst
+    **/
+    while( (getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
+    { usleep(100); }
+}
+
+
+
+void
+dma_channel::configurePatternGenerator(uint32_t eventSize)
+{
+    if(m_is_gtx)
+    {
+        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED;
+    }
+
+    /** Configure Pattern Generator */
+    setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x600) );
+    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x100) );
+    m_is_pattern_generator = true;
+}
+
+
+
+void
+dma_channel::closePatternGenerator()
+{
+    if(!m_is_pattern_generator)
+    {
+        throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_PATTERN_GENERATOR_FAILED;
+    }
+
+    setGTX(RORC_REG_DDL_CTRL, 0x0);
+
+    m_is_pattern_generator = false;
+}
+
+
+
+void
+dma_channel::configureGTX()
+{
+    if(m_is_pattern_generator)
+    {
+        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED;
+    }
+
+    /** set ENABLE, activate flow control (DIU_IF:busy) */
+    setGTX(RORC_REG_DDL_CTRL, 0x00000003);
+
+    /** wait for riLD_N='1' */
+    while( (getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
+        {usleep(100);}
+
+    /** clear DIU_IF IFSTW, CTSTW */
+    setGTX(RORC_REG_DDL_IFSTW, 0);
+    setGTX(RORC_REG_DDL_CTSTW, 0);
+
+    /** send EOBTR to close any open transaction */
+    setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+
+    waitForCommandTransmissionStatusWord();
+
+    /** clear DIU_IF IFSTW */
+    setGTX(RORC_REG_DDL_IFSTW, 0);
+    setGTX(RORC_REG_DDL_CTSTW, 0);
+
+    /** send RdyRx to SIU */
+    setGTX(RORC_REG_DDL_CMD, 0x00000014);
+
+    waitForCommandTransmissionStatusWord();
+
+    /** clear DIU_IF IFSTW */
+    setGTX(RORC_REG_DDL_IFSTW, 0);
+    setGTX(RORC_REG_DDL_CTSTW, 0);
+
+    m_is_gtx = true;
+}
+
+
+
+void
+dma_channel::closeGTX()
+{
+    if(!m_is_gtx)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
+
+    /** check if link is still up: LD_N == 1 */
+    if( getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
+    {
+        /** disable BUSY -> drop current data in chain */
+        setGTX(RORC_REG_DDL_CTRL, 0x00000001);
+
+        /** wait for LF_N to go high */
+        while(!(getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
+        {usleep(100);}
+
+        /** clear DIU_IF IFSTW */
+        setGTX(RORC_REG_DDL_IFSTW, 0);
+        setGTX(RORC_REG_DDL_CTSTW, 0);
+
+        /** Send EOBTR command */
+        setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+
+        /** wait for command transmission status word (CTST)
+         * in response to the EOBTR:
+         * STS[7:4]="0000"
+         */
+        while(getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
+        {usleep(100);}
+
+        /** disable DIU_IF */
+        setGTX(RORC_REG_DDL_CTRL, 0x00000000);
+    }
+    else
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
+
+    m_is_gtx = false;
+}
+
+
+
+void
+dma_channel::waitForCommandTransmissionStatusWord()
+{
+    /** wait for command transmission status word (CTSTW) from DIU */
+    while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
+    { usleep(100); }
+}
+
+
+
+void
+dma_channel::setEnableEB(int32_t enable)
 {
     uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
     if(enable)

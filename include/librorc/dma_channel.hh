@@ -23,8 +23,12 @@
 #include "librorc/include_ext.hh"
 #include "librorc/include_int.hh"
 
-#define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED  1
-#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED       2
+#define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
+#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
+#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED 3
+#define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_PATTERN_GENERATOR_FAILED  4
+#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED               5
+#define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED                6
 
 /** default maximum payload size in bytes. Check the capabilities
  *  of the chipset and the FPGA PCIe core before modifying this value
@@ -78,6 +82,13 @@ namespace librorc
             ~dma_channel();
 
             void enable();
+            void waitForGTXDomain();
+
+            void configurePatternGenerator(uint32_t eventSize);
+            void closePatternGenerator();
+
+            void configureGTX();
+            void closeGTX();
 
             /**
              * set Enable Bit of EBDM
@@ -393,6 +404,9 @@ namespace librorc
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
 
+            bool      m_is_pattern_generator;
+            bool      m_is_gtx;
+
             bar      *m_bar;
             device   *m_dev;
             buffer   *m_eventBuffer;
@@ -435,6 +449,8 @@ namespace librorc
              * @return 0 on sucess, <0 on error
              **/
             int32_t configureChannel(uint32_t pcie_packet_size);
+
+            void waitForCommandTransmissionStatusWord();
     };
 
 }
