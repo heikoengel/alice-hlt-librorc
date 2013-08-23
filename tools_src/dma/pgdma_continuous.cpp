@@ -1,7 +1,7 @@
 /**
  * @file
  * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
- * @date 2012-11-14
+ * @date 2013-08-23
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
+    /** Create event stream */
     librorc::event_stream *eventStream = NULL;
     try
     { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId); }
@@ -154,28 +155,12 @@ int main(int argc, char *argv[])
     catch(...)
     { cout << "Pattern generator was never configured !!!" << endl; }
 
-    /** Disable event-buffer -> no further sg-entries to PKT */
-    ch->setEnableEB(0);
-
-    /** Wait for pending transfers to complete (dma_busy->0) */
-    while( ch->getDMABusy() )
-    { usleep(100); }
-
-    /** Disable RBDM */
-    ch->setEnableRB(0);
-
-    /** Reset DFIFO, disable DMA PKT */
-    ch->setDMAConfig(0X00000002);
+    ch->disable();
 
     /** Cleanup */
-    if(chstats)
-    {
-        shmdt(chstats);
-        chstats = NULL;
-    }
-
-    if(ch != NULL)
-    { delete ch; }
+    shmdt(chstats);
+    delete ch;
+    delete eventStream;
 
     return result;
 }

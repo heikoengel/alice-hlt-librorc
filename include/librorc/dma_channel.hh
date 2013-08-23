@@ -82,6 +82,7 @@ namespace librorc
             ~dma_channel();
 
             void enable();
+            void disable();
             void waitForGTXDomain();
 
             void configurePatternGenerator(uint32_t eventSize);

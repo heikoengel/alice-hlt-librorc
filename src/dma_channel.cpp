@@ -159,13 +159,29 @@ dma_channel::~dma_channel()
 void
 dma_channel::enable()
 {
-    if(!m_eventBuffer || !m_reportBuffer)
+    if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
     setEnableEB(1);
     setEnableRB(1);
 
     setDMAConfig( getDMAConfig() | 0x01 );
+}
+
+
+
+void
+dma_channel::disable()
+{
+    setEnableEB(0);
+
+    while(getDMABusy())
+    { usleep(100); }
+
+    setEnableRB(0);
+
+    /** Reset DFIFO, disable DMA PKT */
+    setDMAConfig(0X00000002);
 }
 
 
