@@ -71,25 +71,7 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    /** Print some stats */
-    printf
-    (
-        "Bus %x, Slot %x, Func %x\n",
-        eventStream->m_dev->getBus(),
-        eventStream->m_dev->getSlot(),
-        eventStream->m_dev->getFunc()
-    );
-
-    try
-    {
-        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
-        cout << "CRORC FPGA" << endl
-             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
-        delete sm;
-    }
-    catch(...)
-    { cout << "Firmware Rev. and Date not available!" << endl; }
+    printDeviceStatus(eventStream);
 
     /** Create DMA channel */
     librorc::dma_channel *ch = NULL;
@@ -120,7 +102,7 @@ int main(int argc, char *argv[])
         return(-1);
     }
 
-    /** capture starting time */
+    /** Capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
@@ -129,6 +111,7 @@ int main(int argc, char *argv[])
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
+    /** Event loop */
     int     result        = 0;
     int32_t sanity_checks = 0xff; /** no checks defaults */
     while( !done )
