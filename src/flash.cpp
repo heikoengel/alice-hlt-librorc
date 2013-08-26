@@ -34,25 +34,13 @@ flash::flash
         throw 1;
     }
 
-    if(chip_select & 0xfffffffffffffffe)
+    if(chip_select > 1)
     {
         throw 2;
     }
 
     m_bar           = flashbar;
     m_base_addr     = chip_select << FLASH_CHIP_SELECT_BIT;
-    uint16_t status = getStatusRegister(0);
-
-    if( status != 0x0080 )
-    {
-        clearStatusRegister(0);
-        usleep(100);
-        if ( status & 0x0084 )
-        {
-            programResume(0);
-        }
-        status = getStatusRegister(0);
-    }
 }
 
 
@@ -200,7 +188,6 @@ flash::resetBlock
 {
     /** Send Clear Status Command **/
     clearStatusRegister(blkaddr);
-    clearStatusRegister(blkaddr);
 
     /** Sample the Status **/
     uint16_t status = getStatusRegister(blkaddr);
@@ -269,14 +256,15 @@ flash::programBuffer
     }
 
     /** send write buffer command */
-    sendCommand(arch.blkaddr, FLASH_CMD_BUFFER_PROG);
+    sendCommand(addr, FLASH_CMD_BUFFER_PROG);
+    /** read Status register */
+    uint16_t status = get(addr);
 
-    /** wait for buffer to become available */
-    uint16_t status = get(arch.blkaddr);
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
-        status = get(arch.blkaddr);
+        /** read Status register */
+        status = get(addr);
         timeout--;
         if(timeout == 0)
         {
@@ -290,7 +278,7 @@ flash::programBuffer
     }
 
     /** write word count */
-    m_bar->set16(m_base_addr + arch.blkaddr, length - 1);
+    m_bar->set16(m_base_addr + addr, length - 1);
 
     for(int32_t i=0; i < length; i++)
     {
