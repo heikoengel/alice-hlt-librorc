@@ -188,7 +188,6 @@ flash::resetBlock
 {
     /** Send Clear Status Command **/
     clearStatusRegister(blkaddr);
-    //clearStatusRegister(blkaddr);
 
     /** Sample the Status **/
     uint16_t status = getStatusRegister(blkaddr);

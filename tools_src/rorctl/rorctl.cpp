@@ -558,7 +558,7 @@ librorc::flash*
 flash_status
 (
     librorc::flash *flash
-    )
+)
 {
     flash->clearStatusRegister(0);
     uint16_t flashstatus = flash->getStatusRegister(0);
