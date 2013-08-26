@@ -52,13 +52,15 @@ sim_bar::sim_bar
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( m_sockfd < 0 )
     {
-        perror("ERROR opening socket");
+        cout << "ERROR: failed to open socket" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     struct hostent *server = gethostbyname(MODELSIM_SERVER);
     if( server == NULL )
     {
-        perror("ERROR, no sich host");
+        cout << "ERROR: no such host" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     struct sockaddr_in serv_addr;
@@ -71,7 +73,8 @@ sim_bar::sim_bar
     serv_addr.sin_port = htons(2000);
     if( 0 > connect(m_sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) )
     {
-        perror("ERROR connecting");
+        cout << "ERROR connecting" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     /** create pipe for redirecting read requests to completion handler
@@ -80,7 +83,8 @@ sim_bar::sim_bar
      */
     if( pipe(m_pipefd) == -1 )
     {
-        perror("Failed to create PIPE");
+        cout << "ERROR: Failed to create PIPE" << endl;
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     /** completion handler */
@@ -107,112 +111,12 @@ sim_bar::~sim_bar()
 
 
 
-int
-sim_bar::init()
-{
-    return 0;
-}
-
-
-
-uint32_t
-sim_bar::get
-(
-    uint64_t addr
-)
-{
-    uint32_t  data = 0;
-    pthread_mutex_lock(&m_mtx);
-    {
-        uint32_t buffersize = 4;
-        uint32_t buffer[buffersize];
-        buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
-        buffer[1] = m_msgid;
-        buffer[2] = addr<<2;
-        /** BAR, BE, length */
-        buffer[3] = (m_number<<24) + (0x0f<<16) + 1;
-
-        if
-        (
-            write( m_sockfd, buffer, sizeof(uint32_t)*buffersize )
-                != (ssize_t)(sizeof(uint32_t)*buffersize)
-        )
-        {
-            cout << "ERROR writing to socket" << endl;
-        }
-        else
-        {
-            /** wait for completion */
-            while( !m_read_from_dev_done )
-            {
-                usleep(USLEEP_TIME);
-            }
-
-            data = m_read_from_dev_data;
-            m_read_from_dev_done = 0;
-
-            DEBUG_PRINTF("%d: get(0x%lx)=%08x\n", m_msgid, addr, data);
-
-            m_msgid++;
-        }
-    }
-    pthread_mutex_unlock(&m_mtx);
-    return data;
-}
-
-
-
 void
-sim_bar::set
+sim_bar::memcopy
 (
-    uint64_t addr,
-    uint32_t data
-)
-{
-    /** send write command to Modelsim FLI server */
-    pthread_mutex_lock(&m_mtx);
-    {
-        int32_t  buffersize = 5;
-        uint32_t buffer[buffersize];
-        buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
-        buffer[1] = m_msgid;
-        buffer[2] = addr<<2;
-        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
-        buffer[4] = data;
-
-        if
-        (
-            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
-                != (ssize_t)(buffersize*sizeof(uint32_t))
-        )
-        {
-            cout << "ERROR writing to socket" << endl;
-        }
-        else
-        {
-            /** wait for FLI acknowledgement */
-            while( !m_write_to_dev_done )
-            {
-                usleep(USLEEP_TIME);
-            }
-            m_write_to_dev_done=0;
-
-            DEBUG_PRINTF("%d: set(0x%lx, %08x)\n", m_msgid, addr, data);
-
-            m_msgid++;
-        }
-    }
-    pthread_mutex_unlock(&m_mtx);
-}
-
-
-
-void
-sim_bar::memcpy_bar
-(
-    uint64_t    addr,
-    const void *source,
-    size_t      num
+    librorc_bar_address  target,
+    const void          *source,
+    size_t               num
 )
 {
     pthread_mutex_lock(&m_mtx);
@@ -222,7 +126,7 @@ sim_bar::memcpy_bar
         uint32_t buffer[buffersize];
         buffer[0] = ((ndw+4)<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = m_msgid;
-        buffer[2] = addr<<2;
+        buffer[2] = target<<2;
         if( ndw > 1 )
         {
             /** BAR, BE, length */
@@ -253,7 +157,8 @@ sim_bar::memcpy_bar
             }
             m_write_to_dev_done=0;
 
-            DEBUG_PRINTF("%d: memcpy %ld DWs to %lx\n", m_msgid, ndw, addr);
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: memcpy %ld DWs to %lx\n",
+                    m_msgid, ndw, target);
             m_msgid++;
         }
 
@@ -263,11 +168,66 @@ sim_bar::memcpy_bar
 
 
 
-uint16_t
-sim_bar::get16
+void
+sim_bar::memcopy
 (
-    uint64_t addr
+    void                *target,
+    librorc_bar_address  source,
+    size_t               num
 )
+{
+    pthread_mutex_lock(&m_mtx);
+    //TODO : needs to be implemented!
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
+uint32_t sim_bar::get32(librorc_bar_address address )
+{
+    uint32_t  data = 0;
+    pthread_mutex_lock(&m_mtx);
+    {
+        uint32_t buffersize = 4;
+        uint32_t buffer[buffersize];
+        buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
+        buffer[1] = m_msgid;
+        buffer[2] = address<<2;
+        /** BAR, BE, length */
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1;
+
+        if
+        (
+            write( m_sockfd, buffer, sizeof(uint32_t)*buffersize )
+                != (ssize_t)(sizeof(uint32_t)*buffersize)
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for completion */
+            while( !m_read_from_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+
+            data = m_read_from_dev_data;
+            m_read_from_dev_done = 0;
+
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get32(0x%lx)=%08x\n",
+                    m_msgid, address, data);
+
+            m_msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+    return data;
+}
+
+
+
+uint16_t sim_bar::get16(librorc_bar_address address )
 {
     uint16_t data = 0;
     pthread_mutex_lock(&m_mtx);
@@ -276,8 +236,8 @@ sim_bar::get16
         uint32_t buffer[buffersize];
         buffer[0] = (4<<16) + CMD_READ_FROM_DEVICE;
         buffer[1] = m_msgid;
-        buffer[2] = (addr<<1) & ~(0x03);
-        if ( addr & 0x01 )
+        buffer[2] = (address<<1) & ~(0x03);
+        if( address & 0x01 )
         {
             /** BAR, BE, length */
             buffer[3] = (m_number<<24) + (0x0c<<16) + 1;
@@ -305,6 +265,10 @@ sim_bar::get16
             }
             data = m_read_from_dev_data & 0xffff;
             m_read_from_dev_done = 0;
+
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get16(0x%lx)=%04x\n",
+                    m_msgid, address, data);
+
             m_msgid++;
         }
     }
@@ -316,9 +280,55 @@ sim_bar::get16
 
 
 void
+sim_bar::set32
+(
+    librorc_bar_address address,
+    uint32_t data
+)
+{
+    /** send write command to Modelsim FLI server */
+    pthread_mutex_lock(&m_mtx);
+    {
+        int32_t  buffersize = 5;
+        uint32_t buffer[buffersize];
+        buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
+        buffer[1] = m_msgid;
+        buffer[2] = address<<2;
+        buffer[3] = (m_number<<24) + (0x0f<<16) + 1; //BAR, BE, length
+        buffer[4] = data;
+
+        if
+        (
+            write( m_sockfd, buffer, buffersize*sizeof(uint32_t) )
+                != (ssize_t)(buffersize*sizeof(uint32_t))
+        )
+        {
+            cout << "ERROR writing to socket" << endl;
+        }
+        else
+        {
+            /** wait for FLI acknowledgement */
+            while( !m_write_to_dev_done )
+            {
+                usleep(USLEEP_TIME);
+            }
+            m_write_to_dev_done=0;
+
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set32(0x%lx, %08x)\n",
+                    m_msgid, address, data);
+
+            m_msgid++;
+        }
+    }
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
+
+void
 sim_bar::set16
 (
-    uint64_t addr,
+    librorc_bar_address address,
     uint16_t data
 )
 {
@@ -329,8 +339,8 @@ sim_bar::set16
         uint32_t buffer[buffersize];
         buffer[0] = (5<<16) + CMD_WRITE_TO_DEVICE;
         buffer[1] = m_msgid;
-        buffer[2] = (addr<<1) & ~(0x03);
-        if ( addr & 0x01 )
+        buffer[2] = (address<<1) & ~(0x03);
+        if ( address & 0x01 )
         {
             /** BAR, BE, length */
             buffer[3] = (m_number<<24) + (0x0c<<16) + 1;
@@ -358,6 +368,10 @@ sim_bar::set16
                 usleep(USLEEP_TIME);
             }
             m_write_to_dev_done=0;
+
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set32(0x%lx, %04x)\n",
+                    m_msgid, address, data);
+
             m_msgid++;
         }
     }
@@ -461,7 +475,7 @@ sim_bar::sockMonitor()
         if (result == 0)
         {
             /** terminate if 0 characters received */
-            cout << "librorc::sim_bar::readDWfromSock: closing socket" << endl;
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "readDWfromSock: closing socket\n");
             close(sock);
         }
         else if (result!=sizeof(uint32_t))
@@ -482,7 +496,7 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=4)
         {
-            cout << "Invalid message size for CMD_CMPL_TO_HOST : "
+            cout << "ERROR: Invalid message size for CMD_CMPL_TO_HOST: "
                  << msgsize << endl;
         }
 
@@ -516,7 +530,7 @@ sim_bar::sockMonitor()
         uint64_t buffer_id = 0;
         if( getOffset(addr, &buffer_id, &offset) )
         {
-            cout << "Could not find physical address "
+            cout << "ERROR: Could not find physical address "
                  << addr << endl;
         }
         else
@@ -535,8 +549,9 @@ sim_bar::sockMonitor()
 
             uint32_t *mem = buf->getMem();
             memcpy(mem+(offset>>2), msg_buffer, msgsize*sizeof(uint32_t));
-            cout << "CMD_WRITE_TO_HOST: " << msgsize << " DWs to buf "
-                 << buffer_id << " offset " << offset << endl;
+
+            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "CMD_WRITE_TO_HOST: %d DWs to buf %ld offset 0x%lx\n",
+                    msgsize, buffer_id, offset);
 
             delete buf;
         }
@@ -568,12 +583,12 @@ sim_bar::sockMonitor()
         rdreq.lower_addr   = (addr & 0xff);
         rdreq.requester_id = reqid;
 
-        cout << "sock_monitor: CMD_READ_FROM_HOST: " << dec << rdreq.length
-             << " bytes from 0x" << hex << addr << endl;
+        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "CMD_READ_FROM_HOST: %d bytes from 0x%lx, tag=%d\n",
+                rdreq.length, addr, rdreq.tag);
 
         if( getOffset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
         {
-            cout << "Could not find physical address " << addr << endl;
+            cout << "ERROR: Could not find physical address " << addr << endl;
         }
         else
         {
@@ -584,7 +599,7 @@ sim_bar::sockMonitor()
                     != write(m_pipefd[1], &rdreq, sizeof(rdreq))
             )
             {
-                cout << "Write to pipe failed with" << endl;
+                cout << "ERROR: Write to pipe failed with" << endl;
             }
         }
     }
@@ -598,7 +613,7 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=2)
         {
-            cout << "Invalid message size for CMD_ACK_CMPL: "
+            cout << "ERROR: Invalid message size for CMD_ACK_CMPL: "
                  << msgsize << endl;
         }
         m_cmpl_to_dev_done = 1;
@@ -613,7 +628,7 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=2)
         {
-            cout << "Invalid message size for CMD_ACK_WRITE: "
+            cout << "ERROR: Invalid message size for CMD_ACK_WRITE: "
                  << msgsize << endl;
         }
         m_write_to_dev_done = 1;
@@ -628,7 +643,7 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=3)
         {
-            cout << "Invalid message size for CMD_ACK_TIME: "
+            cout << "ERROR: Invalid message size for CMD_ACK_TIME: "
                  << msgsize << endl;
         }
         m_read_from_dev_data = readDWfromSock(m_sockfd);
@@ -715,7 +730,7 @@ sim_bar::cmplHandler()
     {
         if(result<0)
         {
-            cout << "Failed to read from pipe: "
+            cout << "ERROR: Failed to read from pipe: "
                  << result << endl;
             break;
         }
@@ -732,7 +747,7 @@ sim_bar::cmplHandler()
         }
         catch(...)
         {
-            cout << "Failed to connect to buffer "
+            cout << "ERROR: Failed to connect to buffer "
                  << rdreq.buffer_id << endl;
             abort();
         }
@@ -775,7 +790,7 @@ sim_bar::cmplHandler()
                 result = write(m_sockfd, buffer, buffersize);
                 if( result!=buffersize )
                 {
-                    cout << "CMD_CMPL_TO_DEVICE write failed with "
+                    cout << "ERROR: CMD_CMPL_TO_DEVICE write failed with "
                          << result;
                 }
                 else
@@ -787,10 +802,9 @@ sim_bar::cmplHandler()
                     }
                     m_cmpl_to_dev_done = 0;
 
-                    cout << "cmpl_handler: CMD_CMPL_TO_DEVICE: tag=" << dec << int(rdreq.tag)
-                         << ", length=" << length << " bytes, buffer=" << rdreq.buffer_id
-                         << ", offset=" << (rdreq.offset>>2) << ", MP=" << MAX_PAYLOAD
-                         << ", Req:" << rdreq.length << endl;
+                    DEBUG_PRINTF(PDADEBUG_EXTERNAL,
+                            "CMD_CMPL_TO_DEVICE tag=%d, length=%d B, buffer=%ld, offset=0x%x\n",
+                            rdreq.tag, length, rdreq.buffer_id, (rdreq.offset>>2));
                 }
             }
             pthread_mutex_unlock(&m_mtx);
@@ -803,7 +817,7 @@ sim_bar::cmplHandler()
         delete buf;
     }
 
-    cout << "Pipe has been closed, cmpl_handler stopping." << endl;
+    DEBUG_PRINTF(PDADEBUG_EXTERNAL, "Pipe has been closed, cmpl_handler stopping.\n");
 
     return 0;
 }
@@ -811,7 +825,7 @@ sim_bar::cmplHandler()
 
 
 size_t
-sim_bar::getSize()
+sim_bar::size()
 {
     return m_size;
 }

@@ -303,15 +303,16 @@ print_device
     catch(...){ exit(0); }
 
     /** Instantiate a new bar */
+    librorc::bar *bar = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar
-            = new librorc::sim_bar(dev, 1);
+        bar = new librorc::sim_bar(dev, 1);
     #else
-        librorc::bar *bar
-            = new librorc::rorc_bar(dev, 1);
+        bar = new librorc::rorc_bar(dev, 1);
     #endif
-
-    if ( bar->init() == -1 )
+    }
+    catch(...)
     {
         printf("ERROR: failed to initialize BAR.\n");
         return;
@@ -371,15 +372,16 @@ init_flash
         options.chip_select = 0;
     }
 
+    librorc::bar *bar = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar
-            = new librorc::sim_bar(options.dev, 0);
+        bar = new librorc::sim_bar(options.dev, 0);
     #else
-        librorc::bar *bar
-            = new librorc::rorc_bar(options.dev, 0);
+        bar = new librorc::rorc_bar(options.dev, 0);
     #endif
-
-    if(bar->init() == -1)
+    }
+    catch(...)
     {
         cout << "BAR0 init failed" << endl;
         return(NULL);
@@ -447,13 +449,16 @@ show_device_monitor
     }
 
     /** bind to BAR1 */
+    librorc::bar *bar1 = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar1 = new librorc::sim_bar(dev, 1);
+        bar1 = new librorc::sim_bar(dev, 1);
     #else
-        librorc::bar *bar1 = new librorc::rorc_bar(dev, 1);
+        bar1 = new librorc::rorc_bar(dev, 1);
     #endif
-
-    if ( bar1->init() == -1 )
+    }
+    catch(...)
     {
         return -1;
     }

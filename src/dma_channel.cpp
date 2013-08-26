@@ -25,79 +25,36 @@
 
 using namespace std;
 
-/** struct holding both read pointers and the
- *  DMA engine configuration register contents
- **/
-struct
+typedef struct
 __attribute__((__packed__))
-librorc_buffer_software_pointers
 {
-    /** EBDM read pointer low **/
-    uint32_t ebdm_software_read_pointer_low;
+    volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
+    volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
+    volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
+    volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
+    volatile uint32_t dma_ctrl;                        /** DMA control register **/
+} librorc_buffer_software_pointers;
 
-    /** EBDM read pointer high **/
-    uint32_t ebdm_software_read_pointer_high;
-
-    /** RBDM read pointer low **/
-    uint32_t rbdm_software_read_pointer_low;
-
-    /** RBDM read pointer high **/
-    uint32_t rbdm_software_read_pointer_high;
-
-    /** DMA control register **/
-    uint32_t dma_ctrl;
-};
-
-
-
-struct
+typedef struct
 __attribute__((__packed__))
-librorc_channel_config
 {
-    /** EBDM number of sg entries **/
-    uint32_t ebdm_n_sg_config;
+    volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
+    volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
+    volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
+    volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
+    volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
+    volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
+    volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
+} librorc_channel_config;
 
-    /** EBDM buffer size low (in bytes) **/
-    uint32_t ebdm_buffer_size_low;
-
-    /** EBDM buffer size high (in bytes) **/
-    uint32_t ebdm_buffer_size_high;
-
-    /** RBDM number of sg entries **/
-    uint32_t rbdm_n_sg_config;
-
-    /** RBDM buffer size low (in bytes) **/
-    uint32_t rbdm_buffer_size_low;
-
-    /** RBDM buffer size high (in bytes) **/
-    uint32_t rbdm_buffer_size_high;
-
-    /** struct for read pointers nad control register **/
-    struct librorc_buffer_software_pointers swptrs;
-
-};
-
-
-
-/** struct t_sg_entry_cfg **/
-struct
+typedef struct
 __attribute__((__packed__))
-t_sg_entry_cfg
 {
-    /** lower part of sg address **/
-    uint32_t sg_addr_low;
-
-    /** higher part of sg address **/
-    uint32_t sg_addr_high;
-
-    /** total length of sg entry in bytes **/
-    uint32_t sg_len;
-
-    /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
-    uint32_t ctrl;
-};
-
-
+    uint32_t sg_addr_low;  /** lower part of sg address **/
+    uint32_t sg_addr_high; /** higher part of sg address **/
+    uint32_t sg_len;       /** total length of sg entry in bytes **/
+    uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
+} librorc_sg_entry_config;
 
 /** extern error number **/
 extern int errno;
@@ -110,13 +67,74 @@ namespace librorc
 /**
  * Constructor
  * */
-dma_channel::dma_channel()
+
+dma_channel::dma_channel
+(
+    uint32_t  channel_number,
+    device   *dev,
+    bar      *bar
+)
 {
-    m_bar              = NULL;
-    m_base             = 0;
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
     m_pcie_packet_size = 0;
+
+    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel      = channel_number;
+    m_dev          = dev;
+    m_bar          = bar;
+
+    m_eventBuffer  = NULL;
+    m_reportBuffer = NULL;
+
+    /** Check that requested channel is implemented in firmware */
+    if( !m_dev->DMAChannelIsImplemented(channel_number) )
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+}
+
+
+
+dma_channel::dma_channel
+(
+    uint32_t  channel_number,
+    uint32_t  pcie_packet_size,
+    device   *dev,
+    bar      *bar,
+    buffer   *eventBuffer,
+    buffer   *reportBuffer
+)
+{
+    m_last_ebdm_offset = 0;
+    m_last_rbdm_offset = 0;
+    m_pcie_packet_size = 0;
+
+    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel      = channel_number;
+    m_dev          = dev;
+    m_bar          = bar;
+
+    m_eventBuffer  = eventBuffer;
+    m_reportBuffer = reportBuffer;
+
+    m_reportBuffer->clear();
+
+    /** Check that requested channel is implemented in firmware */
+    if( !m_dev->DMAChannelIsImplemented(channel_number) )
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+    /** Prepare EventBufferDescriptorManager with scatter-gather list */
+    if(prepareEB(eventBuffer) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
+    if(prepareRB(reportBuffer) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+    /** set max payload, buffer sizes, #sgEntries, ... */
+    if(configureChannel(pcie_packet_size) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
 }
 
 
@@ -126,229 +144,22 @@ dma_channel::dma_channel()
  * */
 dma_channel::~dma_channel()
 {
+    m_reportBuffer->clear();
+    delete m_bar;
 }
 
 
-
-/**
- * Initialize Channel:
- * bind to specific BAR, set offset address for register access
- * */
 
 void
-dma_channel::init
-(
-    bar      *dma_bar,
-    uint32_t  channel_number
-)
+dma_channel::enable()
 {
-    m_base    = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    m_channel = channel_number;
+    if(!m_eventBuffer || !m_reportBuffer)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
-    m_bar = dma_bar;
-}
+    setEnableEB(1);
+    setEnableRB(1);
 
-
-/**
- * Fill DescriptorRAM with scatter-gather
- * entries of DMA buffer
- * */
-
-int32_t
-dma_channel::_prepare
-(
-    buffer   *buf,
-    uint32_t  flag
-)
-{
-    assert(m_bar!=NULL);
-
-    /** Some generic initialization */
-    uint32_t control_flag = 0;
-    switch(flag)
-    {
-        case RORC_REG_RBDM_N_SG_CONFIG:
-        {
-            control_flag = 1;
-        }
-        break;
-
-        case RORC_REG_EBDM_N_SG_CONFIG:
-        {
-            control_flag = 0;
-        }
-        break;
-
-        default:
-            cout << "Invalid flag!" << endl;
-            return -1;
-    }
-
-    /**
-     * get maximum number of sg-entries supported by the firmware
-     * N_SG_CONFIG:
-     * [15:0] : current number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     **/
-    uint32_t bdcfg = getPKT(flag);
-
-    /** check if buffers SGList fits into DRAM */
-    if(buf->getnSGEntries() > (bdcfg >> 16) )
-    {
-        errno = EFBIG;
-        return -EFBIG;
-    }
-
-    /** retrieve scatter gather list */
-    DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
-    DMABuffer_SGNode *sglist         = NULL;
-    if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
-    {
-        printf("SG-List fetching failed!\n");
-        return -1;
-    }
-
-
-    /** fetch all sg-entries from sglist */
-    uint64_t i = 0;
-    struct t_sg_entry_cfg  sg_entry;
-    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
-    {
-        /** convert sg list into CRORC compatible format */
-        sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
-        sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
-        sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
-
-        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
-
-        /** write librorc_dma_desc to RORC EBDM */
-        m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
-                           &sg_entry, sizeof(sg_entry) );
-        i++;
-    }
-
-    /** clear following BD entry (required!) */
-    memset(&sg_entry, 0, sizeof(sg_entry) );
-    m_bar->memcpy_bar( (m_base+RORC_REG_SGENTRY_ADDR_LOW),
-                       &sg_entry, sizeof(sg_entry) );
-
-    return(0);
-}
-
-
-
-/**
- * prepareRB
- * Fill ReportBufferDescriptorRAM with scatter-gather
- * entries of DMA buffer
- * */
-
-int32_t
-dma_channel::prepareEB
-(
-    buffer *buf
-)
-{
-    return(_prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
-}
-
-
-
-int32_t
-dma_channel::prepareRB
-(
-    buffer *buf
-)
-{
-    return(_prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
-}
-
-
-/** REWORKED __________________________________________________________*/
-
-
-
-/**
- * configure DMA engine for the current
- * set of buffers
- * */
-
-int32_t
-dma_channel::configureChannel
-(
-    buffer   *ebuf,
-    buffer   *rbuf,
-    uint32_t  pcie_packet_size
-)
-{
-
-    /**
-     * N_SG_CONFIG:
-     * [15:0] : actual number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     */
-    uint32_t rbdmnsgcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
-    uint32_t ebdmnsgcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
-
-    /** check if sglist fits into FPGA buffers */
-    if( ( (rbdmnsgcfg >> 16) < rbuf->getnSGEntries() ) |
-        ( (ebdmnsgcfg >> 16) < ebuf->getnSGEntries() ) )
-    {
-        errno = -EFBIG;
-        return errno;
-    }
-
-    if(pcie_packet_size & 0xf)
-    {
-        /** packet size must be a multiple of 4 DW / 16 bytes */
-        errno = -EINVAL;
-        return errno;
-    }
-    else if(pcie_packet_size > 1024)
-    {
-        errno = -ERANGE;
-        return errno;
-    }
-
-    //TODO refactor this into a sepparate method
-    struct librorc_channel_config config;
-    config.ebdm_n_sg_config      = ebuf->getnSGEntries();
-    config.ebdm_buffer_size_low  = ebuf->getPhysicalSize() & 0xffffffff;
-    config.ebdm_buffer_size_high = ebuf->getPhysicalSize() >> 32;
-    config.rbdm_n_sg_config      = rbuf->getnSGEntries();
-    config.rbdm_buffer_size_low  = rbuf->getPhysicalSize() & 0xffffffff;
-    config.rbdm_buffer_size_high = rbuf->getPhysicalSize() >> 32;
-
-    config.swptrs.ebdm_software_read_pointer_low =
-        (ebuf->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
-    config.swptrs.ebdm_software_read_pointer_high =
-        (ebuf->getPhysicalSize() - pcie_packet_size) >> 32;
-    config.swptrs.rbdm_software_read_pointer_low =
-        (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) &
-        0xffffffff;
-    config.swptrs.rbdm_software_read_pointer_high =
-        (rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
-
-    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (m_channel << 16); // set channel as PCIe tag
-
-    /**
-     * Set PCIe packet size
-     **/
-    setPciePacketSize(pcie_packet_size);
-
-    /**
-     * copy configuration struct to RORC, starting
-     * at the address of the lowest register(EBDM_N_SG_CONFIG)
-     */
-    m_bar->memcpy_bar(m_base + RORC_REG_EBDM_N_SG_CONFIG, &config,
-                      sizeof(struct librorc_channel_config) );
-
-    m_pcie_packet_size = pcie_packet_size;
-    m_last_ebdm_offset = ebuf->getPhysicalSize() - pcie_packet_size;
-    m_last_rbdm_offset = rbuf->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
-
-    return 0;
+    setDMAConfig( getDMAConfig() | 0x01 );
 }
 
 
@@ -466,7 +277,7 @@ dma_channel::setOffsets
 )
 {
     assert(m_bar!=NULL);
-    struct librorc_buffer_software_pointers offsets;
+    librorc_buffer_software_pointers offsets;
 
     offsets.ebdm_software_read_pointer_low =
         (uint32_t)(eboffset & 0xffffffff);
@@ -481,14 +292,14 @@ dma_channel::setOffsets
         (uint32_t)(rboffset >> 32 & 0xffffffff);
 
     /** set sync-flag in DMA control register
-     * TODO: this is the fail-save version. The following getPKT() 
+     * TODO: this is the fail-save version. The following getPKT()
      * can be omitted if the library keeps track on any writes to
      * RORC_REG_DMA_CTRL. This would reduce PCIe traffic.
      **/
     offsets.dma_ctrl = ( getPKT(RORC_REG_DMA_CTRL) | (1<<31) );
 
-    m_bar->memcpy_bar(m_base + RORC_REG_EBDM_SW_READ_POINTER_L,
-                      &offsets, sizeof(offsets) );
+    m_bar->memcopy( (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
+                    &offsets, sizeof(offsets) );
 
     /** save a local copy of the last offsets written to the channel **/
     m_last_ebdm_offset = eboffset;
@@ -505,7 +316,7 @@ dma_channel::setEBOffset
 {
     assert(m_bar!=NULL);
 
-    m_bar->memcpy_bar(m_base + RORC_REG_EBDM_SW_READ_POINTER_L,
+    m_bar->memcopy( (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
                       &offset, sizeof(offset) );
 
     uint32_t status = getPKT(RORC_REG_DMA_CTRL);
@@ -566,8 +377,8 @@ dma_channel::setRBOffset
 {
     assert(m_bar!=NULL);
 
-    m_bar->memcpy_bar( (m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
-                        &offset, sizeof(offset) );
+    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
+                    &offset, sizeof(offset) );
 
     uint32_t status = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
@@ -661,7 +472,7 @@ dma_channel::setPKT
     uint32_t data
 )
 {
-    m_bar->set((m_base + addr), data);
+    m_bar->set32((m_base + addr), data);
 }
 
 
@@ -672,7 +483,7 @@ dma_channel::getPKT
     uint32_t addr
 )
 {
-    return m_bar->get(m_base+addr);
+    return m_bar->get32(m_base+addr);
 }
 
 
@@ -684,7 +495,7 @@ dma_channel::setGTX
     uint32_t data
 )
 {
-    m_bar->set( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
+    m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
 }
 
 
@@ -695,7 +506,201 @@ dma_channel::getGTX
     uint32_t addr
 )
 {
-    return m_bar->get(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
+    return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
 }
+
+/** Protected and Private methods */
+
+
+/**
+ * prepareRB
+ * Fill ReportBufferDescriptorRAM with scatter-gather
+ * entries of DMA buffer
+ * */
+
+int32_t
+dma_channel::prepareEB
+(
+    buffer *buf
+)
+{
+    return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
+}
+
+
+
+int32_t
+dma_channel::prepareRB
+(
+    buffer *buf
+)
+{
+    return(prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
+}
+
+/**
+ * Fill DescriptorRAM with scatter-gather
+ * entries of DMA buffer
+ * */
+
+int32_t
+dma_channel::prepare
+(
+    buffer   *buf,
+    uint32_t  flag
+)
+{
+    assert(m_bar!=NULL);
+
+    /** Some generic initialization */
+    uint32_t control_flag = 0;
+    switch(flag)
+    {
+        case RORC_REG_RBDM_N_SG_CONFIG:
+        {
+            control_flag = 1;
+        }
+        break;
+
+        case RORC_REG_EBDM_N_SG_CONFIG:
+        {
+            control_flag = 0;
+        }
+        break;
+
+        default:
+            cout << "Invalid flag!" << endl;
+            return -1;
+    }
+
+    /**
+     * get maximum number of sg-entries supported by the firmware
+     * N_SG_CONFIG:
+     * [15:0] : current number of sg entries in RAM
+     * [31:16]: maximum number of entries
+     **/
+    uint32_t bdcfg = getPKT(flag);
+
+    /** check if buffers SGList fits into DRAM */
+    if(buf->getnSGEntries() > (bdcfg >> 16) )
+    {
+        errno = EFBIG;
+        return -EFBIG;
+    }
+
+    /** retrieve scatter gather list */
+    DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
+    DMABuffer_SGNode *sglist         = NULL;
+    if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
+    {
+        printf("SG-List fetching failed!\n");
+        return -1;
+    }
+
+
+    /** fetch all sg-entries from sglist */
+    uint64_t i = 0;
+    librorc_sg_entry_config sg_entry;
+    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
+    {
+        /** convert sg list into CRORC compatible format */
+        sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
+        sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
+        sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
+
+        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
+
+        /** write librorc_dma_desc to RORC EBDM */
+        m_bar->memcopy
+        (
+            (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
+            &sg_entry, sizeof(sg_entry)
+        );
+        i++;
+    }
+
+    /** clear following BD entry (required!) */
+    memset(&sg_entry, 0, sizeof(sg_entry) );
+    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
+                       &sg_entry, sizeof(sg_entry) );
+
+    return(0);
+}
+
+
+
+/** configure DMA engine for the current set of buffers */
+int32_t
+dma_channel::configureChannel(uint32_t pcie_packet_size)
+{
+
+    /**
+     * N_SG_CONFIG:
+     * [15:0] : actual number of sg entries in RAM
+     * [31:16]: maximum number of entries
+     */
+    uint32_t rbdmnsgcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
+    uint32_t ebdmnsgcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
+
+    /** check if sglist fits into FPGA buffers */
+    if( ( (rbdmnsgcfg >> 16) < m_reportBuffer->getnSGEntries() ) |
+        ( (ebdmnsgcfg >> 16) < m_eventBuffer->getnSGEntries() ) )
+    {
+        errno = -EFBIG;
+        return errno;
+    }
+
+    if(pcie_packet_size & 0xf)
+    {
+        /** packet size must be a multiple of 4 DW / 16 bytes */
+        errno = -EINVAL;
+        return errno;
+    }
+    else if(pcie_packet_size > 1024)
+    {
+        errno = -ERANGE;
+        return errno;
+    }
+
+    librorc_channel_config config;
+    config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+    config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
+    config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
+    config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
+    config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
+    config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
+
+    config.swptrs.ebdm_software_read_pointer_low =
+        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
+    config.swptrs.ebdm_software_read_pointer_high =
+        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) >> 32;
+    config.swptrs.rbdm_software_read_pointer_low =
+        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
+    config.swptrs.rbdm_software_read_pointer_high =
+        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
+
+    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
+                             (m_channel << 16); // set channel as PCIe tag
+
+    /**
+     * Set PCIe packet size
+     **/
+    setPciePacketSize(pcie_packet_size);
+
+    /**
+     * copy configuration struct to RORC, starting
+     * at the address of the lowest register(EBDM_N_SG_CONFIG)
+     */
+    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
+                    &config, sizeof(librorc_channel_config) );
+
+    m_pcie_packet_size = pcie_packet_size;
+    m_last_ebdm_offset = m_eventBuffer->getPhysicalSize() - pcie_packet_size;
+    m_last_rbdm_offset = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
+
+    return 0;
+}
+
+
 
 }

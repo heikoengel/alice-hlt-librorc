@@ -4,6 +4,11 @@
 #include "librorc/include_ext.hh"
 #include "librorc/device.hh"
 
+#define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED  1
+
+typedef uint64_t librorc_bar_address;
+
+
 namespace librorc
 {
 
@@ -14,44 +19,43 @@ namespace librorc
     virtual ~bar() {}
 
     /**
+     * copy buffer from host to device and vice versa
+     * @param target address
+     * @param source address
+     * @param num number of bytes to be copied to destination
+     * */
+    virtual
+    void
+    memcopy
+    (
+        librorc_bar_address  target,
+        const void          *source,
+        size_t               num
+    ) = 0;
+
+    virtual
+    void
+    memcopy
+    (
+        void                *target,
+        librorc_bar_address  source,
+        size_t               num
+    ) = 0;
+
+    /**
      * read DWORD from BAR address
      * @param addr (unsigned int) aligned address within the
      *              BAR to read from.
      * @return data read from BAR[addr]
      **/
-    virtual
-    uint32_t
-    get
-    (
-        uint64_t addr
-    ) = 0;
+    virtual uint32_t get32(librorc_bar_address address ) = 0;
 
     /**
      * read WORD from BAR address
      * @param addr within the BAR to read from.
      * @return data read from BAR[addr]
      **/
-    virtual
-    uint16_t
-    get16
-    (
-        uint64_t addr
-    ) = 0;
-
-    /**
-     * copy buffer range into BAR
-     * @param addr address in current BAR
-     * @param source pointer to source data field
-     * @param num number of bytes to be copied to destination
-     * */
-    virtual
-    void
-    memcpy_bar
-    (
-        uint64_t    addr,
-        const void *source,
-        size_t      num
-    ) = 0;
+    virtual uint16_t get16(librorc_bar_address address ) = 0;
 
     /**
      * write DWORD to BAR address
@@ -61,9 +65,9 @@ namespace librorc
      **/
     virtual
     void
-    set
+    set32
     (
-        uint64_t addr,
+        librorc_bar_address address,
         uint32_t data
     ) = 0;
 
@@ -76,7 +80,7 @@ namespace librorc
     void
     set16
     (
-        uint64_t addr,
+        librorc_bar_address address,
         uint16_t data
     ) = 0;
 
@@ -95,21 +99,10 @@ namespace librorc
     ) = 0;
 
     /**
-     * initialize BAR mapping: open sysfs file, get file stats,
-     * mmap file. This has to be done before using any other
-     * member funtion. This function will fail if the requested
-     * BAR does not exist.
-     * @return 0 on sucess, -1 on errors
-     **/
-    virtual
-    int32_t
-    init() = 0;
-
-    /**
      * get size of mapped BAR. This value is only valid after init()
      * @return size of mapped BAR in bytes
      **/
-    virtual size_t getSize() = 0;
+    virtual size_t size() = 0;
 
     protected:
         device          *m_parent_dev;

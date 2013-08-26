@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iomanip>
 #include <math.h>
+#include <pda.h>
 
 #include "librorc.h"
 
@@ -49,6 +50,8 @@ set new frequency to 125.00 MHz for device 0 \n\
 #define M_RECALL (1<<0)
 #define M_FREEZE (1<<5)
 #define M_NEWFREQ (1<<6)
+/** Register 137 Pin Mapping */
+#define FREEZE_DCO (1<<4)
 
 
 typedef struct
@@ -126,15 +129,10 @@ refclk_read
 )
 {
     uint8_t value;
-    try 
-    { 
-        value = sm->i2c_read_mem(REFCLK_CHAIN, 
-                REFCLK_I2C_SLAVE, addr); 
-        /*cout << "Read from refclk addr 0x"
-             << hex << (int)addr 
-             << "= 0x" << (int)value << dec << endl;*/
-
-
+    try
+    {
+        value = sm->i2c_read_mem(REFCLK_CHAIN,
+                REFCLK_I2C_SLAVE, addr);
     }
     catch (...)
     {
@@ -142,6 +140,8 @@ refclk_read
              << hex << (int)addr << dec << endl;
         abort();
     }
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_read(%02x)=%02x\n",
+            addr, value);
     return value;
 }
 
@@ -153,30 +153,29 @@ void refclk_write
    uint8_t value
 )
 {
-    try 
-    { 
-        sm->i2c_write_mem(REFCLK_CHAIN, 
-                REFCLK_I2C_SLAVE, addr, value); 
-        /*cout << "would write 0x" << setw(2) << hex << (int)value 
-             << " to refclk addr 0x" << (int)addr << dec << endl;*/
-
+    try
+    {
+        sm->i2c_write_mem(REFCLK_CHAIN,
+                REFCLK_I2C_SLAVE, addr, value);
     }
     catch (...)
     {
-        cout << "Failed to write 0x" << setw(2) << hex << (int)value 
+        cout << "Failed to write 0x" << setw(2) << hex << (int)value
              << " to refclk addr 0x" << (int)addr << dec << endl;
         abort();
     }
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_write(%02x, %02x)\n",
+            addr, value);
 }
 
 
-    
 
-    
 
-clkopts 
-refclk_getCurrentOpts 
-( 
+
+
+clkopts
+refclk_getCurrentOpts
+(
         librorc::sysmon *sm
 )
 {
@@ -188,19 +187,19 @@ refclk_getCurrentOpts
     value = refclk_read(sm, 0x07);
     opts.hs_div = (value>>5) & 0x07;
     opts.n1 = ((uint32_t)(value&0x1f))<<2;
-    
-    value = refclk_read(sm, 0x08); 
+
+    value = refclk_read(sm, 0x08);
     opts.n1 += (value>>6)&0x03;
     opts.rfreq_int = (uint64_t(value & 0x3f)<<((uint64_t)32));
 
     /** addr 9...12: RFREQ[31:0] */
     for(uint8_t i=9; i<=12; i++)
     {
-        value = refclk_read(sm, i); 
+        value = refclk_read(sm, i);
         opts.rfreq_int |= (uint64_t(value) << ((12-i)*8));
     }
-    
-    opts.fdco = REFCLK_DEFAULT_FOUT * refclk_n1_reg2val(opts.n1) * 
+
+    opts.fdco = REFCLK_DEFAULT_FOUT * refclk_n1_reg2val(opts.n1) *
         refclk_hsdiv_reg2val(opts.hs_div);
     opts.rfreq_float = refclk_hex2float(opts.rfreq_int);
 
@@ -233,7 +232,7 @@ refclk_getNewOpts
                 continue;
             }
             fDCO_new =  new_freq * h * n;
-            if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 && 
+            if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 &&
                     vco_found==0 )
             {
                 vco_found = 1;
@@ -264,13 +263,31 @@ refclk_getNewOpts
     return opts;
 }
 
-void refclk_setRFMCtrl
+
+
+void
+refclk_setRFMCtrl
 (
     librorc::sysmon *sm,
     uint8_t flag
 )
 {
     refclk_write(sm, 135, flag);
+}
+
+
+
+void
+refclk_setFreezeDCO
+(
+    librorc::sysmon *sm,
+    uint8_t flag
+)
+{
+    uint8_t val = refclk_read(sm, 137);
+    val &= 0xef;
+    val |= flag;
+    refclk_write(sm, 137, val);
 }
 
 
@@ -286,7 +303,7 @@ refclk_waitForClearance
     uint8_t reg135 = flag;
     while ( reg135 & flag )
     {
-        reg135 = refclk_read(sm, 135); 
+        reg135 = refclk_read(sm, 135);
     }
 }
 
@@ -298,7 +315,7 @@ void refclk_setOpts
 )
 {
     /** Freeze oscillator */
-    refclk_setRFMCtrl(sm, M_FREEZE);
+    refclk_setFreezeDCO(sm, FREEZE_DCO);
 
     /** write new osciallator values */
     uint8_t value = (opts.hs_div<<5) | (opts.n1>>2);
@@ -310,11 +327,14 @@ void refclk_setOpts
     /** addr 9...12: RFREQ[31:0] */
     for(uint8_t i=9; i<=12; i++)
     {
-        value = ((opts.rfreq_int>>((12-i)*8)) & 0xff); 
+        value = ((opts.rfreq_int>>((12-i)*8)) & 0xff);
         refclk_write(sm, i, value);
     }
 
-    /** release Freeze, set NewFreq */
+    /** release DCO Freeze */
+    refclk_setFreezeDCO(sm, 0);
+
+    /** release M_FREEZE, set NewFreq */
     refclk_setRFMCtrl(sm, M_NEWFREQ);
 
     /** wait for NewFreq to be deasserted */
@@ -337,10 +357,11 @@ main
     int arg;
     int do_write = 0;
     int do_reset = 0;
+    int do_freeze = 0;
     double new_freq = 0.0;
 
     /** parse command line arguments **/
-    while ( (arg = getopt(argc, argv, "d:c:s:a:w:r")) != -1 )
+    while ( (arg = getopt(argc, argv, "d:c:s:a:w:rf")) != -1 )
     {
         switch (arg)
         {
@@ -350,6 +371,11 @@ main
             case 'w':
                 new_freq = atof(optarg);
                 do_write = 1;
+                break;
+            case 's':
+                break;
+            case 'f':
+                do_freeze = 1;
                 break;
             case 'r':
                 do_reset = 1;
@@ -369,7 +395,7 @@ main
     }
     else if ( device_number > 255 || device_number < 0 )
     {
-        cout << "ERROR: invalid device ID selected: " 
+        cout << "ERROR: invalid device ID selected: "
              << device_number << endl;
         cout << HELP_TEXT;
         return -1;
@@ -378,24 +404,27 @@ main
 
     /** Instantiate device **/
     librorc::device *dev = NULL;
-    try{ 
+    try{
         dev = new librorc::device(device_number);
     }
     catch(...)
-    { 
+    {
         cout << "Failed to intialize device " << device_number
              << endl;
         return -1;
     }
 
     /** Instantiate a new bar */
+    librorc::bar *bar = NULL;
+    try
+    {
     #ifdef SIM
-        librorc::bar *bar = new librorc::sim_bar(dev, 1);
+        bar = new librorc::sim_bar(dev, 1);
     #else
-        librorc::bar *bar = new librorc::rorc_bar(dev, 1);
+        bar = new librorc::rorc_bar(dev, 1);
     #endif
-
-    if ( bar->init() == -1 )
+    }
+    catch(...)
     {
         cout << "ERROR: failed to initialize BAR." << endl;
         delete dev;
@@ -405,8 +434,8 @@ main
     /** Instantiate a new sysmon */
     librorc::sysmon *sm;
     try
-    { 
-        sm = new librorc::sysmon(bar); 
+    {
+        sm = new librorc::sysmon(bar);
     }
     catch(...)
     {
@@ -424,9 +453,9 @@ main
         refclk_waitForClearance( sm, M_RECALL );
     }
 
-        
+
     clkopts opts = refclk_getCurrentOpts( sm );
-    double fxtal = REFCLK_DEFAULT_FOUT * refclk_hsdiv_reg2val(opts.hs_div) * 
+    double fxtal = REFCLK_DEFAULT_FOUT * refclk_hsdiv_reg2val(opts.hs_div) *
         refclk_n1_reg2val(opts.n1) / opts.rfreq_float;
 
     cout << "HS_DIV    : " << refclk_hsdiv_reg2val(opts.hs_div) << endl;
@@ -436,10 +465,15 @@ main
     cout << "F_DCO     : " << opts.fdco << " MHz" << endl;
     cout << "F_XTAL    : " << fxtal << " MHz" << endl;
 
-    double cur_freq = 114.285 * opts.rfreq_float / 
+    double cur_freq = 114.285 * opts.rfreq_float /
         (refclk_hsdiv_reg2val(opts.hs_div) * refclk_n1_reg2val(opts.n1));
     cout << "cur FREQ  : " << cur_freq << " MHz (approx.)" << endl;
-        
+
+    uint8_t RFMC = refclk_read(sm, 135);
+    cout << "RFMC      : 0x" << hex << (int)RFMC << endl;
+    uint8_t FR = refclk_read(sm, 137);
+    cout << "DCOfreeze : 0x" << hex << (int)FR << endl;
+
 
 
     if ( do_write )
@@ -453,14 +487,28 @@ main
         cout << "RFREQ_INT : 0x" << hex << new_opts.rfreq_int << dec << endl;
         cout << "RFREQ     : " << new_opts.rfreq_float << " MHz" << endl;
         cout << "F_DCO     : " << new_opts.fdco << " MHz" << endl;
-        cout << "F_OUT     : " << fxtal * new_opts.rfreq_float / 
-            (refclk_hsdiv_reg2val(new_opts.hs_div) * 
+        cout << "F_OUT     : " << fxtal * new_opts.rfreq_float /
+            (refclk_hsdiv_reg2val(new_opts.hs_div) *
              refclk_n1_reg2val(new_opts.n1))
              << endl;
 
         refclk_setOpts(sm, new_opts);
 
-    } 
+    }
+
+    if (do_freeze)
+    {
+        uint8_t val = refclk_read(sm, 137);
+        val |= FREEZE_DCO;
+        /** Freeze oscillator */
+        refclk_write(sm, 137, val);
+        val &= 0xef;
+        /** release DCO Freeze */
+        refclk_write(sm, 137, val);
+        /** set NewFreq */
+        refclk_setRFMCtrl(sm, M_NEWFREQ);
+    }
+
 
     delete sm;
     delete bar;

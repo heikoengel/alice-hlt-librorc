@@ -26,7 +26,6 @@
 #include "include_ext.hh"
 
 
-
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
@@ -98,6 +97,11 @@ namespace librorc
 
     string* deviceDescription();
 
+    bool
+    DMAChannelIsImplemented
+    (
+        int32_t channelId
+    );
 
     private:
 

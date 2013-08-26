@@ -1,4 +1,4 @@
-#include "sim_bar.hh"
+#include "librorc/sim_bar.hh"
 #include "librorc/registers.h"
 #include "librorc/defines.hh"
 #include "librorc/bar_proto.hh"
@@ -7,4 +7,5 @@
 #include "librorc/bar.hh"
 #include "librorc/device.hh"
 #include "librorc/buffer.hh"
+#include "librorc/event_stream.hh"
 #include "librorc/dma_channel.hh"

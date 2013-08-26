@@ -34,6 +34,7 @@
 		<Unit filename="include/librorc/defines.hh" />
 		<Unit filename="include/librorc/device.hh" />
 		<Unit filename="include/librorc/dma_channel.hh" />
+		<Unit filename="include/librorc/event_stream.hh" />
 		<Unit filename="include/librorc/flash.hh" />
 		<Unit filename="include/librorc/include_ext.hh" />
 		<Unit filename="include/librorc/include_int.hh" />
@@ -45,16 +46,24 @@
 		<Unit filename="src/buffer.cpp" />
 		<Unit filename="src/device.cpp" />
 		<Unit filename="src/dma_channel.cpp" />
+		<Unit filename="src/event_stream.cpp" />
 		<Unit filename="src/flash.cpp" />
 		<Unit filename="src/sim_bar.cpp" />
 		<Unit filename="src/sysmon.cpp" />
 		<Unit filename="tools_src/buffer_handling/bufferstats.cpp" />
 		<Unit filename="tools_src/buffer_handling/crorc_preallocator.cpp" />
+		<Unit filename="tools_src/dma/dma_handling.cpp" />
+		<Unit filename="tools_src/dma/dma_handling.hh" />
 		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
 		<Unit filename="tools_src/hlt_out_writer/hlt_out_writer.cpp" />
+		<Unit filename="tools_src/hwtest/test_fmc.cpp" />
+		<Unit filename="tools_src/linkctrl/gtxctrl.cpp" />
+		<Unit filename="tools_src/rorctl/i2c.cpp" />
+		<Unit filename="tools_src/rorctl/refclkgenctrl.cpp" />
 		<Unit filename="tools_src/rorctl/rorctl.cpp" />
+		<Unit filename="tools_src/rorctl/ucctrl.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

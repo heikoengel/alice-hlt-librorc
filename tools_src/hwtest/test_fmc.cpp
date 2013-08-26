@@ -85,13 +85,16 @@ main
     }
 
     /** Instantiate a new bar */
-#ifdef SIM
-    librorc::bar *bar = new librorc::sim_bar(dev, 1);
-#else
-    librorc::bar *bar = new librorc::rorc_bar(dev, 1);
-#endif
-
-    if ( bar->init() == -1 )
+    librorc::bar *bar = NULL;
+    try
+    {
+    #ifdef SIM
+        bar = new librorc::sim_bar(dev, 1);
+    #else
+        bar = new librorc::rorc_bar(dev, 1);
+    #endif
+    }
+    catch(...)
     {
         cout << "ERROR: failed to initialize BAR." << endl;
         delete dev;
@@ -99,7 +102,7 @@ main
     }
 
     /** Check if firmware is 'hwtest' */
-    if ( bar->get(RORC_REG_TYPE_CHANNELS)>>16 != RORC_CFG_PROJECT_hwtest )
+    if ( bar->get32(RORC_REG_TYPE_CHANNELS)>>16 != RORC_CFG_PROJECT_hwtest )
     {
         cout << "Current firmware is no hwtest firmware! "
              << "Won't do anything..." << endl;
@@ -114,19 +117,19 @@ main
     cout << "Driving LA_00_P high...";
 
     /** set LA_00_P output to '1' */
-    ctrl[0] = bar->get(RORC_REG_FMC_CTRL_LOW);
+    ctrl[0] = bar->get32(RORC_REG_FMC_CTRL_LOW);
     ctrl[0] |= 0x01; //drive la_00_p high
-    bar->set(RORC_REG_FMC_CTRL_LOW, ctrl[0]);
+    bar->set32(RORC_REG_FMC_CTRL_LOW, ctrl[0]);
 
     /** configure LA_00_P as output */
-    ctrl[2] = bar->get(RORC_REG_FMC_CTRL_HIGH);
+    ctrl[2] = bar->get32(RORC_REG_FMC_CTRL_HIGH);
     ctrl[2] &= ~(1<<31); //clear tristate bit (=make output)
-    bar->set(RORC_REG_FMC_CTRL_HIGH, ctrl[2]);
+    bar->set32(RORC_REG_FMC_CTRL_HIGH, ctrl[2]);
 
     /** read input */
-    ctrl[0] = bar->get(RORC_REG_FMC_CTRL_LOW);
-    ctrl[1] = bar->get(RORC_REG_FMC_CTRL_MID);
-    ctrl[2] = bar->get(RORC_REG_FMC_CTRL_HIGH);
+    ctrl[0] = bar->get32(RORC_REG_FMC_CTRL_LOW);
+    ctrl[1] = bar->get32(RORC_REG_FMC_CTRL_MID);
+    ctrl[2] = bar->get32(RORC_REG_FMC_CTRL_HIGH);
 
     if(ctrl[0] != 0xffffffff ||
             ctrl[1] != 0xffffffff ||
@@ -147,14 +150,14 @@ main
     cout << "Driving LA_00_P low...";
 
     /** set LA_00_P output to '0' */
-    ctrl[0] = bar->get(RORC_REG_FMC_CTRL_LOW);
+    ctrl[0] = bar->get32(RORC_REG_FMC_CTRL_LOW);
     ctrl[0] &= ~(0x01); //drive la_00_p low
-    bar->set(RORC_REG_FMC_CTRL_LOW, ctrl[0]);
+    bar->set32(RORC_REG_FMC_CTRL_LOW, ctrl[0]);
 
     /** read input */
-    ctrl[0] = bar->get(RORC_REG_FMC_CTRL_LOW);
-    ctrl[1] = bar->get(RORC_REG_FMC_CTRL_MID);
-    ctrl[2] = bar->get(RORC_REG_FMC_CTRL_HIGH);
+    ctrl[0] = bar->get32(RORC_REG_FMC_CTRL_LOW);
+    ctrl[1] = bar->get32(RORC_REG_FMC_CTRL_MID);
+    ctrl[2] = bar->get32(RORC_REG_FMC_CTRL_HIGH);
 
     if(ctrl[0] != 0 || ctrl[1] != 0 || (ctrl[2] & 0x0f) != 0 )
     {
@@ -171,9 +174,9 @@ main
 
 
     /** configure LA_00_P as input again */
-    ctrl[2] = bar->get(RORC_REG_FMC_CTRL_HIGH);
+    ctrl[2] = bar->get32(RORC_REG_FMC_CTRL_HIGH);
     ctrl[2] |= (1<<31); //set tristate bit (=make input)
-    bar->set(RORC_REG_FMC_CTRL_HIGH, ctrl[2]);
+    bar->set32(RORC_REG_FMC_CTRL_HIGH, ctrl[2]);
 
     delete bar;
     delete dev;

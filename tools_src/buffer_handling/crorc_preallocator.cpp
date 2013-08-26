@@ -43,18 +43,6 @@
 
 using namespace std;
 
-/** Buffer Sizes (in Bytes) **/
-#ifndef SIM
-    #define EBUFSIZE (((unsigned long)1) << 28)
-    #define RBUFSIZE (((unsigned long)1) << 26)
-    #define STAT_INTERVAL 1.0
-#else
-    #define EBUFSIZE (((unsigned long)1) << 19)
-    #define RBUFSIZE (((unsigned long)1) << 17)
-    #define STAT_INTERVAL 0.00001
-#endif
-
-
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
@@ -79,12 +67,16 @@ int main( int argc, char *argv[])
         catch(...){ break; }
 
         /** bind to BAR1 */
+        librorc::bar *Bar = NULL;
+        try
+        {
         #ifdef SIM
-            librorc::bar *Bar = new librorc::sim_bar(Dev, 1);
+            Bar = new librorc::sim_bar(Dev, 1);
         #else
-            librorc::bar *Bar = new librorc::rorc_bar(Dev, 1);
+            Bar = new librorc::rorc_bar(Dev, 1);
         #endif
-        if( Bar->init() == -1 )
+        }
+        catch(...)
         {
             printf("ERROR: failed to initialize BAR1.\n");
             abort();
@@ -109,7 +101,7 @@ alloc_channel
 )
 {
     /** check if requested channel is implemented in firmware */
-    if( ChannelID >= (Bar->get(RORC_REG_TYPE_CHANNELS) & 0xffff) )
+    if( Dev->DMAChannelIsImplemented(ChannelID) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
             "firmware - exiting\n", ChannelID);

@@ -77,7 +77,7 @@ uc_configure_spi
     librorc::bar *bar
 )
 {
-    if ( bar->get(RORC_REG_UC_SPI_CTRL)==0xa5a5a5a5 )
+    if ( bar->get32(RORC_REG_UC_SPI_CTRL)==0xa5a5a5a5 )
     {
         cout << "ERROR: SPI control is not implemented in firmware! "
              << endl;
@@ -85,9 +85,9 @@ uc_configure_spi
     }
 
     /** set prescaler */
-    bar->set(RORC_REG_UC_SPI_CTRL, SPI_PRESCALER);
+    bar->set32(RORC_REG_UC_SPI_CTRL, SPI_PRESCALER);
 
-    uint32_t ucctrl = bar->get(RORC_REG_UC_CTRL);
+    uint32_t ucctrl = bar->get32(RORC_REG_UC_CTRL);
     /** drive MOSI low from GPIO */
     ucctrl &= ~(1<<5);
     /** drive SCK low from GPIO */
@@ -102,7 +102,7 @@ uc_configure_spi
     /** set RESET_N as output */
     ucctrl &= ~(1<<20);
 
-    bar->set(RORC_REG_UC_CTRL, ucctrl);
+    bar->set32(RORC_REG_UC_CTRL, ucctrl);
 }
 
 
@@ -116,13 +116,13 @@ uc_unconfigure_spi
     librorc::bar *bar
 )
 {
-    uint32_t ucctrl = bar->get(RORC_REG_UC_CTRL);
+    uint32_t ucctrl = bar->get32(RORC_REG_UC_CTRL);
     /** set all CTRL lines to input */
     ucctrl |= (0x07<<20);
     /** set all DAT lines to input */
     ucctrl |= (0xff<<8);
 
-    bar->set(RORC_REG_UC_CTRL, ucctrl);
+    bar->set32(RORC_REG_UC_CTRL, ucctrl);
 }
 
 
@@ -137,7 +137,7 @@ uc_set_reset
     uint32_t rstval
     )
 {
-    uint32_t ucctrl = bar->get(RORC_REG_UC_CTRL);
+    uint32_t ucctrl = bar->get32(RORC_REG_UC_CTRL);
     if ( rstval )
     {
         /** drive low, assert reset */
@@ -149,7 +149,7 @@ uc_set_reset
         ucctrl |= (1<<16);
     }
 
-    bar->set(RORC_REG_UC_CTRL, ucctrl);
+    bar->set32(RORC_REG_UC_CTRL, ucctrl);
 
     /** wait for at least 20 ms */
     usleep(20000);
@@ -172,10 +172,10 @@ spi_send_command
     uint32_t timeout = 10000;
 
     /** send command */
-    bar->set(RORC_REG_UC_SPI_DATA, cmd);
+    bar->set32(RORC_REG_UC_SPI_DATA, cmd);
 
     /** wait for SPI_CE to deassert */
-    while ( bar->get(RORC_REG_UC_SPI_CTRL) & (1<<31) )
+    while ( bar->get32(RORC_REG_UC_SPI_CTRL) & (1<<31) )
     {
         if ( timeout == 0 )
         {
@@ -188,7 +188,7 @@ spi_send_command
         timeout --;
     }
 
-    return bar->get(RORC_REG_UC_SPI_DATA);
+    return bar->get32(RORC_REG_UC_SPI_DATA);
 }
 
 
@@ -471,13 +471,16 @@ main
     }
 
     /** Instantiate a new bar */
-#ifdef SIM
-    librorc::bar *bar = new librorc::sim_bar(dev, 1);
-#else
-    librorc::bar *bar = new librorc::rorc_bar(dev, 1);
-#endif
-
-    if ( bar->init() == -1 )
+    librorc::bar *bar = NULL;
+    try
+    {
+    #ifdef SIM
+        bar = new librorc::sim_bar(dev, 1);
+    #else
+        bar = new librorc::rorc_bar(dev, 1);
+    #endif
+    }
+    catch(...)
     {
         cout << "ERROR: failed to initialize BAR." << endl;
         delete dev;
@@ -565,7 +568,7 @@ main
             /** read page from file */
             while ( (nbytes = read(fd, &page, SPI_PAGESIZE<<1)) >0 )
             {
-                for ( int i=0; i<(nbytes>>1); i++ )
+                for ( uint32_t i=0; i<(nbytes>>1); i++ )
                 {
                     //cout << hex << i << " " << page[i] << endl;
                     spi_load_mem_page(bar, i, page[i]);

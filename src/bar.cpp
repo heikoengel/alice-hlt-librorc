@@ -33,6 +33,15 @@ rorc_bar::rorc_bar
 
     m_pda_pci_device = dev->getPdaPciDevice();
 
+    m_bar = m_parent_dev->getBarMap(m_number);
+
+    if(m_bar == NULL)
+    {
+        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
+    }
+
+    m_size = m_parent_dev->getBarSize(m_number);
+
     /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
 }
@@ -42,51 +51,51 @@ rorc_bar::rorc_bar
 rorc_bar::~rorc_bar()
 {
     pthread_mutex_destroy(&m_mtx);
-    /** Further stuff here **/
 }
 
 
 
-/**
- * Initialize and mmap BAR
- * */
-
-int32_t
-rorc_bar::init()
+void
+rorc_bar::memcopy
+(
+    librorc_bar_address  target,
+    const void          *source,
+    size_t               num
+)
 {
-    m_bar = m_parent_dev->getBarMap(m_number);
-
-    if(m_bar == NULL)
-    {
-        return -1;
-    }
-
-    m_size = m_parent_dev->getBarSize(m_number);
-
-    return 0;
+    pthread_mutex_lock(&m_mtx);
+    memcpy( (unsigned char*)m_bar + (target << 2), source, num);
+    msync( (m_bar + ( (target << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    pthread_mutex_unlock(&m_mtx);
 }
 
 
 
-/**
- * read 1 DW from BAR
- * @param addr address (DW-aligned)
- * @return value read from BAR
- * */
+void
+rorc_bar::memcopy
+(
+    void                *target,
+    librorc_bar_address  source,
+    size_t               num
+)
+{
+    pthread_mutex_lock(&m_mtx);
+    memcpy( target, (const void*)(m_bar + (source << 2)), num);
+    pthread_mutex_unlock(&m_mtx);
+}
+
+
 
 uint32_t
-rorc_bar::get
-(
-    uint64_t addr
-)
+rorc_bar::get32(librorc_bar_address address )
 {
     assert( m_bar != NULL );
 
     uint32_t *bar = (uint32_t *)m_bar;
     uint32_t result;
-    if( (addr << 2) < m_size)
+    if( (address << 2) < m_size)
     {
-        result = bar[addr];
+        result = bar[address];
         return result;
     }
     else
@@ -97,69 +106,17 @@ rorc_bar::get
 
 
 
-/**
- * write 1 DW to BAR
- * @param addr DW-aligned address
- * @param data DW data to be written
- * */
-
-void
-rorc_bar::set
-(
-    uint64_t addr,
-    uint32_t data
-)
-{
-    uint32_t *bar = (uint32_t *)m_bar;
-    assert( m_bar != NULL );
-    if( (addr << 2) < m_size)
-    {
-        pthread_mutex_lock(&m_mtx);
-        bar[addr] = data;
-        msync( (bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
-        pthread_mutex_unlock(&m_mtx);
-    }
-}
-
-
-
-/**
- * copy a buffer to BAR via memcpy
- * @param addr DW-aligned address
- * @param source source buffer
- * @param num number of bytes to be copied from source to dest
- * */
-
-void
-rorc_bar::memcpy_bar
-(
-    uint64_t    addr,
-    const void *source,
-    size_t      num
-)
-{
-    pthread_mutex_lock(&m_mtx);
-    memcpy( (unsigned char*)m_bar + (addr << 2), source, num);
-    msync( (m_bar + ( (addr << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
-    pthread_mutex_unlock(&m_mtx);
-}
-
-
-
-unsigned short
-rorc_bar::get16
-(
-    uint64_t addr
-)
+uint16_t
+rorc_bar::get16(librorc_bar_address address )
 {
     uint16_t *sbar;
     sbar = (uint16_t *)m_bar;
     assert( sbar != NULL );
 
     uint64_t result;
-    if( (addr << 1) < m_size)
+    if( (address << 1) < m_size)
     {
-        result = sbar[addr];
+        result = sbar[address];
         return result;
     }
     else
@@ -171,9 +128,29 @@ rorc_bar::get16
 
 
 void
+rorc_bar::set32
+(
+    librorc_bar_address address,
+    uint32_t data
+)
+{
+    uint32_t *bar = (uint32_t *)m_bar;
+    assert( m_bar != NULL );
+    if( (address << 2) < m_size)
+    {
+        pthread_mutex_lock(&m_mtx);
+        bar[address] = data;
+        msync( (bar + ( (address << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+        pthread_mutex_unlock(&m_mtx);
+    }
+}
+
+
+
+void
 rorc_bar::set16
 (
-    uint64_t addr,
+    librorc_bar_address address,
     uint16_t data
 )
 {
@@ -181,11 +158,11 @@ rorc_bar::set16
     sbar = (uint16_t *)m_bar;
 
     assert( sbar != NULL );
-    if( (addr << 1) < m_size)
+    if( (address << 1) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
-        sbar[addr] = data;
-        msync( (sbar + ( (addr << 1) & PAGE_MASK) ),
+        sbar[address] = data;
+        msync( (sbar + ( (address << 1) & PAGE_MASK) ),
                PAGE_SIZE, MS_SYNC);
         pthread_mutex_unlock(&m_mtx);
     }
@@ -206,7 +183,7 @@ rorc_bar::gettime
 
 
 size_t
-rorc_bar::getSize()
+rorc_bar::size()
 {
     return m_size;
 }
