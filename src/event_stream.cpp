@@ -21,6 +21,8 @@
 
 #include <librorc/device.hh>
 #include <librorc/buffer.hh>
+#include <librorc/bar_proto.hh>
+#include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 #include <librorc/dma_channel.hh>
 
