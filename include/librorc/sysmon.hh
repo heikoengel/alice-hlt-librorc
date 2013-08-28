@@ -28,10 +28,12 @@
 #define LIBRORC_SYSMON_ERROR_RXACK              20
 #define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
 #define LIBRORC_SYSMON_ERROR_I2C_READ_FAILED    40
-#define LIBRORC_SYSMON_ERROR_I2C_INVALID_CHAIN  50
+#define LIBRORC_SYSMON_ERROR_I2C_INVALID_PARAM  50
 
-#define QSFP_I2C_SLVADDR          0x50
-#define LIBRORC_MAX_QSFP 3
+#define QSFP_I2C_SLVADDR        0x50
+#define LIBRORC_MAX_QSFP        3
+#define I2C_READ                (1<<1)
+#define I2C_WRITE               (1<<2)
 
 #define LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION  0
 #define LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION 1
@@ -285,6 +287,42 @@ class bar;
                 uint8_t data
             );
 
+            /**
+             * write byte to i2c memory location
+             * @param slvaddr slave address
+             * @param memaddr memory address
+             * @param data to be written
+             * throws exception on error
+            **/
+            void
+            i2c_write_mem_dual
+            (
+                uint8_t chain,
+                uint8_t slvaddr,
+                uint8_t memaddr0,
+                uint8_t data0,
+                uint8_t memaddr1,
+                uint8_t data1
+            );
+
+            /**
+             * set I2C speed mode:
+             * 0: 100 KHz operation
+             * 1: 400 kHz operation
+             * */
+            void
+            i2c_set_mode
+            (
+                uint8_t mode
+            );
+
+            /**
+             * get I2C speed mode
+             * @return 0 for 100 kHz, 1 for 400 kHZ operation
+             * */
+            uint8_t
+            i2c_get_mode();
+
 
         protected:
 
@@ -296,21 +334,16 @@ class bar;
             void i2c_set_config(uint32_t config);
 
             void
-            i2c_module_prepare
+            i2c_module_start
             (
-                uint8_t chain
+                uint8_t chain,
+                uint8_t slvaddr,
+                uint8_t cmd,
+                uint8_t mode,
+                uint8_t bytes_enable
             );
 
-            void i2c_module_disable();
-
-
-            uint32_t wait_for_tip_to_negate();
-
-            void
-            check_rxack_is_zero
-            (
-                uint32_t status
-            );
+            uint32_t i2c_wait_for_cmpl();
 
             string*
             qsfp_i2c_string_readout
@@ -328,6 +361,7 @@ class bar;
             );
 
             bar *m_bar;
+            uint8_t m_i2c_hsmode;
     };
 
 }

@@ -568,7 +568,7 @@ main
             /** read page from file */
             while ( (nbytes = read(fd, &page, SPI_PAGESIZE<<1)) >0 )
             {
-                for ( int i=0; i<(nbytes>>1); i++ )
+                for ( uint32_t i=0; i<(nbytes>>1); i++ )
                 {
                     //cout << hex << i << " " << page[i] << endl;
                     spi_load_mem_page(bar, i, page[i]);

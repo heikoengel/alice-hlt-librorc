@@ -51,9 +51,10 @@
  * @param ch DMA channel number
  * @param pattern_mode pattern to check data against
  * @param check_mask mask of checks to be done on the recived data
- * @return (int64_t)(-1) or error, (int64_t)EventID on success
+ * @param event_id pointer to uint64_t, used to return event ID
+ * @return !=0 on error, 0 on sucess
  **/
-int64_t event_sanity_check
+int event_sanity_check
 (
     struct librorc_event_descriptor *reportbuffer,
     volatile uint32_t *eventbuffer,
@@ -63,13 +64,15 @@ int64_t event_sanity_check
     uint32_t pattern_mode,
     uint32_t check_mask,
     uint32_t *ddlref,
-    uint64_t ddlref_size
+    uint64_t ddlref_size,
+    uint64_t *event_id
 )
 {
   uint64_t offset;
   uint32_t j;
-  uint32_t *eb;
-  int64_t EventID;
+  uint32_t *eb = NULL;
+  uint64_t cur_event_id;
+  int retval = 0;
 
   /** upper two bits of the sizes are reserved for flags */
   uint32_t reported_event_size = (reportbuffer->reported_event_size & 0x3fffffff);
@@ -86,7 +89,7 @@ int64_t event_sanity_check
           DEBUG_PRINTF(PDADEBUG_ERROR,
                   "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
                   ch, i);
-          return -CHK_SIZES;
+          retval |= CHK_SIZES;
       } else if (calc_event_size != reported_event_size)
       {
           DEBUG_PRINTF(PDADEBUG_ERROR,
@@ -96,7 +99,7 @@ int64_t event_sanity_check
                   calc_event_size,reported_event_size,
                   reportbuffer->offset,
                   i*sizeof(struct librorc_event_descriptor) );
-          return -CHK_SIZES;
+          retval |= CHK_SIZES;
       }
   }
 
@@ -123,8 +126,7 @@ int64_t event_sanity_check
               i*sizeof(struct librorc_event_descriptor) );
       dump_event(eventbuffer, offset, reported_event_size);
       dump_rb(reportbuffer, i, ch);
-      free(eb);
-      return -CHK_SOE;
+      retval |= CHK_SOE;
   }
 
   if ( check_mask & CHK_PATTERN )
@@ -142,15 +144,14 @@ int64_t event_sanity_check
                       i, j, j-8, (uint32_t)*(eventbuffer + offset + j));
               dump_event(eventbuffer, offset, reported_event_size);
               dump_rb(reportbuffer, i, ch);
-              free(eb);
-              return -CHK_PATTERN;
+              retval |= CHK_PATTERN;
           }
         }
         break;
 
       default:
         printf("ERROR: specified unknown pattern matching algorithm\n");
-        return -CHK_PATTERN;
+        retval |= CHK_PATTERN;
     }
   }
 
@@ -167,8 +168,7 @@ int64_t event_sanity_check
                 ddlref_size);
         dump_event(eventbuffer, offset, reported_event_size);
         dump_rb(reportbuffer, i, ch);
-        free(eb);
-        return -CHK_FILE;
+        retval |= CHK_FILE;
     }
 
 
@@ -180,8 +180,7 @@ int64_t event_sanity_check
                     i, j, ddlref[j], eb[j]);
             dump_event(eventbuffer, offset, reported_event_size);
             dump_rb(reportbuffer, i, ch);
-            free(eb);
-            return -CHK_FILE;
+            retval |= CHK_FILE;
       }
     }
   }
@@ -207,8 +206,7 @@ int64_t event_sanity_check
                   (uint32_t)*(eb + j) );
           dump_event(eventbuffer, offset, calc_event_size);
           dump_rb(reportbuffer, i, ch);
-          free(eb);
-          return -CHK_EOE;
+          retval |= CHK_EOE;
       }
 
   } // CHK_EOE
@@ -217,27 +215,32 @@ int64_t event_sanity_check
   // get EventID from CDH:
   // lower 12 bits in CHD[1][11:0]
   // upper 24 bits in CDH[2][23:0]
-  EventID = (uint32_t)*(eventbuffer + offset + 2) & 0x00ffffff;
-  EventID<<=12;
-  EventID |= (uint32_t)*(eventbuffer + offset + 1) & 0x00000fff;
+  cur_event_id = (uint32_t)*(eventbuffer + offset + 2) & 0x00ffffff;
+  cur_event_id <<= 12;
+  cur_event_id |= (uint32_t)*(eventbuffer + offset + 1) & 0x00000fff;
 
   // make sure EventIDs increment with each event.
   // missing EventIDs are an indication of lost event data
   if ( (check_mask & CHK_ID) &&
           last_id!=-1 &&
-          (EventID & 0xfffffffff) !=
+          (cur_event_id & 0xfffffffff) !=
           ((last_id +1) & 0xfffffffff) ) {
       DEBUG_PRINTF(PDADEBUG_ERROR,
               "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-              "current ID: %ld\n", ch, last_id, EventID);
+              "current ID: %ld\n", ch, last_id, cur_event_id);
       dump_event(eventbuffer, offset, calc_event_size);
       dump_rb(reportbuffer, i, ch);
-      free(eb);
-      return -CHK_ID;
+      retval |= CHK_EOE;
   }
 
-  free(eb);
-  return EventID;
+  /** return event ID to caller */
+  *event_id = cur_event_id;
+
+  if(eb)
+  {
+      free(eb);
+  }
+  return retval;
 }
 
 
@@ -273,8 +276,9 @@ int handle_channel_data
   uint64_t rboffset = 0;
   uint64_t starting_index, entrysize;
   struct librorc_event_descriptor rb;
-  int64_t EventID;
+  uint64_t EventID;
   char    basedir[] = "/tmp";
+  int retval;
 
   struct librorc_event_descriptor *reportbuffer =
     (struct librorc_event_descriptor *)rbuf->getMem();
@@ -295,7 +299,7 @@ int handle_channel_data
       // perform validity tests on the received data (if enabled)
       if (do_sanity_check) {
         rb = reportbuffer[stats->index];
-        EventID = event_sanity_check(
+        retval = event_sanity_check(
             &rb,
             eventbuffer,
             stats->index,
@@ -304,20 +308,21 @@ int handle_channel_data
             PG_PATTERN_RAMP,
             do_sanity_check,
             ddlref,
-            ddlref_size);
+            ddlref_size,
+            &EventID);
 
 
-        if ( EventID<0 ) {
+        if ( retval!=0 ) {
           stats->error_count++;
           if (stats->error_count < MAX_FILES_TO_DISK)
             dump_to_file(
                 basedir, // base dir
-                stats->channel, // channel index
-                stats->index, // reportbuffer index
+                stats, // channel stats
+                EventID, // current EventID
                 stats->error_count, // file index
                 reportbuffer, // Report Buffer
                 ebuf, // Event Buffer
-                EventID // Error flags
+                retval // Error flags
                 );
 #ifdef SIM
           //return -1;
