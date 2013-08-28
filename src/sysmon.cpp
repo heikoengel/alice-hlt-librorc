@@ -660,7 +660,7 @@ namespace librorc
         for(uint8_t i=start; i<=end; i++)
         {
             data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, i);
-            readout->append(&data_r);
+            readout->append(1, data_r);
         }
         return readout;
     }
