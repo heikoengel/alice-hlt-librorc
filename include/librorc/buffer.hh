@@ -22,6 +22,7 @@
 
 #include "librorc/include_ext.hh"
 #include "librorc/device.hh"
+//class device;
 
 #define LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED  1
 

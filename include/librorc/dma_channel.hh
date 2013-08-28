@@ -22,10 +22,10 @@
 
 #include <librorc/include_ext.hh>
 
-#include <librorc/sim_bar.hh>
-#include <librorc/bar.hh>
-#include <librorc/device.hh>
-#include <librorc/buffer.hh>
+//#include <librorc/bar_proto.hh>
+//#include <librorc/sim_bar.hh>
+//#include <librorc/bar.hh>
+//#include <librorc/buffer.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -62,6 +62,10 @@
  **/
 namespace librorc
 {
+
+class bar;
+class buffer;
+class device;
 
     class dma_channel
     {

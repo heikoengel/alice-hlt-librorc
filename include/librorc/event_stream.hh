@@ -21,8 +21,6 @@
 
 #include <librorc/include_ext.hh>
 
-#include <librorc/dma_channel.hh>
-
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED   1
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED      2
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED   3
@@ -41,6 +39,11 @@
 
 namespace librorc
 {
+
+class dma_channel;
+class bar;
+class buffer;
+class device;
 
     class event_stream
     {

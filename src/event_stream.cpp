@@ -19,6 +19,10 @@
 
 #include <librorc/event_stream.hh>
 
+#include <librorc/dma_channel.hh>
+#include <librorc/buffer.hh>
+#include <librorc/bar.hh>
+
 using namespace std;
 
 

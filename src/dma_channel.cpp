@@ -21,6 +21,11 @@
 #include <librorc/registers.h>
 #include <librorc/dma_channel.hh>
 
+#include <librorc/bar_proto.hh>
+#include <librorc/sim_bar.hh>
+#include <librorc/bar.hh>
+#include <librorc/buffer.hh>
+
 #include <pda.h>
 
 using namespace std;

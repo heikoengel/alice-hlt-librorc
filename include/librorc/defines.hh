@@ -9,4 +9,7 @@
 
     typedef enum librorc_verbosity_enum librorc_verbosity;
 
+    #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
+    #define PAGE_SIZE sysconf(_SC_PAGESIZE)
+
 #endif /** LIBRORC_DEFINES_H */

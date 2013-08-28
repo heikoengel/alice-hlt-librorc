@@ -25,11 +25,11 @@
 #define LIBRORC_BAR_H
 
 #include <librorc/include_ext.hh>
+#include <librorc/defines.hh>
 #include <librorc/bar_proto.hh>
-#include <librorc/device.hh>
-#include <librorc/dma_channel.hh>
 
-
+class device;
+class dma_channel;
 
 /**
  * @class rorc_bar
