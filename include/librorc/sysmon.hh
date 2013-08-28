@@ -18,6 +18,8 @@
  *
  * */
 
+#include "include_ext.hh"
+
 #ifndef LIBRORC_SYSMON_H
 #define LIBRORC_SYSMON_H
 
@@ -35,9 +37,6 @@
 #define LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION 1
 #define LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION 2
 
-#include "include_ext.hh"
-#include "include_int.hh"
-
 
 
 /**
@@ -50,6 +49,7 @@
  **/
 namespace librorc
 {
+class bar;
 
     class sysmon
     {

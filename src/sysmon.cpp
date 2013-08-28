@@ -22,6 +22,10 @@
  * */
 
 #include <librorc/sysmon.hh>
+#include <librorc/registers.h>
+#include <librorc/bar_proto.hh>
+#include <librorc/sim_bar.hh>
+#include <librorc/bar.hh>
 
 namespace librorc
 {
