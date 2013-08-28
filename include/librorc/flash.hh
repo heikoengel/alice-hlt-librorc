@@ -21,8 +21,6 @@
 #define LIBRORC_FLASH_H
 
 #include "librorc/include_ext.hh"
-#include "librorc/include_int.hh"
-
 #include "librorc/defines.hh"
 
 
@@ -109,6 +107,7 @@ struct flash_architecture
  **/
 namespace librorc
 {
+class bar;
 
     class flash
     {
