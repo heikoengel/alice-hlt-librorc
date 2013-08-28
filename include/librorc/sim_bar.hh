@@ -26,8 +26,6 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/bar_proto.hh>
-#include <librorc/dma_channel.hh>
-
 
 /**
  * FLI_CMD bit definitions
@@ -56,6 +54,7 @@
 
 namespace librorc
 {
+class device;
 
     class sim_bar : public bar
     {

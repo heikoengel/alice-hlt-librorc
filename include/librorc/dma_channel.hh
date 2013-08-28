@@ -22,11 +22,6 @@
 
 #include <librorc/include_ext.hh>
 
-//#include <librorc/bar_proto.hh>
-//#include <librorc/sim_bar.hh>
-//#include <librorc/bar.hh>
-//#include <librorc/buffer.hh>
-
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED 3

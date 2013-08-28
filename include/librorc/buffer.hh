@@ -21,8 +21,6 @@
 #define LIBRORC_BUFFER_H
 
 #include "librorc/include_ext.hh"
-#include "librorc/device.hh"
-//class device;
 
 #define LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED  1
 
@@ -68,6 +66,8 @@ typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
  **/
 namespace librorc
 {
+class device;
+
     class buffer
     {
         friend class dma_channel;

@@ -28,9 +28,6 @@
 #include <librorc/defines.hh>
 #include <librorc/bar_proto.hh>
 
-class device;
-class dma_channel;
-
 /**
  * @class rorc_bar
  * @brief Represents a Base Address Register (BAR) file
@@ -44,6 +41,9 @@ class dma_channel;
 
 namespace librorc
 {
+class device;
+class dma_channel;
+
 
     class rorc_bar : public bar
     {

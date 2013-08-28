@@ -17,8 +17,10 @@
  */
 
 #include <librorc/registers.h>
+#include <librorc/device.hh>
 #include <librorc/sim_bar.hh>
 #include <librorc/buffer.hh>
+#include <librorc/dma_channel.hh>
 
 #include <mti.h>
 #include <pda.h>
