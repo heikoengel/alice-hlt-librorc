@@ -160,7 +160,6 @@ dma_channel::~dma_channel()
     {
         m_reportBuffer->clear();
     }
-    delete m_bar;
 }
 
 
