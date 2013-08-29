@@ -1,6 +1,8 @@
 #ifndef LIBRORC_DEFINES_H
 #define LIBRORC_DEFINES_H
 
+#include <time.h>
+
     #define LIBRARY_NAME librorc
 
     enum librorc_verbosity_enum
