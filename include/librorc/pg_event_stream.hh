@@ -59,12 +59,11 @@ class device;
 
             ~pg_event_stream();
 
-            void setupDMAChannel();
-
         protected:
 
             uint32_t  m_eventSize;
 
+            void setupDMAChannel();
     };
 
 }
