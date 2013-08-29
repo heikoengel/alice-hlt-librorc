@@ -101,7 +101,7 @@ alloc_channel
 )
 {
     /** check if requested channel is implemented in firmware */
-    if( Dev->DMAChannelIsImplemented(ChannelID) )
+    if( !(Dev->DMAChannelIsImplemented(ChannelID)) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
             "firmware - exiting\n", ChannelID);
