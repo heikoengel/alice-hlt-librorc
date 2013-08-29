@@ -17,10 +17,10 @@ extern int errno;
 
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
-    dma_channel::dma_channel
+    dma_channel_pg::dma_channel_pg
     (
         uint32_t  channel_number,
         device   *dev,
@@ -31,7 +31,7 @@ namespace librorc
 
     }
 
-    dma_channel::dma_channel
+    dma_channel_pg::dma_channel_pg
     (
         uint32_t  channel_number,
         uint32_t  pcie_packet_size,
@@ -45,7 +45,7 @@ namespace librorc
 
     }
 
-    dma_channel::~dma_channel()
+    dma_channel_pg::~dma_channel_pg()
     {
         if(m_reportBuffer != NULL)
         {

@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef LIBRORC_DMA_CHANNEL_H
-#define LIBRORC_DMA_CHANNEL_H
+#ifndef LIBRORC_DMA_CHANNEL_PG_H
+#define LIBRORC_DMA_CHANNEL_PG_H
 
 #include <librorc/dma_channel.hh>
 
@@ -60,4 +60,4 @@ class device;
 
 }
 
-#endif /** LIBRORC_DMA_CHANNEL_H */
+#endif /** LIBRORC_DMA_CHANNEL_PG_H */

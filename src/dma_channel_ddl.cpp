@@ -17,7 +17,7 @@ extern int errno;
 
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
     dma_channel_ddl::dma_channel_ddl
