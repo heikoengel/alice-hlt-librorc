@@ -45,42 +45,22 @@ class bar;
 class buffer;
 class device;
 
-    class event_stream
+    class pg_event_stream : public event_stream
     {
         public:
 
-//             event_stream
-//             (
-//                int32_t   deviceId,
-//                int32_t   channelId
-//             );
+             event_stream
+             (
+                int32_t   deviceId,
+                int32_t   channelId,
+                uint32_t  eventSize
+             );
 
-//             event_stream
-//             (
-//                int32_t   deviceId,
-//                int32_t   channelId,
-//                uint32_t  eventSize
-//             );
-
-            ~event_stream(){};
-
-
-            /** Member Variables */
-            device      *m_dev;
-            bar         *m_bar1;
-            buffer      *m_eventBuffer;
-            buffer      *m_reportBuffer;
-            dma_channel *m_channel;
-
+            ~pg_event_stream(){};
 
         protected:
 
-            void
-            generateDMAChannel
-            (
-                int32_t deviceId,
-                int32_t channelId
-            );
+            uint32_t  m_eventSize;
 
     };
 

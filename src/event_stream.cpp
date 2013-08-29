@@ -51,7 +51,14 @@ namespace librorc
 //        generateDMAChannel(deviceId, channelId);
 //    }
 
-    event_stream::~event_stream()
+//    event_stream::~event_stream()
+//    {
+//        deleteParts();
+//    }
+
+
+    void
+    event_stream::deleteParts()
     {
         delete m_channel;
         delete m_eventBuffer;
