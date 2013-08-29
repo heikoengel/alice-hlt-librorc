@@ -25,8 +25,6 @@
 		</Unit>
 		<Unit filename="fli/flisock.h" />
 		<Unit filename="include/event_generation.h" />
-		<Unit filename="include/event_handling.h" />
-		<Unit filename="include/helper_functions.h" />
 		<Unit filename="include/librorc.h" />
 		<Unit filename="include/librorc/bar.hh" />
 		<Unit filename="include/librorc/bar_proto.hh" />
@@ -54,9 +52,13 @@
 		<Unit filename="tools_src/buffer_handling/crorc_preallocator.cpp" />
 		<Unit filename="tools_src/dma/dma_handling.cpp" />
 		<Unit filename="tools_src/dma/dma_handling.hh" />
+		<Unit filename="tools_src/dma/event_handling.h" />
 		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
+		<Unit filename="tools_src/dma/helper_functions.h" />
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
+		<Unit filename="tools_src/hlt_out_writer/event_handling.h" />
+		<Unit filename="tools_src/hlt_out_writer/helper_functions.h" />
 		<Unit filename="tools_src/hlt_out_writer/hlt_out_writer.cpp" />
 		<Unit filename="tools_src/hwtest/test_fmc.cpp" />
 		<Unit filename="tools_src/linkctrl/gtxctrl.cpp" />

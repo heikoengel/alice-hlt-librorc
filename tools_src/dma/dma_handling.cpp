@@ -118,18 +118,18 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 
 
 //TODO: that should be a part of the dma channel class
-channelStatus*
+librorcChannelStatus*
 prepareSharedMemory
 (
     DMAOptions opts
 )
 {
-    channelStatus *chstats = NULL;
+    librorcChannelStatus *chstats = NULL;
 
     /** allocate shared mem */
     int shID =
         shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(channelStatus), IPC_CREAT | 0666);
+            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
     if(shID==-1)
     {
         perror("Shared memory getching failed!");
@@ -144,10 +144,10 @@ prepareSharedMemory
         return(chstats);
     }
 
-    chstats = (channelStatus*)shm;
+    chstats = (librorcChannelStatus*)shm;
 
     /** Wipe SHM */
-    memset(chstats, 0, sizeof(channelStatus));
+    memset(chstats, 0, sizeof(librorcChannelStatus));
     chstats->index = 0;
     chstats->last_id = -1;
     chstats->channel = (unsigned int)opts.channelId;
@@ -314,10 +314,10 @@ printStatusLine
 void
 printFinalStatusLine
 (
-    channelStatus *chstats,
-    DMAOptions     opts,
-    timeval        start_time,
-    timeval        end_time
+    librorcChannelStatus *chstats,
+    DMAOptions            opts,
+    timeval               start_time,
+    timeval               end_time
 )
 {
     printf
