@@ -40,12 +40,24 @@ namespace librorc
     )
     {
         m_eventSize = eventSize;
+
         generateDMAChannel(deviceId, channelId);
+        setupDMAChannel();
     }
 
     pg_event_stream::~pg_event_stream()
     {
         deleteParts();
+    }
+
+    void
+    pg_event_stream::setupDMAChannel()
+    {
+        m_channel->enable();
+        //cout << "Waiting for GTX to be ready..." << endl;
+        m_channel->waitForGTXDomain();
+        //cout << "Configuring pattern generator ..." << endl;
+        m_channel->configurePatternGenerator(m_eventSize);
     }
 
 }
