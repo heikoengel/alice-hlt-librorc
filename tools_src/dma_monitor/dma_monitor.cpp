@@ -32,7 +32,7 @@
 #include <ctime>
 
 #include <librorc.h>
-#include <event_handling.h>
+//#include <event_handling.h>
 
 using namespace std;
 
@@ -165,7 +165,7 @@ int main( int argc, char *argv[])
             if( last_bytes_received[i] && channel_bytes[i] )
             {
                 cout << " Data-Rate: " << fixed << setprecision(3) << setw(7) <<
-                    (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
+                    (double)(channel_bytes[i])/gettimeofdayDiff(last_time, cur_time)/(double)(1<<20)
                     << " MB/s";
 
             }
@@ -182,7 +182,7 @@ int main( int argc, char *argv[])
                 {
                     cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) <<
                         (double)(chstats[i]->n_events-last_events_received[i])/
-                        gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
+                        gettimeofdayDiff(last_time, cur_time)/1000.0 << " kHz";
                 }
             else
             {
@@ -209,7 +209,7 @@ int main( int argc, char *argv[])
         {
             cout << "Combined Data-Size: " << (double)sum_of_bytes/((uint64_t)1<<40)
                 << " TB, Combined Data-Rate: "
-                << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
+                << (double)((sum_of_bytes_diff)/gettimeofdayDiff(last_time, cur_time)/(double)(1<<20))
                 << " MB/s";
 
         }
