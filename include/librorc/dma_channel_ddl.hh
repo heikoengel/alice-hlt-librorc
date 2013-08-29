@@ -1,7 +1,6 @@
 /**
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
- * @version 0.2
- * @date 2011-08-17
+ * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @date 2013-08-29
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -25,7 +24,7 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 class bar;
