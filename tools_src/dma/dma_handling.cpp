@@ -166,19 +166,7 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    {
-        if(opts.eventSize > 0)
-        {
-        eventStream =
-            new librorc::pg_event_stream(opts.deviceId, opts.channelId, opts.eventSize);
-        }
-        else
-        {
-        eventStream =
-            new librorc::gtx_event_stream(opts.deviceId, opts.channelId);
-        }
-
-    }
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize);}
     catch( int error )
     {
         switch(error)

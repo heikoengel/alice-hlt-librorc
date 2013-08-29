@@ -49,21 +49,22 @@ class device;
     {
         public:
 
-//             event_stream
-//             (
-//                int32_t   deviceId,
-//                int32_t   channelId
-//             );
+             event_stream
+             (
+                int32_t   deviceId,
+                int32_t   channelId
+             );
 
-//             event_stream
-//             (
-//                int32_t   deviceId,
-//                int32_t   channelId,
-//                uint32_t  eventSize
-//             );
+             event_stream
+             (
+                int32_t   deviceId,
+                int32_t   channelId,
+                uint32_t  eventSize
+             );
 
-            ~event_stream(){};
+            ~event_stream();
 
+            void setupPGChannel();
 
             /** Member Variables */
             device      *m_dev;
@@ -74,6 +75,7 @@ class device;
 
 
         protected:
+            uint32_t  m_eventSize;
 
             void
             generateDMAChannel

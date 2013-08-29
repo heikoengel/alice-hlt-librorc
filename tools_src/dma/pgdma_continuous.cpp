@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
     if( !(eventStream = prepareEventStream(opts)) )
     { exit(-1); }
 
+    eventStream->setupPGChannel();
+
     printDeviceStatus(eventStream);
 
     /** Capture starting time */

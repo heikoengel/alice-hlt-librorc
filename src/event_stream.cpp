@@ -32,29 +32,30 @@ using namespace std;
 namespace librorc
 {
 
-//    event_stream::event_stream
-//    (
-//        int32_t   deviceId,
-//        int32_t   channelId
-//    )
-//    {
-//        generateDMAChannel(deviceId, channelId);
-//    }
-//
-//    event_stream::event_stream
-//    (
-//        int32_t   deviceId,
-//        int32_t   channelId,
-//        uint32_t  eventSize
-//    )
-//    {
-//        generateDMAChannel(deviceId, channelId);
-//    }
+    event_stream::event_stream
+    (
+        int32_t   deviceId,
+        int32_t   channelId
+    )
+    {
+        generateDMAChannel(deviceId, channelId);
+    }
 
-//    event_stream::~event_stream()
-//    {
-//        deleteParts();
-//    }
+    event_stream::event_stream
+    (
+        int32_t   deviceId,
+        int32_t   channelId,
+        uint32_t  eventSize
+    )
+    {
+        m_eventSize = eventSize;
+        generateDMAChannel(deviceId, channelId);
+    }
+
+    event_stream::~event_stream()
+    {
+        deleteParts();
+    }
 
 
     void
@@ -112,6 +113,16 @@ namespace librorc
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED; }
+    }
+
+    void
+    event_stream::setupPGChannel()
+    {
+        m_channel->enable();
+        //cout << "Waiting for GTX to be ready..." << endl;
+        m_channel->waitForGTXDomain();
+        //cout << "Configuring pattern generator ..." << endl;
+        m_channel->configurePatternGenerator(m_eventSize);
     }
 
 }
