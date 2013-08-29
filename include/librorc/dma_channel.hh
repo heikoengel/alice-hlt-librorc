@@ -78,7 +78,7 @@ typedef struct
  * No DMA transfer will start unless setDMAEnable() has been called
  * with enable=1.
  **/
-namespace LIBRARY_NAME
+namespace librorc
 {
 
 class bar;
@@ -438,6 +438,19 @@ class device;
             device   *m_dev;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
+
+            void
+            initMembers
+            (
+                uint32_t  channel_number,
+                uint32_t  pcie_packet_size,
+                device   *dev,
+                bar      *bar,
+                buffer   *eventBuffer,
+                buffer   *reportBuffer
+            );
+
+            void prepareBuffers();
 
             /**
              * Prepare EventBuffer: copy scatterlist from

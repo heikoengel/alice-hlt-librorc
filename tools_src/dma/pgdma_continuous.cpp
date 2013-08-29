@@ -56,23 +56,6 @@ int main(int argc, char *argv[])
 
     printDeviceStatus(eventStream);
 
-    /** Setup DMA channel */
-    try
-    {
-        eventStream->m_channel->enable();
-
-        cout << "Waiting for GTX to be ready..." << endl;
-        eventStream->m_channel->waitForGTXDomain();
-
-        cout << "Configuring pattern generator ..." << endl;
-        eventStream->m_channel->configurePatternGenerator(opts.eventSize);
-    }
-    catch( int error )
-    {
-        cout << "DMA channel failed (ERROR :" << error << ")" << endl;
-        return(-1);
-    }
-
     /** Capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);

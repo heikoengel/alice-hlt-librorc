@@ -81,8 +81,25 @@ dma_channel::dma_channel
     bar      *bar
 )
 {
-    initMembers(channel_number, 0, dev, bar,NULL, NULL);
-    prepareBuffers();
+    m_last_ebdm_offset = 0;
+    m_last_rbdm_offset = 0;
+    m_pcie_packet_size = 0;
+
+    m_is_pattern_generator = false;
+    m_is_gtx               = false;
+
+    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+    m_channel      = channel_number;
+    m_dev          = dev;
+    m_bar          = bar;
+
+    m_eventBuffer  = NULL;
+    m_reportBuffer = NULL;
+
+    /** Check that requested channel is implemented in firmware */
+    if( !m_dev->DMAChannelIsImplemented(channel_number) )
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
 }
 
 
@@ -97,24 +114,9 @@ dma_channel::dma_channel
     buffer   *reportBuffer
 )
 {
-    initMembers(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer);
-    prepareBuffers();
-}
-
-void
-dma_channel::initMembers
-(
-    uint32_t  channel_number,
-    uint32_t  pcie_packet_size,
-    device   *dev,
-    bar      *bar,
-    buffer   *eventBuffer,
-    buffer   *reportBuffer
-)
-{
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
-    m_pcie_packet_size = pcie_packet_size;
+    m_pcie_packet_size = 0;
 
     m_is_pattern_generator = false;
     m_is_gtx               = false;
@@ -127,30 +129,27 @@ dma_channel::initMembers
     m_eventBuffer  = eventBuffer;
     m_reportBuffer = reportBuffer;
 
-    if(m_reportBuffer != NULL)
-    { m_reportBuffer->clear(); }
-}
+    m_reportBuffer->clear();
 
-void dma_channel::prepareBuffers()
-{
-    if( !m_dev->DMAChannelIsImplemented(m_channel) )
+    /** Check that requested channel is implemented in firmware */
+    if( !m_dev->DMAChannelIsImplemented(channel_number) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-    if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
-    {
-        /** Prepare EventBufferDescriptorManager with scatter-gather list */
-        if(prepareEB(m_eventBuffer) < 0)
-        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+    /** Prepare EventBufferDescriptorManager with scatter-gather list */
+    if(prepareEB(eventBuffer) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-        /** Prepare ReportBufferDescriptorManager with scatter-gather list */
-        if(prepareRB(m_reportBuffer) < 0)
-        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
+    if(prepareRB(reportBuffer) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-        /** set max payload, buffer sizes, #sgEntries, ... */
-        if(configureChannel(m_pcie_packet_size) < 0)
-        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-    }
+    /** set max payload, buffer sizes, #sgEntries, ... */
+    if(configureChannel(pcie_packet_size) < 0)
+    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
 }
+
+
 
 /**
  * Desctructor
