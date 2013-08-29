@@ -82,7 +82,7 @@ class device;
                 int32_t channelId
             );
 
-            void deleteParts()
+            void deleteParts();
 
     };
 

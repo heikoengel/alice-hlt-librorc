@@ -16,10 +16,11 @@
  *
  */
 
-#ifndef LIBRORC_EVENT_STREAM_H
-#define LIBRORC_EVENT_STREAM_H
+#ifndef LIBRORC_PG_EVENT_STREAM_H
+#define LIBRORC_PG_EVENT_STREAM_H
 
 #include <librorc/include_ext.hh>
+#include <librorc/event_stream.hh>
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED   1
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED      2
@@ -49,14 +50,14 @@ class device;
     {
         public:
 
-             event_stream
+             pg_event_stream
              (
                 int32_t   deviceId,
                 int32_t   channelId,
                 uint32_t  eventSize
              );
 
-            ~pg_event_stream(){};
+            ~pg_event_stream();
 
         protected:
 
@@ -66,4 +67,4 @@ class device;
 
 }
 
-#endif /** LIBRORC_EVENT_STREAM_H */
+#endif /** LIBRORC_PG_EVENT_STREAM_H */

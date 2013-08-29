@@ -16,10 +16,11 @@
  *
  */
 
-#ifndef LIBRORC_EVENT_STREAM_H
-#define LIBRORC_EVENT_STREAM_H
+#ifndef LIBRORC_GTX_EVENT_STREAM_H
+#define LIBRORC_GTX_EVENT_STREAM_H
 
 #include <librorc/include_ext.hh>
+#include <librorc/event_stream.hh>
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED   1
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED      2
@@ -45,45 +46,20 @@ class bar;
 class buffer;
 class device;
 
-    class event_stream
+    class gtx_event_stream : public event_stream
     {
         public:
 
-//             event_stream
-//             (
-//                int32_t   deviceId,
-//                int32_t   channelId
-//             );
+             gtx_event_stream
+             (
+                int32_t   deviceId,
+                int32_t   channelId
+             );
 
-//             event_stream
-//             (
-//                int32_t   deviceId,
-//                int32_t   channelId,
-//                uint32_t  eventSize
-//             );
-
-            ~event_stream(){};
-
-
-            /** Member Variables */
-            device      *m_dev;
-            bar         *m_bar1;
-            buffer      *m_eventBuffer;
-            buffer      *m_reportBuffer;
-            dma_channel *m_channel;
-
-
-        protected:
-
-            void
-            generateDMAChannel
-            (
-                int32_t deviceId,
-                int32_t channelId
-            );
+            ~gtx_event_stream();
 
     };
 
 }
 
-#endif /** LIBRORC_EVENT_STREAM_H */
+#endif /** LIBRORC_GTX_EVENT_STREAM_H */

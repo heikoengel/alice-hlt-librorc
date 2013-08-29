@@ -17,7 +17,7 @@
  *
  */
 
-#include <librorc/event_stream.hh>
+#include <librorc/pg_event_stream.hh>
 
 #include <librorc/device.hh>
 #include <librorc/buffer.hh>
