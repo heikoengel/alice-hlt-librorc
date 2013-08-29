@@ -52,29 +52,6 @@ sigaction(SIGINT, &sigIntHandler, NULL);
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
-#ifndef EH_LEGACY
-#define EH_LEGACY
-
-    /** Shared memory parameters for the DMA monitor **/
-    #define SHM_KEY_OFFSET 2048
-    #define SHM_DEV_OFFSET 32
-
-    /** struct to store statistics on received data for a single channel **/
-    typedef struct
-    {
-        uint64_t n_events;
-        uint64_t bytes_received;
-        uint64_t min_epi;
-        uint64_t max_epi;
-        uint64_t index;
-        uint64_t set_offset_count;
-        uint64_t error_count;
-        int64_t  last_id;
-        uint32_t channel;
-    }channelStatus;
-
-#endif /** EH_LEGACY */
-
 /** struct to store command line parameters */
 typedef struct
 {
@@ -99,7 +76,7 @@ bool checkDeviceID(int32_t deviceID, char *argv);
 bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
-channelStatus *prepareSharedMemory(DMAOptions opts);
+librorcChannelStatus *prepareSharedMemory(DMAOptions opts);
 librorc::event_stream *prepareEventStream(DMAOptions opts);
 DDLRefFile getDDLReferenceFile(DMAOptions opts);
 void deleteDDLReferenceFile(DDLRefFile ddlref);
@@ -107,20 +84,20 @@ void deleteDDLReferenceFile(DDLRefFile ddlref);
 timeval
 printStatusLine
 (
-    timeval        last_time,
-    timeval        cur_time,
-    channelStatus *chstats,
-    uint64_t      *last_events_received,
-    uint64_t      *last_bytes_received
+    timeval               last_time,
+    timeval               cur_time,
+    librorcChannelStatus *chstats,
+    uint64_t             *last_events_received,
+    uint64_t             *last_bytes_received
 );
 
 void
 printFinalStatusLine
 (
-    channelStatus *chstats,
-    DMAOptions     opts,
-    timeval        start_time,
-    timeval        end_time
+    librorcChannelStatus *chstats,
+    DMAOptions            opts,
+    timeval               start_time,
+    timeval               end_time
 );
 
 void printDeviceStatus(librorc::event_stream *eventStream);

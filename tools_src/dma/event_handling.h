@@ -16,32 +16,32 @@
 #define CHK_FILE (1<<8)
 
 /**ABOUT TO BE REMOVED************************************************************/
-#ifndef EH_LEGACY
-#define EH_LEGACY
-
-    /** Shared mem key offset **/
-    #define SHM_KEY_OFFSET 2048
-    /** Shared mem device offset **/
-    #define SHM_DEV_OFFSET 32
-
-    typedef struct
-    {
-        uint64_t n_events;
-        uint64_t bytes_received;
-        uint64_t min_epi;
-        uint64_t max_epi;
-        uint64_t index;
-        uint64_t set_offset_count;
-        uint64_t error_count;
-        int64_t  last_id;
-        uint32_t channel;
-    }channelStatus;
-
-#endif /** EH_LEGACY */
+//#ifndef EH_LEGACY
+//#define EH_LEGACY
+//
+//    /** Shared mem key offset **/
+//    #define SHM_KEY_OFFSET 2048
+//    /** Shared mem device offset **/
+//    #define SHM_DEV_OFFSET 32
+//
+//    typedef struct
+//    {
+//        uint64_t n_events;
+//        uint64_t bytes_received;
+//        uint64_t min_epi;
+//        uint64_t max_epi;
+//        uint64_t index;
+//        uint64_t set_offset_count;
+//        uint64_t error_count;
+//        int64_t  last_id;
+//        uint32_t channel;
+//    }channelStatus;
+//
+//#endif /** EH_LEGACY */
 /*********************************************************************************/
 
 #include <pda.h>
-#include <helper_functions.h>
+#include "helper_functions.h"
 
 /**
  * Sanity checks on received data
@@ -264,7 +264,7 @@ int handle_channel_data
     librorc::buffer      *rbuf,
     librorc::buffer      *ebuf,
     librorc::dma_channel *channel,
-    channelStatus        *stats,
+    librorcChannelStatus        *stats,
     int                   do_sanity_check,
     uint32_t             *ddlref,
     uint64_t              ddlref_size

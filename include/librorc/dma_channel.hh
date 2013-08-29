@@ -21,6 +21,7 @@
 #define LIBRORC_DMA_CHANNEL_H
 
 #include <librorc/include_ext.hh>
+#include <librorc/defines.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -42,6 +43,28 @@
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
+//////////////////////////////////////
+/** TODO : This might be obsolete */
+/** Shared mem key offset **/
+#define SHM_KEY_OFFSET 2048
+/** Shared mem device offset **/
+#define SHM_DEV_OFFSET 32
+
+typedef struct
+{
+    uint64_t n_events;
+    uint64_t bytes_received;
+    uint64_t min_epi;
+    uint64_t max_epi;
+    uint64_t index;
+    uint64_t set_offset_count;
+    uint64_t error_count;
+    int64_t  last_id;
+    uint32_t channel;
+}librorcChannelStatus;
+//////////////////////////////////
+
+
 /**
  * @class dma_channel
  * @brief DMA channel management class
@@ -55,7 +78,7 @@
  * No DMA transfer will start unless setDMAEnable() has been called
  * with enable=1.
  **/
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 class bar;

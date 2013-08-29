@@ -23,27 +23,28 @@
 
 #include <fcntl.h>
 #include <pda.h>
+#include <librorc.h>
 
 
 
-/**
- * gettimeofday_diff
- * @param time1 earlier timestamp
- * @param time2 later timestamp
- * @return time difference in seconds as double
- * */
-double gettimeofday_diff(timeval time1, timeval time2) {
-  timeval diff;
-  diff.tv_sec = time2.tv_sec - time1.tv_sec;
-  diff.tv_usec = time2.tv_usec - time1.tv_usec;
-  while(diff.tv_usec < 0) {
-    diff.tv_usec += 1000000;
-    diff.tv_sec -= 1;
-  }
-
-  return (double)((double)diff.tv_sec +
-      (double)((double)diff.tv_usec / 1000000));
-}
+///**
+// * gettimeofday_diff
+// * @param time1 earlier timestamp
+// * @param time2 later timestamp
+// * @return time difference in seconds as double
+// * */
+//double gettimeofday_diff(timeval time1, timeval time2) {
+//  timeval diff;
+//  diff.tv_sec = time2.tv_sec - time1.tv_sec;
+//  diff.tv_usec = time2.tv_usec - time1.tv_usec;
+//  while(diff.tv_usec < 0) {
+//    diff.tv_usec += 1000000;
+//    diff.tv_sec -= 1;
+//  }
+//
+//  return (double)((double)diff.tv_sec +
+//      (double)((double)diff.tv_usec / 1000000));
+//}
 
 
 /**
@@ -163,12 +164,12 @@ void dump_dma_state
 void print_summary_stats
 (
     uint32_t       n,
-    channelStatus *chstats[],
+    librorcChannelStatus *chstats[],
     uint64_t      *ch_last_bytes_received,
     double         timediff
 )
 {
-  channelStatus statsum;
+  librorcChannelStatus statsum;
   uint64_t last_bytes_received = 0;
   uint32_t i;
   //sum up all channels
@@ -209,11 +210,11 @@ void print_summary_stats
  * */
 void print_channel_stats(
     uint32_t n,
-    channelStatus *chstats[],
+    librorcChannelStatus *chstats[],
     uint64_t *ch_last_bytes_received,
     double timediff)
 {
-  channelStatus statsum;
+  librorcChannelStatus statsum;
   uint64_t last_bytes_received = 0;
   uint32_t i;
   //sum up all channels
@@ -291,7 +292,7 @@ dump_diu_state
 int dump_to_file
 (
     char            *base_dir,
-    channelStatus   *stats,
+    librorcChannelStatus   *stats,
     uint64_t        EventID,
     uint32_t         file_index,
     struct librorc_event_descriptor *reportbuffer,
@@ -353,7 +354,7 @@ int dump_to_file
       "offset=%lx\n"
       "EventID=%lx\n"
       "LastID=%lx\n",
-      stats->channel, stats->index, 
+      stats->channel, stats->index,
       reportbuffer[stats->index].calc_event_size,
       reportbuffer[stats->index].reported_event_size,
       reportbuffer[stats->index].offset,

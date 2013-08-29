@@ -1,6 +1,8 @@
 #ifndef LIBRORC_DEFINES_H
 #define LIBRORC_DEFINES_H
 
+    #define LIBRARY_NAME librorc
+
     enum librorc_verbosity_enum
     {
         LIBRORC_VERBOSE_OFF = 0,
