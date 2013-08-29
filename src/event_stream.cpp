@@ -24,7 +24,10 @@
 #include <librorc/bar_proto.hh>
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
+
 #include <librorc/dma_channel.hh>
+#include <librorc/dma_channel_ddl.hh>
+
 
 using namespace std;
 
@@ -108,7 +111,7 @@ namespace librorc
         try
         {
             m_channel =
-            new librorc::dma_channel
+            new librorc::dma_channel_ddl
             (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
         }
         catch(...)

@@ -70,10 +70,6 @@ extern int errno;
 namespace librorc
 {
 
-/**
- * Constructor
- * */
-
 dma_channel::dma_channel
 (
     uint32_t  channel_number,
@@ -100,6 +96,8 @@ dma_channel::dma_channel
     initMembers(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer);
     prepareBuffers();
 }
+
+
 
 void
 dma_channel::initMembers

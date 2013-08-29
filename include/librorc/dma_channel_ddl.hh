@@ -43,6 +43,7 @@ class device;
              );
 
              dma_channel_ddl
+             //: dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
              (
                 uint32_t  channel_number,
                 uint32_t  pcie_packet_size,
