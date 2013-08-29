@@ -21,8 +21,8 @@
  **/
 
 #include <librorc.h>
-#include <event_handling.h>
 
+#include "event_handling.h"
 #include "dma_handling.hh"
 
 using namespace std;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    channelStatus *chstats
+    librorcChannelStatus *chstats
         = prepareSharedMemory(opts);
     if(chstats == NULL)
     { exit(-1); }
