@@ -25,9 +25,8 @@
 #define LIBRORC_BAR_H
 
 #include <librorc/include_ext.hh>
-#include <librorc/include_int.hh>
-
-
+#include <librorc/defines.hh>
+#include <librorc/bar_proto.hh>
 
 /**
  * @class rorc_bar
@@ -42,6 +41,9 @@
 
 namespace librorc
 {
+class device;
+class dma_channel;
+
 
     class rorc_bar : public bar
     {

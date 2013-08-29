@@ -19,33 +19,48 @@
 
 #include <librorc/event_stream.hh>
 
+#include <librorc/device.hh>
+#include <librorc/buffer.hh>
+#include <librorc/bar_proto.hh>
+#include <librorc/sim_bar.hh>
+#include <librorc/bar.hh>
+#include <librorc/dma_channel.hh>
+
 using namespace std;
 
 
 namespace librorc
 {
 
-    event_stream::event_stream
-    (
-        int32_t   deviceId,
-        int32_t   channelId
-    )
-    {
-        generateDMAChannel(deviceId, channelId);
-    }
+//    event_stream::event_stream
+//    (
+//        int32_t   deviceId,
+//        int32_t   channelId
+//    )
+//    {
+//        generateDMAChannel(deviceId, channelId);
+//    }
+//
+//    event_stream::event_stream
+//    (
+//        int32_t   deviceId,
+//        int32_t   channelId,
+//        uint32_t  eventSize
+//    )
+//    {
+//        generateDMAChannel(deviceId, channelId);
+//    }
 
-    event_stream::event_stream
-    (
-        int32_t   deviceId,
-        int32_t   channelId,
-        uint32_t  eventSize
-    )
-    {
-        generateDMAChannel(deviceId, channelId);
-    }
+//    event_stream::~event_stream()
+//    {
+//        deleteParts();
+//    }
 
-    event_stream::~event_stream()
+
+    void
+    event_stream::deleteParts()
     {
+        delete m_channel;
         delete m_eventBuffer;
         delete m_reportBuffer;
         delete m_bar1;
@@ -81,13 +96,22 @@ namespace librorc
         try
         { m_eventBuffer = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED; }
 
         /** create new DMA report buffer */
         try
         { m_reportBuffer = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE); }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED; }
+
+        try
+        {
+            m_channel =
+            new librorc::dma_channel
+            (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+        }
+        catch(...)
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED; }
     }
 
 }

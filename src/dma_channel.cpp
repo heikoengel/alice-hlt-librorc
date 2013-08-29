@@ -21,6 +21,12 @@
 #include <librorc/registers.h>
 #include <librorc/dma_channel.hh>
 
+#include <librorc/device.hh>
+#include <librorc/bar_proto.hh>
+#include <librorc/sim_bar.hh>
+#include <librorc/bar.hh>
+#include <librorc/buffer.hh>
+
 #include <pda.h>
 
 using namespace std;
@@ -150,8 +156,10 @@ dma_channel::dma_channel
  * */
 dma_channel::~dma_channel()
 {
-    m_reportBuffer->clear();
-    delete m_bar;
+    if(m_reportBuffer != NULL)
+    {
+        m_reportBuffer->clear();
+    }
 }
 
 
@@ -159,13 +167,29 @@ dma_channel::~dma_channel()
 void
 dma_channel::enable()
 {
-    if(!m_eventBuffer || !m_reportBuffer)
+    if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
     setEnableEB(1);
     setEnableRB(1);
 
     setDMAConfig( getDMAConfig() | 0x01 );
+}
+
+
+
+void
+dma_channel::disable()
+{
+    setEnableEB(0);
+
+    while(getDMABusy())
+    { usleep(100); }
+
+    setEnableRB(0);
+
+    /** Reset DFIFO, disable DMA PKT */
+    setDMAConfig(0X00000002);
 }
 
 

@@ -24,10 +24,8 @@
 #ifndef SIM_BAR_H
 #define SIM_BAR_H
 
-#include "librorc/include_ext.hh"
-#include "librorc/include_int.hh"
-
-
+#include <librorc/include_ext.hh>
+#include <librorc/bar_proto.hh>
 
 /**
  * FLI_CMD bit definitions
@@ -56,6 +54,7 @@
 
 namespace librorc
 {
+class device;
 
     class sim_bar : public bar
     {

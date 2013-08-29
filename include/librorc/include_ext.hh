@@ -23,6 +23,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include <pda.h>
+
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>

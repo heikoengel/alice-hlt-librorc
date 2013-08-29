@@ -32,7 +32,7 @@
 #include <ctime>
 
 #include <librorc.h>
-#include <event_handling.h>
+//#include <event_handling.h>
 
 using namespace std;
 
@@ -113,7 +113,7 @@ int main( int argc, char *argv[])
     uint64_t       last_bytes_received[LIBRORC_MAX_DMA_CHANNELS];
     uint64_t       last_events_received[LIBRORC_MAX_DMA_CHANNELS];
     uint64_t       channel_bytes[LIBRORC_MAX_DMA_CHANNELS];
-    channelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
+    librorcChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
     int32_t        shID[LIBRORC_MAX_DMA_CHANNELS];
     char          *shm[LIBRORC_MAX_DMA_CHANNELS];
 
@@ -124,7 +124,7 @@ int main( int argc, char *argv[])
         channel_bytes[i] = 0;
 
         shID[i] = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + i,
-                sizeof(channelStatus), IPC_CREAT | 0666);
+                sizeof(librorcChannelStatus), IPC_CREAT | 0666);
         if( shID[i]==-1)
         {
             perror("shmget");
@@ -140,7 +140,7 @@ int main( int argc, char *argv[])
         }
 
         chstats[i] = NULL;
-        chstats[i] = (channelStatus*)shm[i];
+        chstats[i] = (librorcChannelStatus*)shm[i];
     }
 
     /** capture starting time */
@@ -165,7 +165,7 @@ int main( int argc, char *argv[])
             if( last_bytes_received[i] && channel_bytes[i] )
             {
                 cout << " Data-Rate: " << fixed << setprecision(3) << setw(7) <<
-                    (double)(channel_bytes[i])/gettimeofday_diff(last_time, cur_time)/(double)(1<<20)
+                    (double)(channel_bytes[i])/gettimeofdayDiff(last_time, cur_time)/(double)(1<<20)
                     << " MB/s";
 
             }
@@ -182,7 +182,7 @@ int main( int argc, char *argv[])
                 {
                     cout << " Event Rate: "  << fixed << setprecision(3) << setw(7) <<
                         (double)(chstats[i]->n_events-last_events_received[i])/
-                        gettimeofday_diff(last_time, cur_time)/1000.0 << " kHz";
+                        gettimeofdayDiff(last_time, cur_time)/1000.0 << " kHz";
                 }
             else
             {
@@ -209,7 +209,7 @@ int main( int argc, char *argv[])
         {
             cout << "Combined Data-Size: " << (double)sum_of_bytes/((uint64_t)1<<40)
                 << " TB, Combined Data-Rate: "
-                << (double)((sum_of_bytes_diff)/gettimeofday_diff(last_time, cur_time)/(double)(1<<20))
+                << (double)((sum_of_bytes_diff)/gettimeofdayDiff(last_time, cur_time)/(double)(1<<20))
                 << " MB/s";
 
         }

@@ -20,6 +20,7 @@
  */
 
 #include <librorc/buffer.hh>
+#include <librorc/device.hh>
 
 #include <pda.h>
 

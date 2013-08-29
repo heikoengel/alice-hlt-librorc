@@ -25,8 +25,6 @@
 		</Unit>
 		<Unit filename="fli/flisock.h" />
 		<Unit filename="include/event_generation.h" />
-		<Unit filename="include/event_handling.h" />
-		<Unit filename="include/helper_functions.h" />
 		<Unit filename="include/librorc.h" />
 		<Unit filename="include/librorc/bar.hh" />
 		<Unit filename="include/librorc/bar_proto.hh" />
@@ -36,8 +34,10 @@
 		<Unit filename="include/librorc/dma_channel.hh" />
 		<Unit filename="include/librorc/event_stream.hh" />
 		<Unit filename="include/librorc/flash.hh" />
+		<Unit filename="include/librorc/gtx_event_stream.hh" />
 		<Unit filename="include/librorc/include_ext.hh" />
 		<Unit filename="include/librorc/include_int.hh" />
+		<Unit filename="include/librorc/pg_event_stream.hh" />
 		<Unit filename="include/librorc/registers.h" />
 		<Unit filename="include/librorc/sim_bar.hh" />
 		<Unit filename="include/librorc/sysmon.hh" />
@@ -48,15 +48,21 @@
 		<Unit filename="src/dma_channel.cpp" />
 		<Unit filename="src/event_stream.cpp" />
 		<Unit filename="src/flash.cpp" />
+		<Unit filename="src/gtx_event_stream.cpp" />
+		<Unit filename="src/pg_event_stream.cpp" />
 		<Unit filename="src/sim_bar.cpp" />
 		<Unit filename="src/sysmon.cpp" />
 		<Unit filename="tools_src/buffer_handling/bufferstats.cpp" />
 		<Unit filename="tools_src/buffer_handling/crorc_preallocator.cpp" />
 		<Unit filename="tools_src/dma/dma_handling.cpp" />
 		<Unit filename="tools_src/dma/dma_handling.hh" />
+		<Unit filename="tools_src/dma/event_handling.h" />
 		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
+		<Unit filename="tools_src/dma/helper_functions.h" />
 		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
+		<Unit filename="tools_src/hlt_out_writer/event_handling.h" />
+		<Unit filename="tools_src/hlt_out_writer/helper_functions.h" />
 		<Unit filename="tools_src/hlt_out_writer/hlt_out_writer.cpp" />
 		<Unit filename="tools_src/hwtest/test_fmc.cpp" />
 		<Unit filename="tools_src/linkctrl/gtxctrl.cpp" />

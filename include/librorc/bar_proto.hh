@@ -2,7 +2,6 @@
 #define LIBRORC_BAR_PROTO_H
 
 #include "librorc/include_ext.hh"
-#include "librorc/device.hh"
 
 #define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED  1
 
@@ -11,6 +10,7 @@ typedef uint64_t librorc_bar_address;
 
 namespace librorc
 {
+class device;
 
     class bar
     {
