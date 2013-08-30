@@ -28,6 +28,7 @@
 
 typedef enum
 {
+    LIBRORC_ES_PURE,
     LIBRORC_ES_DDL,
     LIBRORC_ES_PG
 } LibrorcEsType;
@@ -88,8 +89,9 @@ class device;
             void
             generateDMAChannel
             (
-                int32_t deviceId,
-                int32_t channelId
+                int32_t       deviceId,
+                int32_t       channelId,
+                LibrorcEsType esType
             );
 
             void deleteParts();

@@ -41,7 +41,7 @@ namespace librorc
         int32_t channelId
     )
     {
-        generateDMAChannel(deviceId, channelId);
+        generateDMAChannel(deviceId, channelId, LIBRORC_ES_PURE);
     }
 
     event_stream::event_stream
@@ -53,7 +53,7 @@ namespace librorc
     )
     {
         m_eventSize = eventSize;
-        generateDMAChannel(deviceId, channelId);
+        generateDMAChannel(deviceId, channelId, esType);
     }
 
     event_stream::~event_stream()
@@ -75,8 +75,9 @@ namespace librorc
     void
     event_stream::generateDMAChannel
     (
-        int32_t   deviceId,
-        int32_t   channelId
+        int32_t       deviceId,
+        int32_t       channelId,
+        LibrorcEsType esType
     )
     {
         /** Create new device instance */
