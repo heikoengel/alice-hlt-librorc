@@ -26,6 +26,13 @@
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED   3
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED 4
 
+typedef enum
+{
+    LIBRORC_ES_DDL,
+    LIBRORC_ES_PG
+} LibrorcEsType;
+
+
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
     #define EBUFSIZE (((uint64_t)1) << 28)
@@ -51,15 +58,16 @@ class device;
 
              event_stream
              (
-                int32_t   deviceId,
-                int32_t   channelId
+                int32_t deviceId,
+                int32_t channelId
              );
 
              event_stream
              (
-                int32_t   deviceId,
-                int32_t   channelId,
-                uint32_t  eventSize
+                int32_t       deviceId,
+                int32_t       channelId,
+                uint32_t      eventSize,
+                LibrorcEsType esType
              );
 
             ~event_stream();

@@ -166,7 +166,7 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize);}
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize, opts.esType); }
     catch( int error )
     {
         switch(error)

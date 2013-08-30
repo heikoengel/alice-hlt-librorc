@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
     ) )
     { exit(-1); }
 
+    opts.esType = LIBRORC_ES_PG;
+
     DMA_ABORT_HANDLER_REGISTER
 
     librorcChannelStatus *chstats

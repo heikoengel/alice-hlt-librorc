@@ -37,8 +37,8 @@ namespace librorc
 
     event_stream::event_stream
     (
-        int32_t   deviceId,
-        int32_t   channelId
+        int32_t deviceId,
+        int32_t channelId
     )
     {
         generateDMAChannel(deviceId, channelId);
@@ -46,9 +46,10 @@ namespace librorc
 
     event_stream::event_stream
     (
-        int32_t   deviceId,
-        int32_t   channelId,
-        uint32_t  eventSize
+        int32_t       deviceId,
+        int32_t       channelId,
+        uint32_t      eventSize,
+        LibrorcEsType esType
     )
     {
         m_eventSize = eventSize;
@@ -111,7 +112,7 @@ namespace librorc
         try
         {
             m_channel =
-            new librorc::dma_channel_ddl
+            new librorc::dma_channel
             (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
         }
         catch(...)
