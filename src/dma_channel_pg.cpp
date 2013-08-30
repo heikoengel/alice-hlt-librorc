@@ -45,7 +45,9 @@ namespace LIBRARY_NAME
     {
         cout << "enabling Pattern Generator!" << endl;
         enable();
+        cout << "Waiting for GTX to be ready..." << endl;
         waitForGTXDomain();
+        cout << "Configuring pattern generator ..." << endl;
         configurePatternGenerator(eventSize);
     }
 
