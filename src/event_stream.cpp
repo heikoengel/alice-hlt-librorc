@@ -80,44 +80,26 @@ namespace librorc
         LibrorcEsType esType
     )
     {
-        /** Create new device instance */
-        try
-        { m_dev = new librorc::device(deviceId); }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
-
-        /** Bind to BAR1 */
         try
         {
-        #ifdef SIM
-            m_bar1 = new librorc::sim_bar(m_dev, 1);
-        #else
-            m_bar1 = new librorc::rorc_bar(m_dev, 1);
-        #endif
-        }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
+            m_dev = new librorc::device(deviceId);
+            #ifdef SIM
+                m_bar1 = new librorc::sim_bar(m_dev, 1);
+            #else
+                m_bar1 = new librorc::rorc_bar(m_dev, 1);
+            #endif
+            m_eventBuffer
+                = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE);
+            m_reportBuffer
+                = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
-        /** Create new DMA event buffer */
-        try
-        { m_eventBuffer = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED; }
-
-        /** create new DMA report buffer */
-        try
-        { m_reportBuffer = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE); }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED; }
-
-        try
-        {
             m_channel =
-            new librorc::dma_channel
-            (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+                new librorc::dma_channel
+                    (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
         }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED; }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+
     }
 
     void

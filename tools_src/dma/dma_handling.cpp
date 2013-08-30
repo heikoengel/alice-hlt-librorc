@@ -169,24 +169,7 @@ prepareEventStream
     { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize, opts.esType); }
     catch( int error )
     {
-        switch(error)
-        {
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED:
-            { cout << "ERROR: failed to initialize device." << endl; }
-            break;
-
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED:
-            { cout << "ERROR: failed to initialize BAR1." << endl; }
-            break;
-
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED:
-            { cout << "ERROR: failed to allocate buffer." << endl; }
-            break;
-
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED:
-            { cout << "ERROR: failed to allocate DMA-channel." << endl; }
-            break;
-        }
+        cout << "ERROR: failed to initialize event stream." << endl;
         return(NULL);
     }
 
