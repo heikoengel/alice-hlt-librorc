@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     if( !(eventStream = prepareEventStream(opts)) )
     { exit(-1); }
 
-//    printDeviceStatus(eventStream);
+    printDeviceStatus(eventStream);
 
     /** Capture starting time */
     timeval start_time;
