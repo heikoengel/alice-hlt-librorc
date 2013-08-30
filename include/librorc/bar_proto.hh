@@ -104,6 +104,13 @@ class device;
      **/
     virtual size_t size() = 0;
 
+    virtual
+    void
+    simSetPacketSize
+    (
+        uint32_t packet_size
+    ){};
+
     protected:
         device          *m_parent_dev;
         PciDevice       *m_pda_pci_device;

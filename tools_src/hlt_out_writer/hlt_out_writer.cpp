@@ -215,6 +215,8 @@ int main( int argc, char *argv[])
         goto out;
     }
 
+    bar1->simSetPacketSize(64);
+
     try
     {
         librorc::sysmon *sm = new librorc::sysmon(bar1);
