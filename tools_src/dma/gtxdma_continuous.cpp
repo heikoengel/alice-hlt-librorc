@@ -41,6 +41,8 @@ int main( int argc, char *argv[])
     ) )
     { exit(-1); }
 
+    opts.esType = LIBRORC_ES_DDL;
+
     DMA_ABORT_HANDLER_REGISTER
 
     librorcChannelStatus *chstats
@@ -130,9 +132,9 @@ int main( int argc, char *argv[])
     eventStream->m_channel->disable();
 
     /** Cleanup */
+    delete eventStream;
     deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
-    delete eventStream;
 
     return 0;
 }

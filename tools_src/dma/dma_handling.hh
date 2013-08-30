@@ -55,11 +55,12 @@ sigaction(SIGINT, &sigIntHandler, NULL);
 /** struct to store command line parameters */
 typedef struct
 {
-    int32_t   deviceId;
-    int32_t   channelId;
-    uint32_t  eventSize;
-    char      refname[4096];
-    bool      useRefFile;
+    int32_t       deviceId;
+    int32_t       channelId;
+    uint32_t      eventSize;
+    char          refname[4096];
+    bool          useRefFile;
+    LibrorcEsType esType;
 } DMAOptions;
 
 /** sruct to hanlde DDL refernce file */

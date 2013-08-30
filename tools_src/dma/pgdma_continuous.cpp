@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
     ) )
     { exit(-1); }
 
+    opts.esType = LIBRORC_ES_PG;
+
     DMA_ABORT_HANDLER_REGISTER
 
     librorcChannelStatus *chstats
@@ -55,23 +57,6 @@ int main(int argc, char *argv[])
     { exit(-1); }
 
     printDeviceStatus(eventStream);
-
-    /** Setup DMA channel */
-    try
-    {
-        eventStream->m_channel->enable();
-
-        cout << "Waiting for GTX to be ready..." << endl;
-        eventStream->m_channel->waitForGTXDomain();
-
-        cout << "Configuring pattern generator ..." << endl;
-        eventStream->m_channel->configurePatternGenerator(opts.eventSize);
-    }
-    catch( int error )
-    {
-        cout << "DMA channel failed (ERROR :" << error << ")" << endl;
-        return(-1);
-    }
 
     /** Capture starting time */
     timeval start_time;
@@ -120,16 +105,9 @@ int main(int argc, char *argv[])
 
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
-    try
-    { eventStream->m_channel->closePatternGenerator(); }
-    catch(...)
-    { cout << "Pattern generator was never configured !!!" << endl; }
-
-    eventStream->m_channel->disable();
-
     /** Cleanup */
-    shmdt(chstats);
     delete eventStream;
+    shmdt(chstats);
 
     return result;
 }

@@ -4,12 +4,12 @@ set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/buffer.cpp"
 "${LIBRORC_SOURCE_DIR}/src/device.cpp"
 "${LIBRORC_SOURCE_DIR}/src/dma_channel.cpp"
+"${LIBRORC_SOURCE_DIR}/src/dma_channel_ddl.cpp"
+"${LIBRORC_SOURCE_DIR}/src/dma_channel_pg.cpp"
 "${LIBRORC_SOURCE_DIR}/src/flash.cpp"
 "${LIBRORC_SOURCE_DIR}/src/sysmon.cpp"
 "${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
 "${LIBRORC_SOURCE_DIR}/src/event_stream.cpp"
-"${LIBRORC_SOURCE_DIR}/src/pg_event_stream.cpp"
-"${LIBRORC_SOURCE_DIR}/src/gtx_event_stream.cpp"
 )
 
 add_library(LIBRORC_OBJECTS OBJECT ${LIBRORC_LIBRARY_SOURCE})
