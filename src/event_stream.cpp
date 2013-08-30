@@ -125,7 +125,14 @@ namespace librorc
             {
             m_channel =
                 new librorc::dma_channel_ddl
-                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+                (
+                    m_channelId,
+                    MAX_PAYLOAD,
+                    m_dev,
+                    m_bar1,
+                    m_eventBuffer,
+                    m_reportBuffer
+                );
             }
             break;
 
@@ -134,7 +141,8 @@ namespace librorc
             m_channel =
                 new librorc::dma_channel_pg
                 (
-                    m_channelId, MAX_PAYLOAD,
+                    m_channelId,
+                    MAX_PAYLOAD,
                     m_dev,
                     m_bar1,
                     m_eventBuffer,
