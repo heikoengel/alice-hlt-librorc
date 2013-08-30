@@ -78,3 +78,9 @@ target_link_libraries( ledctrl rorc pthread ${EXTRA_LIBS})
 
 add_executable( lvdsctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/lvdsctrl.cpp)
 target_link_libraries( lvdsctrl rorc pthread ${EXTRA_LIBS})
+
+add_executable( fanctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/fanctrl.cpp)
+target_link_libraries( fanctrl rorc pthread ${EXTRA_LIBS})
+
+add_executable( ddr3_module_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_module_status.cpp)
+target_link_libraries( ddr3_module_status rorc pthread ${EXTRA_LIBS})
