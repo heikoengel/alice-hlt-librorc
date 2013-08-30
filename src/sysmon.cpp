@@ -216,6 +216,32 @@ namespace librorc
 
 
 
+    void
+    sysmon::systemFanSetEnable
+    (
+        uint32_t enable
+    )
+    {
+        /** get current settings */
+        uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
+        if ( enable )
+        {
+            /** set PWM_EN_T high, so onboard pullup enables the fan */
+            fanctrl |= (1<<30);
+        }
+        else
+        {
+            /** drive PWM_EN_T low */
+            fanctrl &= ~(1<<30);
+            /** drive PWM_EN_O low */
+            fanctrl &= ~(1<<31);
+        }
+        /** write back new settings */
+        m_bar->set32(RORC_REG_FAN_CTRL, fanctrl);
+    }
+
+
+
     /** QSFP Monitoring ***********************************************/
 
 

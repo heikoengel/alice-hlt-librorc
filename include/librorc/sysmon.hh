@@ -115,6 +115,12 @@ class bar;
             bool   systemFanIsRunning();
             double systemFanSpeed();
 
+            void
+            systemFanSetEnable
+            (
+                uint32_t enable
+            );
+
             bool
             qsfpIsPresent
             (

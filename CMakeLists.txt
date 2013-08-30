@@ -37,8 +37,8 @@ find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 
-find_library(KMOD kmod)
-set(EXTRA_LIBS ${EXTRA_LIBS} ${KMOD})
+#find_library(KMOD kmod)
+#set(EXTRA_LIBS ${EXTRA_LIBS} ${KMOD})
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)

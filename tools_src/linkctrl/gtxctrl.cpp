@@ -39,7 +39,10 @@ parameters: \n\
         -x            Clear error counters \n\
         -r [0...7]    Set GTX reset values, see below\n\
         -l [0...7]    Set GTX loopback value \n\
+        -d            Dump DRP address space to stdout \n\
+        -s            Show link status \n\
         -p [number]   Set PLL config from list below \n\
+        -P            List available PLL configs \n\
         -h            Show this text \n\
 \n\
 GTX reset consists of 3 bits, MSB to LSB: {TXreset, RXreset, GTXreset}. \n\
@@ -358,6 +361,7 @@ int main
     int do_loopback = 0;
     int do_pllcfg = 0;
     int do_dump = 0;
+    int show_pllcfgs = 0;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
@@ -370,7 +374,7 @@ int main
                        sizeof(struct gtxpll_settings);
 
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:d")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:dP")) != -1 )
     {
         switch(arg)
         {
@@ -425,22 +429,16 @@ int main
             }
             break;
 
+            case 'P':
+            {
+                show_pllcfgs = 1;
+            }
+            break;
+
             case 'h':
             {
                 cout << HELP_TEXT;
-                cout << "Available PLL Configurations:" << endl;
-                for ( int i=0; i<nconfigs; i++ )
-                {
-                    struct gtxpll_settings pll = available_configs[i];
-                    float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
-                    float link_rate = fPLL * 2 / pll.d / 1000.0;
-                    cout << "[" << i << "] RefClk="
-                         << fixed << setprecision(3)
-                         << available_configs[i].refclk
-                         << " MHz, LinkRate=" << link_rate
-                         << " Gbps, PLL=" << fPLL << " MHz" << endl;
-                }
-                exit(0);
+                show_pllcfgs = 1;
             }
             break;
 
@@ -451,6 +449,23 @@ int main
                 return -1;
             }
         }
+    }
+
+    if ( show_pllcfgs )
+    {
+        cout << "Available PLL Configurations:" << endl;
+        for ( int i=0; i<nconfigs; i++ )
+        {
+            struct gtxpll_settings pll = available_configs[i];
+            float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
+            float link_rate = fPLL * 2 / pll.d / 1000.0;
+            cout << "[" << i << "] RefClk="
+                << fixed << setprecision(3)
+                << available_configs[i].refclk
+                << " MHz, LinkRate=" << link_rate
+                << " Gbps, PLL=" << fPLL << " MHz" << endl;
+        }
+        exit(0);
     }
 
     /** sanity checks on command line arguments **/
