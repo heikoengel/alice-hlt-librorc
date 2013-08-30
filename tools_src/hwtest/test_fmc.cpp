@@ -25,8 +25,8 @@
 #include "librorc.h"
 
 #define HELP_TEXT "test_fmc usage: \n\
-        test_fmc -d [0...255] \n\
-where -d specifies the target device. \n\
+        test_fmc -n [0...255] \n\
+where -n specifies the target device. \n\
 "
 
 using namespace std;
