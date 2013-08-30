@@ -112,6 +112,7 @@ dma_channel::initMembers
 {
     m_last_ebdm_offset = 0;
     m_last_rbdm_offset = 0;
+    m_pcie_packet_size = 0;
     m_pcie_packet_size = pcie_packet_size;
 
     m_is_pattern_generator = false;
@@ -136,6 +137,7 @@ void dma_channel::prepareBuffers()
 
     if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
     {
+        cout << "preparing buffers" << endl;
         /** Prepare EventBufferDescriptorManager with scatter-gather list */
         if(prepareEB(m_eventBuffer) < 0)
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
