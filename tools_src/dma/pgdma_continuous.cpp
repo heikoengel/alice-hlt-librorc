@@ -115,8 +115,8 @@ int main(int argc, char *argv[])
     eventStream->m_channel->disable();
 
     /** Cleanup */
-    shmdt(chstats);
     delete eventStream;
+    shmdt(chstats);
 
     return result;
 }
