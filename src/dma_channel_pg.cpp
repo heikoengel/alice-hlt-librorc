@@ -50,6 +50,9 @@ namespace LIBRARY_NAME
 
     dma_channel_pg::~dma_channel_pg()
     {
+        closePatternGenerator();
+        disable();
+
         if(m_reportBuffer != NULL)
         {
             m_reportBuffer->clear();

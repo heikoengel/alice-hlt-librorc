@@ -105,13 +105,6 @@ int main(int argc, char *argv[])
 
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
-    try
-    { eventStream->m_channel->closePatternGenerator(); }
-    catch(...)
-    { cout << "Pattern generator was never configured !!!" << endl; }
-
-    eventStream->m_channel->disable();
-
     /** Cleanup */
     delete eventStream;
     shmdt(chstats);
