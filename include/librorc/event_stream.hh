@@ -70,6 +70,7 @@ class device;
              );
 
             ~event_stream();
+            void printDeviceStatus();
 
             /** Member Variables */
             device      *m_dev;

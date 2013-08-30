@@ -57,7 +57,7 @@ int main( int argc, char *argv[])
     if( !(eventStream = prepareEventStream(opts)) )
     { exit(-1); }
 
-    printDeviceStatus(eventStream);
+    eventStream->printDeviceStatus();
 
     /** Setup DMA channel */
     try

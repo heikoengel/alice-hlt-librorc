@@ -101,6 +101,4 @@ printFinalStatusLine
     timeval               end_time
 );
 
-void printDeviceStatus(librorc::event_stream *eventStream);
-
 #endif /** DMA_HANDLING_H */

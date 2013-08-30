@@ -329,31 +329,3 @@ printFinalStatusLine
     }
 
 }
-
-
-
-void
-printDeviceStatus
-(
-    librorc::event_stream *eventStream
-)
-{
-    printf
-    (
-        "Bus %x, Slot %x, Func %x\n",
-        eventStream->m_dev->getBus(),
-        eventStream->m_dev->getSlot(),
-        eventStream->m_dev->getFunc()
-    );
-
-    try
-    {
-        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
-        cout << "CRORC FPGA" << endl
-             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
-        delete sm;
-    }
-    catch(...)
-    { cout << "Firmware Rev. and Date not available!" << endl; }
-}

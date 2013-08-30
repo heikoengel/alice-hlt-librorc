@@ -24,6 +24,7 @@
 #include <librorc/bar_proto.hh>
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
+#include <librorc/sysmon.hh>
 
 #include <librorc/dma_channel.hh>
 #include <librorc/dma_channel_ddl.hh>
@@ -155,6 +156,25 @@ namespace librorc
         default:
         throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
+    }
+
+
+
+    void
+    event_stream::printDeviceStatus()
+    {
+        printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
+
+        try
+        {
+            librorc::sysmon *sm = new librorc::sysmon(m_bar1);
+            cout << "CRORC FPGA" << endl
+                 << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+                 << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+            delete sm;
+        }
+        catch(...)
+        { cout << "Firmware Rev. and Date not available!" << endl; }
     }
 
 
