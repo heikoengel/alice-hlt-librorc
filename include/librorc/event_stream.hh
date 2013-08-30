@@ -83,6 +83,7 @@ class device;
 
         protected:
             uint32_t  m_eventSize;
+            int32_t   m_channelId;
 
             void
             generateDMAChannel
@@ -92,6 +93,7 @@ class device;
                 LibrorcEsType esType
             );
 
+            void chooseDMAChannel(LibrorcEsType esType);
             void deleteParts();
 
     };

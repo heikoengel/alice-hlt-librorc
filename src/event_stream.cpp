@@ -27,6 +27,7 @@
 
 #include <librorc/dma_channel.hh>
 #include <librorc/dma_channel_ddl.hh>
+#include <librorc/dma_channel_pg.hh>
 
 
 using namespace std;
@@ -62,6 +63,7 @@ namespace librorc
     }
 
 
+
     void
     event_stream::deleteParts()
     {
@@ -72,6 +74,8 @@ namespace librorc
         delete m_dev;
     }
 
+
+
     void
     event_stream::generateDMAChannel
     (
@@ -80,6 +84,8 @@ namespace librorc
         LibrorcEsType esType
     )
     {
+        m_channelId = channelId;
+
         try
         {
             m_dev = new librorc::device(deviceId);
@@ -93,14 +99,50 @@ namespace librorc
             m_reportBuffer
                 = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
-            m_channel =
-                new librorc::dma_channel
-                    (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+            chooseDMAChannel(esType);
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
 
     }
+
+
+
+    void
+    event_stream::chooseDMAChannel(LibrorcEsType esType)
+    {
+        switch ( esType )
+        {
+            case LIBRORC_ES_PURE:
+            {
+            m_channel =
+                new librorc::dma_channel
+                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+            }
+            break;
+
+            case LIBRORC_ES_DDL:
+            {
+            m_channel =
+                new librorc::dma_channel_ddl
+                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+            }
+            break;
+
+            case LIBRORC_ES_PG:
+            {
+            m_channel =
+                new librorc::dma_channel_pg
+                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+            }
+            break;
+
+        default:
+        throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
+    }
+
+
 
     void
     event_stream::setupPGChannel()
