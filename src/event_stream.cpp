@@ -133,7 +133,14 @@ namespace librorc
             {
             m_channel =
                 new librorc::dma_channel_pg
-                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+                (
+                    m_channelId, MAX_PAYLOAD,
+                    m_dev,
+                    m_bar1,
+                    m_eventBuffer,
+                    m_reportBuffer,
+                    m_eventSize
+                );
             }
             break;
 
@@ -142,16 +149,5 @@ namespace librorc
         }
     }
 
-
-
-    void
-    event_stream::setupPGChannel()
-    {
-        m_channel->enable();
-        //cout << "Waiting for GTX to be ready..." << endl;
-        m_channel->waitForGTXDomain();
-        //cout << "Configuring pattern generator ..." << endl;
-        m_channel->configurePatternGenerator(m_eventSize);
-    }
 
 }

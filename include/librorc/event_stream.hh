@@ -71,8 +71,6 @@ class device;
 
             ~event_stream();
 
-            void setupPGChannel();
-
             /** Member Variables */
             device      *m_dev;
             bar         *m_bar1;

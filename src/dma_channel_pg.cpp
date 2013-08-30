@@ -38,11 +38,14 @@ namespace LIBRARY_NAME
         device   *dev,
         bar      *bar,
         buffer   *eventBuffer,
-        buffer   *reportBuffer
+        buffer   *reportBuffer,
+        uint32_t  eventSize
     )
     : dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
     {
-
+        enable();
+        waitForGTXDomain();
+        configurePatternGenerator(eventSize);
     }
 
     dma_channel_pg::~dma_channel_pg()

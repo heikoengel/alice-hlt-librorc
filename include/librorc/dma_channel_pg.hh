@@ -48,7 +48,8 @@ class device;
                 device   *dev,
                 bar      *bar,
                 buffer   *eventBuffer,
-                buffer   *reportBuffer
+                buffer   *reportBuffer,
+                uint32_t  eventSize
              );
 
             ~dma_channel_pg();
