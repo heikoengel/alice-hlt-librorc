@@ -61,6 +61,11 @@ add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
 target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
 
 
+# Build dmactrl
+add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
+target_link_libraries( dmactrl rorc pthread ${EXTRA_LIBS})
+
+
 # Build ucctrl
 add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
 target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
