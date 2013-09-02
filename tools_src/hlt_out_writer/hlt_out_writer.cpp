@@ -71,14 +71,12 @@ int main( int argc, char *argv[])
     librorc::buffer      *rbuf = NULL;
     librorc::dma_channel *ch   = NULL;
 
-    struct rorcfs_event_descriptor *reportbuffer = NULL;
     timeval start_time, end_time;
     timeval last_time, cur_time;
     unsigned long last_bytes_received;
     unsigned long last_events_received;
     uint64_t ebuf_fill_state;
     uint64_t nevents;
-    uint32_t type_channels;
 
     /** command line arguments */
     // TODO : this is bad because it fails if the struct changes
@@ -215,7 +213,7 @@ int main( int argc, char *argv[])
         goto out;
     }
 
-    bar1->simSetPacketSize(64);
+    bar1->simSetPacketSize(32);
 
     try
     {
@@ -229,7 +227,7 @@ int main( int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Check if requested channel is implemented in firmware */
-    if( dev->DMAChannelIsImplemented(ChannelId) )
+    if( !dev->DMAChannelIsImplemented(ChannelId) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
                "firmware - exiting\n", ChannelId);
@@ -237,7 +235,7 @@ int main( int argc, char *argv[])
     }
 
     // check if firmware is HLT_OUT
-    if ( (bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != 1 )
+    if ( (bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         goto out;
@@ -399,7 +397,7 @@ int main( int argc, char *argv[])
     ch->setDMAConfig(0X00000002);
 
     // clear reportbuffer
-    memset(reportbuffer, 0, rbuf->getMappingSize());
+    memset(rbuf->getMem(), 0, rbuf->getMappingSize());
 
 
 out:
