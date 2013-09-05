@@ -41,6 +41,9 @@
 #define CMD_ACK_WRITE        9
 #define CMD_ACK_CMPL         10
 
+
+#define DEFAULT_PACKET_SIZE 128
+
 /**
  * @class sim_bar
  * @brief Represents a simulated Base Address Register
@@ -111,6 +114,12 @@ class device;
 
             size_t size();
 
+            void
+            simSetPacketSize
+            (
+                uint32_t packet_size
+            );
+
 
         private:
 
@@ -121,6 +130,7 @@ class device;
             uint32_t m_read_from_dev_done;
             uint32_t m_write_to_dev_done;
             uint32_t m_cmpl_to_dev_done;
+            uint32_t m_max_packet_size;
 
             pthread_t sock_mon_p;
             pthread_t cmpl_handler_p;

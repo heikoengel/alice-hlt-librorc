@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.9)
 project(LIBRORC)
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
-set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG -lkmod" )
+set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
