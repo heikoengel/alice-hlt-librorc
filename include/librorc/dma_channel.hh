@@ -111,8 +111,6 @@ class device;
             void disable();
             void waitForGTXDomain();
 
-            void configurePatternGenerator(uint32_t eventSize);
-            void closePatternGenerator();
 
             void configureDDL();
             void closeDDL();

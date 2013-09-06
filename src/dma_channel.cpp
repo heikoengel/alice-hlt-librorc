@@ -207,39 +207,7 @@ dma_channel::waitForGTXDomain()
     { usleep(100); }
 }
 
-
-
-void
-dma_channel::configurePatternGenerator(uint32_t eventSize)
-{
-    if(m_is_gtx)
-    {
-        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED;
-    }
-
-    /** Configure Pattern Generator */
-    setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x600) );
-    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x100) );
-    m_is_pattern_generator = true;
-}
-
-
-
-void
-dma_channel::closePatternGenerator()
-{
-    if(!m_is_pattern_generator)
-    {
-        throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_PATTERN_GENERATOR_FAILED;
-    }
-
-    setGTX(RORC_REG_DDL_CTRL, 0x0);
-
-    m_is_pattern_generator = false;
-}
-
-
+//---checked global
 
 void
 dma_channel::configureDDL()

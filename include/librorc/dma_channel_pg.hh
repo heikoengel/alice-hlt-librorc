@@ -54,8 +54,9 @@ class device;
 
             ~dma_channel_pg();
 
-
         protected:
+            void configurePatternGenerator(uint32_t eventSize);
+            void closePatternGenerator();
 
     };
 
