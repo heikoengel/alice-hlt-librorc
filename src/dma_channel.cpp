@@ -110,7 +110,7 @@ namespace librorc
                 sg_entry;
             }
 
-            void controlFlag()
+            void convertControlFlag()
             {
                 switch(m_flag)
                 {
@@ -170,7 +170,7 @@ namespace librorc
             {
                 try
                 {
-                    controlFlag();
+                    convertControlFlag();
                     sglistFitsIntoDRAM();
                     getSglistFromPDA();
                     programSglistIntoDRAM();
@@ -183,6 +183,8 @@ namespace librorc
 
     };
 
+
+/**PUBLIC:*/
 
 dma_channel::dma_channel
 (
