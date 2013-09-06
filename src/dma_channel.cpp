@@ -181,6 +181,8 @@ namespace librorc
 
     };
 
+
+
     /** Class that configures a DMA channel which already has a stored scatter gather list */
     #define DMA_CHANNEL_CONFIGURATOR_ERROR 1
     #define SYNC_SOFTWARE_READ_POINTERS (1 << 31)
@@ -192,16 +194,22 @@ namespace librorc
 
             dma_channel_configurator
             (
-                uint32_t  pcie_packet_size,
-                uint32_t  channel_id,
-                buffer   *eventBuffer,
-                buffer   *reportBuffer
+                uint32_t     pcie_packet_size,
+                uint32_t     channel_id,
+                uint32_t     base,
+                buffer      *eventBuffer,
+                buffer      *reportBuffer,
+                bar         *bar,
+                dma_channel *dmaChannel
             )
             {
+                m_dma_channel      = dmaChannel;
                 m_pcie_packet_size = pcie_packet_size;
                 m_eventBuffer      = eventBuffer;
                 m_reportBuffer     = reportBuffer;
                 m_channel_id       = channel_id;
+                m_base             = base;
+                m_bar              = bar;
             }
 
             int32_t configure()
@@ -210,6 +218,8 @@ namespace librorc
                 {
                     checkPacketSize();
                     fillConfigurationStructure();
+                    setPciePacketSize(m_pcie_packet_size);
+                    copyConfigToDevice();
                 }
                 catch(...){ return -1; }
 
@@ -217,11 +227,14 @@ namespace librorc
             }
 
         protected:
+            dma_channel            *m_dma_channel;
             buffer                 *m_eventBuffer;
             buffer                 *m_reportBuffer;
             uint32_t                m_pcie_packet_size;
             uint32_t                m_channel_id;
             librorc_channel_config  m_config;
+            uint32_t                m_base;
+            bar                    *m_bar;
 
             void checkPacketSize()
             {
@@ -283,7 +296,29 @@ namespace librorc
                 return( (buffer->getPhysicalSize() - offset) >> 32 );
             }
 
+            void copyConfigToDevice()
+            {
+                m_bar->memcopy
+                (
+                    (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
+                    &m_config,
+                    sizeof(librorc_channel_config)
+                );
+            }
+
+            void setPciePacketSize(uint32_t packet_size)
+            {
+                /**
+                 * packet size is located in RORC_REG_DMA_PKT_SIZE:
+                 * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
+                 * packet size has to be provided as #DWs -> divide size by 4
+                 * write stuff to channel after this
+                 */
+                m_dma_channel->setPKT( RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
+            }
+
     };
+
 
 
 /**PUBLIC:*/
@@ -441,7 +476,7 @@ dma_channel::getDMAConfig()
     return getPKT(RORC_REG_DMA_CTRL);
 }
 
-
+//TODO: remove
 void
 dma_channel::setPciePacketSize
 (
@@ -733,7 +768,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
     config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
                              (m_channel << 16); // set channel as PCIe tag
 
-//DONE
     setPciePacketSize(pcie_packet_size);
 
     /**
@@ -742,6 +776,8 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
      */
     m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
                     &config, sizeof(librorc_channel_config) );
+
+//DONE
 
     m_pcie_packet_size = pcie_packet_size;
     m_last_ebdm_offset = m_eventBuffer->getPhysicalSize() - pcie_packet_size;
