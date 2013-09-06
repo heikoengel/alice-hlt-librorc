@@ -182,6 +182,8 @@ namespace librorc
 
     /** Class that configures a DMA channel which already has a stored scatter gather list */
     #define DMA_CHANNEL_CONFIGURATOR_ERROR 1
+    #define SYNC_SOFTWARE_READ_POINTERS (1 << 31)
+    #define SET_CHANNEL_AS_PCIE_TAG (m_channel_id << 16)
 
     class dma_channel_configurator
     {
@@ -231,6 +233,7 @@ namespace librorc
             void fillConfigurationStructure()
             {
                 m_config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+
                 m_config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
                 m_config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
                 m_config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
@@ -246,8 +249,8 @@ namespace librorc
                 m_config.swptrs.rbdm_software_read_pointer_high =
                     (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
 
-                m_config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                                         (m_channel_id << 16); // set channel as PCIe tag
+                m_config.swptrs.dma_ctrl
+                    = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
 
     };
