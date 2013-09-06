@@ -245,18 +245,6 @@ class device;
             uint64_t getRBOffset();
 
             /**
-             * setOffsets
-             * @param eboffset byte offset in event buffer
-             * @param rboffset byte offset in report buffer
-             **/
-            void
-            setOffsets
-            (
-                uint64_t eboffset,
-                uint64_t rboffset
-            );
-
-            /**
              * get buffer offset that is currently used as
              * DMA destination
              * @return 64bit offset in report buffer file

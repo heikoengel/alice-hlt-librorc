@@ -31,28 +31,6 @@
 
 using namespace std;
 
-typedef struct
-__attribute__((__packed__))
-{
-    volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
-    volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
-    volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
-    volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
-    volatile uint32_t dma_ctrl;                        /** DMA control register **/
-} librorc_buffer_software_pointers;
-
-typedef struct
-__attribute__((__packed__))
-{
-    volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
-    volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
-    volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
-    volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
-    volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
-    volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
-    volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
-} librorc_channel_config;
-
 /** extern error number **/
 extern int errno;
 
@@ -191,6 +169,27 @@ namespace librorc
     class dma_channel_configurator
     {
         public:
+            typedef struct
+            __attribute__((__packed__))
+            {
+                volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
+                volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
+                volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
+                volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
+                volatile uint32_t dma_ctrl;                        /** DMA control register **/
+            } librorc_buffer_software_pointers;
+
+            typedef struct
+            __attribute__((__packed__))
+            {
+                volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
+                volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
+                volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
+                volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
+                volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
+                volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
+                volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
+            } librorc_channel_config;
 
             dma_channel_configurator
             (
@@ -504,49 +503,11 @@ dma_channel::setPciePacketSize
 }
 
 
+
 uint32_t
 dma_channel::getPciePacketSize()
 {
     return m_pcie_packet_size;
-}
-
-
-/** Rework : remove sepparate methods*/
-void
-dma_channel::setOffsets
-(
-    uint64_t eboffset,
-    uint64_t rboffset
-)
-{
-    assert(m_bar!=NULL);
-    librorc_buffer_software_pointers offsets;
-
-    offsets.ebdm_software_read_pointer_low =
-        (uint32_t)(eboffset & 0xffffffff);
-
-    offsets.ebdm_software_read_pointer_high =
-        (uint32_t)(eboffset >> 32 & 0xffffffff);
-
-    offsets.rbdm_software_read_pointer_low =
-        (uint32_t)(rboffset & 0xffffffff);
-
-    offsets.rbdm_software_read_pointer_high =
-        (uint32_t)(rboffset >> 32 & 0xffffffff);
-
-    /** set sync-flag in DMA control register
-     * TODO: this is the fail-save version. The following getPKT()
-     * can be omitted if the library keeps track on any writes to
-     * RORC_REG_DMA_CTRL. This would reduce PCIe traffic.
-     **/
-    offsets.dma_ctrl = ( getPKT(RORC_REG_DMA_CTRL) | (1<<31) );
-
-    m_bar->memcopy( (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
-                    &offsets, sizeof(offsets) );
-
-    /** save a local copy of the last offsets written to the channel **/
-    m_last_ebdm_offset = eboffset;
-    m_last_rbdm_offset = rboffset;
 }
 
 
