@@ -237,13 +237,14 @@ namespace librorc
                 m_config.ebdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_eventBuffer);
 
                 m_config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
-                m_config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
-                m_config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
+                m_config.rbdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_reportBuffer);
+                m_config.rbdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_reportBuffer);
 
                 m_config.swptrs.ebdm_software_read_pointer_low =
                     (m_eventBuffer->getPhysicalSize() - m_pcie_packet_size) & 0xffffffff;
                 m_config.swptrs.ebdm_software_read_pointer_high =
                     (m_eventBuffer->getPhysicalSize() - m_pcie_packet_size) >> 32;
+
                 m_config.swptrs.rbdm_software_read_pointer_low =
                     (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
                 m_config.swptrs.rbdm_software_read_pointer_high =
