@@ -737,16 +737,12 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
 
         if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
         {
-            cout << "preparing buffers" << endl;
-            /** Prepare EventBufferDescriptorManager with scatter-gather list */
-            if(prepareEB(m_eventBuffer) < 0)
+            if(programSglistForEventBuffer(m_eventBuffer) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-            /** Prepare ReportBufferDescriptorManager with scatter-gather list */
-            if(prepareRB(m_reportBuffer) < 0)
+            if(programSglistForReportBuffer(m_reportBuffer) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-            /** set max payload, buffer sizes, #sgEntries, ... */
             if(configureChannel(m_pcie_packet_size) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
@@ -755,7 +751,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
 
 
     int32_t
-    dma_channel::prepareEB
+    dma_channel::programSglistForEventBuffer
     (
         buffer *buf
     )
@@ -767,7 +763,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
 
 
     int32_t
-    dma_channel::prepareRB
+    dma_channel::programSglistForReportBuffer
     (
         buffer *buf
     )

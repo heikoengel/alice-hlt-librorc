@@ -451,34 +451,20 @@ class device;
             void prepareBuffers();
 
             /**
-             * Prepare EventBuffer: copy scatterlist from
-             * librorc::buffer into the EventBufferDescriptorManager
-             * in the RORC
+             * Copy scatterlist from librorc::buffer into the EventBufferDescriptorManager
+             * of the CRORC
              * @param buf librorc::buffer instance to be used as event destination buffer
              * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
              **/
-            int32_t prepareEB(buffer *buf);
+            int32_t programSglistForEventBuffer(buffer *buf);
 
             /**
-             * prepare ReportBuffer: copy scatterlist from
-             * librorc::buffer into the ReportBufferDescriptorManager
-             * in the RORC
+             * Copy scatterlist from librorc::buffer into the ReportBufferDescriptorManager
+             * of the CRORC
              * @param buf librorc::buffer instance to be used as report destination buffer
              * @return 0 on sucess, -1 on errors
              **/
-            int32_t prepareRB(buffer *buf);
-
-            /**
-             * This method is the generic version of the
-             * methods to program the sglists into the
-             * CRORC bars.
-             **/
-            int32_t
-            prepare
-            (
-                buffer   *buf,
-                uint32_t  flag
-            );
+            int32_t programSglistForReportBuffer(buffer *buf);
 
             /**
              * configure DMA engine for current set of buffers
