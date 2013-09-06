@@ -73,10 +73,10 @@ namespace librorc
     /** Class that programs a scatter-gather list into a device */
     #define BUFFER_PREPARER_ERROR 1
 
-    class buffer_preparer
+    class buffer_sglist_programmer
     {
         public:
-            buffer_preparer
+            buffer_sglist_programmer
             (
                 dma_channel *dmaChannel,
                 buffer      *buf,

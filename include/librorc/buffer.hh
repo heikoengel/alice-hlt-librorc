@@ -70,12 +70,12 @@ namespace librorc
 {
 class device;
 class dma_channel;
-class buffer_preparer;
+class buffer_sglist_programmer;
 
     class buffer
     {
         friend class dma_channel;
-        friend class buffer_preparer;
+        friend class buffer_sglist_programmer;
 
         public:
              buffer
