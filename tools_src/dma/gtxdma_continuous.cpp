@@ -107,13 +107,6 @@ int main( int argc, char *argv[])
 
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
-    try
-    { eventStream->m_channel->closeDDL(); }
-    catch(...)
-    { cout << "Link is down - unable to send EOBTR !!!" << endl; }
-
-    eventStream->m_channel->disable();
-
     /** Cleanup */
     delete eventStream;
     deleteDDLReferenceFile(ddlref);
