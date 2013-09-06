@@ -226,6 +226,8 @@ namespace librorc
                 return(0);
             }
 
+
+
         protected:
             dma_channel            *m_dma_channel;
             buffer                 *m_eventBuffer;
@@ -729,62 +731,62 @@ dma_channel::getPKT
 
 
 
-//TODO : long functions are where classes go to hide!
-/** configure DMA engine for the current set of buffers */
-int32_t
-dma_channel::configureChannel(uint32_t pcie_packet_size)
-{
-    librorc_channel_config config;
-
-
-    if(pcie_packet_size & 0xf)
-    {
-        /** packet size must be a multiple of 4 DW / 16 bytes */
-        errno = -EINVAL;
-        return errno;
-    }
-    else if(pcie_packet_size > 1024)
-    {
-        errno = -ERANGE;
-        return errno;
-    }
-
-    config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
-    config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
-    config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
-    config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
-    config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
-    config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
-
-    config.swptrs.ebdm_software_read_pointer_low =
-        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
-    config.swptrs.ebdm_software_read_pointer_high =
-        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) >> 32;
-    config.swptrs.rbdm_software_read_pointer_low =
-        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
-    config.swptrs.rbdm_software_read_pointer_high =
-        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
-
-    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (m_channel << 16); // set channel as PCIe tag
-
-    setPciePacketSize(pcie_packet_size);
-
-    /**
-     * copy configuration struct to RORC, starting
-     * at the address of the lowest register(EBDM_N_SG_CONFIG)
-     */
-    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
-                    &config, sizeof(librorc_channel_config) );
-
-//DONE
-
-    m_pcie_packet_size = pcie_packet_size;
-    m_last_ebdm_offset = m_eventBuffer->getPhysicalSize() - pcie_packet_size;
-    m_last_rbdm_offset = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
-
-    return 0;
-}
+////TODO : long functions are where classes go to hide!
+///** configure DMA engine for the current set of buffers */
+//int32_t
+//dma_channel::configureChannel(uint32_t pcie_packet_size)
+//{
+//    librorc_channel_config config;
+//
+//
+//    if(pcie_packet_size & 0xf)
+//    {
+//        /** packet size must be a multiple of 4 DW / 16 bytes */
+//        errno = -EINVAL;
+//        return errno;
+//    }
+//    else if(pcie_packet_size > 1024)
+//    {
+//        errno = -ERANGE;
+//        return errno;
+//    }
+//
+//    config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+//    config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
+//    config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
+//    config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
+//    config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
+//    config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
+//
+//    config.swptrs.ebdm_software_read_pointer_low =
+//        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
+//    config.swptrs.ebdm_software_read_pointer_high =
+//        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) >> 32;
+//    config.swptrs.rbdm_software_read_pointer_low =
+//        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
+//    config.swptrs.rbdm_software_read_pointer_high =
+//        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
+//
+//    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
+//                             (m_channel << 16); // set channel as PCIe tag
+//
+//    setPciePacketSize(pcie_packet_size);
+//
+//    /**
+//     * copy configuration struct to RORC, starting
+//     * at the address of the lowest register(EBDM_N_SG_CONFIG)
+//     */
+//    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
+//                    &config, sizeof(librorc_channel_config) );
+//
+////DONE
+//
+//    //m_pcie_packet_size = pcie_packet_size; //obsolete
+//    //m_last_ebdm_offset = m_eventBuffer->getPhysicalSize() - m_pcie_packet_size;
+//    //m_last_rbdm_offset = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
+//
+//    return 0;
+//}
 
 /**PROTECTED:*/
 
@@ -799,9 +801,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         buffer   *reportBuffer
     )
     {
-        m_last_ebdm_offset = 0;
-        m_last_rbdm_offset = 0;
-        m_pcie_packet_size = 0;
         m_pcie_packet_size = pcie_packet_size;
 
         m_is_pattern_generator = false;
@@ -816,7 +815,17 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         m_reportBuffer = reportBuffer;
 
         if(m_reportBuffer != NULL)
-        { m_reportBuffer->clear(); }
+        {
+            m_reportBuffer->clear();
+            m_last_rbdm_offset
+                = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
+        }
+
+        if(m_eventBuffer != NULL)
+        {
+            m_last_ebdm_offset
+                = m_eventBuffer->getPhysicalSize() - m_pcie_packet_size;
+        }
     }
 
 
@@ -835,7 +844,9 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
             if(programSglistForReportBuffer(m_reportBuffer) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-            if(configureChannel(m_pcie_packet_size) < 0)
+            dma_channel_configurator configurator
+                (m_pcie_packet_size, m_channel, m_base, m_eventBuffer, m_reportBuffer, m_bar, this);
+            if( configurator.configure() < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
     }

@@ -468,13 +468,13 @@ class device;
              **/
             int32_t programSglistForReportBuffer(buffer *buf);
 
-            /**
-             * configure DMA engine for current set of buffers
-             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or
-             * PCIe read requests (hlt_out)
-             * @return 0 on sucess, <0 on error
-             **/
-            int32_t configureChannel(uint32_t pcie_packet_size);
+//            /**
+//             * configure DMA engine for current set of buffers
+//             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or
+//             * PCIe read requests (hlt_out)
+//             * @return 0 on sucess, <0 on error
+//             **/
+//            int32_t configureChannel(uint32_t pcie_packet_size);
 
             /****** ATOMICS **************************************************************/
 
