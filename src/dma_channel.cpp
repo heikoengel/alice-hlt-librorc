@@ -594,22 +594,8 @@ dma_channel::getPKT
 int32_t
 dma_channel::configureChannel(uint32_t pcie_packet_size)
 {
+    librorc_channel_config config;
 
-    /**
-     * N_SG_CONFIG:
-     * [15:0] : actual number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     */
-    uint32_t rbdmnsgcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
-    uint32_t ebdmnsgcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
-
-    /** check if sglist fits into FPGA buffers */
-    if( ( (rbdmnsgcfg >> 16) < m_reportBuffer->getnSGEntries() ) |
-        ( (ebdmnsgcfg >> 16) < m_eventBuffer->getnSGEntries() ) )
-    {
-        errno = -EFBIG;
-        return errno;
-    }
 
     if(pcie_packet_size & 0xf)
     {
@@ -623,7 +609,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         return errno;
     }
 
-    librorc_channel_config config;
     config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
     config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
     config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
