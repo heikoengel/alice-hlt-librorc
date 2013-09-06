@@ -187,9 +187,18 @@ namespace librorc
     {
         public:
 
-            dma_channel_configurator(uint32_t pcie_packet_size)
+            dma_channel_configurator
+            (
+                uint32_t  pcie_packet_size,
+                uint32_t  channel_id,
+                buffer   *eventBuffer,
+                buffer   *reportBuffer
+            )
             {
                 m_pcie_packet_size = pcie_packet_size;
+                m_eventBuffer      = eventBuffer;
+                m_reportBuffer     = reportBuffer;
+                m_channel_id       = channel_id;
             }
 
             int32_t invoke()
@@ -204,8 +213,11 @@ namespace librorc
             }
 
         protected:
-            uint32_t               m_pcie_packet_size;
-            librorc_channel_config m_config;
+            buffer                 *m_eventBuffer;
+            buffer                 *m_reportBuffer;
+            uint32_t                m_pcie_packet_size;
+            uint32_t                m_channel_id;
+            librorc_channel_config  m_config;
 
             void checkPacketSize()
             {
@@ -214,6 +226,28 @@ namespace librorc
                     { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
                 else if(m_pcie_packet_size > 1024)
                     { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+            }
+
+            void fillConfigurationStructure()
+            {
+                m_config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+                m_config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
+                m_config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
+                m_config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
+                m_config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
+                m_config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
+
+                m_config.swptrs.ebdm_software_read_pointer_low =
+                    (m_eventBuffer->getPhysicalSize() - m_pcie_packet_size) & 0xffffffff;
+                m_config.swptrs.ebdm_software_read_pointer_high =
+                    (m_eventBuffer->getPhysicalSize() - m_pcie_packet_size) >> 32;
+                m_config.swptrs.rbdm_software_read_pointer_low =
+                    (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
+                m_config.swptrs.rbdm_software_read_pointer_high =
+                    (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
+
+                m_config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
+                                         (m_channel_id << 16); // set channel as PCIe tag
             }
 
     };
@@ -647,7 +681,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         return errno;
     }
 
-//DONE
     config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
     config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
     config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
@@ -667,9 +700,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
     config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
                              (m_channel << 16); // set channel as PCIe tag
 
-    /**
-     * Set PCIe packet size
-     **/
+//DONE
     setPciePacketSize(pcie_packet_size);
 
     /**
