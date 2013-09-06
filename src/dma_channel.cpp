@@ -157,6 +157,14 @@ namespace librorc
                 }
             }
 
+            void clearTrailingDRAM()
+            {
+                memset(&sg_entry, 0, sizeof(sg_entry) );
+                m_bar->memcopy
+                    ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+            }
+
+
             int32_t invoke()
             {
                 if( controlFlag() == -1)
@@ -167,6 +175,7 @@ namespace librorc
                     sglistFitsIntoDRAM();
                     getSglistFromPDA();
                     programSglistIntoDRAM();
+                    clearTrailingDRAM();
                 }
                 catch(...){ return -1; }
 
@@ -837,8 +846,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
                 ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
             i++;
         }
-
-//DONE
 
         //method clearTrailingDRAM
         memset(&sg_entry, 0, sizeof(sg_entry) );
