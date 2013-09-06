@@ -233,9 +233,9 @@ namespace librorc
             void fillConfigurationStructure()
             {
                 m_config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+                m_config.ebdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_eventBuffer);
+                m_config.ebdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_eventBuffer);
 
-                m_config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
-                m_config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
                 m_config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
                 m_config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
                 m_config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
@@ -252,6 +252,19 @@ namespace librorc
                 m_config.swptrs.dma_ctrl
                     = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
+
+            uint32_t
+            bufferDescriptorManagerBufferSizeLow(buffer *buffer)
+            {
+                return(buffer->getPhysicalSize() & 0xffffffff);
+            }
+
+            uint32_t
+            bufferDescriptorManagerBufferSizeHigh(buffer *buffer)
+            {
+                return(buffer->getPhysicalSize() >> 32);
+            }
+
 
     };
 
