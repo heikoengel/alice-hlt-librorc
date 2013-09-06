@@ -53,15 +53,6 @@ __attribute__((__packed__))
     volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
 } librorc_channel_config;
 
-typedef struct
-__attribute__((__packed__))
-{
-    uint32_t sg_addr_low;  /** lower part of sg address **/
-    uint32_t sg_addr_high; /** higher part of sg address **/
-    uint32_t sg_len;       /** total length of sg entry in bytes **/
-    uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
-} librorc_sg_entry_config;
-
 /** extern error number **/
 extern int errno;
 
@@ -76,6 +67,16 @@ namespace librorc
     class buffer_sglist_programmer
     {
         public:
+
+            typedef struct
+            __attribute__((__packed__))
+            {
+                uint32_t sg_addr_low;  /** lower part of sg address **/
+                uint32_t sg_addr_high; /** higher part of sg address **/
+                uint32_t sg_len;       /** total length of sg entry in bytes **/
+                uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
+            } librorc_sg_entry_config;
+
             buffer_sglist_programmer
             (
                 dma_channel *dmaChannel,
