@@ -51,6 +51,7 @@ sim_bar::sim_bar
 
     m_read_from_dev_done = 0;
     m_write_to_dev_done  = 0;
+    m_max_packet_size = DEFAULT_PACKET_SIZE;
 
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( m_sockfd < 0 )
@@ -724,6 +725,15 @@ sim_bar::sockMonitor()
         return 1;
     }
 
+void
+sim_bar::simSetPacketSize
+(
+    uint32_t packet_size
+)
+{
+    m_max_packet_size = packet_size;
+}
+
 
 void*
 sim_bar::cmplHandler()
@@ -739,7 +749,7 @@ sim_bar::cmplHandler()
         }
 
         /**
-         * break request down into CMPL_Ds with size <= MAX_PAYLOAD
+         * break request down into CMPL_Ds with size <= m_max_packet_size
          * wait for cmpl_done via CMD_CMPL_DONE from sock_monitor
          * after each packet
          */
@@ -762,9 +772,9 @@ sim_bar::cmplHandler()
             uint32_t length     = 0;
             uint32_t byte_count = rdreq.length;
 
-            if( rdreq.length>MAX_PAYLOAD )
+            if( rdreq.length>m_max_packet_size)
             {
-                length = MAX_PAYLOAD;
+                length = m_max_packet_size;
             }
             else
             {
