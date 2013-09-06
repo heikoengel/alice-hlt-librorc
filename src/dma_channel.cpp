@@ -269,16 +269,6 @@ dma_channel::waitForGTXDomain()
 
 
 void
-dma_channel::waitForCommandTransmissionStatusWord()
-{
-    /** wait for command transmission status word (CTSTW) from DIU */
-    while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
-    { usleep(100); }
-}
-
-
-
-void
 dma_channel::setEnableEB(int32_t enable)
 {
     uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
@@ -598,30 +588,8 @@ dma_channel::getPKT
 }
 
 
-/** GTK clock domain */
-void
-dma_channel::setGTX
-(
-    uint32_t addr,
-    uint32_t data
-)
-{
-    m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
-}
 
-
-
-uint32_t
-dma_channel::getGTX
-(
-    uint32_t addr
-)
-{
-    return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
-}
-
-
-
+//TODO : long functions are where classes go to hide!
 /** configure DMA engine for the current set of buffers */
 int32_t
 dma_channel::configureChannel(uint32_t pcie_packet_size)
@@ -770,6 +738,37 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
     {
         buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_RBDM_N_SG_CONFIG);
         return(programmer.program());
+    }
+
+
+    void
+    dma_channel::setGTX
+    (
+        uint32_t addr,
+        uint32_t data
+    )
+    {
+        m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
+    }
+
+
+
+    uint32_t
+    dma_channel::getGTX
+    (
+        uint32_t addr
+    )
+    {
+        return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
+    }
+
+
+
+    void
+    dma_channel::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
+    {
+        while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
+        { usleep(100); }
     }
 
 }

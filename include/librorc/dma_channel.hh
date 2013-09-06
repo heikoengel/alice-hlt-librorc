@@ -402,6 +402,8 @@ class device;
              **/
             uint32_t getPKT(uint32_t addr);
 
+
+/** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
             /**
              * set DW in GTX Domain
              * @param addr address in GTX component
@@ -474,7 +476,10 @@ class device;
              **/
             int32_t configureChannel(uint32_t pcie_packet_size);
 
+            /****** ATOMICS **************************************************************/
+
             void waitForCommandTransmissionStatusWord();
+
     };
 
 }
