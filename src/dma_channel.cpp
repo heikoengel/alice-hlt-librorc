@@ -670,45 +670,46 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         uint32_t  flag
     )
     {
-        /** Some generic initialization */
-        uint32_t control_flag = 0;
+        //Members
+        uint32_t                 control_flag;
+        uint32_t                 bdcfg;
+        DMABuffer               *pda_dma_buffer;
+        DMABuffer_SGNode        *sglist;
+        uint64_t                 i;
+        librorc_sg_entry_config  sg_entry;
+
+
+        //Constructor
+        control_flag   = 0;
+        bdcfg          = getPKT(flag);
+        pda_dma_buffer = NULL;
+        sglist         = NULL;
+        i              = 0;
+        sg_entry;
+
         switch(flag)
         {
             case RORC_REG_RBDM_N_SG_CONFIG:
-            {
-                control_flag = 1;
-            }
+            { control_flag = 1; }
             break;
 
             case RORC_REG_EBDM_N_SG_CONFIG:
-            {
-                control_flag = 0;
-            }
+            { control_flag = 0; }
             break;
 
             default:
-                cout << "Invalid flag!" << endl;
                 return -1;
         }
 
-        /**
-         * get maximum number of sg-entries supported by the firmware
-         * N_SG_CONFIG:
-         * [15:0] : current number of sg entries in RAM
-         * [31:16]: maximum number of entries
-         **/
-        uint32_t bdcfg = getPKT(flag);
-
-        /** check if buffers SGList fits into DRAM */
+        //method sglistFitsIntoDRAM
         if(buf->getnSGEntries() > (bdcfg >> 16) )
         {
             errno = EFBIG;
             return -EFBIG;
         }
 
-        /** retrieve scatter gather list */
-        DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
-        DMABuffer_SGNode *sglist         = NULL;
+        //method getSglistFromPDA
+        pda_dma_buffer = buf->getPDABuffer();
         if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
         {
             printf("SG-List fetching failed!\n");
@@ -716,9 +717,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         }
 
 
-        /** fetch all sg-entries from sglist */
-        uint64_t i = 0;
-        librorc_sg_entry_config sg_entry;
+        //method programSglistIntoDRAM
         for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
         {
             /** convert sg list into CRORC compatible format */
@@ -730,14 +729,11 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
 
             /** write librorc_dma_desc to RORC EBDM */
             m_bar->memcopy
-            (
-                (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
-                &sg_entry, sizeof(sg_entry)
-            );
+                ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
             i++;
         }
 
-        /** clear following BD entry (required!) */
+        //method clearTrailingDRAM
         memset(&sg_entry, 0, sizeof(sg_entry) );
         m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
                            &sg_entry, sizeof(sg_entry) );
