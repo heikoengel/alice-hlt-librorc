@@ -242,7 +242,7 @@ dma_channel::closePatternGenerator()
 
 
 void
-dma_channel::configureGTX()
+dma_channel::configureDDL()
 {
     if(m_is_pattern_generator)
     {
@@ -284,7 +284,7 @@ dma_channel::configureGTX()
 
 
 void
-dma_channel::closeGTX()
+dma_channel::closeDDL()
 {
     if(!m_is_gtx)
     { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }

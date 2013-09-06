@@ -68,7 +68,7 @@ int main( int argc, char *argv[])
         eventStream->m_channel->waitForGTXDomain();
 
         cout << "Configuring GTX ..." << endl;
-        eventStream->m_channel->configureGTX();
+        eventStream->m_channel->configureDDL();
     }
     catch( int error )
     {
@@ -125,7 +125,7 @@ int main( int argc, char *argv[])
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
     try
-    { eventStream->m_channel->closeGTX(); }
+    { eventStream->m_channel->closeDDL(); }
     catch(...)
     { cout << "Link is down - unable to send EOBTR !!!" << endl; }
 

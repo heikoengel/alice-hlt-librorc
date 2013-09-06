@@ -154,7 +154,7 @@ namespace librorc
             break;
 
         default:
-        throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
     }
 

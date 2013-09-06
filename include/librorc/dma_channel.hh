@@ -114,8 +114,8 @@ class device;
             void configurePatternGenerator(uint32_t eventSize);
             void closePatternGenerator();
 
-            void configureGTX();
-            void closeGTX();
+            void configureDDL();
+            void closeDDL();
 
             /**
              * set Enable Bit of EBDM
