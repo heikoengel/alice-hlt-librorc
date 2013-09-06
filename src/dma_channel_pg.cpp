@@ -43,7 +43,7 @@ namespace LIBRARY_NAME
     )
     : dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
     {
-        //cout << "enabling Pattern Generator!" << endl;
+        //cout << "Enabling Pattern Generator!" << endl;
         enable();
         //cout << "Waiting for GTX to be ready..." << endl;
         waitForGTXDomain();

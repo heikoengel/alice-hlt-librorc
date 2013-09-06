@@ -42,7 +42,12 @@ namespace LIBRARY_NAME
     )
     : dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
     {
-
+        //cout << "Enabling DDL link!" << endl;
+        enable();
+        //cout << "Waiting for GTX to be ready..." << endl;
+        waitForGTXDomain();
+        //cout << "Configuring GTX ..." << endl;
+        configureDDL();
     }
 
     dma_channel_ddl::~dma_channel_ddl()
