@@ -70,6 +70,7 @@ extern int errno;
 namespace librorc
 {
 
+    /** Class that programs a scatter-gather list into a device */
     #define BUFFER_PREPARER_ERROR 1
 
     class buffer_preparer
@@ -109,7 +110,7 @@ namespace librorc
                 sg_entry;
             }
 
-            int32_t controlFlag()
+            void controlFlag()
             {
                 switch(m_flag)
                 {
@@ -122,7 +123,7 @@ namespace librorc
                     break;
 
                     default:
-                        return -1;
+                    { throw BUFFER_PREPARER_ERROR; }
                 }
             }
 
@@ -165,13 +166,11 @@ namespace librorc
             }
 
 
-            int32_t invoke()
+            int32_t program()
             {
-                if( controlFlag() == -1)
-                {return -1;}
-
                 try
                 {
+                    controlFlag();
                     sglistFitsIntoDRAM();
                     getSglistFromPDA();
                     programSglistIntoDRAM();
