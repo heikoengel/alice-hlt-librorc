@@ -72,7 +72,7 @@ namespace librorc
 
     #define BUFFER_PREPARER_ERROR 1
 
-    class bufferPreparer
+    class buffer_preparer
     {
         public:
             uint32_t                 control_flag;
@@ -86,7 +86,7 @@ namespace librorc
             uint32_t                 m_flag;
 
 
-            bufferPreparer
+            buffer_preparer
             (
                 dma_channel *dmaChannel,
                 buffer      *buf,
@@ -94,10 +94,11 @@ namespace librorc
             )
             {
                 m_dma_channel  = dmaChannel;
-                m_buffer      = buf;
+                m_buffer       = buf;
+
                 control_flag   = 0;
                 bdcfg          = dmaChannel->getPKT(flag);
-                pda_dma_buffer = NULL;
+                pda_dma_buffer = buf->getPDABuffer();
                 sglist         = NULL;
                 i              = 0;
                 m_flag         = flag;
@@ -127,6 +128,11 @@ namespace librorc
                 { throw BUFFER_PREPARER_ERROR; }
             }
 
+            void getSglistFromPDA()
+            {
+                if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
+                { throw BUFFER_PREPARER_ERROR; }
+            }
 
             int32_t invoke()
             {
@@ -136,6 +142,7 @@ namespace librorc
                 try
                 {
                     sglistFitsIntoDRAM();
+                    getSglistFromPDA();
                 }
                 catch(...){ return -1; }
 
@@ -783,7 +790,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
             return -EFBIG;
         }
 
-//DONE
         //method getSglistFromPDA
         pda_dma_buffer = buf->getPDABuffer();
         if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
@@ -792,6 +798,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
             return -1;
         }
 
+//DONE
 
         //method programSglistIntoDRAM
         for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
