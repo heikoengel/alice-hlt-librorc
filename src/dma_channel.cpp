@@ -507,124 +507,6 @@ dma_channel::getGTX
     return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
 }
 
-/** Protected and Private methods */
-
-
-/**
- * prepareRB
- * Fill ReportBufferDescriptorRAM with scatter-gather
- * entries of DMA buffer
- * */
-
-int32_t
-dma_channel::prepareEB
-(
-    buffer *buf
-)
-{
-    return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
-}
-
-
-
-int32_t
-dma_channel::prepareRB
-(
-    buffer *buf
-)
-{
-    return(prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
-}
-
-/**
- * Fill DescriptorRAM with scatter-gather
- * entries of DMA buffer
- * */
-
-int32_t
-dma_channel::prepare
-(
-    buffer   *buf,
-    uint32_t  flag
-)
-{
-    assert(m_bar!=NULL);
-
-    /** Some generic initialization */
-    uint32_t control_flag = 0;
-    switch(flag)
-    {
-        case RORC_REG_RBDM_N_SG_CONFIG:
-        {
-            control_flag = 1;
-        }
-        break;
-
-        case RORC_REG_EBDM_N_SG_CONFIG:
-        {
-            control_flag = 0;
-        }
-        break;
-
-        default:
-            cout << "Invalid flag!" << endl;
-            return -1;
-    }
-
-    /**
-     * get maximum number of sg-entries supported by the firmware
-     * N_SG_CONFIG:
-     * [15:0] : current number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     **/
-    uint32_t bdcfg = getPKT(flag);
-
-    /** check if buffers SGList fits into DRAM */
-    if(buf->getnSGEntries() > (bdcfg >> 16) )
-    {
-        errno = EFBIG;
-        return -EFBIG;
-    }
-
-    /** retrieve scatter gather list */
-    DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
-    DMABuffer_SGNode *sglist         = NULL;
-    if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
-    {
-        printf("SG-List fetching failed!\n");
-        return -1;
-    }
-
-
-    /** fetch all sg-entries from sglist */
-    uint64_t i = 0;
-    librorc_sg_entry_config sg_entry;
-    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
-    {
-        /** convert sg list into CRORC compatible format */
-        sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
-        sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
-        sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
-
-        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
-
-        /** write librorc_dma_desc to RORC EBDM */
-        m_bar->memcopy
-        (
-            (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
-            &sg_entry, sizeof(sg_entry)
-        );
-        i++;
-    }
-
-    /** clear following BD entry (required!) */
-    memset(&sg_entry, 0, sizeof(sg_entry) );
-    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
-                       &sg_entry, sizeof(sg_entry) );
-
-    return(0);
-}
-
 
 
 /** configure DMA engine for the current set of buffers */
@@ -756,5 +638,113 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
     }
+
+
+
+    int32_t
+    dma_channel::prepareEB
+    (
+        buffer *buf
+    )
+    {
+        return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
+    }
+
+
+
+    int32_t
+    dma_channel::prepareRB
+    (
+        buffer *buf
+    )
+    {
+        return(prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
+    }
+
+
+    //TODO : Long functions are where classes go to hide
+    int32_t
+    dma_channel::prepare
+    (
+        buffer   *buf,
+        uint32_t  flag
+    )
+    {
+        /** Some generic initialization */
+        uint32_t control_flag = 0;
+        switch(flag)
+        {
+            case RORC_REG_RBDM_N_SG_CONFIG:
+            {
+                control_flag = 1;
+            }
+            break;
+
+            case RORC_REG_EBDM_N_SG_CONFIG:
+            {
+                control_flag = 0;
+            }
+            break;
+
+            default:
+                cout << "Invalid flag!" << endl;
+                return -1;
+        }
+
+        /**
+         * get maximum number of sg-entries supported by the firmware
+         * N_SG_CONFIG:
+         * [15:0] : current number of sg entries in RAM
+         * [31:16]: maximum number of entries
+         **/
+        uint32_t bdcfg = getPKT(flag);
+
+        /** check if buffers SGList fits into DRAM */
+        if(buf->getnSGEntries() > (bdcfg >> 16) )
+        {
+            errno = EFBIG;
+            return -EFBIG;
+        }
+
+        /** retrieve scatter gather list */
+        DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
+        DMABuffer_SGNode *sglist         = NULL;
+        if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
+        {
+            printf("SG-List fetching failed!\n");
+            return -1;
+        }
+
+
+        /** fetch all sg-entries from sglist */
+        uint64_t i = 0;
+        librorc_sg_entry_config sg_entry;
+        for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
+        {
+            /** convert sg list into CRORC compatible format */
+            sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
+            sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
+            sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
+
+            sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
+
+            /** write librorc_dma_desc to RORC EBDM */
+            m_bar->memcopy
+            (
+                (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
+                &sg_entry, sizeof(sg_entry)
+            );
+            i++;
+        }
+
+        /** clear following BD entry (required!) */
+        memset(&sg_entry, 0, sizeof(sg_entry) );
+        m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
+                           &sg_entry, sizeof(sg_entry) );
+
+        return(0);
+    }
+
+
 
 }
