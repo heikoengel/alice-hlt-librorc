@@ -762,7 +762,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
     {
         buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_EBDM_N_SG_CONFIG);
         return(programmer.program());
-        //return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
     }
 
 
@@ -775,88 +774,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
     {
         buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_RBDM_N_SG_CONFIG);
         return(programmer.program());
-        //return(prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
     }
-
-
-
-//    int32_t
-//    dma_channel::prepare
-//    (
-//        buffer   *buf,
-//        uint32_t  flag
-//    )
-//    {
-//        //Members
-//        uint32_t                 control_flag;
-//        uint32_t                 bdcfg;
-//        DMABuffer               *pda_dma_buffer;
-//        DMABuffer_SGNode        *sglist;
-//        uint64_t                 i;
-//        librorc_sg_entry_config  sg_entry;
-//
-//
-//        //Constructor
-//        control_flag   = 0;
-//        bdcfg          = getPKT(flag);
-//        pda_dma_buffer = NULL;
-//        sglist         = NULL;
-//        i              = 0;
-//        sg_entry;
-//
-//        switch(flag)
-//        {
-//            case RORC_REG_RBDM_N_SG_CONFIG:
-//            { control_flag = 1; }
-//            break;
-//
-//            case RORC_REG_EBDM_N_SG_CONFIG:
-//            { control_flag = 0; }
-//            break;
-//
-//            default:
-//                return -1;
-//        }
-//
-//        //method sglistFitsIntoDRAM
-//        if(buf->getnSGEntries() > (bdcfg >> 16) )
-//        {
-//            errno = EFBIG;
-//            return -EFBIG;
-//        }
-//
-//        //method getSglistFromPDA
-//        pda_dma_buffer = buf->getPDABuffer();
-//        if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
-//        {
-//            printf("SG-List fetching failed!\n");
-//            return -1;
-//        }
-//
-//        //method programSglistIntoDRAM
-//        for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
-//        {
-//            /** convert sg list into CRORC compatible format */
-//            sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
-//            sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
-//            sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
-//
-//            sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
-//
-//            /** write librorc_dma_desc to RORC EBDM */
-//            m_bar->memcopy
-//                ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
-//            i++;
-//        }
-//
-//        //method clearTrailingDRAM
-//        memset(&sg_entry, 0, sizeof(sg_entry) );
-//        m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
-//                           &sg_entry, sizeof(sg_entry) );
-//
-//        return(0);
-//    }
-
-
 
 }
