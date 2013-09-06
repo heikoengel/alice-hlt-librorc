@@ -180,6 +180,44 @@ namespace librorc
 
     };
 
+    /** Class that configures a DMA channel which already has a stored scatter gather list */
+    #define DMA_CHANNEL_CONFIGURATOR_ERROR 1
+
+    class dma_channel_configurator
+    {
+        public:
+
+            dma_channel_configurator(uint32_t pcie_packet_size)
+            {
+                m_pcie_packet_size = pcie_packet_size;
+            }
+
+            int32_t invoke()
+            {
+                try
+                {
+                    checkPacketSize();
+                }
+                catch(...){ return -1; }
+
+                return(0);
+            }
+
+        protected:
+            uint32_t               m_pcie_packet_size;
+            librorc_channel_config m_config;
+
+            void checkPacketSize()
+            {
+                /** packet size must be a multiple of 4 DW / 16 bytes */
+                if(m_pcie_packet_size & 0xf)
+                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+                else if(m_pcie_packet_size > 1024)
+                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+            }
+
+    };
+
 
 /**PUBLIC:*/
 
@@ -609,6 +647,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
         return errno;
     }
 
+//DONE
     config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
     config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
     config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
