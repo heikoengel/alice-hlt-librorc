@@ -112,9 +112,6 @@ class device;
             void waitForGTXDomain();
 
 
-            void configureDDL();
-            void closeDDL();
-
             /**
              * set Enable Bit of EBDM
              * @param enable nonzero param will enable, zero will disable

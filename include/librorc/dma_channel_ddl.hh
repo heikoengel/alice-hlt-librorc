@@ -55,6 +55,8 @@ class device;
 
 
         protected:
+            void configureDDL();
+            void closeDDL();
 
     };
 

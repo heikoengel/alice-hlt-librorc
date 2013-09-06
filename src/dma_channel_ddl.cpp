@@ -31,6 +31,8 @@ namespace LIBRARY_NAME
 
     }
 
+
+
     dma_channel_ddl::dma_channel_ddl
     (
         uint32_t  channel_number,
@@ -50,6 +52,8 @@ namespace LIBRARY_NAME
         configureDDL();
     }
 
+
+
     dma_channel_ddl::~dma_channel_ddl()
     {
         closeDDL();
@@ -61,4 +65,86 @@ namespace LIBRARY_NAME
         }
     }
 
+
+
+    void
+    dma_channel_ddl::configureDDL()
+    {
+        if(m_is_pattern_generator)
+        {
+            throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED;
+        }
+
+        /** set ENABLE, activate flow control (DIU_IF:busy) */
+        setGTX(RORC_REG_DDL_CTRL, 0x00000003);
+
+        /** wait for riLD_N='1' */
+        while( (getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
+            {usleep(100);}
+
+        /** clear DIU_IF IFSTW, CTSTW */
+        setGTX(RORC_REG_DDL_IFSTW, 0);
+        setGTX(RORC_REG_DDL_CTSTW, 0);
+
+        /** send EOBTR to close any open transaction */
+        setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+
+        waitForCommandTransmissionStatusWord();
+
+        /** clear DIU_IF IFSTW */
+        setGTX(RORC_REG_DDL_IFSTW, 0);
+        setGTX(RORC_REG_DDL_CTSTW, 0);
+
+        /** send RdyRx to SIU */
+        setGTX(RORC_REG_DDL_CMD, 0x00000014);
+
+        waitForCommandTransmissionStatusWord();
+
+        /** clear DIU_IF IFSTW */
+        setGTX(RORC_REG_DDL_IFSTW, 0);
+        setGTX(RORC_REG_DDL_CTSTW, 0);
+
+        m_is_gtx = true;
+    }
+
+
+
+    void
+    dma_channel_ddl::closeDDL()
+    {
+        if(!m_is_gtx)
+        { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
+
+        /** check if link is still up: LD_N == 1 */
+        if( getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
+        {
+            /** disable BUSY -> drop current data in chain */
+            setGTX(RORC_REG_DDL_CTRL, 0x00000001);
+
+            /** wait for LF_N to go high */
+            while(!(getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
+            {usleep(100);}
+
+            /** clear DIU_IF IFSTW */
+            setGTX(RORC_REG_DDL_IFSTW, 0);
+            setGTX(RORC_REG_DDL_CTSTW, 0);
+
+            /** Send EOBTR command */
+            setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+
+            /** wait for command transmission status word (CTST)
+             * in response to the EOBTR:
+             * STS[7:4]="0000"
+             */
+            while(getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
+            {usleep(100);}
+
+            /** disable DIU_IF */
+            setGTX(RORC_REG_DDL_CTRL, 0x00000000);
+        }
+        else
+        { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
+
+        m_is_gtx = false;
+    }
 }
