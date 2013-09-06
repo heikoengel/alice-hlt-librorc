@@ -208,6 +208,7 @@ namespace librorc
                 try
                 {
                     checkPacketSize();
+                    fillConfigurationStructure();
                 }
                 catch(...){ return -1; }
 
@@ -240,18 +241,13 @@ namespace librorc
                 m_config.rbdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_reportBuffer);
                 m_config.rbdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_reportBuffer);
 
-                m_config.swptrs.ebdm_software_read_pointer_low =
-                    (m_eventBuffer->getPhysicalSize() - m_pcie_packet_size) & 0xffffffff;
-                m_config.swptrs.ebdm_software_read_pointer_high =
-                    (m_eventBuffer->getPhysicalSize() - m_pcie_packet_size) >> 32;
+                m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
+                m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
 
-                m_config.swptrs.rbdm_software_read_pointer_low =
-                    (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
-                m_config.swptrs.rbdm_software_read_pointer_high =
-                    (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
+                m_config.swptrs.rbdm_software_read_pointer_low  = (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
+                m_config.swptrs.rbdm_software_read_pointer_high = (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
 
-                m_config.swptrs.dma_ctrl
-                    = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
+                m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
 
             uint32_t
@@ -266,6 +262,25 @@ namespace librorc
                 return(buffer->getPhysicalSize() >> 32);
             }
 
+            uint32_t
+            softwareReadPointerLow
+            (
+                buffer   *buffer,
+                uint32_t  offset
+            )
+            {
+                return( (buffer->getPhysicalSize() - offset) & 0xffffffff );
+            }
+
+            uint32_t
+            softwareReadPointerHigh
+            (
+                buffer   *buffer,
+                uint32_t  offset
+            )
+            {
+                return( (buffer->getPhysicalSize() - offset) >> 32 );
+            }
 
     };
 
