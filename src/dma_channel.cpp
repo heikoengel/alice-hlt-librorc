@@ -80,27 +80,31 @@ namespace librorc
             uint32_t                 bdcfg;
             DMABuffer               *pda_dma_buffer;
             DMABuffer_SGNode        *sglist;
-            uint64_t                 i;
             librorc_sg_entry_config  sg_entry;
             dma_channel             *m_dma_channel;
             uint32_t                 m_flag;
+            bar                     *m_bar;
+            uint32_t                 m_base;
 
 
             buffer_preparer
             (
                 dma_channel *dmaChannel,
                 buffer      *buf,
+                bar         *bar,
+                uint32_t     base,
                 uint32_t     flag
             )
             {
                 m_dma_channel  = dmaChannel;
                 m_buffer       = buf;
+                m_bar          = bar;
+                m_base         = base;
 
                 control_flag   = 0;
                 bdcfg          = dmaChannel->getPKT(flag);
                 pda_dma_buffer = buf->getPDABuffer();
                 sglist         = NULL;
-                i              = 0;
                 m_flag         = flag;
                 sg_entry;
             }
@@ -134,6 +138,25 @@ namespace librorc
                 { throw BUFFER_PREPARER_ERROR; }
             }
 
+            void programSglistIntoDRAM()
+            {
+                uint64_t i = 0;
+                for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
+                {
+                    /** Convert sg list into CRORC compatible format */
+                    sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
+                    sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
+                    sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
+
+                    sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
+
+                    /** Write librorc_dma_desc to RORC EBDM */
+                    m_bar->memcopy
+                        ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+                    i++;
+                }
+            }
+
             int32_t invoke()
             {
                 if( controlFlag() == -1)
@@ -143,6 +166,7 @@ namespace librorc
                 {
                     sglistFitsIntoDRAM();
                     getSglistFromPDA();
+                    programSglistIntoDRAM();
                 }
                 catch(...){ return -1; }
 
@@ -798,8 +822,6 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
             return -1;
         }
 
-//DONE
-
         //method programSglistIntoDRAM
         for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
         {
@@ -815,6 +837,8 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
                 ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
             i++;
         }
+
+//DONE
 
         //method clearTrailingDRAM
         memset(&sg_entry, 0, sizeof(sg_entry) );
