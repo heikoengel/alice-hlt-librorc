@@ -76,18 +76,6 @@ namespace librorc
     class buffer_preparer
     {
         public:
-            uint32_t                 control_flag;
-            buffer                  *m_buffer;
-            uint32_t                 bdcfg;
-            DMABuffer               *pda_dma_buffer;
-            DMABuffer_SGNode        *sglist;
-            librorc_sg_entry_config  sg_entry;
-            dma_channel             *m_dma_channel;
-            uint32_t                 m_flag;
-            bar                     *m_bar;
-            uint32_t                 m_base;
-
-
             buffer_preparer
             (
                 dma_channel *dmaChannel,
@@ -110,6 +98,34 @@ namespace librorc
                 sg_entry;
             }
 
+            int32_t program()
+            {
+                try
+                {
+                    convertControlFlag();
+                    CheckSglistFitsIntoDRAM();
+                    getSglistFromPDA();
+                    programSglistIntoDRAM();
+                    clearTrailingDRAM();
+                }
+                catch(...){ return -1; }
+
+                return(0);
+            }
+
+
+        protected:
+            uint32_t                 control_flag;
+            buffer                  *m_buffer;
+            uint32_t                 bdcfg;
+            DMABuffer               *pda_dma_buffer;
+            DMABuffer_SGNode        *sglist;
+            librorc_sg_entry_config  sg_entry;
+            dma_channel             *m_dma_channel;
+            uint32_t                 m_flag;
+            bar                     *m_bar;
+            uint32_t                 m_base;
+
             void convertControlFlag()
             {
                 switch(m_flag)
@@ -127,7 +143,7 @@ namespace librorc
                 }
             }
 
-            void sglistFitsIntoDRAM()
+            void CheckSglistFitsIntoDRAM()
             {
                 if(m_buffer->getnSGEntries() > (bdcfg >> 16) )
                 { throw BUFFER_PREPARER_ERROR; }
@@ -163,22 +179,6 @@ namespace librorc
                 memset(&sg_entry, 0, sizeof(sg_entry) );
                 m_bar->memcopy
                     ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
-            }
-
-
-            int32_t program()
-            {
-                try
-                {
-                    convertControlFlag();
-                    sglistFitsIntoDRAM();
-                    getSglistFromPDA();
-                    programSglistIntoDRAM();
-                    clearTrailingDRAM();
-                }
-                catch(...){ return -1; }
-
-                return(0);
             }
 
     };
