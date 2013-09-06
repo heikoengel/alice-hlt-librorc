@@ -70,6 +70,81 @@ extern int errno;
 namespace librorc
 {
 
+    #define BUFFER_PREPARER_ERROR 1
+
+    class bufferPreparer
+    {
+        public:
+            uint32_t                 control_flag;
+            buffer                  *m_buffer;
+            uint32_t                 bdcfg;
+            DMABuffer               *pda_dma_buffer;
+            DMABuffer_SGNode        *sglist;
+            uint64_t                 i;
+            librorc_sg_entry_config  sg_entry;
+            dma_channel             *m_dma_channel;
+            uint32_t                 m_flag;
+
+
+            bufferPreparer
+            (
+                dma_channel *dmaChannel,
+                buffer      *buf,
+                uint32_t     flag
+            )
+            {
+                m_dma_channel  = dmaChannel;
+                m_buffer      = buf;
+                control_flag   = 0;
+                bdcfg          = dmaChannel->getPKT(flag);
+                pda_dma_buffer = NULL;
+                sglist         = NULL;
+                i              = 0;
+                m_flag         = flag;
+                sg_entry;
+            }
+
+            int32_t controlFlag()
+            {
+                switch(m_flag)
+                {
+                    case RORC_REG_RBDM_N_SG_CONFIG:
+                    { control_flag = 1; }
+                    break;
+
+                    case RORC_REG_EBDM_N_SG_CONFIG:
+                    { control_flag = 0; }
+                    break;
+
+                    default:
+                        return -1;
+                }
+            }
+
+            void sglistFitsIntoDRAM()
+            {
+                if(m_buffer->getnSGEntries() > (bdcfg >> 16) )
+                { throw BUFFER_PREPARER_ERROR; }
+            }
+
+
+            int32_t invoke()
+            {
+                if( controlFlag() == -1)
+                {return -1;}
+
+                try
+                {
+                    sglistFitsIntoDRAM();
+                }
+                catch(...){ return -1; }
+
+                return(0);
+            }
+
+    };
+
+
 dma_channel::dma_channel
 (
     uint32_t  channel_number,
@@ -662,7 +737,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
     }
 
 
-    //TODO : Long functions are where classes go to hide
+
     int32_t
     dma_channel::prepare
     (
@@ -708,6 +783,7 @@ dma_channel::configureChannel(uint32_t pcie_packet_size)
             return -EFBIG;
         }
 
+//DONE
         //method getSglistFromPDA
         pda_dma_buffer = buf->getPDABuffer();
         if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )

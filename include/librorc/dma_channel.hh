@@ -88,6 +88,9 @@ class device;
     class dma_channel
     {
         public:
+
+            friend class bufferPreparer;
+
              dma_channel
              (
                 uint32_t  channel_number,
