@@ -71,7 +71,7 @@ namespace librorc
 {
 
     /** Class that programs a scatter-gather list into a device */
-    #define BUFFER_PREPARER_ERROR 1
+    #define BUFFER_SGLIST_PROGRAMMER_ERROR 1
 
     class buffer_sglist_programmer
     {
@@ -136,20 +136,20 @@ namespace librorc
                     break;
 
                     default:
-                    { throw BUFFER_PREPARER_ERROR; }
+                    { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
                 }
             }
 
             void CheckSglistFitsIntoDRAM()
             {
                 if(m_buffer->getnSGEntries() > (m_bdcfg >> 16) )
-                { throw BUFFER_PREPARER_ERROR; }
+                { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
             }
 
             void getSglistFromPDA()
             {
                 if(PDA_SUCCESS != DMABuffer_getSGList(m_pda_dma_buffer, &m_sglist) )
-                { throw BUFFER_PREPARER_ERROR; }
+                { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
             }
 
             void programSglistIntoDRAM()
