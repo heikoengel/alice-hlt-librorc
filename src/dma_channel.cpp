@@ -203,7 +203,7 @@ namespace librorc
                 m_channel_id       = channel_id;
             }
 
-            int32_t invoke()
+            int32_t configure()
             {
                 try
                 {
@@ -244,8 +244,8 @@ namespace librorc
                 m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
                 m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
 
-                m_config.swptrs.rbdm_software_read_pointer_low  = (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
-                m_config.swptrs.rbdm_software_read_pointer_high = (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
+                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, sizeof(struct librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, sizeof(struct librorc_event_descriptor));
 
                 m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
