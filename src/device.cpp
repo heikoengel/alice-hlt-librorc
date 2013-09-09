@@ -37,6 +37,7 @@ device::device
     /** A list of PCI ID to which PDA has to attach. */
     const char *pci_ids[] =
     {
+        "10dc 01a0", /* CRORC as registered at CERN */
         "10dc beaf", /* CRORC BETA */
         "17aa 1e22", /* Heikos SMBus Controller for modelsim*/
         "8086 1e22", /* Heikos SMBus Controller for modelsim*/
