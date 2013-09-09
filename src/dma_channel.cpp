@@ -511,12 +511,6 @@ dma_channel::setPciePacketSize
 )
 {
     /**
-     * packet size is located in RORC_REG_DMA_PKT_SIZE:
-     * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
-     */
-    assert( m_bar!=NULL );
-
-    /**
      * packet size has to be provided as #DWs
      * -> divide size by 4
      */
@@ -544,8 +538,6 @@ dma_channel::setEBOffset
     uint64_t offset
 )
 {
-    assert(m_bar!=NULL);
-
     m_bar->memcopy( (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
                       &offset, sizeof(offset) );
 
@@ -605,8 +597,6 @@ dma_channel::setRBOffset
     uint64_t offset
 )
 {
-    assert(m_bar!=NULL);
-
     m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
                     &offset, sizeof(offset) );
 
@@ -778,9 +768,7 @@ dma_channel::getPKT
             if(programSglistForReportBuffer(m_reportBuffer) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-            dma_channel_configurator configurator
-                (m_pcie_packet_size, m_channel, m_base, m_eventBuffer, m_reportBuffer, m_bar, this);
-            if( configurator.configure() < 0)
+            if( m_channelConfigurator->configure() < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
     }
