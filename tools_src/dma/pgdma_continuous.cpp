@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
             return result;
         }
         else if( result==0 )
-        { usleep(100); } /** no events available */
+        { usleep(10); } /** no events available */
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
