@@ -417,7 +417,17 @@ dma_channel::disable()
     setDMAConfig(0X00000002);
 }
 
+void
+dma_channel::setBufferOffsetsOnDevice
+(
+    uint64_t eboffset,
+    uint64_t rboffset
+)
+{
+    m_channelConfigurator->setOffsets(eboffset, rboffset);
+}
 
+///////PUBLIC CHECKED
 
 void
 dma_channel::waitForGTXDomain()

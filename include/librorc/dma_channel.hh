@@ -115,6 +115,13 @@ class dma_channel_configurator;
             void disable();
             void waitForGTXDomain();
 
+            void
+            setBufferOffsetsOnDevice
+            (
+                uint64_t eboffset,
+                uint64_t rboffset
+            );
+
 
             /**
              * set Enable Bit of EBDM
