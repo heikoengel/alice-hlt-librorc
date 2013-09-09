@@ -149,7 +149,7 @@ prepareSharedMemory
     /** Wipe SHM */
     memset(chstats, 0, sizeof(channelStatus));
     chstats->index = 0;
-    chstats->last_id = -1;
+    chstats->last_id = 0xfffffffff;
     chstats->channel = (unsigned int)opts.channelId;
 
     return(chstats);

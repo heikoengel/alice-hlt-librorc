@@ -69,7 +69,7 @@ sigaction(SIGINT, &sigIntHandler, NULL);
         uint64_t index;
         uint64_t set_offset_count;
         uint64_t error_count;
-        int64_t  last_id;
+        uint64_t last_id;
         uint32_t channel;
     }channelStatus;
 
