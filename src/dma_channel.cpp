@@ -379,6 +379,8 @@ dma_channel::dma_channel
 
 dma_channel::~dma_channel()
 {
+    delete(m_channelConfigurator);
+
     if(m_reportBuffer != NULL)
     {
         m_reportBuffer->clear();
@@ -754,6 +756,10 @@ dma_channel::getPKT
             m_last_ebdm_offset
                 = m_eventBuffer->getPhysicalSize() - m_pcie_packet_size;
         }
+
+        m_channelConfigurator
+            = new dma_channel_configurator
+                (pcie_packet_size, channel_number, m_base, m_eventBuffer, m_reportBuffer, m_bar, this);
     }
 
 

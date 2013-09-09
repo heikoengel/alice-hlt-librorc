@@ -84,6 +84,7 @@ namespace librorc
 class bar;
 class buffer;
 class device;
+class dma_channel_configurator;
 
     class dma_channel
     {
@@ -433,6 +434,8 @@ class device;
             device   *m_dev;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
+
+            dma_channel_configurator *m_channelConfigurator;
 
             void
             initMembers
