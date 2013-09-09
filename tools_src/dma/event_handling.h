@@ -388,8 +388,10 @@ int handle_channel_data
         stats->set_offset_count++;
 
         // actually update the offset pointers in the firmware
-        channel->setEBOffset(eboffset);
-        channel->setRBOffset(rboffset);
+        // channel->setEBOffset(eboffset);
+        // channel->setRBOffset(rboffset);
+
+        channel->setBufferOffsetsOnDevice(eboffset, rboffset);
 
         DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
         "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
