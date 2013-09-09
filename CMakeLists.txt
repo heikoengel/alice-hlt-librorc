@@ -3,7 +3,7 @@ project(LIBRORC)
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
-
+set( CMAKE_CXX_FLAGS "-Wall -g" )
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
 
