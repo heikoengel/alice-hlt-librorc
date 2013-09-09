@@ -225,7 +225,31 @@ namespace librorc
                 return(0);
             }
 
+            void setOffsets
+            (
+                uint64_t eboffset,
+                uint64_t rboffset
+            )
+            {
+                librorc_buffer_software_pointers offsets;
+                offsets.ebdm_software_read_pointer_low  = (uint32_t)(eboffset & 0xffffffff);
+                offsets.ebdm_software_read_pointer_high = (uint32_t)(eboffset>>32 & 0xffffffff);
+                offsets.rbdm_software_read_pointer_low  = (uint32_t)(rboffset & 0xffffffff);
+                offsets.rbdm_software_read_pointer_high = (uint32_t)(rboffset>>32 & 0xffffffff);
 
+                offsets.dma_ctrl
+                    = (1<<31) | // sync pointers
+                      (1<<2)  | // enable EB
+                      (1<<3)  | // enable RB
+                      (1<<0);   // enable DMA engine
+
+                m_bar->memcopy
+                (
+                    (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
+                    &offsets,
+                    sizeof(librorc_buffer_software_pointers)
+                );
+            }
 
         protected:
             dma_channel            *m_dma_channel;

@@ -217,6 +217,13 @@ class device;
                 return m_bar;
             }
 
+            void
+            setOffsets
+            (
+            	uint64_t eboffset,
+            	uint64_t rboffset
+            );
+
             /**
              * set Event Buffer File Offset
              * the DMA engine only writes to the Event buffer as long as
