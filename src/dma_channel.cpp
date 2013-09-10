@@ -485,21 +485,18 @@ dma_channel::isReportBufferEnabled()
 //---checked global
 
 void
-dma_channel::setDMAConfig
-(
-    uint32_t config
-)
+dma_channel::setDMAConfig(uint32_t config)
 {
     setPKT(RORC_REG_DMA_CTRL, config);
 }
-
-
 
 uint32_t
 dma_channel::getDMAConfig()
 {
     return getPKT(RORC_REG_DMA_CTRL);
 }
+
+
 
 //TODO: remove
 void
