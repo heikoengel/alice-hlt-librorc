@@ -21,6 +21,7 @@
 #define LIBRORC_DMA_CHANNEL_H
 
 #include <librorc/include_ext.hh>
+#include <librorc/defines.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -41,6 +42,28 @@
 
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
+
+//////////////////////////////////////
+/** TODO : This might be obsolete */
+/** Shared mem key offset **/
+#define SHM_KEY_OFFSET 2048
+/** Shared mem device offset **/
+#define SHM_DEV_OFFSET 32
+
+typedef struct
+{
+    uint64_t n_events;
+    uint64_t bytes_received;
+    uint64_t min_epi;
+    uint64_t max_epi;
+    uint64_t index;
+    uint64_t set_offset_count;
+    uint64_t error_count;
+    int64_t  last_id;
+    uint32_t channel;
+}librorcChannelStatus;
+//////////////////////////////////
+
 
 /**
  * @class dma_channel
@@ -65,6 +88,9 @@ class device;
     class dma_channel
     {
         public:
+
+            friend class bufferPreparer;
+
              dma_channel
              (
                 uint32_t  channel_number,
@@ -88,11 +114,6 @@ class device;
             void disable();
             void waitForGTXDomain();
 
-            void configurePatternGenerator(uint32_t eventSize);
-            void closePatternGenerator();
-
-            void configureGTX();
-            void closeGTX();
 
             /**
              * set Enable Bit of EBDM
@@ -222,18 +243,6 @@ class device;
              * @return offset
              **/
             uint64_t getRBOffset();
-
-            /**
-             * setOffsets
-             * @param eboffset byte offset in event buffer
-             * @param rboffset byte offset in report buffer
-             **/
-            void
-            setOffsets
-            (
-                uint64_t eboffset,
-                uint64_t rboffset
-            );
 
             /**
              * get buffer offset that is currently used as
@@ -381,6 +390,8 @@ class device;
              **/
             uint32_t getPKT(uint32_t addr);
 
+
+/** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
             /**
              * set DW in GTX Domain
              * @param addr address in GTX component
@@ -416,45 +427,39 @@ class device;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
 
+            void
+            initMembers
+            (
+                uint32_t  channel_number,
+                uint32_t  pcie_packet_size,
+                device   *dev,
+                bar      *bar,
+                buffer   *eventBuffer,
+                buffer   *reportBuffer
+            );
+
+            void prepareBuffers();
+
             /**
-             * Prepare EventBuffer: copy scatterlist from
-             * librorc::buffer into the EventBufferDescriptorManager
-             * in the RORC
+             * Copy scatterlist from librorc::buffer into the EventBufferDescriptorManager
+             * of the CRORC
              * @param buf librorc::buffer instance to be used as event destination buffer
              * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
              **/
-            int32_t prepareEB(buffer *buf);
+            int32_t programSglistForEventBuffer(buffer *buf);
 
             /**
-             * prepare ReportBuffer: copy scatterlist from
-             * librorc::buffer into the ReportBufferDescriptorManager
-             * in the RORC
+             * Copy scatterlist from librorc::buffer into the ReportBufferDescriptorManager
+             * of the CRORC
              * @param buf librorc::buffer instance to be used as report destination buffer
              * @return 0 on sucess, -1 on errors
              **/
-            int32_t prepareRB(buffer *buf);
+            int32_t programSglistForReportBuffer(buffer *buf);
 
-            /**
-             * This method is the generic version of the
-             * methods to program the sglists into the
-             * CRORC bars.
-             **/
-            int32_t
-            prepare
-            (
-                buffer   *buf,
-                uint32_t  flag
-            );
-
-            /**
-             * configure DMA engine for current set of buffers
-             * @param pcie_packet_size packet size to be used for PCIe writes (hlt_in) or
-             * PCIe read requests (hlt_out)
-             * @return 0 on sucess, <0 on error
-             **/
-            int32_t configureChannel(uint32_t pcie_packet_size);
+            /****** ATOMICS **************************************************************/
 
             void waitForCommandTransmissionStatusWord();
+
     };
 
 }

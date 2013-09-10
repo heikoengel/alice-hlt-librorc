@@ -31,37 +31,6 @@
 
 using namespace std;
 
-typedef struct
-__attribute__((__packed__))
-{
-    volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
-    volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
-    volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
-    volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
-    volatile uint32_t dma_ctrl;                        /** DMA control register **/
-} librorc_buffer_software_pointers;
-
-typedef struct
-__attribute__((__packed__))
-{
-    volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
-    volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
-    volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
-    volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
-    volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
-    volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
-    volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
-} librorc_channel_config;
-
-typedef struct
-__attribute__((__packed__))
-{
-    uint32_t sg_addr_low;  /** lower part of sg address **/
-    uint32_t sg_addr_high; /** higher part of sg address **/
-    uint32_t sg_len;       /** total length of sg entry in bytes **/
-    uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
-} librorc_sg_entry_config;
-
 /** extern error number **/
 extern int errno;
 
@@ -70,9 +39,290 @@ extern int errno;
 namespace librorc
 {
 
-/**
- * Constructor
- * */
+    /** Class that programs a scatter-gather list into a device */
+    #define BUFFER_SGLIST_PROGRAMMER_ERROR 1
+
+    class buffer_sglist_programmer
+    {
+        public:
+
+            typedef struct
+            __attribute__((__packed__))
+            {
+                uint32_t sg_addr_low;  /** lower part of sg address **/
+                uint32_t sg_addr_high; /** higher part of sg address **/
+                uint32_t sg_len;       /** total length of sg entry in bytes **/
+                uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
+            } librorc_sg_entry_config;
+
+            buffer_sglist_programmer
+            (
+                dma_channel *dmaChannel,
+                buffer      *buf,
+                bar         *bar,
+                uint32_t     base,
+                uint32_t     flag
+            )
+            {
+                m_buffer         = buf;
+                m_bar            = bar;
+                m_base           = base;
+                m_flag           = flag;
+                m_bdcfg          = dmaChannel->getPKT(flag);
+                m_pda_dma_buffer = m_buffer->getPDABuffer();
+                m_sglist         = NULL;
+                m_control_flag   = 0;
+            }
+
+            int32_t program()
+            {
+                try
+                {
+                    convertControlFlag();
+                    CheckSglistFitsIntoDRAM();
+                    getSglistFromPDA();
+                    programSglistIntoDRAM();
+                    clearTrailingDRAM();
+                }
+                catch(...){ return -1; }
+
+                return(0);
+            }
+
+
+        protected:
+            uint32_t                 m_control_flag;
+            buffer                  *m_buffer;
+            uint32_t                 m_bdcfg;
+            DMABuffer               *m_pda_dma_buffer;
+            DMABuffer_SGNode        *m_sglist;
+            uint32_t                 m_flag;
+            bar                     *m_bar;
+            uint32_t                 m_base;
+
+            void convertControlFlag()
+            {
+                switch(m_flag)
+                {
+                    case RORC_REG_RBDM_N_SG_CONFIG:
+                    { m_control_flag = 1; }
+                    break;
+
+                    case RORC_REG_EBDM_N_SG_CONFIG:
+                    { m_control_flag = 0; }
+                    break;
+
+                    default:
+                    { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
+                }
+            }
+
+            void CheckSglistFitsIntoDRAM()
+            {
+                if(m_buffer->getnSGEntries() > (m_bdcfg >> 16) )
+                { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
+            }
+
+            void getSglistFromPDA()
+            {
+                if(PDA_SUCCESS != DMABuffer_getSGList(m_pda_dma_buffer, &m_sglist) )
+                { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
+            }
+
+            void programSglistIntoDRAM()
+            {
+                uint64_t i = 0;
+                librorc_sg_entry_config sg_entry;
+                for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
+                {
+                    /** Convert sg list into CRORC compatible format */
+                    sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
+                    sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
+                    sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
+
+                    sg_entry.ctrl = (1 << 31) | (m_control_flag << 30) | ((uint32_t)i);
+
+                    /** Write librorc_dma_desc to RORC EBDM */
+                    m_bar->memcopy
+                        ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+                    i++;
+                }
+            }
+
+            void clearTrailingDRAM()
+            {
+                librorc_sg_entry_config sg_entry;
+                memset(&sg_entry, 0, sizeof(sg_entry) );
+                m_bar->memcopy
+                    ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+            }
+
+    };
+
+
+
+    /** Class that configures a DMA channel which already has a stored scatter gather list */
+    #define DMA_CHANNEL_CONFIGURATOR_ERROR 1
+    #define SYNC_SOFTWARE_READ_POINTERS (1 << 31)
+    #define SET_CHANNEL_AS_PCIE_TAG (m_channel_id << 16)
+
+    class dma_channel_configurator
+    {
+        public:
+            typedef struct
+            __attribute__((__packed__))
+            {
+                volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
+                volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
+                volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
+                volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
+                volatile uint32_t dma_ctrl;                        /** DMA control register **/
+            } librorc_buffer_software_pointers;
+
+            typedef struct
+            __attribute__((__packed__))
+            {
+                volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
+                volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
+                volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
+                volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
+                volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
+                volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
+                volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
+            } librorc_channel_config;
+
+            dma_channel_configurator
+            (
+                uint32_t     pcie_packet_size,
+                uint32_t     channel_id,
+                uint32_t     base,
+                buffer      *eventBuffer,
+                buffer      *reportBuffer,
+                bar         *bar,
+                dma_channel *dmaChannel
+            )
+            {
+                m_dma_channel      = dmaChannel;
+                m_pcie_packet_size = pcie_packet_size;
+                m_eventBuffer      = eventBuffer;
+                m_reportBuffer     = reportBuffer;
+                m_channel_id       = channel_id;
+                m_base             = base;
+                m_bar              = bar;
+            }
+
+            int32_t configure()
+            {
+                try
+                {
+                    checkPacketSize();
+                    fillConfigurationStructure();
+                    setPciePacketSize(m_pcie_packet_size);
+                    copyConfigToDevice();
+                }
+                catch(...){ return -1; }
+
+                return(0);
+            }
+
+
+
+        protected:
+            dma_channel            *m_dma_channel;
+            buffer                 *m_eventBuffer;
+            buffer                 *m_reportBuffer;
+            uint32_t                m_pcie_packet_size;
+            uint32_t                m_channel_id;
+            librorc_channel_config  m_config;
+            uint32_t                m_base;
+            bar                    *m_bar;
+
+            void checkPacketSize()
+            {
+                /** packet size must be a multiple of 4 DW / 16 bytes */
+                if(m_pcie_packet_size & 0xf)
+                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+                else if(m_pcie_packet_size > 1024)
+                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+            }
+
+            void fillConfigurationStructure()
+            {
+                m_config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
+                m_config.ebdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_eventBuffer);
+                m_config.ebdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_eventBuffer);
+
+                m_config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
+                m_config.rbdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_reportBuffer);
+                m_config.rbdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_reportBuffer);
+
+                m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
+                m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
+
+                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, sizeof(struct librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, sizeof(struct librorc_event_descriptor));
+
+                m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
+            }
+
+            uint32_t
+            bufferDescriptorManagerBufferSizeLow(buffer *buffer)
+            {
+                return(buffer->getPhysicalSize() & 0xffffffff);
+            }
+
+            uint32_t
+            bufferDescriptorManagerBufferSizeHigh(buffer *buffer)
+            {
+                return(buffer->getPhysicalSize() >> 32);
+            }
+
+            uint32_t
+            softwareReadPointerLow
+            (
+                buffer   *buffer,
+                uint32_t  offset
+            )
+            {
+                return( (buffer->getPhysicalSize() - offset) & 0xffffffff );
+            }
+
+            uint32_t
+            softwareReadPointerHigh
+            (
+                buffer   *buffer,
+                uint32_t  offset
+            )
+            {
+                return( (buffer->getPhysicalSize() - offset) >> 32 );
+            }
+
+            void copyConfigToDevice()
+            {
+                m_bar->memcopy
+                (
+                    (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
+                    &m_config,
+                    sizeof(librorc_channel_config)
+                );
+            }
+
+            void setPciePacketSize(uint32_t packet_size)
+            {
+                /**
+                 * packet size is located in RORC_REG_DMA_PKT_SIZE:
+                 * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
+                 * packet size has to be provided as #DWs -> divide size by 4
+                 * write stuff to channel after this
+                 */
+                m_dma_channel->setPKT( RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
+            }
+
+    };
+
+
+
+/**PUBLIC:*/
 
 dma_channel::dma_channel
 (
@@ -81,25 +331,8 @@ dma_channel::dma_channel
     bar      *bar
 )
 {
-    m_last_ebdm_offset = 0;
-    m_last_rbdm_offset = 0;
-    m_pcie_packet_size = 0;
-
-    m_is_pattern_generator = false;
-    m_is_gtx               = false;
-
-    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    m_channel      = channel_number;
-    m_dev          = dev;
-    m_bar          = bar;
-
-    m_eventBuffer  = NULL;
-    m_reportBuffer = NULL;
-
-    /** Check that requested channel is implemented in firmware */
-    if( !m_dev->DMAChannelIsImplemented(channel_number) )
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
+    initMembers(channel_number, 0, dev, bar,NULL, NULL);
+    prepareBuffers();
 }
 
 
@@ -114,46 +347,12 @@ dma_channel::dma_channel
     buffer   *reportBuffer
 )
 {
-    m_last_ebdm_offset = 0;
-    m_last_rbdm_offset = 0;
-    m_pcie_packet_size = 0;
-
-    m_is_pattern_generator = false;
-    m_is_gtx               = false;
-
-    m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-    m_channel      = channel_number;
-    m_dev          = dev;
-    m_bar          = bar;
-
-    m_eventBuffer  = eventBuffer;
-    m_reportBuffer = reportBuffer;
-
-    m_reportBuffer->clear();
-
-    /** Check that requested channel is implemented in firmware */
-    if( !m_dev->DMAChannelIsImplemented(channel_number) )
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
-    /** Prepare EventBufferDescriptorManager with scatter-gather list */
-    if(prepareEB(eventBuffer) < 0)
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
-    /** Prepare ReportBufferDescriptorManager with scatter-gather list */
-    if(prepareRB(reportBuffer) < 0)
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
-    /** set max payload, buffer sizes, #sgEntries, ... */
-    if(configureChannel(pcie_packet_size) < 0)
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
+    initMembers(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer);
+    prepareBuffers();
 }
 
 
 
-/**
- * Desctructor
- * */
 dma_channel::~dma_channel()
 {
     if(m_reportBuffer != NULL)
@@ -206,130 +405,7 @@ dma_channel::waitForGTXDomain()
     { usleep(100); }
 }
 
-
-
-void
-dma_channel::configurePatternGenerator(uint32_t eventSize)
-{
-    if(m_is_gtx)
-    {
-        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED;
-    }
-
-    /** Configure Pattern Generator */
-    setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x600) );
-    setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x100) );
-    m_is_pattern_generator = true;
-}
-
-
-
-void
-dma_channel::closePatternGenerator()
-{
-    if(!m_is_pattern_generator)
-    {
-        throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_PATTERN_GENERATOR_FAILED;
-    }
-
-    setGTX(RORC_REG_DDL_CTRL, 0x0);
-
-    m_is_pattern_generator = false;
-}
-
-
-
-void
-dma_channel::configureGTX()
-{
-    if(m_is_pattern_generator)
-    {
-        throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED;
-    }
-
-    /** set ENABLE, activate flow control (DIU_IF:busy) */
-    setGTX(RORC_REG_DDL_CTRL, 0x00000003);
-
-    /** wait for riLD_N='1' */
-    while( (getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
-        {usleep(100);}
-
-    /** clear DIU_IF IFSTW, CTSTW */
-    setGTX(RORC_REG_DDL_IFSTW, 0);
-    setGTX(RORC_REG_DDL_CTSTW, 0);
-
-    /** send EOBTR to close any open transaction */
-    setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
-
-    waitForCommandTransmissionStatusWord();
-
-    /** clear DIU_IF IFSTW */
-    setGTX(RORC_REG_DDL_IFSTW, 0);
-    setGTX(RORC_REG_DDL_CTSTW, 0);
-
-    /** send RdyRx to SIU */
-    setGTX(RORC_REG_DDL_CMD, 0x00000014);
-
-    waitForCommandTransmissionStatusWord();
-
-    /** clear DIU_IF IFSTW */
-    setGTX(RORC_REG_DDL_IFSTW, 0);
-    setGTX(RORC_REG_DDL_CTSTW, 0);
-
-    m_is_gtx = true;
-}
-
-
-
-void
-dma_channel::closeGTX()
-{
-    if(!m_is_gtx)
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
-
-    /** check if link is still up: LD_N == 1 */
-    if( getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
-    {
-        /** disable BUSY -> drop current data in chain */
-        setGTX(RORC_REG_DDL_CTRL, 0x00000001);
-
-        /** wait for LF_N to go high */
-        while(!(getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
-        {usleep(100);}
-
-        /** clear DIU_IF IFSTW */
-        setGTX(RORC_REG_DDL_IFSTW, 0);
-        setGTX(RORC_REG_DDL_CTSTW, 0);
-
-        /** Send EOBTR command */
-        setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
-
-        /** wait for command transmission status word (CTST)
-         * in response to the EOBTR:
-         * STS[7:4]="0000"
-         */
-        while(getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
-        {usleep(100);}
-
-        /** disable DIU_IF */
-        setGTX(RORC_REG_DDL_CTRL, 0x00000000);
-    }
-    else
-    { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
-
-    m_is_gtx = false;
-}
-
-
-
-void
-dma_channel::waitForCommandTransmissionStatusWord()
-{
-    /** wait for command transmission status word (CTSTW) from DIU */
-    while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
-    { usleep(100); }
-}
+//---checked global
 
 
 
@@ -401,7 +477,7 @@ dma_channel::getDMAConfig()
     return getPKT(RORC_REG_DMA_CTRL);
 }
 
-
+//TODO: remove
 void
 dma_channel::setPciePacketSize
 (
@@ -427,49 +503,11 @@ dma_channel::setPciePacketSize
 }
 
 
+
 uint32_t
 dma_channel::getPciePacketSize()
 {
     return m_pcie_packet_size;
-}
-
-
-/** Rework : remove sepparate methods*/
-void
-dma_channel::setOffsets
-(
-    uint64_t eboffset,
-    uint64_t rboffset
-)
-{
-    assert(m_bar!=NULL);
-    librorc_buffer_software_pointers offsets;
-
-    offsets.ebdm_software_read_pointer_low =
-        (uint32_t)(eboffset & 0xffffffff);
-
-    offsets.ebdm_software_read_pointer_high =
-        (uint32_t)(eboffset >> 32 & 0xffffffff);
-
-    offsets.rbdm_software_read_pointer_low =
-        (uint32_t)(rboffset & 0xffffffff);
-
-    offsets.rbdm_software_read_pointer_high =
-        (uint32_t)(rboffset >> 32 & 0xffffffff);
-
-    /** set sync-flag in DMA control register
-     * TODO: this is the fail-save version. The following getPKT()
-     * can be omitted if the library keeps track on any writes to
-     * RORC_REG_DMA_CTRL. This would reduce PCIe traffic.
-     **/
-    offsets.dma_ctrl = ( getPKT(RORC_REG_DMA_CTRL) | (1<<31) );
-
-    m_bar->memcopy( (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
-                    &offsets, sizeof(offsets) );
-
-    /** save a local copy of the last offsets written to the channel **/
-    m_last_ebdm_offset = eboffset;
-    m_last_rbdm_offset = rboffset;
 }
 
 
@@ -653,220 +691,123 @@ dma_channel::getPKT
 }
 
 
-/** GTK clock domain */
-void
-dma_channel::setGTX
-(
-    uint32_t addr,
-    uint32_t data
-)
-{
-    m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
-}
 
+/**PROTECTED:*/
 
-
-uint32_t
-dma_channel::getGTX
-(
-    uint32_t addr
-)
-{
-    return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
-}
-
-/** Protected and Private methods */
-
-
-/**
- * prepareRB
- * Fill ReportBufferDescriptorRAM with scatter-gather
- * entries of DMA buffer
- * */
-
-int32_t
-dma_channel::prepareEB
-(
-    buffer *buf
-)
-{
-    return(prepare(buf, RORC_REG_EBDM_N_SG_CONFIG));
-}
-
-
-
-int32_t
-dma_channel::prepareRB
-(
-    buffer *buf
-)
-{
-    return(prepare(buf, RORC_REG_RBDM_N_SG_CONFIG));
-}
-
-/**
- * Fill DescriptorRAM with scatter-gather
- * entries of DMA buffer
- * */
-
-int32_t
-dma_channel::prepare
-(
-    buffer   *buf,
-    uint32_t  flag
-)
-{
-    assert(m_bar!=NULL);
-
-    /** Some generic initialization */
-    uint32_t control_flag = 0;
-    switch(flag)
+    void
+    dma_channel::initMembers
+    (
+        uint32_t  channel_number,
+        uint32_t  pcie_packet_size,
+        device   *dev,
+        bar      *bar,
+        buffer   *eventBuffer,
+        buffer   *reportBuffer
+    )
     {
-        case RORC_REG_RBDM_N_SG_CONFIG:
+        m_pcie_packet_size = pcie_packet_size;
+
+        m_is_pattern_generator = false;
+        m_is_gtx               = false;
+
+        m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
+        m_channel      = channel_number;
+        m_dev          = dev;
+        m_bar          = bar;
+
+        m_eventBuffer  = eventBuffer;
+        m_reportBuffer = reportBuffer;
+
+        if(m_reportBuffer != NULL)
         {
-            control_flag = 1;
+            m_reportBuffer->clear();
+            m_last_rbdm_offset
+                = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
         }
-        break;
 
-        case RORC_REG_EBDM_N_SG_CONFIG:
+        if(m_eventBuffer != NULL)
         {
-            control_flag = 0;
+            m_last_ebdm_offset
+                = m_eventBuffer->getPhysicalSize() - m_pcie_packet_size;
         }
-        break;
-
-        default:
-            cout << "Invalid flag!" << endl;
-            return -1;
     }
 
-    /**
-     * get maximum number of sg-entries supported by the firmware
-     * N_SG_CONFIG:
-     * [15:0] : current number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     **/
-    uint32_t bdcfg = getPKT(flag);
 
-    /** check if buffers SGList fits into DRAM */
-    if(buf->getnSGEntries() > (bdcfg >> 16) )
+
+    void
+    dma_channel::prepareBuffers()
     {
-        errno = EFBIG;
-        return -EFBIG;
+        if( !m_dev->DMAChannelIsImplemented(m_channel) )
+        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+        if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
+        {
+            if(programSglistForEventBuffer(m_eventBuffer) < 0)
+            { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+            if(programSglistForReportBuffer(m_reportBuffer) < 0)
+            { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+            dma_channel_configurator configurator
+                (m_pcie_packet_size, m_channel, m_base, m_eventBuffer, m_reportBuffer, m_bar, this);
+            if( configurator.configure() < 0)
+            { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+        }
     }
 
-    /** retrieve scatter gather list */
-    DMABuffer        *pda_dma_buffer = buf->getPDABuffer();
-    DMABuffer_SGNode *sglist         = NULL;
-    if(PDA_SUCCESS != DMABuffer_getSGList(pda_dma_buffer, &sglist) )
+
+
+    int32_t
+    dma_channel::programSglistForEventBuffer
+    (
+        buffer *buf
+    )
     {
-        printf("SG-List fetching failed!\n");
-        return -1;
+        buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_EBDM_N_SG_CONFIG);
+        return(programmer.program());
     }
 
 
-    /** fetch all sg-entries from sglist */
-    uint64_t i = 0;
-    librorc_sg_entry_config sg_entry;
-    for(DMABuffer_SGNode *sg=sglist; sg!=NULL; sg=sg->next)
+
+    int32_t
+    dma_channel::programSglistForReportBuffer
+    (
+        buffer *buf
+    )
     {
-        /** convert sg list into CRORC compatible format */
-        sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
-        sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
-        sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
-
-        sg_entry.ctrl = (1 << 31) | (control_flag << 30) | ((uint32_t)i);
-
-        /** write librorc_dma_desc to RORC EBDM */
-        m_bar->memcopy
-        (
-            (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
-            &sg_entry, sizeof(sg_entry)
-        );
-        i++;
+        buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_RBDM_N_SG_CONFIG);
+        return(programmer.program());
     }
 
-    /** clear following BD entry (required!) */
-    memset(&sg_entry, 0, sizeof(sg_entry) );
-    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW),
-                       &sg_entry, sizeof(sg_entry) );
 
-    return(0);
-}
-
-
-
-/** configure DMA engine for the current set of buffers */
-int32_t
-dma_channel::configureChannel(uint32_t pcie_packet_size)
-{
-
-    /**
-     * N_SG_CONFIG:
-     * [15:0] : actual number of sg entries in RAM
-     * [31:16]: maximum number of entries
-     */
-    uint32_t rbdmnsgcfg = getPKT( RORC_REG_RBDM_N_SG_CONFIG );
-    uint32_t ebdmnsgcfg = getPKT( RORC_REG_EBDM_N_SG_CONFIG );
-
-    /** check if sglist fits into FPGA buffers */
-    if( ( (rbdmnsgcfg >> 16) < m_reportBuffer->getnSGEntries() ) |
-        ( (ebdmnsgcfg >> 16) < m_eventBuffer->getnSGEntries() ) )
+    void
+    dma_channel::setGTX
+    (
+        uint32_t addr,
+        uint32_t data
+    )
     {
-        errno = -EFBIG;
-        return errno;
+        m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
     }
 
-    if(pcie_packet_size & 0xf)
+
+
+    uint32_t
+    dma_channel::getGTX
+    (
+        uint32_t addr
+    )
     {
-        /** packet size must be a multiple of 4 DW / 16 bytes */
-        errno = -EINVAL;
-        return errno;
+        return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
     }
-    else if(pcie_packet_size > 1024)
+
+
+
+    void
+    dma_channel::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
     {
-        errno = -ERANGE;
-        return errno;
+        while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
+        { usleep(100); }
     }
-
-    librorc_channel_config config;
-    config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
-    config.ebdm_buffer_size_low  = m_eventBuffer->getPhysicalSize() & 0xffffffff;
-    config.ebdm_buffer_size_high = m_eventBuffer->getPhysicalSize() >> 32;
-    config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
-    config.rbdm_buffer_size_low  = m_reportBuffer->getPhysicalSize() & 0xffffffff;
-    config.rbdm_buffer_size_high = m_reportBuffer->getPhysicalSize() >> 32;
-
-    config.swptrs.ebdm_software_read_pointer_low =
-        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) & 0xffffffff;
-    config.swptrs.ebdm_software_read_pointer_high =
-        (m_eventBuffer->getPhysicalSize() - pcie_packet_size) >> 32;
-    config.swptrs.rbdm_software_read_pointer_low =
-        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) & 0xffffffff;
-    config.swptrs.rbdm_software_read_pointer_high =
-        (m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor) ) >> 32;
-
-    config.swptrs.dma_ctrl = (1 << 31) |      // sync software read pointers
-                             (m_channel << 16); // set channel as PCIe tag
-
-    /**
-     * Set PCIe packet size
-     **/
-    setPciePacketSize(pcie_packet_size);
-
-    /**
-     * copy configuration struct to RORC, starting
-     * at the address of the lowest register(EBDM_N_SG_CONFIG)
-     */
-    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
-                    &config, sizeof(librorc_channel_config) );
-
-    m_pcie_packet_size = pcie_packet_size;
-    m_last_ebdm_offset = m_eventBuffer->getPhysicalSize() - pcie_packet_size;
-    m_last_rbdm_offset = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
-
-    return 0;
-}
-
-
 
 }

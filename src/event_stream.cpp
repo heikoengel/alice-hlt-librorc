@@ -24,7 +24,12 @@
 #include <librorc/bar_proto.hh>
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
+#include <librorc/sysmon.hh>
+
 #include <librorc/dma_channel.hh>
+#include <librorc/dma_channel_ddl.hh>
+#include <librorc/dma_channel_pg.hh>
+
 
 using namespace std;
 
@@ -34,24 +39,34 @@ namespace librorc
 
     event_stream::event_stream
     (
-        int32_t   deviceId,
-        int32_t   channelId
+        int32_t deviceId,
+        int32_t channelId
     )
     {
-        generateDMAChannel(deviceId, channelId);
+        generateDMAChannel(deviceId, channelId, LIBRORC_ES_PURE);
     }
 
     event_stream::event_stream
     (
-        int32_t   deviceId,
-        int32_t   channelId,
-        uint32_t  eventSize
+        int32_t       deviceId,
+        int32_t       channelId,
+        uint32_t      eventSize,
+        LibrorcEsType esType
     )
     {
-        generateDMAChannel(deviceId, channelId);
+        m_eventSize = eventSize;
+        generateDMAChannel(deviceId, channelId, esType);
     }
 
     event_stream::~event_stream()
+    {
+        deleteParts();
+    }
+
+
+
+    void
+    event_stream::deleteParts()
     {
         delete m_channel;
         delete m_eventBuffer;
@@ -60,51 +75,107 @@ namespace librorc
         delete m_dev;
     }
 
+
+
     void
     event_stream::generateDMAChannel
     (
-        int32_t   deviceId,
-        int32_t   channelId
+        int32_t       deviceId,
+        int32_t       channelId,
+        LibrorcEsType esType
     )
     {
-        /** Create new device instance */
-        try
-        { m_dev = new librorc::device(deviceId); }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED; }
-
-        /** Bind to BAR1 */
-        try
-        {
-        #ifdef SIM
-            m_bar1 = new librorc::sim_bar(m_dev, 1);
-        #else
-            m_bar1 = new librorc::rorc_bar(m_dev, 1);
-        #endif
-        }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED; }
-
-        /** Create new DMA event buffer */
-        try
-        { m_eventBuffer = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE); }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED; }
-
-        /** create new DMA report buffer */
-        try
-        { m_reportBuffer = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE); }
-        catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED; }
+        m_channelId = channelId;
 
         try
         {
-            m_channel =
-            new librorc::dma_channel
-            (channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+            m_dev = new librorc::device(deviceId);
+            #ifdef SIM
+                m_bar1 = new librorc::sim_bar(m_dev, 1);
+            #else
+                m_bar1 = new librorc::rorc_bar(m_dev, 1);
+            #endif
+            m_eventBuffer
+                = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE);
+            m_reportBuffer
+                = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+
+            chooseDMAChannel(esType);
         }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED; }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+
     }
+
+
+
+    void
+    event_stream::chooseDMAChannel(LibrorcEsType esType)
+    {
+        switch ( esType )
+        {
+            case LIBRORC_ES_PURE:
+            {
+            m_channel =
+                new librorc::dma_channel
+                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+            }
+            break;
+
+            case LIBRORC_ES_DDL:
+            {
+            m_channel =
+                new librorc::dma_channel_ddl
+                (
+                    m_channelId,
+                    MAX_PAYLOAD,
+                    m_dev,
+                    m_bar1,
+                    m_eventBuffer,
+                    m_reportBuffer
+                );
+            }
+            break;
+
+            case LIBRORC_ES_PG:
+            {
+            m_channel =
+                new librorc::dma_channel_pg
+                (
+                    m_channelId,
+                    MAX_PAYLOAD,
+                    m_dev,
+                    m_bar1,
+                    m_eventBuffer,
+                    m_reportBuffer,
+                    m_eventSize
+                );
+            }
+            break;
+
+        default:
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
+    }
+
+
+
+    void
+    event_stream::printDeviceStatus()
+    {
+        printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
+
+        try
+        {
+            librorc::sysmon *sm = new librorc::sysmon(m_bar1);
+            cout << "CRORC FPGA" << endl
+                 << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+                 << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+            delete sm;
+        }
+        catch(...)
+        { cout << "Firmware Rev. and Date not available!" << endl; }
+    }
+
 
 }

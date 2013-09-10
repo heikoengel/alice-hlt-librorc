@@ -21,10 +21,16 @@
 
 #include <librorc/include_ext.hh>
 
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED   1
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED      2
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED   3
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED 4
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED   1
+
+
+typedef enum
+{
+    LIBRORC_ES_PURE,
+    LIBRORC_ES_DDL,
+    LIBRORC_ES_PG
+} LibrorcEsType;
+
 
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
@@ -51,18 +57,20 @@ class device;
 
              event_stream
              (
-                int32_t   deviceId,
-                int32_t   channelId
+                int32_t deviceId,
+                int32_t channelId
              );
 
              event_stream
              (
-                int32_t   deviceId,
-                int32_t   channelId,
-                uint32_t  eventSize
+                int32_t       deviceId,
+                int32_t       channelId,
+                uint32_t      eventSize,
+                LibrorcEsType esType
              );
 
             ~event_stream();
+            void printDeviceStatus();
 
             /** Member Variables */
             device      *m_dev;
@@ -73,13 +81,19 @@ class device;
 
 
         protected:
+            uint32_t  m_eventSize;
+            int32_t   m_channelId;
 
             void
             generateDMAChannel
             (
-                int32_t deviceId,
-                int32_t channelId
+                int32_t       deviceId,
+                int32_t       channelId,
+                LibrorcEsType esType
             );
+
+            void chooseDMAChannel(LibrorcEsType esType);
+            void deleteParts();
 
     };
 

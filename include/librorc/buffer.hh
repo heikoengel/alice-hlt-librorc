@@ -56,6 +56,8 @@ typedef struct PciDevice_struct        PciDevice;
 typedef struct DMABuffer_struct        DMABuffer;
 typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
+
+
 /**
  * @class librorc::buffer
  * @brief buffer management class
@@ -67,10 +69,13 @@ typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 namespace librorc
 {
 class device;
+class dma_channel;
+class buffer_sglist_programmer;
 
     class buffer
     {
         friend class dma_channel;
+        friend class buffer_sglist_programmer;
 
         public:
              buffer

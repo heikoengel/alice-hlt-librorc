@@ -21,8 +21,8 @@
  * */
 
 #include <librorc.h>
-#include <event_handling.h>
 
+#include "event_handling.h"
 #include "dma_handling.hh"
 
 using namespace std;
@@ -41,9 +41,11 @@ int main( int argc, char *argv[])
     ) )
     { exit(-1); }
 
+    opts.esType = LIBRORC_ES_DDL;
+
     DMA_ABORT_HANDLER_REGISTER
 
-    channelStatus *chstats
+    librorcChannelStatus *chstats
         = prepareSharedMemory(opts);
     if(chstats == NULL)
     { exit(-1); }
@@ -55,24 +57,7 @@ int main( int argc, char *argv[])
     if( !(eventStream = prepareEventStream(opts)) )
     { exit(-1); }
 
-    printDeviceStatus(eventStream);
-
-    /** Setup DMA channel */
-    try
-    {
-        eventStream->m_channel->enable();
-
-        cout << "Waiting for GTX to be ready..." << endl;
-        eventStream->m_channel->waitForGTXDomain();
-
-        cout << "Configuring GTX ..." << endl;
-        eventStream->m_channel->configureGTX();
-    }
-    catch( int error )
-    {
-        cout << "DMA channel failed (ERROR :" << error << ")" << endl;
-        return(-1);
-    }
+    eventStream->printDeviceStatus();
 
     /** Capture starting time */
     timeval start_time;
@@ -122,17 +107,10 @@ int main( int argc, char *argv[])
 
     printFinalStatusLine(chstats, opts, start_time, end_time);
 
-    try
-    { eventStream->m_channel->closeGTX(); }
-    catch(...)
-    { cout << "Link is down - unable to send EOBTR !!!" << endl; }
-
-    eventStream->m_channel->disable();
-
     /** Cleanup */
+    delete eventStream;
     deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
-    delete eventStream;
 
     return 0;
 }

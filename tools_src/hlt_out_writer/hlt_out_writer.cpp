@@ -32,8 +32,8 @@
 #include <getopt.h>
 
 #include <librorc.h>
-#include <event_handling.h>
-#include <event_generation.h>
+#include "event_handling.h"
+#include "event_generation.h"
 
 using namespace std;
 

@@ -33,7 +33,7 @@
         uint64_t index;
         uint64_t set_offset_count;
         uint64_t error_count;
-        int64_t  last_id;
+        uint64_t last_id;
         uint32_t channel;
     }channelStatus;
 
@@ -41,7 +41,7 @@
 /*********************************************************************************/
 
 #include <pda.h>
-#include <helper_functions.h>
+#include "helper_functions.h"
 
 /**
  * Sanity checks on received data
@@ -60,7 +60,7 @@ int event_sanity_check
     volatile uint32_t *eventbuffer,
     uint64_t i,
     uint32_t ch,
-    int64_t last_id,
+    uint64_t last_id,
     uint32_t pattern_mode,
     uint32_t check_mask,
     uint32_t *ddlref,
@@ -222,15 +222,14 @@ int event_sanity_check
   // make sure EventIDs increment with each event.
   // missing EventIDs are an indication of lost event data
   if ( (check_mask & CHK_ID) &&
-          last_id!=-1 &&
           (cur_event_id & 0xfffffffff) !=
-          ((last_id +1) & 0xfffffffff) ) {
+          ((last_id+1) & 0xfffffffff) ) {
       DEBUG_PRINTF(PDADEBUG_ERROR,
               "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
               "current ID: %ld\n", ch, last_id, cur_event_id);
       dump_event(eventbuffer, offset, calc_event_size);
       dump_rb(reportbuffer, i, ch);
-      retval |= CHK_EOE;
+      retval |= CHK_ID;
   }
 
   /** return event ID to caller */

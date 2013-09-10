@@ -118,18 +118,18 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 
 
 //TODO: that should be a part of the dma channel class
-channelStatus*
+librorcChannelStatus*
 prepareSharedMemory
 (
     DMAOptions opts
 )
 {
-    channelStatus *chstats = NULL;
+    librorcChannelStatus *chstats = NULL;
 
     /** allocate shared mem */
     int shID =
         shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(channelStatus), IPC_CREAT | 0666);
+            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
     if(shID==-1)
     {
         perror("Shared memory getching failed!");
@@ -144,12 +144,12 @@ prepareSharedMemory
         return(chstats);
     }
 
-    chstats = (channelStatus*)shm;
+    chstats = (librorcChannelStatus*)shm;
 
     /** Wipe SHM */
-    memset(chstats, 0, sizeof(channelStatus));
+    memset(chstats, 0, sizeof(librorcChannelStatus));
     chstats->index = 0;
-    chstats->last_id = -1;
+    chstats->last_id = 0xfffffffff;
     chstats->channel = (unsigned int)opts.channelId;
 
     return(chstats);
@@ -166,27 +166,10 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId); }
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize, opts.esType); }
     catch( int error )
     {
-        switch(error)
-        {
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DEVICE_FAILED:
-            { cout << "ERROR: failed to initialize device." << endl; }
-            break;
-
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BAR_FAILED:
-            { cout << "ERROR: failed to initialize BAR1." << endl; }
-            break;
-
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_BUFFER_FAILED:
-            { cout << "ERROR: failed to allocate buffer." << endl; }
-            break;
-
-            case LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_DCHANNEL_FAILED:
-            { cout << "ERROR: failed to allocate DMA-channel." << endl; }
-            break;
-        }
+        cout << "ERROR: failed to initialize event stream." << endl;
         return(NULL);
     }
 
@@ -257,41 +240,14 @@ deleteDDLReferenceFile
 
 
 
-/**
- * gettimeofday_diff
- * @param time1 earlier timestamp
- * @param time2 later timestamp
- * @return time difference in seconds as double
- * */
-double
-gettimeofdayDiff
-(
-    timeval time1,
-    timeval time2
-)
-{
-    timeval diff;
-    diff.tv_sec = time2.tv_sec - time1.tv_sec;
-    diff.tv_usec = time2.tv_usec - time1.tv_usec;
-    while(diff.tv_usec < 0)
-    {
-        diff.tv_usec += 1000000;
-        diff.tv_sec -= 1;
-    }
-
-    return (double)((double)diff.tv_sec + (double)((double)diff.tv_usec / 1000000));
-}
-
-
-
 timeval
 printStatusLine
 (
-    timeval        last_time,
-    timeval        cur_time,
-    channelStatus *chstats,
-    uint64_t      *last_events_received,
-    uint64_t      *last_bytes_received
+    timeval               last_time,
+    timeval               cur_time,
+    librorcChannelStatus *chstats,
+    uint64_t             *last_events_received,
+    uint64_t             *last_bytes_received
 )
 {
     if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
@@ -341,10 +297,10 @@ printStatusLine
 void
 printFinalStatusLine
 (
-    channelStatus *chstats,
-    DMAOptions     opts,
-    timeval        start_time,
-    timeval        end_time
+    librorcChannelStatus *chstats,
+    DMAOptions            opts,
+    timeval               start_time,
+    timeval               end_time
 )
 {
     printf
@@ -372,32 +328,4 @@ printFinalStatusLine
         );
     }
 
-}
-
-
-
-void
-printDeviceStatus
-(
-    librorc::event_stream *eventStream
-)
-{
-    printf
-    (
-        "Bus %x, Slot %x, Func %x\n",
-        eventStream->m_dev->getBus(),
-        eventStream->m_dev->getSlot(),
-        eventStream->m_dev->getFunc()
-    );
-
-    try
-    {
-        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
-        cout << "CRORC FPGA" << endl
-             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
-        delete sm;
-    }
-    catch(...)
-    { cout << "Firmware Rev. and Date not available!" << endl; }
 }
