@@ -92,44 +92,6 @@ dump_rb
 }
 
 
-/**
- * Dump the state of the DMA engine
- * @param ch pointer to librorc::dma_channel
- * */
-void dump_dma_state
-(
-    librorc::dma_channel *ch
-)
-{
-  uint32_t dma_ctrl;
-  printf("\nPKT:\n");
-  printf("#Events: 0x%08x; ", ch->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED));
-  printf("#Stall: 0x%08x; ", ch->packetizer(RORC_REG_DMA_STALL_CNT));
-  dma_ctrl = ch->packetizer(RORC_REG_DMA_CTRL);
-  printf("PKT_EN:%d; FIFO_RST:%d; EOE_IN_FIFO:%d; FIFO_EMPTY:%d; "
-      "FIFO_PEMPTY:%d; BUSY:%d; EBDM_EN:%d, RBDM_EN:%d\n",
-      dma_ctrl&1, (dma_ctrl>>1)&1, (dma_ctrl>>4)&1, (dma_ctrl>>5)&1,
-      (dma_ctrl>>6)&1, (dma_ctrl>>7)&1, (dma_ctrl>>2)&1,
-      (dma_ctrl>>3)&1);
-
-  printf("EBDM:\n");
-  printf("EBDM rdptr: 0x%08x_%08x; ",
-      ch->packetizer(RORC_REG_EBDM_SW_READ_POINTER_L),
-      ch->packetizer(RORC_REG_EBDM_SW_READ_POINTER_H));
-  printf("EBDM wrptr: 0x%08x_%08x; ",
-      ch->packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_L),
-      ch->packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_H));
-  printf("\n");
-
-  printf("RBDM:\n");
-  printf("RBDM rdptr: 0x%08x_%08x; ",
-      ch->packetizer(RORC_REG_RBDM_SW_READ_POINTER_L),
-      ch->packetizer(RORC_REG_RBDM_SW_READ_POINTER_H));
-  printf("RBDM wrptr: 0x%08x_%08x; ",
-      ch->packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_L),
-      ch->packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H));
-}
-
 
 /**
  * ==========================================================

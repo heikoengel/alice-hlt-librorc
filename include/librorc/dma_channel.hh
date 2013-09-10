@@ -350,6 +350,11 @@ class dma_channel_configurator;
              **/
             uint32_t packetizer(uint32_t addr);
 
+            /**
+             * Printout the state of the DMA engine to the console
+             * */
+            void printDMAState();
+
 
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
             /**
