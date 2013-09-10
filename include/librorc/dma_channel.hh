@@ -119,53 +119,6 @@ class dma_channel_configurator;
                 uint64_t rboffset
             );
 
-
-            /**
-             * Set Enable Bit of EBDM
-             **/
-            void enableEventBuffer();
-            /**
-             * Unset Enable Bit of EBDM
-             **/
-            void disableEventBuffer();
-
-            /**
-             * Set Enable Bit of RBDM
-             **/
-            void enableReportBuffer();
-
-            /**
-             * Unset Enable Bit of RBDM
-             **/
-            void disableReportBuffer();
-
-            /**
-             * setDMAConfig set the DMA Controller operation mode
-             * @param config Bit mapping:
-             * TODO
-             **/
-            void
-            setDMAConfig(uint32_t config);
-
-            /**
-             * getDMAConfig
-             * @return DMA Packetizer Configuration and Status
-             **/
-            uint32_t getDMAConfig();
-
-            /**
-             * set maximum PCIe packet size. This is MAX_PAYLOAD for
-             * hlt_in and MAX_READ_REQ for hlt_out channels.
-             * @param size maximum packet size in bytes
-             **/
-            void setPciePacketSize(uint32_t packet_size);
-
-            /**
-             * get last value set as PCIe packet size
-             * @return maximum payload size in bytes
-             **/
-            uint32_t getPciePacketSize();
-
             /**
              * get number of Scatter Gather entries for the Event buffer
              * @return number of entries
@@ -418,6 +371,45 @@ class dma_channel_configurator;
              **/
             unsigned int getGTX(uint32_t addr);
 
+            /**
+             * Set maximum PCIe packet size. This is MAX_PAYLOAD for
+             * hlt_in and MAX_READ_REQ for hlt_out channels.
+             * @param size maximum packet size in bytes
+             **/
+            void setPciePacketSize(uint32_t packet_size);
+
+            /**
+             * Get last value set as PCIe packet size
+             * @return maximum payload size in bytes
+             **/
+            uint32_t getPciePacketSize();
+
+            /**
+             * Set Enable Bit of EBDM
+             **/
+            void enableEventBuffer();
+            /**
+             * Unset Enable Bit of EBDM
+             **/
+            void disableEventBuffer();
+
+            /**
+             * Set Enable Bit of RBDM
+             **/
+            void enableReportBuffer();
+
+            /**
+             * Unset Enable Bit of RBDM
+             **/
+            void disableReportBuffer();
+
+            /**
+             * setDMAConfig set the DMA Controller operation mode
+             * @param config Bit mapping:
+             * TODO
+             **/
+            void setDMAConfig(uint32_t config);
+
         protected:
 
             uint32_t  m_base;
@@ -480,6 +472,12 @@ class dma_channel_configurator;
              * @return enable bit
              **/
             uint32_t isReportBufferEnabled();
+
+            /**
+             * Read out the current DMA configuration
+             * @return DMA Packetizer Configuration and Status
+             **/
+            uint32_t DMAConfig();
 
     };
 

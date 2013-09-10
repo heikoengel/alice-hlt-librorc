@@ -398,7 +398,7 @@ dma_channel::enable()
     enableEventBuffer();
     enableReportBuffer();
 
-    setDMAConfig( getDMAConfig() | 0x01 );
+    setDMAConfig( DMAConfig() | 0x01 );
 }
 
 
@@ -482,8 +482,8 @@ dma_channel::isReportBufferEnabled()
     return (getPKT( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
 }
 
-//---checked global
 
+//TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::setDMAConfig(uint32_t config)
 {
@@ -491,41 +491,32 @@ dma_channel::setDMAConfig(uint32_t config)
 }
 
 uint32_t
-dma_channel::getDMAConfig()
+dma_channel::DMAConfig()
 {
     return getPKT(RORC_REG_DMA_CTRL);
 }
 
 
-
-//TODO: remove
+//TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::setPciePacketSize
 (
     uint32_t packet_size
 )
 {
-    /**
-     * packet size has to be provided as #DWs
-     * -> divide size by 4
-     */
+    /* Packet size has to be provided as #DWs -> divide size by 4 */
     uint32_t mp_size = (packet_size >> 2) & 0x3ff;
-
-    /** write to channel*/
     setPKT( RORC_REG_DMA_PKT_SIZE, mp_size );
-
     m_pcie_packet_size = packet_size;
 }
-
-
-
+//TODO : this is protected when hlt out writer is refactored
 uint32_t
 dma_channel::getPciePacketSize()
 {
     return m_pcie_packet_size;
 }
 
-
+//---checked global
 
 void
 dma_channel::setEBOffset
@@ -716,7 +707,7 @@ dma_channel::getPKT
         buffer   *reportBuffer
     )
     {
-        m_pcie_packet_size = pcie_packet_size;
+        setPciePacketSize(pcie_packet_size);
 
         m_is_pattern_generator = false;
         m_is_gtx               = false;
