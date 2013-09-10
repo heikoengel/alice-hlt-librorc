@@ -391,7 +391,7 @@ int main( int argc, char *argv[])
         usleep(100);
 
     // disable RBDM
-    ch->setEnableRB(0);
+    ch->enableReportBuffer();
 
     // reset DFIFO, disable DMA PKT
     ch->setDMAConfig(0X00000002);

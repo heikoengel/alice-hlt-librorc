@@ -395,9 +395,8 @@ dma_channel::enable()
     if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
-    //setEnableEB(1);
     enableEventBuffer();
-    setEnableRB(1);
+    enableReportBuffer();
 
     setDMAConfig( getDMAConfig() | 0x01 );
 }
@@ -412,7 +411,7 @@ dma_channel::disable()
     while(getDMABusy())
     { usleep(100); }
 
-    setEnableRB(0);
+    disableReportBuffer();
 
     /** Reset DFIFO, disable DMA PKT */
     setDMAConfig(0X00000002);
@@ -443,7 +442,6 @@ dma_channel::waitForGTXDomain()
 }
 
 
-//---checked global
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::enableEventBuffer()
@@ -463,24 +461,32 @@ dma_channel::isEventBufferEnabled()
     return (getPKT( RORC_REG_DMA_CTRL ) >> 2 ) & 0x01;
 }
 
-
+void
+dma_channel::enableReportBuffer()
+{
+    //uint32_t bdcfg = getPKT(RORC_REG_DMA_CTRL);
+    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 3)) );
+}
 
 void
-dma_channel::setEnableRB
-(
-    int32_t enable
-)
+dma_channel::disableReportBuffer()
 {
-    uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
-    if(enable)
-    {
-        setPKT(RORC_REG_DMA_CTRL, ( bdcfg | (1 << 3) ) );
-    }
-    else
-    {
-        setPKT(RORC_REG_DMA_CTRL, ( bdcfg & ~(1 << 3) ) );
-    }
+    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
+
+//---checked global
+
+//void
+//dma_channel::setEnableRB
+//(
+//    int32_t enable
+//)
+//{
+//    if(enable)
+//    { enableReportBuffer(); }
+//    else
+//    { disableReportBuffer(); }
+//}
 
 
 

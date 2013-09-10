@@ -125,20 +125,24 @@ class dma_channel_configurator;
 
             /**
              * set Enable Bit of EBDM
-             * @param enable nonzero param will enable, zero will disable
              **/
             void enableEventBuffer();
             /**
              * unset Enable Bit of EBDM
-             * @param enable nonzero param will enable, zero will disable
              **/
             void disableEventBuffer();
 
             /**
              * set Enable Bit of RBDM
-             * @param enable nonzero param will enable, zero will disable
              **/
-            void setEnableRB(int32_t enable);
+            void enableReportBuffer();
+
+            /**
+             * unset Enable Bit of RBDM
+             **/
+            void disableReportBuffer();
+
+//            void setEnableRB(int32_t enable);
 
             /**
              * get Enable Bit of RBDM
@@ -156,7 +160,7 @@ class dma_channel_configurator;
 
             /**
              * getDMAConfig
-             * @return DMA Packetizer COnfiguration and Status
+             * @return DMA Packetizer Configuration and Status
              **/
             uint32_t getDMAConfig();
 
