@@ -106,7 +106,7 @@ class dma_channel_configurator;
                 buffer   *reportBuffer
              );
 
-            ~dma_channel();
+            virtual ~dma_channel();
 
             void enable();
             void disable();

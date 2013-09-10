@@ -359,8 +359,6 @@ dma_channel::dma_channel
     prepareBuffers();
 }
 
-
-
 dma_channel::dma_channel
 (
     uint32_t  channel_number,
@@ -374,8 +372,6 @@ dma_channel::dma_channel
     initMembers(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer);
     prepareBuffers();
 }
-
-
 
 dma_channel::~dma_channel()
 {
@@ -403,8 +399,6 @@ dma_channel::enable()
     setDMAConfig( DMAConfig() | 0x01 );
 }
 
-
-
 void
 dma_channel::disable()
 {
@@ -418,6 +412,8 @@ dma_channel::disable()
     /** Reset DFIFO, disable DMA PKT */
     setDMAConfig(0X00000002);
 }
+
+
 
 void
 dma_channel::setBufferOffsetsOnDevice
