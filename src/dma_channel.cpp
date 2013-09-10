@@ -614,12 +614,8 @@ dma_channel::getRBOffset()
 uint64_t
 dma_channel::getRBDMAOffset()
 {
-    uint64_t offset =
-        ( (uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32);
-
-    offset += (uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
-
-    return offset;
+    return ((uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32) +
+           (uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
 }
 
 
@@ -651,25 +647,15 @@ dma_channel::getDMABusy()
 uint64_t
 dma_channel::getEBSize()
 {
-    uint64_t size =
-        ( (uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_H) << 32);
-
-    size += (uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_L);
-
-    return size;
+    return ((uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
+           (uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_L);
 }
-
-
 
 uint64_t
 dma_channel::getRBSize()
 {
-    uint64_t size =
-        ( (uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_H) << 32);
-
-    size += (uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_L);
-
-    return size;
+    return ((uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
+           (uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_L);
 }
 
 
