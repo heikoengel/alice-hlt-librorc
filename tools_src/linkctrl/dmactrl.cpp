@@ -169,10 +169,10 @@ int main
         if ( do_clear )
         {
             /** clear DMA stall count */
-            ch->setPKT(RORC_REG_DMA_STALL_CNT, 0);
+            ch->setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
 
             /** clear Event Count */
-            ch->setPKT(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
+            ch->setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
         }
 
         delete ch;

@@ -145,7 +145,7 @@ fill_eventbuffer
                 fragment_size);*/
 
         // push event size into EL FIFO
-        channel->setPKT(RORC_REG_DMA_ELFIFO, EventSize);
+        channel->setPacketizer(RORC_REG_DMA_ELFIFO, EventSize);
 
         // adjust event buffer fill state
         *event_generation_offset += fragment_size;

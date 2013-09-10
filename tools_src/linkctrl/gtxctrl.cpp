@@ -186,7 +186,7 @@ drp_read
     (drp_addr<<16) | //DRP addr
     (0x00); // data
 
-  ch->setPKT(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+  ch->setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
   /** wait for drp_den to deassert */
   do {
@@ -221,7 +221,7 @@ drp_write
     (drp_addr<<16) | //DRP addr
     (drp_data); // data
 
-  ch->setPKT(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+  ch->setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
   /** wait for drp_den to deassert */
   do {
@@ -625,21 +625,21 @@ int main
         if ( do_reset || do_loopback )
         {
             /** write new values to RORC */
-            ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            ch->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
         }
 
         if ( do_pllcfg )
         {
             /** set GTXRESET */
             gtxasynccfg |= 0x00000001;
-            ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            ch->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
 
             /** Write new PLL config */
             drp_set_pll_config(ch, available_configs[pllcfgnum]);
 
             /** release GTXRESET */
             gtxasynccfg &= ~(0x00000001);
-            ch->setPKT(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            ch->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
         }
 
         if ( do_dump )

@@ -337,7 +337,7 @@ class dma_channel_configurator;
              * @param data data to be writtem
              **/
             void
-            setPKT
+            setPacketizer
             (
                 uint32_t addr,
                 uint32_t data
@@ -374,7 +374,7 @@ class dma_channel_configurator;
             /**
              * Set maximum PCIe packet size. This is MAX_PAYLOAD for
              * hlt_in and MAX_READ_REQ for hlt_out channels.
-             * @param size maximum packet size in bytes
+             * @param packet_size maximum packet size in bytes
              **/
             void setPciePacketSize(uint32_t packet_size);
 

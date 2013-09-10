@@ -339,7 +339,7 @@ namespace librorc
                  * packet size has to be provided as #DWs -> divide size by 4
                  * write stuff to channel after this
                  */
-                m_dma_channel->setPKT( RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
+                m_dma_channel->setPacketizer( RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
             }
 
     };
@@ -446,13 +446,13 @@ dma_channel::waitForGTXDomain()
 void
 dma_channel::enableEventBuffer()
 {
-    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 2)) );
+    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 2)) );
 }
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableEventBuffer()
 {
-    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
+    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
 }
 
 uint32_t
@@ -466,14 +466,13 @@ dma_channel::isEventBufferEnabled()
 void
 dma_channel::enableReportBuffer()
 {
-    //uint32_t bdcfg = getPKT(RORC_REG_DMA_CTRL);
-    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 3)) );
+    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 3)) );
 }
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableReportBuffer()
 {
-    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 3)));
+    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
 
 unsigned int
@@ -487,7 +486,7 @@ dma_channel::isReportBufferEnabled()
 void
 dma_channel::setDMAConfig(uint32_t config)
 {
-    setPKT(RORC_REG_DMA_CTRL, config);
+    setPacketizer(RORC_REG_DMA_CTRL, config);
 }
 
 uint32_t
@@ -506,7 +505,7 @@ dma_channel::setPciePacketSize
 {
     /* Packet size has to be provided as #DWs -> divide size by 4 */
     uint32_t mp_size = (packet_size >> 2) & 0x3ff;
-    setPKT( RORC_REG_DMA_PKT_SIZE, mp_size );
+    setPacketizer(RORC_REG_DMA_PKT_SIZE, mp_size);
     m_pcie_packet_size = packet_size;
 }
 //TODO : this is protected when hlt out writer is refactored
@@ -528,7 +527,7 @@ dma_channel::setEBOffset
                       &offset, sizeof(offset) );
 
     uint32_t status = getPKT(RORC_REG_DMA_CTRL);
-    setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
+    setPacketizer(RORC_REG_DMA_CTRL, status | (1 << 31) );
 
     /** save a local copy of the last offsets written to the channel **/
     m_last_ebdm_offset = offset;
@@ -583,11 +582,15 @@ dma_channel::setRBOffset
     uint64_t offset
 )
 {
-    m_bar->memcopy( (librorc_bar_address)(m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
-                    &offset, sizeof(offset) );
+    m_bar->memcopy
+    (
+        (librorc_bar_address)(m_base+RORC_REG_RBDM_SW_READ_POINTER_L),
+        &offset,
+        sizeof(offset)
+    );
 
     uint32_t status = getPKT(RORC_REG_DMA_CTRL);
-    setPKT(RORC_REG_DMA_CTRL, status | (1 << 31) );
+    setPacketizer(RORC_REG_DMA_CTRL, status | (1 << 31) );
 
     /** save a local copy of the last offsets written to the channel **/
     m_last_rbdm_offset = offset;
@@ -670,9 +673,9 @@ dma_channel::getRBSize()
 }
 
 
-/** PKT = Packetizer */
+//TODO : this little bugger is link specific
 void
-dma_channel::setPKT
+dma_channel::setPacketizer
 (
     uint32_t addr,
     uint32_t data
@@ -682,7 +685,7 @@ dma_channel::setPKT
 }
 
 
-
+//TODO : this little bugger is link specific
 uint32_t
 dma_channel::getPKT
 (
