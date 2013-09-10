@@ -348,7 +348,7 @@ class dma_channel_configurator;
              * @param addr address in PKT component
              * @return data read from PKT
              **/
-            uint32_t getPKT(uint32_t addr);
+            uint32_t packetizer(uint32_t addr);
 
 
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */

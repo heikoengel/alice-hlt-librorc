@@ -160,9 +160,9 @@ int main
         if ( do_status )
         {
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
-                 << hex << ch->getPKT(RORC_REG_DMA_STALL_CNT)
+                 << hex << ch->packetizer(RORC_REG_DMA_STALL_CNT)
                  << "; #Events processed: 0x"
-                 << ch->getPKT(RORC_REG_DMA_N_EVENTS_PROCESSED)
+                 << ch->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED)
                  << endl;
         }
 

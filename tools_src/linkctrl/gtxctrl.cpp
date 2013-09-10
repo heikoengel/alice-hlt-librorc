@@ -191,7 +191,7 @@ drp_read
   /** wait for drp_den to deassert */
   do {
     usleep(100);
-    drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
+    drp_status = ch->packetizer(RORC_REG_GTX_DRP_CTRL);
   } while (drp_status & (1<<31));
 
   DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
@@ -226,7 +226,7 @@ drp_write
   /** wait for drp_den to deassert */
   do {
     usleep(100);
-    drp_status = ch->getPKT(RORC_REG_GTX_DRP_CTRL);
+    drp_status = ch->packetizer(RORC_REG_GTX_DRP_CTRL);
   } while (drp_status & (1<<31));
   DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
           "drp_write(%x, %04x)\n", drp_addr, drp_data);
@@ -553,7 +553,7 @@ int main
             = new librorc::dma_channel(chID, dev, bar);
 
         /** get current GTX configuration */
-        uint32_t gtxasynccfg = ch->getPKT(RORC_REG_GTX_ASYNC_CFG);
+        uint32_t gtxasynccfg = ch->packetizer(RORC_REG_GTX_ASYNC_CFG);
 
         if ( do_status )
         {

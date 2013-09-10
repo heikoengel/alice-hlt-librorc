@@ -68,7 +68,7 @@ namespace librorc
                 m_bar            = bar;
                 m_base           = base;
                 m_flag           = flag;
-                m_bdcfg          = dmaChannel->getPKT(flag);
+                m_bdcfg          = dmaChannel->packetizer(flag);
                 m_pda_dma_buffer = m_buffer->getPDABuffer();
                 m_sglist         = NULL;
                 m_control_flag   = 0;
@@ -437,7 +437,7 @@ dma_channel::waitForGTXDomain()
      * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
      * & !gtx_in_rst
     **/
-    while( (getPKT(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
+    while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
     { usleep(100); }
 }
 
@@ -446,19 +446,19 @@ dma_channel::waitForGTXDomain()
 void
 dma_channel::enableEventBuffer()
 {
-    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 2)) );
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 2)) );
 }
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableEventBuffer()
 {
-    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
 }
 
 uint32_t
 dma_channel::isEventBufferEnabled()
 {
-    return (getPKT( RORC_REG_DMA_CTRL ) >> 2 ) & 0x01;
+    return (packetizer(RORC_REG_DMA_CTRL) >> 2 ) & 0x01;
 }
 
 
@@ -466,19 +466,19 @@ dma_channel::isEventBufferEnabled()
 void
 dma_channel::enableReportBuffer()
 {
-    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 3)) );
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 3)) );
 }
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableReportBuffer()
 {
-    setPacketizer(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 3)));
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
 
 unsigned int
 dma_channel::isReportBufferEnabled()
 {
-    return (getPKT( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
+    return (packetizer( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
 }
 
 
@@ -492,7 +492,7 @@ dma_channel::setDMAConfig(uint32_t config)
 uint32_t
 dma_channel::DMAConfig()
 {
-    return getPKT(RORC_REG_DMA_CTRL);
+    return packetizer(RORC_REG_DMA_CTRL);
 }
 
 
@@ -530,7 +530,7 @@ dma_channel::setEBOffset
         sizeof(offset)
     );
 
-    setPacketizer(RORC_REG_DMA_CTRL, getPKT(RORC_REG_DMA_CTRL) | (1 << 31) );
+    setPacketizer(RORC_REG_DMA_CTRL, packetizer(RORC_REG_DMA_CTRL) | (1 << 31) );
     m_last_ebdm_offset = offset;
 }
 
@@ -539,8 +539,8 @@ dma_channel::setEBOffset
 uint64_t
 dma_channel::getEBOffset()
 {
-    return ((uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_H) << 32) +
-           (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
+    return ((uint64_t)packetizer(RORC_REG_EBDM_SW_READ_POINTER_H) << 32) +
+           (uint64_t)packetizer(RORC_REG_EBDM_SW_READ_POINTER_L);
 }
 
 
@@ -563,8 +563,8 @@ dma_channel::getLastRBOffset()
 uint64_t
 dma_channel::getEBDMAOffset()
 {
-    return ((uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32) +
-           (uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
+    return ((uint64_t)packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32) +
+           (uint64_t)packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
 }
 
 
@@ -582,7 +582,7 @@ dma_channel::setRBOffset
         sizeof(offset)
     );
 
-    setPacketizer(RORC_REG_DMA_CTRL, getPKT(RORC_REG_DMA_CTRL) | (1 << 31) );
+    setPacketizer(RORC_REG_DMA_CTRL, packetizer(RORC_REG_DMA_CTRL) | (1 << 31) );
     m_last_rbdm_offset = offset;
 }
 
@@ -591,8 +591,8 @@ dma_channel::setRBOffset
 uint64_t
 dma_channel::getRBOffset()
 {
-    return ((uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_H) << 32) +
-           (uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_L);
+    return ((uint64_t)packetizer(RORC_REG_RBDM_SW_READ_POINTER_H) << 32) +
+           (uint64_t)packetizer(RORC_REG_RBDM_SW_READ_POINTER_L);
 }
 
 
@@ -600,8 +600,8 @@ dma_channel::getRBOffset()
 uint64_t
 dma_channel::getRBDMAOffset()
 {
-    return ((uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32) +
-           (uint64_t)getPKT(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
+    return ((uint64_t)packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32) +
+           (uint64_t)packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
 }
 
 
@@ -609,7 +609,7 @@ dma_channel::getRBDMAOffset()
 uint32_t
 dma_channel::getEBDMnSGEntries()
 {
-    return (getPKT(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff);
+    return packetizer(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff;
 }
 
 
@@ -617,7 +617,7 @@ dma_channel::getEBDMnSGEntries()
 uint32_t
 dma_channel::getRBDMnSGEntries()
 {
-    return (getPKT(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff);
+    return packetizer(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
 }
 
 
@@ -625,7 +625,7 @@ dma_channel::getRBDMnSGEntries()
 uint32_t
 dma_channel::getDMABusy()
 {
-    return ( (getPKT(RORC_REG_DMA_CTRL) >> 7) & 0x01);
+    return (packetizer(RORC_REG_DMA_CTRL) >> 7) & 0x01;
 }
 
 
@@ -633,15 +633,15 @@ dma_channel::getDMABusy()
 uint64_t
 dma_channel::getEBSize()
 {
-    return ((uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
-           (uint64_t)getPKT(RORC_REG_EBDM_BUFFER_SIZE_L);
+    return ((uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
+           (uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
 }
 
 uint64_t
 dma_channel::getRBSize()
 {
-    return ((uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
-           (uint64_t)getPKT(RORC_REG_RBDM_BUFFER_SIZE_L);
+    return ((uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
+           (uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
 }
 
 
@@ -659,7 +659,7 @@ dma_channel::setPacketizer
 
 //TODO : this little bugger is link specific
 uint32_t
-dma_channel::getPKT
+dma_channel::packetizer
 (
     uint32_t addr
 )

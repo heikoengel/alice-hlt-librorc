@@ -103,7 +103,7 @@ fill_eventbuffer
     // get current EL FIFO fill state consisting of:
     // el_fifo_state[31:16] = FIFO write limit
     // el_fifo_state[15:0]  = FIFO write count
-    uint32_t el_fifo_state = channel->getPKT(RORC_REG_DMA_ELFIFO);
+    uint32_t el_fifo_state = channel->packetizer(RORC_REG_DMA_ELFIFO);
     uint32_t el_fifo_wrlimit = ((el_fifo_state>>16) & 0x0000ffff);
     uint32_t el_fifo_wrcount = (el_fifo_state & 0x0000ffff);
 
