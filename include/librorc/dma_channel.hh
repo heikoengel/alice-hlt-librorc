@@ -127,22 +127,18 @@ class dma_channel_configurator;
              * set Enable Bit of EBDM
              * @param enable nonzero param will enable, zero will disable
              **/
-            //void setEnableEB(int32_t enable);
             void enableEventBuffer();
+            /**
+             * unset Enable Bit of EBDM
+             * @param enable nonzero param will enable, zero will disable
+             **/
             void disableEventBuffer();
-
 
             /**
              * set Enable Bit of RBDM
              * @param enable nonzero param will enable, zero will disable
              **/
             void setEnableRB(int32_t enable);
-
-            /**
-             * get Enable Bit of EBDM
-             * @return enable bit
-             **/
-            uint32_t getEnableEB();
 
             /**
              * get Enable Bit of RBDM
@@ -479,6 +475,12 @@ class dma_channel_configurator;
             /****** ATOMICS **************************************************************/
 
             void waitForCommandTransmissionStatusWord();
+
+            /**
+             * get Enable Bit of EBDM
+             * @return enable bit
+             **/
+            uint32_t isEventBufferEnabled();
 
     };
 

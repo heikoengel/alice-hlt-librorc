@@ -428,7 +428,7 @@ dma_channel::setBufferOffsetsOnDevice
     m_channelConfigurator->setOffsets(eboffset, rboffset);
 }
 
-///////PUBLIC CHECKED
+
 
 void
 dma_channel::waitForGTXDomain()
@@ -444,30 +444,21 @@ dma_channel::waitForGTXDomain()
 
 
 //---checked global
-
+//TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::enableEventBuffer()
 {
     setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 2)) );
 }
-
+//TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableEventBuffer()
 {
     setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
 }
 
-//void
-//dma_channel::setEnableEB(int32_t enable)
-//{
-//    if(enable)
-//    { enableEventBuffer(); }
-//    else
-//    { disableEventBuffer(); }
-//}
-
 uint32_t
-dma_channel::getEnableEB()
+dma_channel::isEventBufferEnabled()
 {
     return (getPKT( RORC_REG_DMA_CTRL ) >> 2 ) & 0x01;
 }
