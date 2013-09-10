@@ -384,7 +384,7 @@ dma_channel::~dma_channel()
 
 
 void
-dma_channel::enable()
+dma_channel::enable()//DMA related
 {
     if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
@@ -396,7 +396,7 @@ dma_channel::enable()
 }
 
 void
-dma_channel::disable()
+dma_channel::disable()//DMA related
 {
     disableEventBuffer();
 
@@ -407,6 +407,43 @@ dma_channel::disable()
 
     /** Reset DFIFO, disable DMA PKT */
     setDMAConfig(0X00000002);
+}
+//TODO : this is protected when hlt out writer is refactored
+void
+dma_channel::enableEventBuffer()//DMA related
+{
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 2)) );
+}
+//TODO : this is protected when hlt out writer is refactored
+void
+dma_channel::disableEventBuffer()//DMA related
+{
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
+}
+
+uint32_t
+dma_channel::isEventBufferEnabled()//DMA related
+{
+    return (packetizer(RORC_REG_DMA_CTRL) >> 2 ) & 0x01;
+}
+
+//TODO : this is protected when hlt out writer is refactored
+void
+dma_channel::enableReportBuffer()//DMA related
+{
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 3)) );
+}
+//TODO : this is protected when hlt out writer is refactored
+void
+dma_channel::disableReportBuffer()//DMA related
+{
+    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
+}
+
+unsigned int
+dma_channel::isReportBufferEnabled()//DMA related
+{
+    return (packetizer( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
 }
 
 
@@ -435,45 +472,6 @@ dma_channel::waitForGTXDomain()
     { usleep(100); }
 }
 
-
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::enableEventBuffer()
-{
-    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 2)) );
-}
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::disableEventBuffer()
-{
-    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
-}
-
-uint32_t
-dma_channel::isEventBufferEnabled()
-{
-    return (packetizer(RORC_REG_DMA_CTRL) >> 2 ) & 0x01;
-}
-
-
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::enableReportBuffer()
-{
-    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 3)) );
-}
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::disableReportBuffer()
-{
-    setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
-}
-
-unsigned int
-dma_channel::isReportBufferEnabled()
-{
-    return (packetizer( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
-}
 
 
 //TODO : this is protected when hlt out writer is refactored
