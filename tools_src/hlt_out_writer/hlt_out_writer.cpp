@@ -384,7 +384,7 @@ int main( int argc, char *argv[])
 
 
     // disable DMA Engine
-    ch->setEnableEB(0);
+    ch->disableEventBuffer();
 
     // wait for pending transfers to complete (dma_busy->0)
     while( ch->getDMABusy() )

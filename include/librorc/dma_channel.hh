@@ -127,7 +127,10 @@ class dma_channel_configurator;
              * set Enable Bit of EBDM
              * @param enable nonzero param will enable, zero will disable
              **/
-            void setEnableEB(int32_t enable);
+            //void setEnableEB(int32_t enable);
+            void enableEventBuffer();
+            void disableEventBuffer();
+
 
             /**
              * set Enable Bit of RBDM

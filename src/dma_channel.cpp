@@ -395,7 +395,8 @@ dma_channel::enable()
     if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
-    setEnableEB(1);
+    //setEnableEB(1);
+    enableEventBuffer();
     setEnableRB(1);
 
     setDMAConfig( getDMAConfig() | 0x01 );
@@ -406,7 +407,7 @@ dma_channel::enable()
 void
 dma_channel::disable()
 {
-    setEnableEB(0);
+    disableEventBuffer();
 
     while(getDMABusy())
     { usleep(100); }
@@ -441,25 +442,29 @@ dma_channel::waitForGTXDomain()
     { usleep(100); }
 }
 
+
 //---checked global
 
-
-
 void
-dma_channel::setEnableEB(int32_t enable)
+dma_channel::enableEventBuffer()
 {
-    uint32_t bdcfg = getPKT( RORC_REG_DMA_CTRL );
-    if(enable)
-    {
-        setPKT(RORC_REG_DMA_CTRL, ( bdcfg | (1 << 2) ) );
-    }
-    else
-    {
-        setPKT(RORC_REG_DMA_CTRL, ( bdcfg & ~(1 << 2) ) );
-    }
+    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 2)) );
 }
 
+void
+dma_channel::disableEventBuffer()
+{
+    setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
+}
 
+//void
+//dma_channel::setEnableEB(int32_t enable)
+//{
+//    if(enable)
+//    { enableEventBuffer(); }
+//    else
+//    { disableEventBuffer(); }
+//}
 
 uint32_t
 dma_channel::getEnableEB()
