@@ -720,7 +720,9 @@ dma_channel::printDMAState()
         buffer   *reportBuffer
     )
     {
-        setPciePacketSize(pcie_packet_size);
+        //TODO: this might be buggy
+        //setPciePacketSize(pcie_packet_size);
+        m_pcie_packet_size = pcie_packet_size;
 
         m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
         m_channel      = channel_number;
