@@ -57,12 +57,6 @@ namespace LIBRARY_NAME
     dma_channel_ddl::~dma_channel_ddl()
     {
         closeDDL();
-        disable();
-
-        if(m_reportBuffer != NULL)
-        {
-            m_reportBuffer->clear();
-        }
     }
 
 

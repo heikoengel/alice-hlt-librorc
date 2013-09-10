@@ -375,14 +375,10 @@ dma_channel::dma_channel
 
 dma_channel::~dma_channel()
 {
+    disable();
     delete(m_channelConfigurator);
-
-    cout << "THIS SHOULD ___NOT___ HAPPEN!" << endl;
-
     if(m_reportBuffer != NULL)
-    {
-        m_reportBuffer->clear();
-    }
+    { m_reportBuffer->clear(); }
 }
 
 
