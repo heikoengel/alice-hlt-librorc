@@ -461,42 +461,28 @@ dma_channel::isEventBufferEnabled()
     return (getPKT( RORC_REG_DMA_CTRL ) >> 2 ) & 0x01;
 }
 
+
+//TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::enableReportBuffer()
 {
     //uint32_t bdcfg = getPKT(RORC_REG_DMA_CTRL);
     setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) | (1 << 3)) );
 }
-
+//TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableReportBuffer()
 {
     setPKT(RORC_REG_DMA_CTRL, (getPKT(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
 
-//---checked global
-
-//void
-//dma_channel::setEnableRB
-//(
-//    int32_t enable
-//)
-//{
-//    if(enable)
-//    { enableReportBuffer(); }
-//    else
-//    { disableReportBuffer(); }
-//}
-
-
-
 unsigned int
-dma_channel::getEnableRB()
+dma_channel::isReportBufferEnabled()
 {
     return (getPKT( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
 }
 
-
+//---checked global
 
 void
 dma_channel::setDMAConfig

@@ -124,31 +124,23 @@ class dma_channel_configurator;
 
 
             /**
-             * set Enable Bit of EBDM
+             * Set Enable Bit of EBDM
              **/
             void enableEventBuffer();
             /**
-             * unset Enable Bit of EBDM
+             * Unset Enable Bit of EBDM
              **/
             void disableEventBuffer();
 
             /**
-             * set Enable Bit of RBDM
+             * Set Enable Bit of RBDM
              **/
             void enableReportBuffer();
 
             /**
-             * unset Enable Bit of RBDM
+             * Unset Enable Bit of RBDM
              **/
             void disableReportBuffer();
-
-//            void setEnableRB(int32_t enable);
-
-            /**
-             * get Enable Bit of RBDM
-             * @return enable bit
-             **/
-            uint32_t getEnableRB();
 
             /**
              * setDMAConfig set the DMA Controller operation mode
@@ -481,10 +473,16 @@ class dma_channel_configurator;
             void waitForCommandTransmissionStatusWord();
 
             /**
-             * get Enable Bit of EBDM
+             * get Enable Bit of the Event Buffer Descriptor Manager
              * @return enable bit
              **/
             uint32_t isEventBufferEnabled();
+
+            /**
+             * get Enable Bit of Report Buffer Descriptor Manager
+             * @return enable bit
+             **/
+            uint32_t isReportBufferEnabled();
 
     };
 
