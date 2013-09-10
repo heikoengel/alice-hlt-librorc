@@ -423,9 +423,6 @@ class dma_channel_configurator;
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
 
-            bool      m_is_pattern_generator;
-            bool      m_is_gtx;
-
             bar      *m_bar;
             device   *m_dev;
             buffer   *m_eventBuffer;

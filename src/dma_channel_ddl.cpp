@@ -70,11 +70,6 @@ namespace LIBRARY_NAME
     void
     dma_channel_ddl::configureDDL()
     {
-        if(m_is_pattern_generator)
-        {
-            throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED;
-        }
-
         /** set ENABLE, activate flow control (DIU_IF:busy) */
         setGTX(RORC_REG_DDL_CTRL, 0x00000003);
 
@@ -103,8 +98,6 @@ namespace LIBRARY_NAME
         /** clear DIU_IF IFSTW */
         setGTX(RORC_REG_DDL_IFSTW, 0);
         setGTX(RORC_REG_DDL_CTSTW, 0);
-
-        m_is_gtx = true;
     }
 
 
@@ -112,9 +105,6 @@ namespace LIBRARY_NAME
     void
     dma_channel_ddl::closeDDL()
     {
-        if(!m_is_gtx)
-        { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
-
         /** check if link is still up: LD_N == 1 */
         if( getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
         {
@@ -144,7 +134,5 @@ namespace LIBRARY_NAME
         }
         else
         { throw LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED; }
-
-        m_is_gtx = false;
     }
 }

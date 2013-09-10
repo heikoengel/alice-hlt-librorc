@@ -720,9 +720,6 @@ dma_channel::printDMAState()
     {
         setPciePacketSize(pcie_packet_size);
 
-        m_is_pattern_generator = false;
-        m_is_gtx               = false;
-
         m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
         m_channel      = channel_number;
         m_dev          = dev;
