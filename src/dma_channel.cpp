@@ -523,13 +523,14 @@ dma_channel::setEBOffset
     uint64_t offset
 )
 {
-    m_bar->memcopy( (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
-                      &offset, sizeof(offset) );
+    m_bar->memcopy
+    (
+        (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
+        &offset,
+        sizeof(offset)
+    );
 
-    uint32_t status = getPKT(RORC_REG_DMA_CTRL);
-    setPacketizer(RORC_REG_DMA_CTRL, status | (1 << 31) );
-
-    /** save a local copy of the last offsets written to the channel **/
+    setPacketizer(RORC_REG_DMA_CTRL, getPKT(RORC_REG_DMA_CTRL) | (1 << 31) );
     m_last_ebdm_offset = offset;
 }
 
@@ -538,19 +539,15 @@ dma_channel::setEBOffset
 uint64_t
 dma_channel::getEBOffset()
 {
-    uint64_t offset =
-        ( (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_H) << 32);
-
-    offset += (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
-
-    return offset;
+    return ((uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_H) << 32) +
+           (uint64_t)getPKT(RORC_REG_EBDM_SW_READ_POINTER_L);
 }
 
 
 uint64_t
 dma_channel::getLastEBOffset()
 {
-  return m_last_ebdm_offset;
+    return m_last_ebdm_offset;
 }
 
 
@@ -558,7 +555,7 @@ dma_channel::getLastEBOffset()
 uint64_t
 dma_channel::getLastRBOffset()
 {
-  return m_last_rbdm_offset;
+    return m_last_rbdm_offset;
 }
 
 
@@ -566,12 +563,8 @@ dma_channel::getLastRBOffset()
 uint64_t
 dma_channel::getEBDMAOffset()
 {
-    uint64_t offset =
-        ( (uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32);
-
-    offset += (uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
-
-    return offset;
+    return ((uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32) +
+           (uint64_t)getPKT(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
 }
 
 
@@ -589,10 +582,7 @@ dma_channel::setRBOffset
         sizeof(offset)
     );
 
-    uint32_t status = getPKT(RORC_REG_DMA_CTRL);
-    setPacketizer(RORC_REG_DMA_CTRL, status | (1 << 31) );
-
-    /** save a local copy of the last offsets written to the channel **/
+    setPacketizer(RORC_REG_DMA_CTRL, getPKT(RORC_REG_DMA_CTRL) | (1 << 31) );
     m_last_rbdm_offset = offset;
 }
 
@@ -601,12 +591,8 @@ dma_channel::setRBOffset
 uint64_t
 dma_channel::getRBOffset()
 {
-    uint64_t offset =
-        ( (uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_H) << 32);
-
-    offset += (uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_L);
-
-    return offset;
+    return ((uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_H) << 32) +
+           (uint64_t)getPKT(RORC_REG_RBDM_SW_READ_POINTER_L);
 }
 
 
