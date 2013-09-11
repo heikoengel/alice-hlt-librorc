@@ -35,6 +35,8 @@ evaluateArguments(int argc, char *argv[])
         token = strtok (NULL, "/");
     }
 
+    argv[0] = last_token;
+
     ret.esType = LIBRORC_ES_PURE;
     if( 0 == strcmp(last_token, "pg_dma_continuous") )
     {
