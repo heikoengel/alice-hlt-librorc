@@ -65,6 +65,9 @@ target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
 add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
 target_link_libraries( dmactrl rorc pthread ${EXTRA_LIBS})
 
+# Build channeldump
+add_executable( channeldump ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/channeldump.cpp)
+target_link_libraries( channeldump rorc pthread ${EXTRA_LIBS})
 
 # Build ucctrl
 add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
