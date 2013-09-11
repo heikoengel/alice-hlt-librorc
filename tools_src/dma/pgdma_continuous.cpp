@@ -51,6 +51,10 @@ int main(int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
+    DDLRefFile ddlref;
+    ddlref.map  = NULL;
+    ddlref.size = 0;
+
     /** Create event stream */
     librorc::event_stream *eventStream = NULL;
     if( !(eventStream = prepareEventStream(opts)) )
@@ -70,7 +74,8 @@ int main(int argc, char *argv[])
     /** Event loop */
     int     result        = 0;
     int32_t sanity_checks = 0xff; /** no checks defaults */
-
+    if(ddlref.map && ddlref.size) {sanity_checks = CHK_FILE;}
+    else {sanity_checks = CHK_SIZES;}
     while( !done )
     {
         result = handle_channel_data
@@ -79,9 +84,9 @@ int main(int argc, char *argv[])
             eventStream->m_eventBuffer,
             eventStream->m_channel,
             chstats,
-            sanity_checks,              /** do sanity check    */
-            NULL,                       /** no reference DDL   */
-            0                           /** reference DDL size */
+            sanity_checks,
+            ddlref.map,
+            ddlref.size
         );
 
         if( result < 0 )
