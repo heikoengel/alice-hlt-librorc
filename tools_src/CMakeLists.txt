@@ -2,6 +2,21 @@
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 
+# Build DMA test with Pattern Generator
+add_executable( dma_in_pg
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_in_pg rorc pthread ${EXTRA_LIBS})
+
+# Build DMA test DDL backend
+add_executable( dma_in_ddl
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
+
+#-----------------------------------------------------------
 
 # Build i2c
 add_executable( i2c ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/i2c.cpp)
@@ -28,23 +43,6 @@ target_link_libraries( crorc_preallocator rorc pthread ${EXTRA_LIBS})
 add_executable( bufferstats
   ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/bufferstats.cpp)
 target_link_libraries( bufferstats rorc pthread ${EXTRA_LIBS})
-
-
-# Build DMA test with Pattern Generator
-add_executable( dma_in_pg
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
-)
-target_link_libraries( dma_in_pg rorc pthread ${EXTRA_LIBS})
-
-
-# Build DMA test DDL backend
-add_executable( dma_in_ddl
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
-)
-target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
-
 
 # Build DMA monitor
 add_executable( dma_monitor ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/dma_monitor.cpp)
