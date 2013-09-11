@@ -71,11 +71,15 @@ int main(int argc, char *argv[])
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
 
-    /** Event loop */
+    /** make clear what will be checked*/
     int     result        = 0;
     int32_t sanity_checks = 0xff; /** no checks defaults */
-    if(ddlref.map && ddlref.size) {sanity_checks = CHK_FILE;}
-    else {sanity_checks = CHK_SIZES;}
+    if(ddlref.map && ddlref.size)
+        {sanity_checks = CHK_FILE;}
+    else if(opts.esType == LIBRORC_ES_DDL)
+        {sanity_checks = CHK_SIZES;}
+
+    /** Event loop */
     while( !done )
     {
         result = handle_channel_data
