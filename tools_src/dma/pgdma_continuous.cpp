@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
             ddlref.size
         );
 
-        if( result < 0 )
+        if(result < 0)
         {
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
             return result;
