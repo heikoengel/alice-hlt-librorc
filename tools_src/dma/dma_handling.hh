@@ -25,7 +25,7 @@
 
 /** Help text, that is displayed when -h is used */
 #define HELP_TEXT "%s usage:                                 \n\
-        pgdma_continuous [parameters]                        \n\
+        %s [parameters]                                      \n\
 parameters:                                                  \n\
         --device [0..255] Source device ID                   \n\
         --channel [0..11] Source DMA channel                 \n\

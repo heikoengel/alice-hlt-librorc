@@ -77,7 +77,7 @@ evaluateArguments(int argc, char *argv[])
 
             case 'h':
             {
-                printf(HELP_TEXT, argv[0]);
+                printf(HELP_TEXT, argv[0], argv[0]);
                 exit(0);
             }
             break;
@@ -99,7 +99,7 @@ bool checkDeviceID(int32_t deviceID, char *argv)
     if( (deviceID<0) || (deviceID>255) )
     {
         cout << "DeviceId invalid or not set: " << deviceID << endl;
-        printf(HELP_TEXT, argv);
+        printf(HELP_TEXT, argv, argv);
         return false;
     }
     return true;
@@ -112,7 +112,7 @@ bool checkChannelID(int32_t channelID, char *argv)
     if( (channelID<0) || (channelID>MAX_CHANNEL) )
     {
         cout << "ChannelId invalid or not set: " << channelID << endl;
-        printf(HELP_TEXT, argv);
+        printf(HELP_TEXT, argv, argv);
         return false;
     }
     return true;
@@ -126,7 +126,7 @@ bool checkEventSize(uint32_t eventSize, char *argv)
     {
         cout << "EventSize invalid or not set: 0x" << hex
         << eventSize << endl;
-        printf(HELP_TEXT, argv);
+        printf(HELP_TEXT, argv, argv);
         return false;
     }
     return true;
