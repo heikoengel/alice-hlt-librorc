@@ -25,6 +25,22 @@ evaluateArguments(int argc, char *argv[])
         {0, 0, 0, 0}
     };
 
+    ret.esType = LIBRORC_ES_PURE;
+    if( 0 == strcmp(argv[0], "pg_dma_continuous") )
+    {
+        ret.esType = LIBRORC_ES_PG;
+    }
+
+    if( 0 == strcmp(argv[0], "ddl_dma_continuous") )
+    {
+        ret.esType = LIBRORC_ES_DDL;
+    }
+
+    if(ret.esType == LIBRORC_ES_PURE)
+    {
+        return ret;
+    }
+
     /** Parse command line arguments **/
     while(1)
     {

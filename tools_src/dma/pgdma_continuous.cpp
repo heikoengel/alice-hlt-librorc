@@ -33,7 +33,6 @@ DMA_ABORT_HANDLER
 int main(int argc, char *argv[])
 {
     DMAOptions opts = evaluateArguments(argc, argv);
-    opts.esType = LIBRORC_ES_PG;
 
     if
     (!(
