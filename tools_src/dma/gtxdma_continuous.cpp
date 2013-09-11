@@ -56,7 +56,16 @@ int main(int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-    DDLRefFile ddlref = getDDLReferenceFile(opts);
+    DDLRefFile ddlref;
+    if(opts.esType == LIBRORC_ES_DDL)
+        { ddlref = getDDLReferenceFile(opts); }
+    else if(opts.esType == LIBRORC_ES_PG)
+    {
+        ddlref.map  = NULL;
+        ddlref.size = 0;
+    }
+    else
+        { exit(-1); }
 
     /** Create event stream */
     librorc::event_stream *eventStream = NULL;
