@@ -1,6 +1,7 @@
 #ifndef INCLUDE_EXT_H
 #define INCLUDE_EXT_H
 
+#include <xlocale.h>
 
 #include <assert.h>
 #include <dirent.h>

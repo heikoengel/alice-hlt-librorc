@@ -2,6 +2,7 @@
 #define LIBRORC_DEFINES_H
 
 #include <time.h>
+#include <sys/time.h>
 
     #define LIBRARY_NAME librorc
 
