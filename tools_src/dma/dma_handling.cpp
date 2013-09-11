@@ -228,13 +228,13 @@ deleteDDLReferenceFile
     DDLRefFile ddlref
 )
 {
-    if(ddlref.map)
+    if(ddlref.map != NULL)
     {
         if( munmap(ddlref.map, ddlref.size)==-1 )
         { perror("ERROR: failed to unmap file"); }
     }
 
-    if(ddlref.fd>=0)
+    if(ddlref.fd >= 0)
     { close(ddlref.fd); }
 }
 

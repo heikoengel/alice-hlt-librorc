@@ -33,16 +33,21 @@ DMA_ABORT_HANDLER
 int main(int argc, char *argv[])
 {
     DMAOptions opts = evaluateArguments(argc, argv);
+    opts.esType = LIBRORC_ES_PG;
 
     if
     (!(
         checkDeviceID(opts.deviceId, argv[0])   &&
-        checkChannelID(opts.channelId, argv[0]) &&
-        checkEventSize(opts.eventSize, argv[0])
+        checkChannelID(opts.channelId, argv[0])
     ) )
     { exit(-1); }
 
-    opts.esType = LIBRORC_ES_PG;
+    if
+    (
+        !checkEventSize(opts.eventSize, argv[0]) &&
+        (opts.esType == LIBRORC_ES_PG)
+    )
+    { exit(-1); }
 
     DMA_ABORT_HANDLER_REGISTER
 
@@ -114,6 +119,7 @@ int main(int argc, char *argv[])
 
     /** Cleanup */
     delete eventStream;
+    deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
 
     return result;

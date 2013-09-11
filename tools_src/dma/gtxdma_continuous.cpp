@@ -18,7 +18,7 @@
  * @brief
  * Open a DMA Channel and read out data
  *
- * */
+ **/
 
 #include <librorc.h>
 
@@ -30,9 +30,10 @@ using namespace std;
 DMA_ABORT_HANDLER
 
 
-int main( int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     DMAOptions opts = evaluateArguments(argc, argv);
+    opts.esType = LIBRORC_ES_DDL;
 
     if
     (!(
@@ -41,7 +42,12 @@ int main( int argc, char *argv[])
     ) )
     { exit(-1); }
 
-    opts.esType = LIBRORC_ES_DDL;
+    if
+    (
+        !checkEventSize(opts.eventSize, argv[0]) &&
+        (opts.esType == LIBRORC_ES_PG)
+    )
+    { exit(-1); }
 
     DMA_ABORT_HANDLER_REGISTER
 
