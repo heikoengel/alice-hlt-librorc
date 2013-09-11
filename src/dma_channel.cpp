@@ -215,7 +215,6 @@ namespace librorc
             {
                 try
                 {
-                    checkPacketSize();
                     fillConfigurationStructure();
                     setPciePacketSize(m_pcie_packet_size);
                     copyConfigToDevice();
@@ -223,6 +222,25 @@ namespace librorc
                 catch(...){ return -1; }
 
                 return(0);
+            }
+
+            void setPciePacketSize(uint32_t packet_size)
+            {
+                m_pcie_packet_size = packet_size;
+                checkPacketSize();
+                /**
+                 * The packet size is located in RORC_REG_DMA_PKT_SIZE:
+                 * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
+                 * The packet size has to be provided as #DWs -> divide size by 4
+                 * write stuff to channel after this
+                 */
+                m_dma_channel->setPacketizer
+                    (RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
+            }
+
+            uint32_t pciePacketSize()
+            {
+                return(m_pcie_packet_size);
             }
 
             void setOffsets
@@ -330,18 +348,6 @@ namespace librorc
                     sizeof(librorc_channel_config)
                 );
             }
-
-            void setPciePacketSize(uint32_t packet_size)
-            {
-                /**
-                 * packet size is located in RORC_REG_DMA_PKT_SIZE:
-                 * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
-                 * packet size has to be provided as #DWs -> divide size by 4
-                 * write stuff to channel after this
-                 */
-                m_dma_channel->setPacketizer( RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
-            }
-
     };
 
 
@@ -495,16 +501,13 @@ dma_channel::setPciePacketSize
     uint32_t packet_size
 )
 {
-    /* Packet size has to be provided as #DWs -> divide size by 4 */
-    uint32_t mp_size = (packet_size >> 2) & 0x3ff;
-    setPacketizer(RORC_REG_DMA_PKT_SIZE, mp_size);
-    m_pcie_packet_size = packet_size;
+    m_channelConfigurator->setPciePacketSize(packet_size);
 }
 //TODO : this is protected when hlt out writer is refactored
 uint32_t
 dma_channel::getPciePacketSize()
 {
-    return m_pcie_packet_size;
+    return m_channelConfigurator->pciePacketSize();
 }
 
 //---checked global
@@ -710,10 +713,6 @@ dma_channel::printDMAState()
         buffer   *reportBuffer
     )
     {
-        //TODO: this might be buggy
-        //setPciePacketSize(pcie_packet_size);
-        m_pcie_packet_size = pcie_packet_size;
-
         m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
         m_channel      = channel_number;
         m_dev          = dev;
@@ -732,7 +731,7 @@ dma_channel::printDMAState()
         if(m_eventBuffer != NULL)
         {
             m_last_ebdm_offset
-                = m_eventBuffer->getPhysicalSize() - m_pcie_packet_size;
+                = m_eventBuffer->getPhysicalSize() - pcie_packet_size;
         }
 
         m_channelConfigurator

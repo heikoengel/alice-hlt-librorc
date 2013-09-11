@@ -387,10 +387,6 @@ int handle_channel_data
         events_per_iteration = 0;
         stats->set_offset_count++;
 
-        // actually update the offset pointers in the firmware
-        // channel->setEBOffset(eboffset);
-        // channel->setRBOffset(rboffset);
-
         channel->setBufferOffsetsOnDevice(eboffset, rboffset);
 
         DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,

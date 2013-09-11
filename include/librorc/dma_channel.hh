@@ -88,6 +88,8 @@ class dma_channel_configurator;
 
     class dma_channel
     {
+        friend class dma_channel_configurator;
+
         public:
              dma_channel
              (
@@ -419,7 +421,6 @@ class dma_channel_configurator;
 
             uint32_t  m_base;
             uint32_t  m_channel;
-            uint32_t  m_pcie_packet_size;
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
 

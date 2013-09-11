@@ -78,7 +78,7 @@ sigaction(SIGINT, &sigIntHandler, NULL);
 #endif /** EH_LEGACY */
 
 
-/** struct to store command line parameters */
+/** Struct to store command line parameters */
 typedef struct
 {
     int32_t       deviceId;
@@ -89,7 +89,7 @@ typedef struct
     LibrorcEsType esType;
 } DMAOptions;
 
-/** sruct to hanlde DDL refernce file */
+/** Struct to hanlde DDL refernce file */
 typedef struct
 {
     uint64_t  size;
