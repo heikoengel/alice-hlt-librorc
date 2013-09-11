@@ -286,6 +286,10 @@ namespace librorc
                     { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
                 else if(m_pcie_packet_size > 1024)
                     { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+
+                /**TODO : hlt_in  -> not more than 256B
+                 *        hlt_out -> max_rd_req not more than 512B
+                 */
             }
 
             void fillConfigurationStructure()
