@@ -27,23 +27,22 @@ evaluateArguments(int argc, char *argv[])
 
     /** Figure out what app this is (pg or ddl)*/
     char *token = strtok (argv[0], "/");
-    char *last_token = token;
+    char *app_name = token;
     while(token != NULL)
     {
-        printf ("%s\n", token);
-        last_token = token;
+        app_name = token;
         token = strtok (NULL, "/");
     }
 
-    argv[0] = last_token;
+    argv[0] = app_name;
 
     ret.esType = LIBRORC_ES_PURE;
-    if( 0 == strcmp(last_token, "pg_dma_continuous") )
+    if( 0 == strcmp(app_name, "pg_dma_continuous") )
     {
         ret.esType = LIBRORC_ES_PG;
     }
 
-    if( 0 == strcmp(last_token, "ddl_dma_continuous") )
+    if( 0 == strcmp(app_name, "ddl_dma_continuous") )
     {
         ret.esType = LIBRORC_ES_DDL;
     }
@@ -89,7 +88,7 @@ evaluateArguments(int argc, char *argv[])
 
             case 'h':
             {
-                printf(HELP_TEXT, last_token, last_token);
+                printf(HELP_TEXT, app_name, app_name);
                 exit(0);
             }
             break;
