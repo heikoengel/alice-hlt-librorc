@@ -389,7 +389,7 @@ class dma_channel_configurator;
              * Get last value set as PCIe packet size
              * @return maximum payload size in bytes
              **/
-            uint32_t getPciePacketSize();
+            uint32_t pciePacketSize();
 
             /**
              * Set Enable Bit of EBDM

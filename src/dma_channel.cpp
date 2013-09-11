@@ -505,7 +505,7 @@ dma_channel::setPciePacketSize
 }
 //TODO : this is protected when hlt out writer is refactored
 uint32_t
-dma_channel::getPciePacketSize()
+dma_channel::pciePacketSize()
 {
     return m_channelConfigurator->pciePacketSize();
 }

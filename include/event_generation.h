@@ -87,7 +87,7 @@ fill_eventbuffer
     // note: EventSize is in DWs and events have to be aligned to
     // MaxReadReq boundaries
     // fragment_size is in bytes
-    uint32_t max_read_req = channel->getPciePacketSize();
+    uint32_t max_read_req = channel->pciePacketSize();
     if ( (EventSize<<2) % max_read_req )
     {
         // EventSize is not a multiple of max_read_req
