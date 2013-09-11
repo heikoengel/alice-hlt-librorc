@@ -16,7 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @brief
- * Open DMA Channel sourced by optical DDL
+ * Open a DMA Channel and read out data
  *
  * */
 
@@ -114,5 +114,5 @@ int main( int argc, char *argv[])
     deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
 
-    return 0;
+    return result;
 }

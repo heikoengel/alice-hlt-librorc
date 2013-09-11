@@ -16,7 +16,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @brief
- * Open DMA Channel sourced by PatternGenerator
+ * Open a DMA Channel and read out data
  *
  **/
 
