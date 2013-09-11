@@ -37,12 +37,12 @@ evaluateArguments(int argc, char *argv[])
     argv[0] = app_name;
 
     ret.esType = LIBRORC_ES_PURE;
-    if( 0 == strcmp(app_name, "pg_dma_continuous") )
+    if( 0 == strcmp(app_name, "dma_in_pg") )
     {
         ret.esType = LIBRORC_ES_PG;
     }
 
-    if( 0 == strcmp(app_name, "ddl_dma_continuous") )
+    if( 0 == strcmp(app_name, "dma_in_ddl") )
     {
         ret.esType = LIBRORC_ES_DDL;
     }

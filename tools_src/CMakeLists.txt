@@ -30,20 +30,20 @@ add_executable( bufferstats
 target_link_libraries( bufferstats rorc pthread ${EXTRA_LIBS})
 
 
-# Build DMA test with pattern generator
-add_executable( pg_dma_continuous 
+# Build DMA test with Pattern Generator
+add_executable( dma_in_pg
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( pg_dma_continuous rorc pthread ${EXTRA_LIBS})
+target_link_libraries( dma_in_pg rorc pthread ${EXTRA_LIBS})
 
 
-# Build DMA test
-add_executable( ddl_dma_continuous 
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/gtxdma_continuous.cpp"
+# Build DMA test DDL backend
+add_executable( dma_in_ddl
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/pgdma_continuous.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( ddl_dma_continuous rorc pthread ${EXTRA_LIBS})
+target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
 
 
 # Build DMA monitor
