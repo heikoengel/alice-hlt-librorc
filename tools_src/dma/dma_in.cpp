@@ -22,8 +22,9 @@
 
 #include <librorc.h>
 
-#include "event_handling.h"
+
 #include "dma_handling.hh"
+#include "event_handling.h"
 
 using namespace std;
 

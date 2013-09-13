@@ -354,6 +354,8 @@ int dump_to_file
  * @param pattern_mode pattern to check data against
  * @param mask which specifies which checks have to be done on the recieved data
  * @param event_id pointer to uint64_t, used to return event ID
+ * @param DDL reference file mapped
+ * @param size of the DDL reference file
  * @return !=0 on error, 0 on success
  **/
 int event_sanity_check
