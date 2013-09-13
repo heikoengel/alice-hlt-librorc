@@ -56,10 +56,8 @@
 		<Unit filename="tools_src/buffer_handling/crorc_preallocator.cpp" />
 		<Unit filename="tools_src/dma/dma_handling.cpp" />
 		<Unit filename="tools_src/dma/dma_handling.hh" />
+		<Unit filename="tools_src/dma/dma_in.cpp" />
 		<Unit filename="tools_src/dma/event_handling.h" />
-		<Unit filename="tools_src/dma/gtxdma_continuous.cpp" />
-		<Unit filename="tools_src/dma/helper_functions.h" />
-		<Unit filename="tools_src/dma/pgdma_continuous.cpp" />
 		<Unit filename="tools_src/dma_monitor/dma_monitor.cpp" />
 		<Unit filename="tools_src/hlt_out_writer/event_handling.h" />
 		<Unit filename="tools_src/hlt_out_writer/helper_functions.h" />
