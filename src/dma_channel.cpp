@@ -704,6 +704,31 @@ dma_channel::printDMAState()
     packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H));
 }
 
+
+
+void
+dma_channel::printDiuState()
+{
+    uint32_t status = getGTX(RORC_REG_DDL_CTRL);
+
+    printf("\nDIU_IF: ");
+
+     (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
+     ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
+    !((status>>4) & 1)  ? printf("LF ")     : printf("");
+    !((status>>5) & 1)  ? printf("LD ")     : printf("");
+    !((status>>30) & 1) ? printf("BSY ")    : printf("");
+
+    /** PG disabled */
+     ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
+    /** PG disabled */
+    !((status>>8) & 1)  ? printf("CTSTW:%08x ", getGTX(RORC_REG_DDL_CTSTW))       : printf("");
+    !((status>>8) & 1)  ? printf("DEADTIME:%08x ", getGTX(RORC_REG_DDL_DEADTIME)) : printf("");
+    !((status>>8) & 1)  ? printf("EC:%08x ", getGTX(RORC_REG_DDL_EC))             : printf("");
+}
+
+
+
 /**PROTECTED:*/
 
     void

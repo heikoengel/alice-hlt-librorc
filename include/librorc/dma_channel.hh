@@ -357,6 +357,8 @@ class dma_channel_configurator;
              * */
             void printDMAState();
 
+            void printDiuState();
+
 
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
             /**
