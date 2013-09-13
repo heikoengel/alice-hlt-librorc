@@ -361,73 +361,6 @@ printFinalStatusLine
 
 ///////////////////////////
 
-/**
- * Dump reportbuffer entry
- * @param reportbuffer pointer to reportbuffer
- * @param i index of current librorc_event_descriptor within
- * reportbuffer
- * @param ch DMA channel number
- * */
-void
-dump_rb
-(
-    volatile librorc_event_descriptor *reportbuffer,
-             uint64_t                  i,
-             uint32_t                  ch
-)
-{
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-            "CH%2d - RB[%3ld]: calc_size=%08x\t"
-            "reported_size=%08x\t"
-            "offset=%lx\n",
-            ch, i, reportbuffer->calc_event_size,
-            reportbuffer->reported_event_size,
-            reportbuffer->offset);
-}
-
-
-
-/**
- * Dump Event
- * @param eventbuffer pointer to eventbuffer
- * @param offset offset of the current event within the eventbuffer
- * @param len size in DWs of the event
- * */
-void
-dumpEvent
-(
-    volatile uint32_t *eventbuffer,
-    uint64_t offset,
-    uint64_t len
-)
-{
-#ifdef SIM
-  uint64_t i = 0;
-  for(i=0;i<len;i++) {
-    printf("%03ld: %08x\n",
-        i, (uint32_t)*(eventbuffer + offset +i));
-  }
-  if(len&0x01) {
-    printf("%03ld: %08x (dummy)\n", i,
-        (uint32_t)*(eventbuffer + offset + i));
-    i++;
-  }
-  printf("%03ld: EOE reported_event_size: %08x\n", i,
-      (uint32_t)*(eventbuffer + offset + i));
-#if DMA_MODE==128
-  i++;
-  printf("%03ld: EOE calc_event_size: %08x\n", i,
-      (uint32_t)*(eventbuffer + offset + i));
-  i++;
-  printf("%03ld: EOE dummy %08x\n", i,
-      (uint32_t)*(eventbuffer + offset + i));
-  i++;
-  printf("%03ld: EOE dummy: %08x\n", i,
-      (uint32_t)*(eventbuffer + offset + i));
-#endif
-#endif
-}
-
 //TODO : this is going to be refactored into a class
 int
 event_sanity_checker::eventSanityCheck
@@ -504,7 +437,7 @@ event_sanity_checker::eventSanityCheck
         );
 
         dumpEvent(eventbuffer, offset, reported_event_size);
-        dump_rb(reportbuffer, report_buffer_index, channel_id);
+        dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
 
         retval |= CHK_SOE;
     }
@@ -530,7 +463,7 @@ event_sanity_checker::eventSanityCheck
                         );
 
                         dumpEvent(eventbuffer, offset, reported_event_size);
-                        dump_rb(reportbuffer, report_buffer_index, channel_id);
+                        dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
                         retval |= CHK_PATTERN;
                     }
                 }
@@ -560,7 +493,7 @@ event_sanity_checker::eventSanityCheck
             );
 
             dumpEvent(eventbuffer, offset, reported_event_size);
-            dump_rb(reportbuffer, report_buffer_index, channel_id);
+            dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
             retval |= CHK_FILE;
         }
 
@@ -577,7 +510,7 @@ event_sanity_checker::eventSanityCheck
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
                 dumpEvent(eventbuffer, offset, reported_event_size);
-                dump_rb(reportbuffer, report_buffer_index, channel_id);
+                dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
                 retval |= CHK_FILE;
             }
         }
@@ -605,7 +538,7 @@ event_sanity_checker::eventSanityCheck
             );
 
             dumpEvent(eventbuffer, offset, calc_event_size);
-            dump_rb(reportbuffer, report_buffer_index, channel_id);
+            dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
             retval |= CHK_EOE;
         }
     }
@@ -634,7 +567,7 @@ event_sanity_checker::eventSanityCheck
         );
 
         dumpEvent(eventbuffer, offset, calc_event_size);
-        dump_rb(reportbuffer, report_buffer_index, channel_id);
+        dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
         retval |= CHK_EOE;
     }
 
@@ -642,4 +575,59 @@ event_sanity_checker::eventSanityCheck
     *event_id = cur_event_id;
 
     return retval;
+}
+
+
+
+void
+event_sanity_checker::dumpEvent
+(
+    volatile uint32_t *eventbuffer,
+    uint64_t offset,
+    uint64_t len
+)
+{
+#ifdef SIM
+    uint64_t i = 0;
+    for(i=0;i<len;i++)
+    {
+        printf("%03ld: %08x\n", i, (uint32_t)*(eventbuffer + offset +i));
+    }
+
+    if(len&0x01)
+    {
+        printf("%03ld: %08x (dummy)\n", i, (uint32_t)*(eventbuffer + offset + i));
+        i++;
+    }
+
+    printf("%03ld: EOE reported_event_size: %08x\n", i, (uint32_t)*(eventbuffer + offset + i));
+
+    #if DMA_MODE==128
+        printf("%03ld: EOE calc_event_size: %08x\n", i+1, (uint32_t)*(eventbuffer + offset + i));
+        printf("%03ld: EOE dummy %08x\n", i+2, (uint32_t)*(eventbuffer + offset + i));
+        printf("%03ld: EOE dummy: %08x\n", i+3, (uint32_t)*(eventbuffer + offset + i));
+    #endif
+#endif
+}
+
+
+
+void
+event_sanity_checker::dumpReportBufferEntry
+(
+    volatile librorc_event_descriptor *reportbuffer,
+             uint64_t                  i,
+             uint32_t                  ch
+)
+{
+    DEBUG_PRINTF
+    (
+        PDADEBUG_CONTROL_FLOW,
+        "CH%2d - RB[%3ld]: calc_size=%08x\t"
+        "reported_size=%08x\t"
+        "offset=%lx\n",
+        ch, i, reportbuffer->calc_event_size,
+        reportbuffer->reported_event_size,
+        reportbuffer->offset
+    );
 }

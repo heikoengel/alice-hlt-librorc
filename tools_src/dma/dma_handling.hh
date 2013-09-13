@@ -159,6 +159,36 @@ class event_sanity_checker
                      uint64_t                  ddl_reference_size,
                      uint64_t                 *event_id  //TODO : simply return this later
         );
+
+        /**
+         * Dump Event to console
+         * @param eventbuffer pointer to eventbuffer
+         * @param offset offset of the current event within the eventbuffer
+         * @param len size in DWs of the event
+         * */
+        void
+        dumpEvent
+        (
+            volatile uint32_t *eventbuffer,
+            uint64_t offset,
+            uint64_t len
+        );
+
+        /**
+         * Dump reportbuffer entry to console
+         * @param reportbuffer pointer to reportbuffer
+         * @param i index of current librorc_event_descriptor within reportbuffer
+         * @param ch DMA channel number
+         **/
+        void
+        dumpReportBufferEntry
+        (
+            volatile librorc_event_descriptor *reportbuffer,
+                     uint64_t                  i,
+                     uint32_t                  ch
+        );
+
+    protected:
 };
 
 #endif /** DMA_HANDLING_H */
