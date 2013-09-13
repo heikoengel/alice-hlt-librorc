@@ -24,7 +24,7 @@
 
 
 #include "dma_handling.hh"
-//#include "event_handling.h"
+#include "event_handling.h"
 
 using namespace std;
 
@@ -229,16 +229,16 @@ handle_channel_data
 
                     if (stats->error_count < MAX_FILES_TO_DISK)
                     {
-//                        dump_to_file
-//                        (
-//                            basedir, // base dir
-//                            stats, // channel stats
-//                            EventID, // current EventID
-//                            stats->error_count, // file index
-//                            reportbuffer, // Report Buffer
-//                            ebuf, // Event Buffer
-//                            retval // Error flags
-//                        );
+                        dump_to_file
+                        (
+                            basedir, // base dir
+                            stats, // channel stats
+                            EventID, // current EventID
+                            stats->error_count, // file index
+                            reportbuffer, // Report Buffer
+                            ebuf, // Event Buffer
+                            retval // Error flags
+                        );
                     }
                 }
 
