@@ -394,7 +394,7 @@ dump_rb
  * @param len size in DWs of the event
  * */
 void
-dump_event
+dumpEvent
 (
     volatile uint32_t *eventbuffer,
     uint64_t offset,
@@ -503,7 +503,7 @@ event_sanity_checker::eventSanityCheck
             report_buffer_index*sizeof(librorc_event_descriptor)
         );
 
-        dump_event(eventbuffer, offset, reported_event_size);
+        dumpEvent(eventbuffer, offset, reported_event_size);
         dump_rb(reportbuffer, report_buffer_index, channel_id);
 
         retval |= CHK_SOE;
@@ -529,7 +529,7 @@ event_sanity_checker::eventSanityCheck
                             report_buffer_index, j, j-8, (uint32_t)*(eventbuffer + offset + j)
                         );
 
-                        dump_event(eventbuffer, offset, reported_event_size);
+                        dumpEvent(eventbuffer, offset, reported_event_size);
                         dump_rb(reportbuffer, report_buffer_index, channel_id);
                         retval |= CHK_PATTERN;
                     }
@@ -559,7 +559,7 @@ event_sanity_checker::eventSanityCheck
                 ddl_reference_size
             );
 
-            dump_event(eventbuffer, offset, reported_event_size);
+            dumpEvent(eventbuffer, offset, reported_event_size);
             dump_rb(reportbuffer, report_buffer_index, channel_id);
             retval |= CHK_FILE;
         }
@@ -576,7 +576,7 @@ event_sanity_checker::eventSanityCheck
                 );
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
-                dump_event(eventbuffer, offset, reported_event_size);
+                dumpEvent(eventbuffer, offset, reported_event_size);
                 dump_rb(reportbuffer, report_buffer_index, channel_id);
                 retval |= CHK_FILE;
             }
@@ -604,7 +604,7 @@ event_sanity_checker::eventSanityCheck
                 (uint32_t)*(event + j)
             );
 
-            dump_event(eventbuffer, offset, calc_event_size);
+            dumpEvent(eventbuffer, offset, calc_event_size);
             dump_rb(reportbuffer, report_buffer_index, channel_id);
             retval |= CHK_EOE;
         }
@@ -633,7 +633,7 @@ event_sanity_checker::eventSanityCheck
             "current ID: %ld\n", channel_id, last_id, cur_event_id
         );
 
-        dump_event(eventbuffer, offset, calc_event_size);
+        dumpEvent(eventbuffer, offset, calc_event_size);
         dump_rb(reportbuffer, report_buffer_index, channel_id);
         retval |= CHK_EOE;
     }
