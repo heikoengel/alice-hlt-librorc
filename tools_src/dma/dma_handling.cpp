@@ -368,7 +368,6 @@ event_sanity_checker::eventSanityCheck
     volatile librorc_event_descriptor *reportbuffer,
              uint64_t                  report_buffer_index,
              int64_t                   last_id,
-             uint32_t                  check_mask,
              uint32_t                 *ddl_reference,
              uint64_t                  ddl_reference_size,
              uint64_t                 *event_id  //TODO : simply return this later
@@ -390,7 +389,7 @@ event_sanity_checker::eventSanityCheck
 
 
     // compareCalculatedToReportedEventSizes
-    if(check_mask & CHK_SIZES)
+    if(m_check_mask & CHK_SIZES)
     {
         if (timeout_flag)
         {
@@ -421,7 +420,7 @@ event_sanity_checker::eventSanityCheck
     // checkStartOfEvent
     // Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
     // see also http://cds.cern.ch/record/1027339?ln=en
-    if( (check_mask & CHK_SOE) && ((uint32_t)*(event)!=0xffffffff) )
+    if( (m_check_mask & CHK_SOE) && ((uint32_t)*(event)!=0xffffffff) )
     {
         DEBUG_PRINTF
         (
@@ -440,7 +439,7 @@ event_sanity_checker::eventSanityCheck
     }
 
     // checkPattern
-    if( check_mask & CHK_PATTERN )
+    if( m_check_mask & CHK_PATTERN )
     {
         switch (m_pattern_mode)
         {
@@ -476,7 +475,7 @@ event_sanity_checker::eventSanityCheck
     }
 
     // compareWithReferenceDdlFile
-    if( check_mask & CHK_FILE )
+    if( m_check_mask & CHK_FILE )
     {
         if ( ((uint64_t)calc_event_size<<2) != ddl_reference_size )
         {
@@ -521,7 +520,7 @@ event_sanity_checker::eventSanityCheck
     * The EOE word contains the EOE status word received from the DIU
     **/
     //checkEndOfEvent
-    if( check_mask & CHK_EOE )
+    if( m_check_mask & CHK_EOE )
     {
         if( (uint32_t)*(event + calc_event_size) != reported_event_size )
         {
@@ -551,7 +550,7 @@ event_sanity_checker::eventSanityCheck
     // missing EventIDs are an indication of lost event data
     if
     (
-        (check_mask & CHK_ID) && (last_id != -1) && (cur_event_id & 0xfffffffff)
+        (m_check_mask & CHK_ID) && (last_id != -1) && (cur_event_id & 0xfffffffff)
         !=
         ((last_id +1) & 0xfffffffff)
     )
