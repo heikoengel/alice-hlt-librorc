@@ -367,7 +367,6 @@ event_sanity_checker::eventSanityCheck
 (
     volatile librorc_event_descriptor *reportbuffer,
              uint64_t                  report_buffer_index,
-             uint32_t                  channel_id,
              int64_t                   last_id,
              uint32_t                  pattern_mode,
              uint32_t                  check_mask,
@@ -400,7 +399,7 @@ event_sanity_checker::eventSanityCheck
             (
                 PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
-                channel_id, report_buffer_index
+                m_channel_id, report_buffer_index
             );
             retval |= CHK_SIZES;
         }
@@ -411,7 +410,7 @@ event_sanity_checker::eventSanityCheck
                 PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] sizes do not match: \n"
                 "calculated: 0x%x, reported: 0x%x\n"
-                "offset=0x%lx, rbdm_offset=0x%lx\n", channel_id, report_buffer_index,
+                "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id, report_buffer_index,
                 calc_event_size,reported_event_size,
                 reportbuffer->offset,
                 report_buffer_index*sizeof(librorc_event_descriptor)
@@ -436,7 +435,7 @@ event_sanity_checker::eventSanityCheck
         );
 
         dumpEvent(m_eventbuffer, offset, reported_event_size);
-        dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
+        dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
 
         retval |= CHK_SOE;
     }
@@ -462,7 +461,7 @@ event_sanity_checker::eventSanityCheck
                         );
 
                         dumpEvent(m_eventbuffer, offset, reported_event_size);
-                        dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
+                        dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
                         retval |= CHK_PATTERN;
                     }
                 }
@@ -492,7 +491,7 @@ event_sanity_checker::eventSanityCheck
             );
 
             dumpEvent(m_eventbuffer, offset, reported_event_size);
-            dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
+            dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
             retval |= CHK_FILE;
         }
 
@@ -509,7 +508,7 @@ event_sanity_checker::eventSanityCheck
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
                 dumpEvent(m_eventbuffer, offset, reported_event_size);
-                dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
+                dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
                 retval |= CHK_FILE;
             }
         }
@@ -537,7 +536,7 @@ event_sanity_checker::eventSanityCheck
             );
 
             dumpEvent(m_eventbuffer, offset, calc_event_size);
-            dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
+            dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
             retval |= CHK_EOE;
         }
     }
@@ -562,11 +561,11 @@ event_sanity_checker::eventSanityCheck
         (
             PDADEBUG_ERROR,
             "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-            "current ID: %ld\n", channel_id, last_id, cur_event_id
+            "current ID: %ld\n", m_channel_id, last_id, cur_event_id
         );
 
         dumpEvent(m_eventbuffer, offset, calc_event_size);
-        dumpReportBufferEntry(reportbuffer, report_buffer_index, channel_id);
+        dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
         retval |= CHK_EOE;
     }
 
