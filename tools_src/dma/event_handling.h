@@ -371,9 +371,9 @@ int event_sanity_check
 )
 {
     //CONSTRUCTOR
-    uint64_t offset;
+    uint64_t offset = reportbuffer->offset / 4;
     uint32_t j;
-    uint32_t *event = NULL;
+    uint32_t *event = (uint32_t *)eventbuffer + reportbuffer->offset;
     uint64_t cur_event_id;
     int retval = 0;
 
@@ -383,19 +383,6 @@ int event_sanity_check
 
     /** Bit31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (reportbuffer->calc_event_size>>31);
-
-
-    // copyEventToLocal
-    offset = reportbuffer->offset/4;
-    event = (uint32_t*)malloc((reported_event_size+4)*sizeof(uint32_t));
-    if( event==NULL )
-    {
-      perror("Malloc EB");
-      return -1;
-    }
-
-    memcpy(event, (uint8_t *)eventbuffer + reportbuffer->offset,
-        (reported_event_size+4)*sizeof(uint32_t));
 
 
     // compareCalculatedToReportedEventSizes
@@ -579,11 +566,6 @@ int event_sanity_check
 
     /** return event ID to caller */
     *event_id = cur_event_id;
-
-    if(event != NULL)
-    {
-        free(event);
-    }
 
     return retval;
 }
