@@ -372,7 +372,7 @@ int event_sanity_check
     //CONSTRUCTOR
     uint64_t offset;
     uint32_t j;
-    uint32_t *eb = NULL;
+    uint32_t *event = NULL;
     uint64_t cur_event_id;
     int retval = 0;
 
@@ -386,14 +386,14 @@ int event_sanity_check
 
     // copyEventToLocal
     offset = reportbuffer->offset/4;
-    eb = (uint32_t*)malloc((reported_event_size+4)*sizeof(uint32_t));
-    if( eb==NULL )
+    event = (uint32_t*)malloc((reported_event_size+4)*sizeof(uint32_t));
+    if( event==NULL )
     {
       perror("Malloc EB");
       return -1;
     }
 
-    memcpy(eb, (uint8_t *)eventbuffer + reportbuffer->offset,
+    memcpy(event, (uint8_t *)eventbuffer + reportbuffer->offset,
         (reported_event_size+4)*sizeof(uint32_t));
 
 
@@ -429,14 +429,14 @@ int event_sanity_check
     // checkStartOfEvent
     // Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
     // see also http://cds.cern.ch/record/1027339?ln=en
-    if( (check_mask & CHK_SOE) && ((uint32_t)*(eb)!=0xffffffff) )
+    if( (check_mask & CHK_SOE) && ((uint32_t)*(event)!=0xffffffff) )
     {
         DEBUG_PRINTF
         (
             PDADEBUG_ERROR,
             "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
             "offset=%ld, rbdm_offset=%ld\n",
-            i, (uint32_t)*(eb),
+            i, (uint32_t)*(event),
             reportbuffer->offset,
             i*sizeof(librorc_event_descriptor)
         );
@@ -458,7 +458,7 @@ int event_sanity_check
                 // checkPgPattern
                 for (j=8;j<calc_event_size;j++)
                 {
-                    if ( (uint32_t)*(eb + j) != j-8 )
+                    if ( (uint32_t)*(event + j) != j-8 )
                     {
                         DEBUG_PRINTF
                         (
@@ -504,13 +504,13 @@ int event_sanity_check
 
         for (j=0;j<calc_event_size;j++)
         {
-            if ( eb[j] != ddlref[j] )
+            if ( event[j] != ddlref[j] )
             {
                 DEBUG_PRINTF
                 (
                     PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    i, j, ddlref[j], eb[j]
+                    i, j, ddlref[j], event[j]
                 );
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
@@ -531,7 +531,7 @@ int event_sanity_check
     //checkEndOfEvent
     if( check_mask & CHK_EOE )
     {
-        if( (uint32_t)*(eb + calc_event_size) != reported_event_size )
+        if( (uint32_t)*(event + calc_event_size) != reported_event_size )
         {
             DEBUG_PRINTF
             (
@@ -539,7 +539,7 @@ int event_sanity_check
                 "ERROR: could not find matching reported event size "
                 "at Event[%d] expected %08x found %08x\n",
                 j, calc_event_size,
-                (uint32_t)*(eb + j)
+                (uint32_t)*(event + j)
             );
 
             dump_event(eventbuffer, offset, calc_event_size);
@@ -579,9 +579,9 @@ int event_sanity_check
     /** return event ID to caller */
     *event_id = cur_event_id;
 
-    if(eb != NULL)
+    if(event != NULL)
     {
-        free(eb);
+        free(event);
     }
 
     return retval;
