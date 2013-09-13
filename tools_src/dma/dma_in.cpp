@@ -60,15 +60,14 @@ int event_sanity_check
 )
 {
 
-    event_sanity_checker checker(eventbuffer, channel_id, pattern_mode, check_mask);
+    event_sanity_checker
+        checker(eventbuffer, channel_id, pattern_mode, check_mask, ddl_reference, ddl_reference_size);
 
     return  checker.eventSanityCheck
             (
                 reportbuffer,
                 report_buffer_index,
                 last_id,
-                ddl_reference,
-                ddl_reference_size,
                 event_id
             );
 

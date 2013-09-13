@@ -368,8 +368,6 @@ event_sanity_checker::eventSanityCheck
     volatile librorc_event_descriptor *reportbuffer,
              uint64_t                  report_buffer_index,
              int64_t                   last_id,
-             uint32_t                 *ddl_reference,
-             uint64_t                  ddl_reference_size,
              uint64_t                 *event_id  //TODO : simply return this later
 )
 {
@@ -477,7 +475,7 @@ event_sanity_checker::eventSanityCheck
     // compareWithReferenceDdlFile
     if( m_check_mask & CHK_FILE )
     {
-        if ( ((uint64_t)calc_event_size<<2) != ddl_reference_size )
+        if ( ((uint64_t)calc_event_size<<2) != m_ddl_reference_size )
         {
             DEBUG_PRINTF
             (
@@ -485,7 +483,7 @@ event_sanity_checker::eventSanityCheck
                 "ERROR: Eventsize %lx does not match "
                 "reference DDL file size %lx\n",
                 ((uint64_t)calc_event_size<<2),
-                ddl_reference_size
+                m_ddl_reference_size
             );
 
             dumpEvent(m_eventbuffer, offset, reported_event_size);
@@ -495,13 +493,13 @@ event_sanity_checker::eventSanityCheck
 
         for (j=0;j<calc_event_size;j++)
         {
-            if ( event[j] != ddl_reference[j] )
+            if ( event[j] != m_ddl_reference[j] )
             {
                 DEBUG_PRINTF
                 (
                     PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    report_buffer_index, j, ddl_reference[j], event[j]
+                    report_buffer_index, j, m_ddl_reference[j], event[j]
                 );
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!

@@ -149,13 +149,17 @@ class event_sanity_checker
              volatile uint32_t *eventbuffer,
              uint32_t           channel_id,
              uint32_t           pattern_mode,
-             uint32_t           check_mask
+             uint32_t           check_mask,
+             uint32_t          *ddl_reference,
+             uint64_t           ddl_reference_size
          )
          {
-             m_eventbuffer  = eventbuffer;
-             m_channel_id   = channel_id;
-             m_pattern_mode = pattern_mode;
-             m_check_mask   = check_mask;
+             m_eventbuffer        = eventbuffer;
+             m_channel_id         = channel_id;
+             m_pattern_mode       = pattern_mode;
+             m_check_mask         = check_mask;
+             m_ddl_reference      = ddl_reference;
+             m_ddl_reference_size = ddl_reference_size;
          };
 
         ~event_sanity_checker(){};
@@ -166,8 +170,6 @@ class event_sanity_checker
             volatile librorc_event_descriptor *reportbuffer,
                      uint64_t                  report_buffer_index,
                      int64_t                   last_id,
-                     uint32_t                 *ddl_reference,
-                     uint64_t                  ddl_reference_size,
                      uint64_t                 *event_id  //TODO : simply return this later
         );
 
@@ -204,6 +206,8 @@ class event_sanity_checker
                  uint32_t  m_channel_id;
                  uint32_t  m_pattern_mode;
                  uint32_t  m_check_mask;
+                 uint32_t *m_ddl_reference;
+                 uint64_t  m_ddl_reference_size;
 };
 
 #endif /** DMA_HANDLING_H */
