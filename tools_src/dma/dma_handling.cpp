@@ -429,7 +429,8 @@ dump_event
 }
 
 //TODO : this is going to be refactored into a class
-int eventSanityCheck
+int
+event_sanity_checker::eventSanityCheck
 (
     volatile librorc_event_descriptor *reportbuffer,
     volatile uint32_t                 *eventbuffer,
@@ -641,37 +642,4 @@ int eventSanityCheck
     *event_id = cur_event_id;
 
     return retval;
-}
-
-
-int event_sanity_check
-(
-    volatile librorc_event_descriptor *reportbuffer,
-    volatile uint32_t                 *eventbuffer,
-             uint64_t                  report_buffer_index,
-             uint32_t                  channel_id,
-             int64_t                   last_id,
-             uint32_t                  pattern_mode,
-             uint32_t                  check_mask,
-             uint32_t                 *ddl_reference,
-             uint64_t                  ddl_reference_size,
-             uint64_t                 *event_id  //TODO : simply return this later
-)
-{
-
-    return
-        eventSanityCheck
-        (
-            reportbuffer,
-            eventbuffer,
-            report_buffer_index,
-            channel_id,
-            last_id,
-            pattern_mode,
-            check_mask,
-            ddl_reference,
-            ddl_reference_size,
-            event_id
-        );
-
 }

@@ -44,6 +44,42 @@ int handle_channel_data
 DMA_ABORT_HANDLER
 
 
+
+int event_sanity_check
+(
+    volatile librorc_event_descriptor *reportbuffer,
+    volatile uint32_t                 *eventbuffer,
+             uint64_t                  report_buffer_index,
+             uint32_t                  channel_id,
+             int64_t                   last_id,
+             uint32_t                  pattern_mode,
+             uint32_t                  check_mask,
+             uint32_t                 *ddl_reference,
+             uint64_t                  ddl_reference_size,
+             uint64_t                 *event_id
+)
+{
+
+    event_sanity_checker checker;
+
+    return  checker.eventSanityCheck
+            (
+                reportbuffer,
+                eventbuffer,
+                report_buffer_index,
+                channel_id,
+                last_id,
+                pattern_mode,
+                check_mask,
+                ddl_reference,
+                ddl_reference_size,
+                event_id
+            );
+
+}
+
+
+
 int main(int argc, char *argv[])
 {
     DMAOptions opts = evaluateArguments(argc, argv);

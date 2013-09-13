@@ -48,7 +48,6 @@ class dma_channel;
     class rorc_bar : public bar
     {
         public:
-
             rorc_bar
             (
                 device  *dev,

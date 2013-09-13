@@ -140,32 +140,25 @@ printFinalStatusLine
 /** Pattern Generator Mode: Ramp **/
 #define PG_PATTERN_RAMP (1<<0)
 
-/**
- * Sanity checks on received data
- * @param reportbuffer pointer to librorc_event_descriptor
- * @param eventbuffer pointer to eventbuffer
- * @param current reportbuffer index
- * @param DMA channel number
- * @param I don't have a clue TODO -> this needs to be commented
- * @param pattern_mode pattern to check data against
- * @param mask which specifies which checks have to be done on the recieved data
- * @param event_id pointer to uint64_t, used to return event ID
- * @param DDL reference file mapped
- * @param size of the DDL reference file
- * @return !=0 on error, 0 on success
- **/
-int event_sanity_check
-(
-    volatile librorc_event_descriptor *reportbuffer,
-    volatile uint32_t                 *eventbuffer,
-             uint64_t                  report_buffer_index,
-             uint32_t                  channel_id,
-             int64_t                   last_id,
-             uint32_t                  pattern_mode,
-             uint32_t                  check_mask,
-             uint32_t                 *ddl_reference,
-             uint64_t                  ddl_reference_size,
-             uint64_t                 *event_id  //TODO : simply return this later
-);
+class event_sanity_checker
+{
+    public:
+         event_sanity_checker(){};
+        ~event_sanity_checker(){};
+
+        int eventSanityCheck
+        (
+            volatile librorc_event_descriptor *reportbuffer,
+            volatile uint32_t                 *eventbuffer,
+                     uint64_t                  report_buffer_index,
+                     uint32_t                  channel_id,
+                     int64_t                   last_id,
+                     uint32_t                  pattern_mode,
+                     uint32_t                  check_mask,
+                     uint32_t                 *ddl_reference,
+                     uint64_t                  ddl_reference_size,
+                     uint64_t                 *event_id  //TODO : simply return this later
+        );
+};
 
 #endif /** DMA_HANDLING_H */
