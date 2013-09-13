@@ -122,9 +122,9 @@ print_summary_stats
 void
 dump_rb
 (
-    librorc_event_descriptor *reportbuffer,
-    uint64_t i,
-    uint32_t ch
+    volatile librorc_event_descriptor *reportbuffer,
+             uint64_t                  i,
+             uint32_t                  ch
 )
 {
     DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
@@ -348,25 +348,26 @@ int dump_to_file
  * Sanity checks on received data
  * @param reportbuffer pointer to librorc_event_descriptor
  * @param eventbuffer pointer to eventbuffer
- * @param i current reportbuffer index
- * @param ch DMA channel number
+ * @param current reportbuffer index
+ * @param DMA channel number
+ * @param I don't have a clue TODO -> this needs to be commented
  * @param pattern_mode pattern to check data against
- * @param check_mask mask of checks to be done on the recived data
+ * @param mask which specifies which checks have to be done on the recieved data
  * @param event_id pointer to uint64_t, used to return event ID
- * @return !=0 on error, 0 on sucess
+ * @return !=0 on error, 0 on success
  **/
 int event_sanity_check
 (
-    librorc_event_descriptor *reportbuffer,
-    volatile uint32_t *eventbuffer,
-    uint64_t i,
-    uint32_t ch,
-    int64_t last_id,
-    uint32_t pattern_mode,
-    uint32_t check_mask,
-    uint32_t *ddlref,
-    uint64_t ddlref_size,
-    uint64_t *event_id
+    volatile librorc_event_descriptor *reportbuffer,
+    volatile uint32_t                 *eventbuffer,
+             uint64_t                  report_buffer_index,
+             uint32_t                  channel_id,
+             int64_t                   last_id,
+             uint32_t                  pattern_mode,
+             uint32_t                  check_mask,
+             uint32_t                 *ddl_reference,
+             uint64_t                  ddl_reference_size,
+             uint64_t                 *event_id  //TODO : simply return this later
 )
 {
     //CONSTRUCTOR
@@ -406,7 +407,7 @@ int event_sanity_check
             (
                 PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
-                ch, i
+                channel_id, report_buffer_index
             );
             retval |= CHK_SIZES;
         }
@@ -417,10 +418,10 @@ int event_sanity_check
                 PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] sizes do not match: \n"
                 "calculated: 0x%x, reported: 0x%x\n"
-                "offset=0x%lx, rbdm_offset=0x%lx\n", ch, i,
+                "offset=0x%lx, rbdm_offset=0x%lx\n", channel_id, report_buffer_index,
                 calc_event_size,reported_event_size,
                 reportbuffer->offset,
-                i*sizeof(librorc_event_descriptor)
+                report_buffer_index*sizeof(librorc_event_descriptor)
             );
             retval |= CHK_SIZES;
         }
@@ -436,13 +437,13 @@ int event_sanity_check
             PDADEBUG_ERROR,
             "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
             "offset=%ld, rbdm_offset=%ld\n",
-            i, (uint32_t)*(event),
+            report_buffer_index, (uint32_t)*(event),
             reportbuffer->offset,
-            i*sizeof(librorc_event_descriptor)
+            report_buffer_index*sizeof(librorc_event_descriptor)
         );
 
         dump_event(eventbuffer, offset, reported_event_size);
-        dump_rb(reportbuffer, i, ch);
+        dump_rb(reportbuffer, report_buffer_index, channel_id);
 
         retval |= CHK_SOE;
     }
@@ -464,11 +465,11 @@ int event_sanity_check
                         (
                             PDADEBUG_ERROR,
                             "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                            i, j, j-8, (uint32_t)*(eventbuffer + offset + j)
+                            report_buffer_index, j, j-8, (uint32_t)*(eventbuffer + offset + j)
                         );
 
                         dump_event(eventbuffer, offset, reported_event_size);
-                        dump_rb(reportbuffer, i, ch);
+                        dump_rb(reportbuffer, report_buffer_index, channel_id);
                         retval |= CHK_PATTERN;
                     }
                 }
@@ -486,7 +487,7 @@ int event_sanity_check
     // compareWithReferenceDdlFile
     if( check_mask & CHK_FILE )
     {
-        if ( ((uint64_t)calc_event_size<<2) != ddlref_size )
+        if ( ((uint64_t)calc_event_size<<2) != ddl_reference_size )
         {
             DEBUG_PRINTF
             (
@@ -494,28 +495,28 @@ int event_sanity_check
                 "ERROR: Eventsize %lx does not match "
                 "reference DDL file size %lx\n",
                 ((uint64_t)calc_event_size<<2),
-                ddlref_size
+                ddl_reference_size
             );
 
             dump_event(eventbuffer, offset, reported_event_size);
-            dump_rb(reportbuffer, i, ch);
+            dump_rb(reportbuffer, report_buffer_index, channel_id);
             retval |= CHK_FILE;
         }
 
         for (j=0;j<calc_event_size;j++)
         {
-            if ( event[j] != ddlref[j] )
+            if ( event[j] != ddl_reference[j] )
             {
                 DEBUG_PRINTF
                 (
                     PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    i, j, ddlref[j], event[j]
+                    report_buffer_index, j, ddl_reference[j], event[j]
                 );
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
                 dump_event(eventbuffer, offset, reported_event_size);
-                dump_rb(reportbuffer, i, ch);
+                dump_rb(reportbuffer, report_buffer_index, channel_id);
                 retval |= CHK_FILE;
             }
         }
@@ -543,7 +544,7 @@ int event_sanity_check
             );
 
             dump_event(eventbuffer, offset, calc_event_size);
-            dump_rb(reportbuffer, i, ch);
+            dump_rb(reportbuffer, report_buffer_index, channel_id);
             retval |= CHK_EOE;
         }
     }
@@ -568,11 +569,11 @@ int event_sanity_check
         (
             PDADEBUG_ERROR,
             "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-            "current ID: %ld\n", ch, last_id, cur_event_id
+            "current ID: %ld\n", channel_id, last_id, cur_event_id
         );
 
         dump_event(eventbuffer, offset, calc_event_size);
-        dump_rb(reportbuffer, i, ch);
+        dump_rb(reportbuffer, report_buffer_index, channel_id);
         retval |= CHK_EOE;
     }
 
