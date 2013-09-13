@@ -368,7 +368,6 @@ event_sanity_checker::eventSanityCheck
     volatile librorc_event_descriptor *reportbuffer,
              uint64_t                  report_buffer_index,
              int64_t                   last_id,
-             uint32_t                  pattern_mode,
              uint32_t                  check_mask,
              uint32_t                 *ddl_reference,
              uint64_t                  ddl_reference_size,
@@ -443,7 +442,7 @@ event_sanity_checker::eventSanityCheck
     // checkPattern
     if( check_mask & CHK_PATTERN )
     {
-        switch (pattern_mode)
+        switch (m_pattern_mode)
         {
             /* Data pattern is a ramp */
             case PG_PATTERN_RAMP:
