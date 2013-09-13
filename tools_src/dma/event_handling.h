@@ -204,24 +204,25 @@ dump_diu_state
     librorc::dma_channel *ch
 )
 {
-  uint32_t status;
-  status = ch->getGTX(RORC_REG_DDL_CTRL);
-  printf("\nDIU_IF: ");
-  if ( status & 1 ) printf("DIU_ON ");
-  else printf("DIU_OFF ");
-  if ( status>>1 & 1) printf("FC_ON ");
-  else printf("FC_OFF ");
-  if ( !(status>>4 & 1) ) printf("LF ");
-  if ( !(status>>5 & 1) ) printf("LD ");
-  if ( !(status>>30 & 1) ) printf("BSY ");
-  if ( status>>8 & 1) printf("PG_ON");
-  else printf("PG_OFF");
+    uint32_t status = ch->getGTX(RORC_REG_DDL_CTRL);
 
-  if ( !(status>>8 & 1) ) { // PG disabled
-    printf("CTSTW:%08x ", ch->getGTX(RORC_REG_DDL_CTSTW));
-    printf("DEADTIME:%08x ", ch->getGTX(RORC_REG_DDL_DEADTIME));
-    printf("EC:%08x ", ch->getGTX(RORC_REG_DDL_EC));
-  }
+    printf("\nDIU_IF: ");
+
+     (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
+     ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
+    !((status>>4) & 1)  ? printf("LF ")     : printf("");
+    !((status>>5) & 1)  ? printf("LD ")     : printf("");
+    !((status>>30) & 1) ? printf("BSY ")    : printf("");
+
+    /** PG disabled */
+    ((status>>8) & 1) ? printf("PG_ON") : printf("PG_OFF");
+
+    if ( !(status>>8 & 1) )
+    {
+        printf("CTSTW:%08x ", ch->getGTX(RORC_REG_DDL_CTSTW));
+        printf("DEADTIME:%08x ", ch->getGTX(RORC_REG_DDL_DEADTIME));
+        printf("EC:%08x ", ch->getGTX(RORC_REG_DDL_EC));
+    }
 }
 
 
