@@ -60,12 +60,11 @@ int event_sanity_check
 )
 {
 
-    event_sanity_checker checker;
+    event_sanity_checker checker(eventbuffer);
 
     return  checker.eventSanityCheck
             (
                 reportbuffer,
-                eventbuffer,
                 report_buffer_index,
                 channel_id,
                 last_id,

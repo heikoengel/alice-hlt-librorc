@@ -144,12 +144,20 @@ class event_sanity_checker
 {
     public:
          event_sanity_checker(){};
+         event_sanity_checker
+         (
+             volatile uint32_t *eventbuffer
+         )
+         {
+             m_eventbuffer = eventbuffer;
+         };
+
         ~event_sanity_checker(){};
+
 
         int eventSanityCheck
         (
             volatile librorc_event_descriptor *reportbuffer,
-            volatile uint32_t                 *eventbuffer,
                      uint64_t                  report_buffer_index,
                      uint32_t                  channel_id,
                      int64_t                   last_id,
@@ -189,6 +197,7 @@ class event_sanity_checker
         );
 
     protected:
+        volatile uint32_t *m_eventbuffer;
 };
 
 #endif /** DMA_HANDLING_H */
