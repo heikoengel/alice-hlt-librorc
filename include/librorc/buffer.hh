@@ -32,16 +32,16 @@
 #define DMA_MODE 32
 
 #if DMA_MODE==32
-struct
+typedef struct
 __attribute__((__packed__))
-librorc_event_descriptor
+librorc_event_descriptor_struct
 {
     volatile uint64_t offset;
     volatile uint32_t reported_event_size;
     volatile uint32_t calc_event_size;
     volatile uint64_t dummy;   /** do not use! */
     volatile uint64_t dummy2;  /** do not use! */
-};
+} librorc_event_descriptor;
 #endif
 
 typedef struct
@@ -49,7 +49,7 @@ librorc_sg_entry_struct
 {
     uint64_t pointer;
     uint64_t length;
-}librorc_sg_entry;
+} librorc_sg_entry;
 
 
 typedef struct PciDevice_struct        PciDevice;
@@ -181,7 +181,7 @@ class buffer_sglist_programmer;
             uint64_t
             getMaxRBEntries()
             {
-                return (getSize()/sizeof(struct librorc_event_descriptor) );
+                return( getSize()/sizeof(librorc_event_descriptor) );
             }
 
 

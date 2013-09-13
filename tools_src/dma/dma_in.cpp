@@ -179,13 +179,13 @@ handle_channel_data
     uint64_t eboffset = 0;
     uint64_t rboffset = 0;
     uint64_t starting_index, entrysize;
-    struct librorc_event_descriptor rb;
+    librorc_event_descriptor rb;
     uint64_t EventID;
     char     basedir[] = "/tmp";
     int      retval;
 
-    struct librorc_event_descriptor *reportbuffer =
-    (struct librorc_event_descriptor *)rbuf->getMem();
+    librorc_event_descriptor *reportbuffer =
+            (librorc_event_descriptor *)(rbuf->getMem());
     volatile uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
     // new event received
@@ -255,7 +255,7 @@ handle_channel_data
 
             // increment reportbuffer offset
             rboffset =
-                ((stats->index)*sizeof(struct librorc_event_descriptor)) % (rbuf->getPhysicalSize());
+                ((stats->index)*sizeof(librorc_event_descriptor)) % (rbuf->getPhysicalSize());
 
             // wrap RB index if necessary
             if( stats->index < rbuf->getMaxRBEntries()-1 )
@@ -275,7 +275,7 @@ handle_channel_data
         }
 
         // clear processed reportbuffer entries
-        entrysize = sizeof(struct librorc_event_descriptor);
+        entrysize = sizeof(librorc_event_descriptor);
         memset(&reportbuffer[starting_index], 0, (events_per_iteration*entrysize) );
 
 

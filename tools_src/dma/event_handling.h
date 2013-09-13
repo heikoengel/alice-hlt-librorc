@@ -21,7 +21,6 @@
 
 
 /**
- * TODO: dump to file?
  * Dump Event
  * @param eventbuffer pointer to eventbuffer
  * @param offset offset of the current event within the eventbuffer
@@ -116,14 +115,14 @@ print_summary_stats
 /**
  * Dump reportbuffer entry
  * @param reportbuffer pointer to reportbuffer
- * @param i index of current struct librorc_event_descriptor within
+ * @param i index of current librorc_event_descriptor within
  * reportbuffer
  * @param ch DMA channel number
  * */
 void
 dump_rb
 (
-    struct librorc_event_descriptor *reportbuffer,
+    librorc_event_descriptor *reportbuffer,
     uint64_t i,
     uint32_t ch
 )
@@ -213,7 +212,7 @@ int dump_to_file
     librorcChannelStatus   *stats,
     uint64_t        EventID,
     uint32_t         file_index,
-    struct librorc_event_descriptor *reportbuffer,
+    librorc_event_descriptor *reportbuffer,
     librorc::buffer *ebuf,
     uint32_t        error_flags
 )
@@ -347,7 +346,7 @@ int dump_to_file
 //TODO : this going to be refactored into a class
 /**
  * Sanity checks on received data
- * @param reportbuffer pointer to struct librorc_event_descriptor
+ * @param reportbuffer pointer to librorc_event_descriptor
  * @param eventbuffer pointer to eventbuffer
  * @param i current reportbuffer index
  * @param ch DMA channel number
@@ -358,7 +357,7 @@ int dump_to_file
  **/
 int event_sanity_check
 (
-    struct librorc_event_descriptor *reportbuffer,
+    librorc_event_descriptor *reportbuffer,
     volatile uint32_t *eventbuffer,
     uint64_t i,
     uint32_t ch,
@@ -400,7 +399,7 @@ int event_sanity_check
                   "offset=0x%lx, rbdm_offset=0x%lx\n", ch, i,
                   calc_event_size,reported_event_size,
                   reportbuffer->offset,
-                  i*sizeof(struct librorc_event_descriptor) );
+                  i*sizeof(librorc_event_descriptor) );
           retval |= CHK_SIZES;
       }
   }
@@ -425,7 +424,7 @@ int event_sanity_check
               "offset=%ld, rbdm_offset=%ld\n",
               i, (uint32_t)*(eb),
               reportbuffer->offset,
-              i*sizeof(struct librorc_event_descriptor) );
+              i*sizeof(librorc_event_descriptor) );
       dump_event(eventbuffer, offset, reported_event_size);
       dump_rb(reportbuffer, i, ch);
       retval |= CHK_SOE;

@@ -305,8 +305,8 @@ namespace librorc
                 m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
                 m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
 
-                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, sizeof(struct librorc_event_descriptor));
-                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, sizeof(struct librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, sizeof(librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, sizeof(librorc_event_descriptor));
 
                 m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
@@ -705,7 +705,7 @@ dma_channel::printDMAState()
 }
 
 
-
+//TODO : this little bugger is DMA specific
 void
 dma_channel::printDiuState()
 {
@@ -754,7 +754,7 @@ dma_channel::printDiuState()
         {
             m_reportBuffer->clear();
             m_last_rbdm_offset
-                = m_reportBuffer->getPhysicalSize() - sizeof(struct librorc_event_descriptor);
+                = m_reportBuffer->getPhysicalSize() - sizeof(librorc_event_descriptor);
         }
 
         if(m_eventBuffer != NULL)

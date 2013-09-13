@@ -89,14 +89,14 @@ void dump_event(
 /**
  * Dump reportbuffer entry
  * @param reportbuffer pointer to reportbuffer
- * @param i index of current struct librorc_event_descriptor within
+ * @param i index of current librorc_event_descriptor within
  * reportbuffer
  * @param ch DMA channel number
  * */
 void
 dump_rb
 (
-    struct librorc_event_descriptor *reportbuffer,
+    librorc_event_descriptor *reportbuffer,
     uint64_t i,
     uint32_t ch
 )
@@ -256,7 +256,7 @@ int dump_to_file
     channelStatus   *stats,
     uint64_t        EventID,
     uint32_t         file_index,
-    struct librorc_event_descriptor *reportbuffer,
+    librorc_event_descriptor *reportbuffer,
     librorc::buffer *ebuf,
     uint32_t        error_flags
 )
