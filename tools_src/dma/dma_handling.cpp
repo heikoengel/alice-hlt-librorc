@@ -430,9 +430,6 @@ event_sanity_checker::eventSanityCheck
     int retval = 0;
 
     //Slated for removal
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
-    uint64_t tmp_offset = dwordOffset(report_buffer);
     uint32_t *event = rawEventPointer(report_buffer);
 
     if(m_check_mask & CHK_SIZES)
@@ -470,7 +467,7 @@ event_sanity_checker::eventSanityCheck
     }
 
     /** return event ID to caller */
-    *event_id = getEventIdFromCdh(tmp_offset);
+    *event_id = getEventIdFromCdh(dwordOffset(report_buffer));
 
     return retval;
 }
@@ -603,7 +600,6 @@ event_sanity_checker::checkPattern
 )
 {
     uint32_t calc_event_size = calculatedEventSize(report_buffer);
-    uint64_t offset          = dwordOffset(report_buffer);
 
     switch(m_pattern_mode)
     {
@@ -618,7 +614,7 @@ event_sanity_checker::checkPattern
                         PDADEBUG_ERROR,
                         "ERROR: Event[%ld][%d] expected %08x read %08x\n",
                         report_buffer_index, m_event_index, (m_event_index - 8),
-                        (uint32_t)*(m_eventbuffer + offset + m_event_index)
+                        (uint32_t)*(m_eventbuffer + dwordOffset(report_buffer) + m_event_index)
                     );
 
                     return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
