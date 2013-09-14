@@ -212,7 +212,6 @@ class event_sanity_checker
         int
         dumpError
         (
-                     uint64_t                  offset,
             volatile librorc_event_descriptor *report_buffer,
                      uint64_t                  report_buffer_index,
                      int32_t                   check_id

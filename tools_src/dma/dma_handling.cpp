@@ -363,13 +363,13 @@ printFinalStatusLine
 int
 event_sanity_checker::dumpError
 (
-             uint64_t                  offset,
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index,
              int32_t                   check_id
 )
 {
     uint32_t reported_event_size = reportedEventSize(report_buffer);
+    uint64_t offset              = (report_buffer->offset / 4);
 
     dumpEvent(m_eventbuffer, offset, reported_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
@@ -473,7 +473,7 @@ event_sanity_checker::eventSanityCheck
             );
 
             retval |=
-                dumpError(offset, reportbuffer, report_buffer_index, CHK_SOE);
+                dumpError(reportbuffer, report_buffer_index, CHK_SOE);
         }
     }
 
