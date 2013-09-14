@@ -448,8 +448,7 @@ event_sanity_checker::eventSanityCheck
 
     if( (m_check_mask & CHK_FILE) )
     {
-        retval |=
-            compareWithReferenceDdlFile(event, report_buffer, report_buffer_index);
+        retval |= compareWithReferenceDdlFile(report_buffer, report_buffer_index);
     }
 
     if( (m_check_mask & CHK_EOE) )
@@ -635,13 +634,13 @@ event_sanity_checker::checkPattern
 int
 event_sanity_checker::compareWithReferenceDdlFile
 (
-             uint32_t                 *event,
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index
 )
 {
-    int      retval          = 0;
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
+    int       retval          = 0;
+    uint32_t *event           = rawEventPointer(report_buffer);
+    uint32_t  calc_event_size = calculatedEventSize(report_buffer);
 
     if( ((uint64_t) calc_event_size << 2) != m_ddl_reference_size )
     {
