@@ -402,32 +402,32 @@ event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportb
 int
 event_sanity_checker::eventSanityCheck
 (
-    volatile librorc_event_descriptor *reportbuffer,
+    volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index,
              int64_t                   last_id,
              uint64_t                 *event_id  //TODO : simply return this later
 )
 {
     //CONSTRUCTOR
-    uint64_t offset = reportbuffer->offset / 4;
+    uint64_t tmp_offset = report_buffer->offset / 4;
     uint32_t j;
-    uint32_t *event = rawEventPointer(reportbuffer);
+    uint32_t *event = rawEventPointer(report_buffer);
     uint64_t cur_event_id;
     int retval = 0;
 
-    uint32_t reported_event_size = reportedEventSize(reportbuffer);
-    uint32_t calc_event_size = calculatedEventSize(reportbuffer);
+    uint32_t reported_event_size = reportedEventSize(report_buffer);
+    uint32_t calc_event_size = calculatedEventSize(report_buffer);
 
     if(m_check_mask & CHK_SIZES)
     {
         retval |=
-            compareCalculatedToReportedEventSizes(report_buffer_index, reportbuffer);
+            compareCalculatedToReportedEventSizes(report_buffer_index, report_buffer);
     }
 
     if( (m_check_mask & CHK_SOE)  )
     {
         retval |=
-            checkStartOfEvent(report_buffer_index, reportbuffer);
+            checkStartOfEvent(report_buffer_index, report_buffer);
     }
 
     // checkPattern
@@ -447,12 +447,10 @@ event_sanity_checker::eventSanityCheck
                         (
                             PDADEBUG_ERROR,
                             "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                            report_buffer_index, j, j-8, (uint32_t)*(m_eventbuffer + offset + j)
+                            report_buffer_index, j, j-8, (uint32_t)*(m_eventbuffer + tmp_offset + j)
                         );
 
-                        dumpEvent(m_eventbuffer, offset, reported_event_size);
-                        dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
-                        retval |= CHK_PATTERN;
+                        retval |= dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
                     }
                 }
             }
@@ -480,8 +478,8 @@ event_sanity_checker::eventSanityCheck
                 m_ddl_reference_size
             );
 
-            dumpEvent(m_eventbuffer, offset, reported_event_size);
-            dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
+            dumpEvent(m_eventbuffer, tmp_offset, reported_event_size);
+            dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
             retval |= CHK_FILE;
         }
 
@@ -497,8 +495,8 @@ event_sanity_checker::eventSanityCheck
                 );
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
-                dumpEvent(m_eventbuffer, offset, reported_event_size);
-                dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
+                dumpEvent(m_eventbuffer, tmp_offset, reported_event_size);
+                dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
                 retval |= CHK_FILE;
             }
         }
@@ -525,8 +523,8 @@ event_sanity_checker::eventSanityCheck
                 (uint32_t)*(event + j)
             );
 
-            dumpEvent(m_eventbuffer, offset, calc_event_size);
-            dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
+            dumpEvent(m_eventbuffer, tmp_offset, calc_event_size);
+            dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
             retval |= CHK_EOE;
         }
     }
@@ -534,9 +532,9 @@ event_sanity_checker::eventSanityCheck
     // get EventID from CDH:
     // lower 12 bits in CHD[1][11:0]
     // upper 24 bits in CDH[2][23:0]
-    cur_event_id = (uint32_t)*(m_eventbuffer + offset + 2) & 0x00ffffff;
+    cur_event_id = (uint32_t)*(m_eventbuffer + tmp_offset + 2) & 0x00ffffff;
     cur_event_id <<= 12;
-    cur_event_id |= (uint32_t)*(m_eventbuffer + offset + 1) & 0x00000fff;
+    cur_event_id |= (uint32_t)*(m_eventbuffer + tmp_offset + 1) & 0x00000fff;
 
     // make sure EventIDs increment with each event.
     // missing EventIDs are an indication of lost event data
@@ -554,8 +552,8 @@ event_sanity_checker::eventSanityCheck
             "current ID: %ld\n", m_channel_id, last_id, cur_event_id
         );
 
-        dumpEvent(m_eventbuffer, offset, calc_event_size);
-        dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
+        dumpEvent(m_eventbuffer, tmp_offset, calc_event_size);
+        dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
         retval |= CHK_EOE;
     }
 
