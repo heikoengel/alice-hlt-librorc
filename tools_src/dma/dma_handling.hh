@@ -244,6 +244,14 @@ class event_sanity_checker
                      uint64_t                  report_buffer_index
         );
 
+        int
+        compareWithReferenceDdlFile
+        (
+                     uint32_t                 *event,
+            volatile librorc_event_descriptor *report_buffer,
+                     uint64_t                  report_buffer_index
+        );
+
         uint32_t
         reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
 
