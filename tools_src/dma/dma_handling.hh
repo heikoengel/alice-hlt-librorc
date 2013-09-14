@@ -260,7 +260,6 @@ class event_sanity_checker
         int
         checkEndOfEvent
         (
-                     uint32_t                 *event,
             volatile librorc_event_descriptor *report_buffer,
                      uint64_t                  report_buffer_index
         );

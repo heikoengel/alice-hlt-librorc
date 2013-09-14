@@ -453,13 +453,12 @@ event_sanity_checker::eventSanityCheck
 
     if( (m_check_mask & CHK_EOE) )
     {
-        retval |= checkEndOfEvent(event, report_buffer, report_buffer_index);
+        retval |= checkEndOfEvent(report_buffer, report_buffer_index);
     }
 
     if( (m_check_mask & CHK_ID) )
     {
-        retval |=
-            checkForLostEvents(last_id, report_buffer, report_buffer_index);
+        retval |= checkForLostEvents(last_id, report_buffer, report_buffer_index);
     }
 
     /** return event ID to caller */
@@ -680,11 +679,11 @@ event_sanity_checker::compareWithReferenceDdlFile
 int
 event_sanity_checker::checkEndOfEvent
 (
-             uint32_t                 *event,
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index
 )
 {
+    uint32_t *event              = rawEventPointer(report_buffer);
     uint32_t calc_event_size     = calculatedEventSize(report_buffer);
     uint32_t reported_event_size = reportedEventSize(report_buffer);
 
