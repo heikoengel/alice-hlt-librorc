@@ -392,29 +392,6 @@ event_sanity_checker::calculatedEventSize
     return(report_buffer->calc_event_size & 0x3fffffff);
 }
 
-int
-event_sanity_checker::checkStartOfEvent
-(
-             uint64_t                  report_buffer_index,
-    volatile librorc_event_descriptor *report_buffer
-)
-{
-    uint32_t *event = rawEventPointer(report_buffer);
-
-    if ((uint32_t) * (event) != 0xffffffff)
-    {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
-                        "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
-                (uint32_t) * (event), report_buffer->offset,
-                report_buffer_index * sizeof(librorc_event_descriptor));
-
-        return dumpError(report_buffer, report_buffer_index, CHK_SOE);
-    }
-
-    return 0;
-}
-
 uint32_t*
 event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportbuffer)
 {
@@ -652,8 +629,6 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
     volatile librorc_event_descriptor *report_buffer
 )
 {
-    int retval = 0;
-
     uint32_t reported_event_size = reportedEventSize(report_buffer);
     uint32_t calc_event_size = calculatedEventSize(report_buffer);
 
@@ -665,7 +640,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
                 m_channel_id, report_buffer_index);
-        retval |= CHK_SIZES;
+        return(CHK_SIZES);
     }
     else if (calc_event_size != reported_event_size)
     {
@@ -676,8 +651,33 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
                 report_buffer_index, calc_event_size, reported_event_size,
                 report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
-        retval |= CHK_SIZES;
+        return(CHK_SIZES);
     }
 
-    return retval;
+    return 0;
+}
+
+
+
+int
+event_sanity_checker::checkStartOfEvent
+(
+             uint64_t                  report_buffer_index,
+    volatile librorc_event_descriptor *report_buffer
+)
+{
+    uint32_t *event = rawEventPointer(report_buffer);
+
+    if ((uint32_t) * (event) != 0xffffffff)
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
+                        "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
+                (uint32_t) * (event), report_buffer->offset,
+                report_buffer_index * sizeof(librorc_event_descriptor));
+
+        return dumpError(report_buffer, report_buffer_index, CHK_SOE);
+    }
+
+    return 0;
 }
