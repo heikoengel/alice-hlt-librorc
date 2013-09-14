@@ -428,9 +428,6 @@ event_sanity_checker::eventSanityCheck
     m_event_index = 0;
     int retval = 0;
 
-    //Slated for removal
-    uint32_t *event = rawEventPointer(report_buffer);
-
     if(m_check_mask & CHK_SIZES)
     {
         retval |= compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
