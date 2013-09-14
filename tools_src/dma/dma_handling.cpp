@@ -439,7 +439,6 @@ event_sanity_checker::eventSanityCheck
             checkStartOfEvent(report_buffer_index, report_buffer);
     }
 
-    // checkPattern
     if( m_check_mask & CHK_PATTERN )
     {
         retval |= checkPattern(event, report_buffer, report_buffer_index);
@@ -448,7 +447,7 @@ event_sanity_checker::eventSanityCheck
     // compareWithReferenceDdlFile
     if( m_check_mask & CHK_FILE )
     {
-        if ( ((uint64_t)calc_event_size<<2) != m_ddl_reference_size )
+        if( ((uint64_t)calc_event_size<<2) != m_ddl_reference_size )
         {
             DEBUG_PRINTF
             (
@@ -458,13 +457,10 @@ event_sanity_checker::eventSanityCheck
                 ((uint64_t)calc_event_size<<2),
                 m_ddl_reference_size
             );
-
-            dumpEvent(m_eventbuffer, tmp_offset, reported_event_size);
-            dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-            retval |= CHK_FILE;
+            retval |=  dumpError(report_buffer, report_buffer_index, CHK_FILE);
         }
 
-        for (m_event_index=0;m_event_index<calc_event_size;m_event_index++)
+        for(m_event_index=0;m_event_index<calc_event_size;m_event_index++)
         {
             if ( event[m_event_index] != m_ddl_reference[m_event_index] )
             {
@@ -474,11 +470,7 @@ event_sanity_checker::eventSanityCheck
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
                     report_buffer_index, m_event_index, m_ddl_reference[m_event_index], event[m_event_index]
                 );
-
-                //TODO : this is redundant over the whole code -> refactor to dump and throw!
-                dumpEvent(m_eventbuffer, tmp_offset, reported_event_size);
-                dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-                retval |= CHK_FILE;
+                retval |=  dumpError(report_buffer, report_buffer_index, CHK_FILE);
             }
         }
     }
@@ -503,10 +495,7 @@ event_sanity_checker::eventSanityCheck
                 m_event_index, calc_event_size,
                 (uint32_t)*(event + m_event_index)
             );
-
-            dumpEvent(m_eventbuffer, tmp_offset, calc_event_size);
-            dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-            retval |= CHK_EOE;
+            retval |=  dumpError(report_buffer, report_buffer_index, CHK_EOE);
         }
     }
 
@@ -532,10 +521,7 @@ event_sanity_checker::eventSanityCheck
             "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
             "current ID: %ld\n", m_channel_id, last_id, cur_event_id
         );
-
-        dumpEvent(m_eventbuffer, tmp_offset, calc_event_size);
-        dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-        retval |= CHK_EOE;
+        retval |=  dumpError(report_buffer, report_buffer_index, CHK_ID);
     }
 
     /** return event ID to caller */
