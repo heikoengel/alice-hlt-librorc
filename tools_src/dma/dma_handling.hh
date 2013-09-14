@@ -265,7 +265,7 @@ class event_sanity_checker
         );
 
         /**
-         * make sure EventIDs increment with each event.
+         * Make sure EventIDs increment with each event.
          * missing EventIDs are an indication of lost event data
          */
         int

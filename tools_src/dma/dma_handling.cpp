@@ -428,37 +428,15 @@ event_sanity_checker::eventSanityCheck
     m_event_index = 0;
     int retval = 0;
 
-    if(m_check_mask & CHK_SIZES)
-    {
-        retval |= compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
-    }
 
-    if( (m_check_mask & CHK_SOE)  )
-    {
-        retval |= checkStartOfEvent(report_buffer, report_buffer_index);
-    }
+    retval |= (m_check_mask & CHK_SIZES) ? compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index) : 0;
+    retval |= (m_check_mask & CHK_SOE) ? checkStartOfEvent(report_buffer, report_buffer_index) : 0;
+    retval |= (m_check_mask & CHK_PATTERN) ? checkPattern(report_buffer, report_buffer_index) : 0;
+    retval |= (m_check_mask & CHK_FILE) ? compareWithReferenceDdlFile(report_buffer, report_buffer_index) : 0;
+    retval |= (m_check_mask & CHK_EOE) ? checkEndOfEvent(report_buffer, report_buffer_index) : 0;
+    retval |= (m_check_mask & CHK_ID) ? checkForLostEvents(report_buffer, report_buffer_index, last_id) : 0;
 
-    if( (m_check_mask & CHK_PATTERN) )
-    {
-        retval |= checkPattern(report_buffer, report_buffer_index);
-    }
-
-    if( (m_check_mask & CHK_FILE) )
-    {
-        retval |= compareWithReferenceDdlFile(report_buffer, report_buffer_index);
-    }
-
-    if( (m_check_mask & CHK_EOE) )
-    {
-        retval |= checkEndOfEvent(report_buffer, report_buffer_index);
-    }
-
-    if( (m_check_mask & CHK_ID) )
-    {
-        retval |= checkForLostEvents(report_buffer, report_buffer_index, last_id);
-    }
-
-    /** return event ID to caller */
+    /** TODO : _return_ event ID to caller */
     *event_id = getEventIdFromCdh(dwordOffset(report_buffer));
 
     return retval;
@@ -726,6 +704,5 @@ event_sanity_checker::checkForLostEvents
                 cur_event_id);
         return dumpError(report_buffer, report_buffer_index, CHK_ID);
     }
-
     return 0;
 }
