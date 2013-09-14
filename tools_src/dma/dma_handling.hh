@@ -208,6 +208,7 @@ class event_sanity_checker
                  uint32_t  m_check_mask;
                  uint32_t *m_ddl_reference;
                  uint64_t  m_ddl_reference_size;
+                 uint32_t  m_event_index;
 
         int
         dumpError

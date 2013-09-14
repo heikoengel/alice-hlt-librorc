@@ -409,14 +409,17 @@ event_sanity_checker::eventSanityCheck
 )
 {
     //CONSTRUCTOR
-    uint64_t tmp_offset = report_buffer->offset / 4;
-    uint32_t j;
     uint32_t *event = rawEventPointer(report_buffer);
     uint64_t cur_event_id;
-    int retval = 0;
 
+    //Slated for removal
     uint32_t reported_event_size = reportedEventSize(report_buffer);
     uint32_t calc_event_size = calculatedEventSize(report_buffer);
+    uint64_t tmp_offset = report_buffer->offset / 4;
+
+    m_event_index = 0;
+
+    int retval = 0;
 
     if(m_check_mask & CHK_SIZES)
     {
@@ -433,21 +436,23 @@ event_sanity_checker::eventSanityCheck
     // checkPattern
     if( m_check_mask & CHK_PATTERN )
     {
+        //retval |=
+
         switch (m_pattern_mode)
         {
             /* Data pattern is a ramp */
             case PG_PATTERN_RAMP:
             {
                 // checkPgPattern
-                for (j=8;j<calc_event_size;j++)
+                for(m_event_index=8; m_event_index<calc_event_size; m_event_index++)
                 {
-                    if ( (uint32_t)*(event + j) != j-8 )
+                    if ( (uint32_t)*(event + m_event_index) != m_event_index-8 )
                     {
                         DEBUG_PRINTF
                         (
                             PDADEBUG_ERROR,
                             "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                            report_buffer_index, j, j-8, (uint32_t)*(m_eventbuffer + tmp_offset + j)
+                            report_buffer_index, m_event_index, m_event_index-8, (uint32_t)*(m_eventbuffer + tmp_offset + m_event_index)
                         );
 
                         retval |= dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
@@ -483,15 +488,15 @@ event_sanity_checker::eventSanityCheck
             retval |= CHK_FILE;
         }
 
-        for (j=0;j<calc_event_size;j++)
+        for (m_event_index=0;m_event_index<calc_event_size;m_event_index++)
         {
-            if ( event[j] != m_ddl_reference[j] )
+            if ( event[m_event_index] != m_ddl_reference[m_event_index] )
             {
                 DEBUG_PRINTF
                 (
                     PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    report_buffer_index, j, m_ddl_reference[j], event[j]
+                    report_buffer_index, m_event_index, m_ddl_reference[m_event_index], event[m_event_index]
                 );
 
                 //TODO : this is redundant over the whole code -> refactor to dump and throw!
@@ -519,8 +524,8 @@ event_sanity_checker::eventSanityCheck
                 PDADEBUG_ERROR,
                 "ERROR: could not find matching reported event size "
                 "at Event[%d] expected %08x found %08x\n",
-                j, calc_event_size,
-                (uint32_t)*(event + j)
+                m_event_index, calc_event_size,
+                (uint32_t)*(event + m_event_index)
             );
 
             dumpEvent(m_eventbuffer, tmp_offset, calc_event_size);
