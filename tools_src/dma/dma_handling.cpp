@@ -398,6 +398,55 @@ event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportb
     return (uint32_t*) (m_eventbuffer) + reportbuffer->offset;
 }
 
+int
+event_sanity_checker::checkPattern
+(
+             uint32_t                 *event,
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    uint32_t calc_event_size = calculatedEventSize(report_buffer);
+    uint64_t offset          = dwordOffset(report_buffer);
+
+    switch(m_pattern_mode)
+    {
+        case PG_PATTERN_RAMP: /* Data pattern is a ramp */
+        {
+            for(m_event_index = 8; m_event_index < calc_event_size;m_event_index++)
+            {
+                if ((uint32_t) * (event + m_event_index) != (m_event_index - 8) )
+                {
+                    DEBUG_PRINTF
+                    (
+                        PDADEBUG_ERROR,
+                        "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                        report_buffer_index, m_event_index, (m_event_index - 8),
+                        (uint32_t)*(m_eventbuffer + offset + m_event_index)
+                    );
+
+                    return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
+                }
+            }
+        }
+        break;
+
+        default:
+        {
+            printf("ERROR: specified unknown pattern matching algorithm\n");
+            return CHK_PATTERN;
+        }
+    }
+
+    return 0;
+}
+
+uint64_t
+event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buffer)
+{
+    return(report_buffer->offset / 4);
+}
+
 //TODO : this is going to be refactored into a class
 int
 event_sanity_checker::eventSanityCheck
@@ -415,7 +464,7 @@ event_sanity_checker::eventSanityCheck
     //Slated for removal
     uint32_t reported_event_size = reportedEventSize(report_buffer);
     uint32_t calc_event_size = calculatedEventSize(report_buffer);
-    uint64_t tmp_offset = report_buffer->offset / 4;
+    uint64_t tmp_offset = dwordOffset(report_buffer);
 
     m_event_index = 0;
 
@@ -436,37 +485,7 @@ event_sanity_checker::eventSanityCheck
     // checkPattern
     if( m_check_mask & CHK_PATTERN )
     {
-        //retval |=
-
-        switch (m_pattern_mode)
-        {
-            /* Data pattern is a ramp */
-            case PG_PATTERN_RAMP:
-            {
-                // checkPgPattern
-                for(m_event_index=8; m_event_index<calc_event_size; m_event_index++)
-                {
-                    if ( (uint32_t)*(event + m_event_index) != m_event_index-8 )
-                    {
-                        DEBUG_PRINTF
-                        (
-                            PDADEBUG_ERROR,
-                            "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                            report_buffer_index, m_event_index, m_event_index-8, (uint32_t)*(m_eventbuffer + tmp_offset + m_event_index)
-                        );
-
-                        retval |= dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
-                    }
-                }
-            }
-            break;
-
-            default:
-            {
-                printf("ERROR: specified unknown pattern matching algorithm\n");
-                retval |= CHK_PATTERN;
-            }
-        }
+        retval |= checkPattern(event, report_buffer, report_buffer_index);
     }
 
     // compareWithReferenceDdlFile

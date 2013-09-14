@@ -235,6 +235,14 @@ class event_sanity_checker
             volatile librorc_event_descriptor *reportbuffer
         );
 
+        int
+        checkPattern
+        (
+                     uint32_t                 *event,
+            volatile librorc_event_descriptor *report_buffer,
+                     uint64_t                  report_buffer_index
+        );
+
         uint32_t
         reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
 
@@ -243,6 +251,9 @@ class event_sanity_checker
 
         uint32_t*
         rawEventPointer(volatile librorc_event_descriptor* reportbuffer);
+
+        uint64_t
+        dwordOffset(volatile librorc_event_descriptor* report_buffer);
 
 };
 
