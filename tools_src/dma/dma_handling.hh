@@ -267,6 +267,18 @@ class event_sanity_checker
                      uint64_t                  report_buffer_index
         );
 
+        /**
+         * make sure EventIDs increment with each event.
+         * missing EventIDs are an indication of lost event data
+         */
+        int
+        checkForLostEvents
+        (
+                     int64_t                   last_id,
+            volatile librorc_event_descriptor *report_buffer,
+                     uint64_t                  report_buffer_index
+        );
+
         uint32_t
         reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
 

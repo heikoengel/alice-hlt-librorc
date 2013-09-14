@@ -414,6 +414,34 @@ event_sanity_checker::getEventIdFromCdh(uint64_t tmp_offset)
     return cur_event_id;
 }
 
+int
+event_sanity_checker::checkForLostEvents
+(
+             int64_t                   last_id,
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    uint64_t offset       = dwordOffset(report_buffer);
+    uint64_t cur_event_id = getEventIdFromCdh(offset);
+
+    if
+    (
+        (last_id != -1) && (cur_event_id & 0xfffffffff)
+        !=
+        ((last_id + 1) & 0xfffffffff)
+    )
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
+                        "current ID: %ld\n", m_channel_id, last_id,
+                cur_event_id);
+        return dumpError(report_buffer, report_buffer_index, CHK_ID);
+    }
+
+    return 0;
+}
+
 //TODO : this is going to be refactored into a class
 int
 event_sanity_checker::eventSanityCheck
@@ -461,30 +489,10 @@ event_sanity_checker::eventSanityCheck
         retval |= checkEndOfEvent(event, report_buffer, report_buffer_index);
     }
 
-
-    /*
-     * make sure EventIDs increment with each event.
-     * missing EventIDs are an indication of lost event data
-     */
     if( m_check_mask & CHK_ID )
     {
-        uint64_t cur_event_id = getEventIdFromCdh(tmp_offset);
-
-        if
-        (
-            (last_id != -1) && (cur_event_id & 0xfffffffff)
-            !=
-            ((last_id +1) & 0xfffffffff)
-        )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-                "current ID: %ld\n", m_channel_id, last_id, cur_event_id
-            );
-            retval |=  dumpError(report_buffer, report_buffer_index, CHK_ID);
-        }
+        retval |=
+            checkForLostEvents(last_id, report_buffer, report_buffer_index);
     }
 
     /** return event ID to caller */
