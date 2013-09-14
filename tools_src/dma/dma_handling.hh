@@ -271,9 +271,9 @@ class event_sanity_checker
         int
         checkForLostEvents
         (
-                     int64_t                   last_id,
             volatile librorc_event_descriptor *report_buffer,
-                     uint64_t                  report_buffer_index
+                     uint64_t                  report_buffer_index,
+                     int64_t                   last_id
         );
 
         uint32_t

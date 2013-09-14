@@ -455,7 +455,7 @@ event_sanity_checker::eventSanityCheck
 
     if( (m_check_mask & CHK_ID) )
     {
-        retval |= checkForLostEvents(last_id, report_buffer, report_buffer_index);
+        retval |= checkForLostEvents(report_buffer, report_buffer_index, last_id);
     }
 
     /** return event ID to caller */
@@ -705,9 +705,9 @@ event_sanity_checker::checkEndOfEvent
 int
 event_sanity_checker::checkForLostEvents
 (
-             int64_t                   last_id,
     volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+             uint64_t                  report_buffer_index,
+             int64_t                   last_id
 )
 {
     uint64_t offset       = dwordOffset(report_buffer);
