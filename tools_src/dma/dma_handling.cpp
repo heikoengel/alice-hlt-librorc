@@ -404,49 +404,7 @@ event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buff
     return(report_buffer->offset / 4);
 }
 
-int
-event_sanity_checker::compareWithReferenceDdlFile
-(
-             uint32_t                 *event,
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
-)
-{
-    int      retval          = 0;
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
 
-    if( ((uint64_t) calc_event_size << 2) != m_ddl_reference_size )
-    {
-        DEBUG_PRINTF
-        (
-            PDADEBUG_ERROR,
-            "ERROR: Eventsize %lx does not match "
-            "reference DDL file size %lx\n",
-            ((uint64_t) calc_event_size << 2),
-            m_ddl_reference_size
-        );
-        retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
-    }
-
-    for(m_event_index = 0; m_event_index<calc_event_size; m_event_index++)
-    {
-        if( event[m_event_index] != m_ddl_reference[m_event_index] )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index,
-                m_event_index,
-                m_ddl_reference[m_event_index],
-                event[m_event_index]
-            );
-            retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
-        }
-    }
-
-    return retval;
-}
 
 //TODO : this is going to be refactored into a class
 int
@@ -710,3 +668,50 @@ event_sanity_checker::checkPattern
 
     return 0;
 }
+
+
+
+int
+event_sanity_checker::compareWithReferenceDdlFile
+(
+             uint32_t                 *event,
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    int      retval          = 0;
+    uint32_t calc_event_size = calculatedEventSize(report_buffer);
+
+    if( ((uint64_t) calc_event_size << 2) != m_ddl_reference_size )
+    {
+        DEBUG_PRINTF
+        (
+            PDADEBUG_ERROR,
+            "ERROR: Eventsize %lx does not match "
+            "reference DDL file size %lx\n",
+            ((uint64_t) calc_event_size << 2),
+            m_ddl_reference_size
+        );
+        retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
+    }
+
+    for(m_event_index = 0; m_event_index<calc_event_size; m_event_index++)
+    {
+        if( event[m_event_index] != m_ddl_reference[m_event_index] )
+        {
+            DEBUG_PRINTF
+            (
+                PDADEBUG_ERROR,
+                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                report_buffer_index,
+                m_event_index,
+                m_ddl_reference[m_event_index],
+                event[m_event_index]
+            );
+            retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
+        }
+    }
+
+    return retval;
+}
+
