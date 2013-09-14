@@ -222,7 +222,7 @@ class event_sanity_checker
         int
         compareCalculatedToReportedEventSizes
         (
-                     volatile librorc_event_descriptor *reportbuffer,
+            volatile librorc_event_descriptor *reportbuffer,
                      uint64_t                  report_buffer_index
         );
 
@@ -232,8 +232,8 @@ class event_sanity_checker
         int
         checkStartOfEvent
         (
-                     uint64_t                  report_buffer_index,
-            volatile librorc_event_descriptor *reportbuffer
+            volatile librorc_event_descriptor *reportbuffer,
+                     uint64_t                  report_buffer_index
         );
 
         int

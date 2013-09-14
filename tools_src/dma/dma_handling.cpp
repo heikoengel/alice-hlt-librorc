@@ -433,14 +433,12 @@ event_sanity_checker::eventSanityCheck
 
     if(m_check_mask & CHK_SIZES)
     {
-        retval |=
-            compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
+        retval |= compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
     }
 
     if( (m_check_mask & CHK_SOE)  )
     {
-        retval |=
-            checkStartOfEvent(report_buffer_index, report_buffer);
+        retval |= checkStartOfEvent(report_buffer, report_buffer_index);
     }
 
     if( (m_check_mask & CHK_PATTERN) )
@@ -568,8 +566,8 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
 int
 event_sanity_checker::checkStartOfEvent
 (
-             uint64_t                  report_buffer_index,
-    volatile librorc_event_descriptor *report_buffer
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
 )
 {
     uint32_t *event = rawEventPointer(report_buffer);
