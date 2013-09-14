@@ -443,21 +443,21 @@ event_sanity_checker::eventSanityCheck
 
     if( (m_check_mask & CHK_PATTERN) )
     {
-        retval |= checkPattern(event, report_buffer, report_buffer_index);
+        retval |= checkPattern(report_buffer, report_buffer_index);
     }
 
-    if( m_check_mask & CHK_FILE )
+    if( (m_check_mask & CHK_FILE) )
     {
         retval |=
             compareWithReferenceDdlFile(event, report_buffer, report_buffer_index);
     }
 
-    if( m_check_mask & CHK_EOE )
+    if( (m_check_mask & CHK_EOE) )
     {
         retval |= checkEndOfEvent(event, report_buffer, report_buffer_index);
     }
 
-    if( m_check_mask & CHK_ID )
+    if( (m_check_mask & CHK_ID) )
     {
         retval |=
             checkForLostEvents(last_id, report_buffer, report_buffer_index);
@@ -591,12 +591,12 @@ event_sanity_checker::checkStartOfEvent
 int
 event_sanity_checker::checkPattern
 (
-             uint32_t                 *event,
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
+    uint32_t *event           = rawEventPointer(report_buffer);
+    uint32_t  calc_event_size = calculatedEventSize(report_buffer);
 
     switch(m_pattern_mode)
     {
