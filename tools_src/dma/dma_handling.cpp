@@ -376,43 +376,6 @@ event_sanity_checker::dumpError
     return check_id;
 }
 
-int
-event_sanity_checker::compareCalculatedToReportedEventSizes
-(
-             uint64_t                  report_buffer_index,
-    volatile librorc_event_descriptor *report_buffer
-)
-{
-    int retval = 0;
-
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
-
-    /** Bit31 of calc_event_size is read completion timeout flag */
-    uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
-
-    if (timeout_flag)
-    {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
-                m_channel_id, report_buffer_index);
-        retval |= CHK_SIZES;
-    }
-    else if (calc_event_size != reported_event_size)
-    {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] sizes do not match: \n"
-                        "calculated: 0x%x, reported: 0x%x\n"
-                        "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
-                report_buffer_index, calc_event_size, reported_event_size,
-                report_buffer->offset,
-                report_buffer_index * sizeof(librorc_event_descriptor));
-        retval |= CHK_SIZES;
-    }
-
-    return retval;
-}
-
 uint32_t
 event_sanity_checker::reportedEventSize
 (volatile librorc_event_descriptor *reportbuffer)
@@ -429,6 +392,39 @@ event_sanity_checker::calculatedEventSize
     return(reportbuffer->calc_event_size & 0x3fffffff);
 }
 
+int
+event_sanity_checker::checkStartOfEvent
+(
+    uint64_t report_buffer_index,
+    volatile librorc_event_descriptor*& reportbuffer
+)
+{
+    int retval = 0;
+    uint32_t *event = rawEventPointer(reportbuffer);
+
+    /** Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
+     *  see also http://cds.cern.ch/record/1027339?ln=en
+     */
+    if ((uint32_t) * (event) != 0xffffffff)
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
+                        "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
+                (uint32_t) * (event), reportbuffer->offset,
+                report_buffer_index * sizeof(librorc_event_descriptor));
+
+        retval = dumpError(reportbuffer, report_buffer_index, CHK_SOE);
+    }
+
+    return retval;
+}
+
+uint32_t*
+event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportbuffer)
+{
+    return (uint32_t*) (m_eventbuffer) + reportbuffer->offset;
+}
+
 //TODO : this is going to be refactored into a class
 int
 event_sanity_checker::eventSanityCheck
@@ -442,7 +438,7 @@ event_sanity_checker::eventSanityCheck
     //CONSTRUCTOR
     uint64_t offset = reportbuffer->offset / 4;
     uint32_t j;
-    uint32_t *event = (uint32_t *)m_eventbuffer + reportbuffer->offset;
+    uint32_t *event = rawEventPointer(reportbuffer);
     uint64_t cur_event_id;
     int retval = 0;
 
@@ -457,24 +453,11 @@ event_sanity_checker::eventSanityCheck
 
     if( (m_check_mask & CHK_SOE)  )
     {
-        // checkStartOfEvent
+
         // Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
         // see also http://cds.cern.ch/record/1027339?ln=en
-        if((uint32_t)*(event)!=0xffffffff)
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
-                "offset=%ld, rbdm_offset=%ld\n",
-                report_buffer_index, (uint32_t)*(event),
-                reportbuffer->offset,
-                report_buffer_index*sizeof(librorc_event_descriptor)
-            );
-
-            retval |=
-                dumpError(reportbuffer, report_buffer_index, CHK_SOE);
-        }
+        retval |=
+            checkStartOfEvent(report_buffer_index, reportbuffer);
     }
 
     // checkPattern
@@ -665,4 +648,43 @@ event_sanity_checker::dumpReportBufferEntry
         reportbuffer->reported_event_size,
         reportbuffer->offset
     );
+}
+
+
+
+int
+event_sanity_checker::compareCalculatedToReportedEventSizes
+(
+             uint64_t                  report_buffer_index,
+    volatile librorc_event_descriptor *report_buffer
+)
+{
+    int retval = 0;
+
+    uint32_t reported_event_size = reportedEventSize(report_buffer);
+    uint32_t calc_event_size = calculatedEventSize(report_buffer);
+
+    /** Bit31 of calc_event_size is read completion timeout flag */
+    uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
+
+    if (timeout_flag)
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
+                m_channel_id, report_buffer_index);
+        retval |= CHK_SIZES;
+    }
+    else if (calc_event_size != reported_event_size)
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "CH%2d ERROR: Event[%ld] sizes do not match: \n"
+                        "calculated: 0x%x, reported: 0x%x\n"
+                        "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
+                report_buffer_index, calc_event_size, reported_event_size,
+                report_buffer->offset,
+                report_buffer_index * sizeof(librorc_event_descriptor));
+        retval |= CHK_SIZES;
+    }
+
+    return retval;
 }

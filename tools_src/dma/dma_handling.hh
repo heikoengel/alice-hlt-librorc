@@ -224,11 +224,21 @@ class event_sanity_checker
             volatile librorc_event_descriptor *reportbuffer
         );
 
+        int
+        checkStartOfEvent
+        (
+            uint64_t report_buffer_index,
+            volatile librorc_event_descriptor*& reportbuffer
+        );
+
         uint32_t
         reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
 
         uint32_t
         calculatedEventSize(volatile librorc_event_descriptor *reportbuffer);
+
+        uint32_t*
+        rawEventPointer(volatile librorc_event_descriptor* reportbuffer);
 
 };
 
