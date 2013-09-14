@@ -160,6 +160,7 @@ class event_sanity_checker
              m_check_mask         = check_mask;
              m_ddl_reference      = ddl_reference;
              m_ddl_reference_size = ddl_reference_size;
+             m_event_index        = 0;
          };
 
         ~event_sanity_checker(){};
