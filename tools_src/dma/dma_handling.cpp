@@ -404,6 +404,15 @@ event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buff
     return(report_buffer->offset / 4);
 }
 
+uint64_t
+event_sanity_checker::getEventIdFromCdh(uint64_t tmp_offset)
+{
+
+    uint64_t cur_event_id = (uint32_t) * (m_eventbuffer + tmp_offset + 2) & 0x00ffffff;
+    cur_event_id <<= 12;
+    cur_event_id |= (uint32_t) * (m_eventbuffer + tmp_offset + 1) & 0x00000fff;
+    return cur_event_id;
+}
 
 //TODO : this is going to be refactored into a class
 int
@@ -452,33 +461,34 @@ event_sanity_checker::eventSanityCheck
         retval |= checkEndOfEvent(event, report_buffer, report_buffer_index);
     }
 
-    // get EventID from CDH:
-    // lower 12 bits in CHD[1][11:0]
-    // upper 24 bits in CDH[2][23:0]
-    uint64_t cur_event_id = (uint32_t)*(m_eventbuffer + tmp_offset + 2) & 0x00ffffff;
-    cur_event_id <<= 12;
-    cur_event_id |= (uint32_t)*(m_eventbuffer + tmp_offset + 1) & 0x00000fff;
 
-    // make sure EventIDs increment with each event.
-    // missing EventIDs are an indication of lost event data
-    if
-    (
-        (m_check_mask & CHK_ID) && (last_id != -1) && (cur_event_id & 0xfffffffff)
-        !=
-        ((last_id +1) & 0xfffffffff)
-    )
+    /*
+     * make sure EventIDs increment with each event.
+     * missing EventIDs are an indication of lost event data
+     */
+    if( m_check_mask & CHK_ID )
     {
-        DEBUG_PRINTF
+        uint64_t cur_event_id = getEventIdFromCdh(tmp_offset);
+
+        if
         (
-            PDADEBUG_ERROR,
-            "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-            "current ID: %ld\n", m_channel_id, last_id, cur_event_id
-        );
-        retval |=  dumpError(report_buffer, report_buffer_index, CHK_ID);
+            (last_id != -1) && (cur_event_id & 0xfffffffff)
+            !=
+            ((last_id +1) & 0xfffffffff)
+        )
+        {
+            DEBUG_PRINTF
+            (
+                PDADEBUG_ERROR,
+                "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
+                "current ID: %ld\n", m_channel_id, last_id, cur_event_id
+            );
+            retval |=  dumpError(report_buffer, report_buffer_index, CHK_ID);
+        }
     }
 
     /** return event ID to caller */
-    *event_id = cur_event_id;
+    *event_id = getEventIdFromCdh(tmp_offset);
 
     return retval;
 }

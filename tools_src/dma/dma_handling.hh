@@ -279,6 +279,14 @@ class event_sanity_checker
         uint64_t
         dwordOffset(volatile librorc_event_descriptor* report_buffer);
 
+        /**
+         *  Get EventID from CDH:
+         *  lower 12 bits in CHD[1][11:0]
+         *  upper 24 bits in CDH[2][23:0]
+         */
+        uint64_t
+        getEventIdFromCdh(uint64_t tmp_offset);
+
 };
 
 #endif /** DMA_HANDLING_H */
