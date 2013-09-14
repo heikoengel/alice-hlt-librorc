@@ -224,18 +224,21 @@ class event_sanity_checker
             volatile librorc_event_descriptor *reportbuffer
         );
 
+        /** Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
+         *  see also http://cds.cern.ch/record/1027339?ln=en
+         */
         int
         checkStartOfEvent
         (
-            uint64_t report_buffer_index,
-            volatile librorc_event_descriptor*& reportbuffer
+                     uint64_t                  report_buffer_index,
+            volatile librorc_event_descriptor *reportbuffer
         );
 
         uint32_t
         reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
 
         uint32_t
-        calculatedEventSize(volatile librorc_event_descriptor *reportbuffer);
+        calculatedEventSize(volatile librorc_event_descriptor *report_buffer);
 
         uint32_t*
         rawEventPointer(volatile librorc_event_descriptor* reportbuffer);

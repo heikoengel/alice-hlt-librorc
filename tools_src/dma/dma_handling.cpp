@@ -386,37 +386,33 @@ event_sanity_checker::reportedEventSize
 
 uint32_t
 event_sanity_checker::calculatedEventSize
-(volatile librorc_event_descriptor *reportbuffer)
+(volatile librorc_event_descriptor *report_buffer)
 {
     /** upper two bits are reserved for flags */
-    return(reportbuffer->calc_event_size & 0x3fffffff);
+    return(report_buffer->calc_event_size & 0x3fffffff);
 }
 
 int
 event_sanity_checker::checkStartOfEvent
 (
-    uint64_t report_buffer_index,
-    volatile librorc_event_descriptor*& reportbuffer
+             uint64_t                  report_buffer_index,
+    volatile librorc_event_descriptor *report_buffer
 )
 {
-    int retval = 0;
-    uint32_t *event = rawEventPointer(reportbuffer);
+    uint32_t *event = rawEventPointer(report_buffer);
 
-    /** Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
-     *  see also http://cds.cern.ch/record/1027339?ln=en
-     */
     if ((uint32_t) * (event) != 0xffffffff)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
                         "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
-                (uint32_t) * (event), reportbuffer->offset,
+                (uint32_t) * (event), report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
 
-        retval = dumpError(reportbuffer, report_buffer_index, CHK_SOE);
+        return dumpError(report_buffer, report_buffer_index, CHK_SOE);
     }
 
-    return retval;
+    return 0;
 }
 
 uint32_t*
@@ -453,9 +449,6 @@ event_sanity_checker::eventSanityCheck
 
     if( (m_check_mask & CHK_SOE)  )
     {
-
-        // Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
-        // see also http://cds.cern.ch/record/1027339?ln=en
         retval |=
             checkStartOfEvent(report_buffer_index, reportbuffer);
     }
