@@ -360,6 +360,21 @@ printFinalStatusLine
 
 
 ///////////////////////////
+int
+event_sanity_checker::dumpError
+(
+             uint64_t                  offset,
+             uint32_t                  reported_event_size,
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    dumpEvent(m_eventbuffer, offset, reported_event_size);
+    dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
+    return CHK_SOE;
+}
+
+
 
 //TODO : this is going to be refactored into a class
 int
@@ -430,10 +445,7 @@ event_sanity_checker::eventSanityCheck
             report_buffer_index*sizeof(librorc_event_descriptor)
         );
 
-        dumpEvent(m_eventbuffer, offset, reported_event_size);
-        dumpReportBufferEntry(reportbuffer, report_buffer_index, m_channel_id);
-
-        retval |= CHK_SOE;
+        retval |= dumpError(offset, reported_event_size, reportbuffer, report_buffer_index);
     }
 
     // checkPattern

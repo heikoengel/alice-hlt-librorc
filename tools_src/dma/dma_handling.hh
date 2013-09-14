@@ -208,6 +208,15 @@ class event_sanity_checker
                  uint32_t  m_check_mask;
                  uint32_t *m_ddl_reference;
                  uint64_t  m_ddl_reference_size;
+
+        int
+        dumpError
+        (
+                     uint64_t                  offset,
+                     uint32_t                  reported_event_size,
+            volatile librorc_event_descriptor *report_buffer,
+                     uint64_t                  report_buffer_index
+        );
 };
 
 #endif /** DMA_HANDLING_H */
