@@ -215,8 +215,23 @@ class event_sanity_checker
                      uint64_t                  offset,
                      uint32_t                  reported_event_size,
             volatile librorc_event_descriptor *report_buffer,
-                     uint64_t                  report_buffer_index
+                     uint64_t                  report_buffer_index,
+                     int32_t                   check_id
         );
+
+        int
+        compareCalculatedToReportedEventSizes
+        (
+                     uint64_t                  report_buffer_index,
+            volatile librorc_event_descriptor *reportbuffer
+        );
+
+        uint32_t
+        reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
+
+        uint32_t
+        calculatedEventSize(volatile librorc_event_descriptor *reportbuffer);
+
 };
 
 #endif /** DMA_HANDLING_H */

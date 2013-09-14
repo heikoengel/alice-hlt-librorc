@@ -366,15 +366,67 @@ event_sanity_checker::dumpError
              uint64_t                  offset,
              uint32_t                  reported_event_size,
     volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+             uint64_t                  report_buffer_index,
+             int32_t                   check_id
 )
 {
     dumpEvent(m_eventbuffer, offset, reported_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-    return CHK_SOE;
+    return check_id;
 }
 
+int
+event_sanity_checker::compareCalculatedToReportedEventSizes
+(
+             uint64_t                  report_buffer_index,
+    volatile librorc_event_descriptor *reportbuffer
+)
+{
+    int retval = 0;
 
+    uint32_t reported_event_size = reportedEventSize(reportbuffer);
+    uint32_t calc_event_size = calculatedEventSize(reportbuffer);
+
+    /** Bit31 of calc_event_size is read completion timeout flag */
+    uint32_t timeout_flag = (reportbuffer->calc_event_size>>31);
+
+    if (timeout_flag)
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
+                m_channel_id, report_buffer_index);
+        retval |= CHK_SIZES;
+    }
+    else if (calc_event_size != reported_event_size)
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR,
+                "CH%2d ERROR: Event[%ld] sizes do not match: \n"
+                        "calculated: 0x%x, reported: 0x%x\n"
+                        "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
+                report_buffer_index, calc_event_size, reported_event_size,
+                reportbuffer->offset,
+                report_buffer_index * sizeof(librorc_event_descriptor));
+        retval |= CHK_SIZES;
+    }
+
+    return retval;
+}
+
+uint32_t
+event_sanity_checker::reportedEventSize
+(volatile librorc_event_descriptor *reportbuffer)
+{
+    /** upper two bits are reserved for flags */
+    return(reportbuffer->reported_event_size & 0x3fffffff);
+}
+
+uint32_t
+event_sanity_checker::calculatedEventSize
+(volatile librorc_event_descriptor *reportbuffer)
+{
+    /** upper two bits are reserved for flags */
+    return(reportbuffer->calc_event_size & 0x3fffffff);
+}
 
 //TODO : this is going to be refactored into a class
 int
@@ -393,59 +445,37 @@ event_sanity_checker::eventSanityCheck
     uint64_t cur_event_id;
     int retval = 0;
 
-    /** upper two bits of the sizes are reserved for flags */
-    uint32_t reported_event_size = (reportbuffer->reported_event_size & 0x3fffffff);
-    uint32_t calc_event_size = (reportbuffer->calc_event_size & 0x3fffffff);
-
-    /** Bit31 of calc_event_size is read completion timeout flag */
-    uint32_t timeout_flag = (reportbuffer->calc_event_size>>31);
+    uint32_t reported_event_size = reportedEventSize(reportbuffer);
+    uint32_t calc_event_size = calculatedEventSize(reportbuffer);
 
 
     // compareCalculatedToReportedEventSizes
     if(m_check_mask & CHK_SIZES)
     {
-        if (timeout_flag)
+        retval |=
+            compareCalculatedToReportedEventSizes(report_buffer_index, reportbuffer);
+    }
+
+    if( (m_check_mask & CHK_SOE)  )
+    {
+        // checkStartOfEvent
+        // Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
+        // see also http://cds.cern.ch/record/1027339?ln=en
+        if((uint32_t)*(event)!=0xffffffff)
         {
             DEBUG_PRINTF
             (
                 PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
-                m_channel_id, report_buffer_index
-            );
-            retval |= CHK_SIZES;
-        }
-        else if(calc_event_size != reported_event_size)
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] sizes do not match: \n"
-                "calculated: 0x%x, reported: 0x%x\n"
-                "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id, report_buffer_index,
-                calc_event_size,reported_event_size,
+                "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
+                "offset=%ld, rbdm_offset=%ld\n",
+                report_buffer_index, (uint32_t)*(event),
                 reportbuffer->offset,
                 report_buffer_index*sizeof(librorc_event_descriptor)
             );
-            retval |= CHK_SIZES;
+
+            retval |=
+                dumpError(offset, reported_event_size, reportbuffer, report_buffer_index, CHK_SOE);
         }
-    }
-
-    // checkStartOfEvent
-    // Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
-    // see also http://cds.cern.ch/record/1027339?ln=en
-    if( (m_check_mask & CHK_SOE) && ((uint32_t)*(event)!=0xffffffff) )
-    {
-        DEBUG_PRINTF
-        (
-            PDADEBUG_ERROR,
-            "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
-            "offset=%ld, rbdm_offset=%ld\n",
-            report_buffer_index, (uint32_t)*(event),
-            reportbuffer->offset,
-            report_buffer_index*sizeof(librorc_event_descriptor)
-        );
-
-        retval |= dumpError(offset, reported_event_size, reportbuffer, report_buffer_index);
     }
 
     // checkPattern
