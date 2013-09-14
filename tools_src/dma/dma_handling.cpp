@@ -416,18 +416,14 @@ event_sanity_checker::eventSanityCheck
              uint64_t                 *event_id  //TODO : simply return this later
 )
 {
-    //CONSTRUCTOR
-    uint32_t *event = rawEventPointer(report_buffer);
-    uint64_t cur_event_id;
+    m_event_index = 0;
+    int retval = 0;
 
     //Slated for removal
     uint32_t reported_event_size = reportedEventSize(report_buffer);
     uint32_t calc_event_size = calculatedEventSize(report_buffer);
     uint64_t tmp_offset = dwordOffset(report_buffer);
-
-    m_event_index = 0;
-
-    int retval = 0;
+    uint32_t *event = rawEventPointer(report_buffer);
 
     if(m_check_mask & CHK_SIZES)
     {
@@ -479,7 +475,7 @@ event_sanity_checker::eventSanityCheck
     // get EventID from CDH:
     // lower 12 bits in CHD[1][11:0]
     // upper 24 bits in CDH[2][23:0]
-    cur_event_id = (uint32_t)*(m_eventbuffer + tmp_offset + 2) & 0x00ffffff;
+    uint64_t cur_event_id = (uint32_t)*(m_eventbuffer + tmp_offset + 2) & 0x00ffffff;
     cur_event_id <<= 12;
     cur_event_id |= (uint32_t)*(m_eventbuffer + tmp_offset + 1) & 0x00000fff;
 
