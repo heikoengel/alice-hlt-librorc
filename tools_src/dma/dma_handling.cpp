@@ -416,7 +416,6 @@ event_sanity_checker::getEventIdFromCdh(uint64_t tmp_offset)
 
 
 
-//TODO : this is going to be refactored into a class
 int
 event_sanity_checker::eventSanityCheck
 (
@@ -435,7 +434,7 @@ event_sanity_checker::eventSanityCheck
     if(m_check_mask & CHK_SIZES)
     {
         retval |=
-            compareCalculatedToReportedEventSizes(report_buffer_index, report_buffer);
+            compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
     }
 
     if( (m_check_mask & CHK_SOE)  )
@@ -532,14 +531,14 @@ event_sanity_checker::dumpReportBufferEntry
 int
 event_sanity_checker::compareCalculatedToReportedEventSizes
 (
-             uint64_t                  report_buffer_index,
-    volatile librorc_event_descriptor *report_buffer
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
 )
 {
     uint32_t reported_event_size = reportedEventSize(report_buffer);
     uint32_t calc_event_size = calculatedEventSize(report_buffer);
 
-    /** Bit31 of calc_event_size is read completion timeout flag */
+    /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
 
     if (timeout_flag)

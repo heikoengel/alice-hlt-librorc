@@ -222,8 +222,8 @@ class event_sanity_checker
         int
         compareCalculatedToReportedEventSizes
         (
-                     uint64_t                  report_buffer_index,
-            volatile librorc_event_descriptor *reportbuffer
+                     volatile librorc_event_descriptor *reportbuffer,
+                     uint64_t                  report_buffer_index
         );
 
         /** Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
