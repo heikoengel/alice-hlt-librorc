@@ -364,12 +364,13 @@ int
 event_sanity_checker::dumpError
 (
              uint64_t                  offset,
-             uint32_t                  reported_event_size,
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index,
              int32_t                   check_id
 )
 {
+    uint32_t reported_event_size = reportedEventSize(report_buffer);
+
     dumpEvent(m_eventbuffer, offset, reported_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
     return check_id;
@@ -379,16 +380,16 @@ int
 event_sanity_checker::compareCalculatedToReportedEventSizes
 (
              uint64_t                  report_buffer_index,
-    volatile librorc_event_descriptor *reportbuffer
+    volatile librorc_event_descriptor *report_buffer
 )
 {
     int retval = 0;
 
-    uint32_t reported_event_size = reportedEventSize(reportbuffer);
-    uint32_t calc_event_size = calculatedEventSize(reportbuffer);
+    uint32_t reported_event_size = reportedEventSize(report_buffer);
+    uint32_t calc_event_size = calculatedEventSize(report_buffer);
 
     /** Bit31 of calc_event_size is read completion timeout flag */
-    uint32_t timeout_flag = (reportbuffer->calc_event_size>>31);
+    uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
 
     if (timeout_flag)
     {
@@ -404,7 +405,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
                         "calculated: 0x%x, reported: 0x%x\n"
                         "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
                 report_buffer_index, calc_event_size, reported_event_size,
-                reportbuffer->offset,
+                report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
         retval |= CHK_SIZES;
     }
@@ -448,8 +449,6 @@ event_sanity_checker::eventSanityCheck
     uint32_t reported_event_size = reportedEventSize(reportbuffer);
     uint32_t calc_event_size = calculatedEventSize(reportbuffer);
 
-
-    // compareCalculatedToReportedEventSizes
     if(m_check_mask & CHK_SIZES)
     {
         retval |=
@@ -474,7 +473,7 @@ event_sanity_checker::eventSanityCheck
             );
 
             retval |=
-                dumpError(offset, reported_event_size, reportbuffer, report_buffer_index, CHK_SOE);
+                dumpError(offset, reportbuffer, report_buffer_index, CHK_SOE);
         }
     }
 
