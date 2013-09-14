@@ -252,6 +252,21 @@ class event_sanity_checker
                      uint64_t                  report_buffer_index
         );
 
+        /**
+         * 32 bit DMA mode
+         *
+         * DMA data is written in multiples of 32 bit. A 32bit EOE word
+         * is directly attached after the last event data word.
+         * The EOE word contains the EOE status word received from the DIU
+        **/
+        int
+        checkEndOfEvent
+        (
+                     uint32_t                 *event,
+            volatile librorc_event_descriptor *report_buffer,
+                     uint64_t                  report_buffer_index
+        );
+
         uint32_t
         reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
 

@@ -404,7 +404,32 @@ event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buff
     return(report_buffer->offset / 4);
 }
 
+int
+event_sanity_checker::checkEndOfEvent
+(
+             uint32_t                 *event,
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
+    uint32_t reported_event_size = reportedEventSize(report_buffer);
 
+    if( (uint32_t) *(event + calc_event_size) != reported_event_size)
+    {
+        DEBUG_PRINTF
+        (
+            PDADEBUG_ERROR,
+            "ERROR: could not find matching reported event size "
+            "at Event[%d] expected %08x found %08x\n",
+            m_event_index,
+            calc_event_size,
+            (uint32_t) * (event + m_event_index)
+        );
+        return dumpError(report_buffer, report_buffer_index, CHK_EOE);
+    }
+    return 0;
+}
 
 //TODO : this is going to be refactored into a class
 int
@@ -455,21 +480,10 @@ event_sanity_checker::eventSanityCheck
     * is directly attached after the last event data word.
     * The EOE word contains the EOE status word received from the DIU
     **/
-    //checkEndOfEvent
+
     if( m_check_mask & CHK_EOE )
     {
-        if( (uint32_t)*(event + calc_event_size) != reported_event_size )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: could not find matching reported event size "
-                "at Event[%d] expected %08x found %08x\n",
-                m_event_index, calc_event_size,
-                (uint32_t)*(event + m_event_index)
-            );
-            retval |=  dumpError(report_buffer, report_buffer_index, CHK_EOE);
-        }
+        retval |= checkEndOfEvent(event, report_buffer, report_buffer_index);
     }
 
     // get EventID from CDH:
