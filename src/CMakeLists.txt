@@ -10,6 +10,7 @@ set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/sysmon.cpp"
 "${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
 "${LIBRORC_SOURCE_DIR}/src/event_stream.cpp"
+"${LIBRORC_SOURCE_DIR}/src/event_sanity_checker.cpp"
 )
 
 add_library(LIBRORC_OBJECTS OBJECT ${LIBRORC_LIBRARY_SOURCE})
