@@ -45,7 +45,8 @@ DMA_ABORT_HANDLER
 
 
 
-int event_sanity_check
+int
+event_sanity_check
 (
     volatile librorc_event_descriptor *reportbuffer,
     volatile uint32_t                 *eventbuffer,
@@ -63,13 +64,13 @@ int event_sanity_check
     event_sanity_checker
         checker(eventbuffer, channel_id, pattern_mode, check_mask, ddl_reference, ddl_reference_size);
 
-    return  checker.eventSanityCheck
-            (
-                reportbuffer,
-                report_buffer_index,
-                last_id,
-                event_id
-            );
+    *event_id
+        = checker.eventSanityCheck
+          (
+              reportbuffer,
+              report_buffer_index,
+              last_id
+          );
 
 }
 

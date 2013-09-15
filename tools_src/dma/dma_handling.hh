@@ -166,12 +166,12 @@ class event_sanity_checker
         ~event_sanity_checker(){};
 
 
-        int eventSanityCheck
+        uint64_t
+        eventSanityCheck
         (
             volatile librorc_event_descriptor *reportbuffer,
                      uint64_t                  report_buffer_index,
-                     int64_t                   last_id,
-                     uint64_t                 *event_id  //TODO : simply return this later
+                     int64_t                   last_id
         );
 
         /**

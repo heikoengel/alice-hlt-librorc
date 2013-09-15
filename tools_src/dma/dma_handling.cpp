@@ -360,13 +360,12 @@ printFinalStatusLine
 
 
 ///////////////////////////
-int
+uint64_t
 event_sanity_checker::eventSanityCheck
 (
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index,
-             int64_t                   last_id,
-             uint64_t                 *event_id  //TODO : simply return this later
+             int64_t                   last_id
 )
 {
     m_event_index = 0;
@@ -379,10 +378,7 @@ event_sanity_checker::eventSanityCheck
     retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
 
-    /** TODO : _return_ event ID to caller */
-    *event_id = getEventIdFromCdh(dwordOffset(report_buffer));
-
-    return retval;
+    return getEventIdFromCdh(dwordOffset(report_buffer));
 }
 
 
@@ -545,6 +541,8 @@ event_sanity_checker::checkPatternRamp
         }
     }
 }
+
+
 
 int
 event_sanity_checker::checkPattern
