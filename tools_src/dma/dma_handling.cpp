@@ -361,62 +361,6 @@ printFinalStatusLine
 
 ///////////////////////////
 int
-event_sanity_checker::dumpError
-(
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index,
-             int32_t                   check_id
-)
-{
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
-    uint64_t offset              = (report_buffer->offset / 4);
-
-    dumpEvent(m_eventbuffer, offset, reported_event_size);
-    dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-    return check_id;
-}
-
-uint32_t
-event_sanity_checker::reportedEventSize
-(volatile librorc_event_descriptor *reportbuffer)
-{
-    /** upper two bits are reserved for flags */
-    return(reportbuffer->reported_event_size & 0x3fffffff);
-}
-
-uint32_t
-event_sanity_checker::calculatedEventSize
-(volatile librorc_event_descriptor *report_buffer)
-{
-    /** upper two bits are reserved for flags */
-    return(report_buffer->calc_event_size & 0x3fffffff);
-}
-
-uint32_t*
-event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportbuffer)
-{
-    return (uint32_t*) (m_eventbuffer) + reportbuffer->offset;
-}
-
-uint64_t
-event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buffer)
-{
-    return(report_buffer->offset / 4);
-}
-
-uint64_t
-event_sanity_checker::getEventIdFromCdh(uint64_t offset)
-{
-
-    uint64_t cur_event_id = (uint32_t) * (m_eventbuffer + offset + 2) & 0x00ffffff;
-    cur_event_id <<= 12;
-    cur_event_id |= (uint32_t) * (m_eventbuffer + offset + 1) & 0x00000fff;
-    return cur_event_id;
-}
-
-
-
-int
 event_sanity_checker::eventSanityCheck
 (
     volatile librorc_event_descriptor *report_buffer,
@@ -494,6 +438,25 @@ event_sanity_checker::dumpReportBufferEntry
         reportbuffer->reported_event_size,
         reportbuffer->offset
     );
+}
+
+
+
+/** PROTECTED METHODS*/
+int
+event_sanity_checker::dumpError
+(
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index,
+             int32_t                   check_id
+)
+{
+    uint32_t reported_event_size = reportedEventSize(report_buffer);
+    uint64_t offset              = (report_buffer->offset / 4);
+
+    dumpEvent(m_eventbuffer, offset, reported_event_size);
+    dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
+    return check_id;
 }
 
 
@@ -704,4 +667,52 @@ event_sanity_checker::checkForLostEvents
         return dumpError(report_buffer, report_buffer_index, CHK_ID);
     }
     return 0;
+}
+
+
+
+uint32_t
+event_sanity_checker::reportedEventSize
+(volatile librorc_event_descriptor *reportbuffer)
+{
+    /** upper two bits are reserved for flags */
+    return(reportbuffer->reported_event_size & 0x3fffffff);
+}
+
+
+
+uint32_t
+event_sanity_checker::calculatedEventSize
+(volatile librorc_event_descriptor *report_buffer)
+{
+    /** upper two bits are reserved for flags */
+    return(report_buffer->calc_event_size & 0x3fffffff);
+}
+
+
+
+uint32_t*
+event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportbuffer)
+{
+    return (uint32_t*) (m_eventbuffer) + reportbuffer->offset;
+}
+
+
+
+uint64_t
+event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buffer)
+{
+    return(report_buffer->offset / 4);
+}
+
+
+
+uint64_t
+event_sanity_checker::getEventIdFromCdh(uint64_t offset)
+{
+
+    uint64_t cur_event_id = (uint32_t) * (m_eventbuffer + offset + 2) & 0x00ffffff;
+    cur_event_id <<= 12;
+    cur_event_id |= (uint32_t) * (m_eventbuffer + offset + 1) & 0x00000fff;
+    return cur_event_id;
 }
