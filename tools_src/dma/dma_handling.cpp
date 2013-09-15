@@ -521,7 +521,30 @@ event_sanity_checker::checkStartOfEvent
     return 0;
 }
 
+int
+event_sanity_checker::checkPatternRamp
+(
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    uint32_t *event           = rawEventPointer(report_buffer);
+    uint32_t  calc_event_size = calculatedEventSize(report_buffer);
 
+    for (m_event_index = 8; m_event_index < calc_event_size; m_event_index++)
+    {
+        if ((uint32_t) * (event + m_event_index) != (m_event_index - 8))
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                    report_buffer_index, m_event_index, (m_event_index - 8),
+                    (uint32_t)
+                            * (m_eventbuffer + dwordOffset(report_buffer)
+                                    + m_event_index));
+            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
+        }
+    }
+}
 
 int
 event_sanity_checker::checkPattern
@@ -535,24 +558,8 @@ event_sanity_checker::checkPattern
 
     switch(m_pattern_mode)
     {
-        case PG_PATTERN_RAMP: /* Data pattern is a ramp */
-        {
-            for(m_event_index = 8; m_event_index < calc_event_size;m_event_index++)
-            {
-                if ((uint32_t) * (event + m_event_index) != (m_event_index - 8) )
-                {
-                    DEBUG_PRINTF
-                    (
-                        PDADEBUG_ERROR,
-                        "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                        report_buffer_index, m_event_index, (m_event_index - 8),
-                        (uint32_t)*(m_eventbuffer + dwordOffset(report_buffer) + m_event_index)
-                    );
-
-                    return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
-                }
-            }
-        }
+        case PG_PATTERN_RAMP:
+        { return( checkPatternRamp(report_buffer, report_buffer_index) ); }
         break;
 
         default:
