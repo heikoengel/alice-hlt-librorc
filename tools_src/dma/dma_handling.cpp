@@ -449,17 +449,17 @@ event_sanity_checker::dumpEvent
 (
     volatile uint32_t *eventbuffer,
     uint64_t offset,
-    uint64_t len
+    uint64_t length
 )
 {
 #ifdef SIM
     uint64_t i = 0;
-    for(i=0;i<len;i++)
+    for(i=0; i<length; i++)
     {
         printf("%03ld: %08x\n", i, (uint32_t)*(eventbuffer + offset +i));
     }
 
-    if(len&0x01)
+    if(length&0x01)
     {
         printf("%03ld: %08x (dummy)\n", i, (uint32_t)*(eventbuffer + offset + i));
         i++;
@@ -481,8 +481,8 @@ void
 event_sanity_checker::dumpReportBufferEntry
 (
     volatile librorc_event_descriptor *reportbuffer,
-             uint64_t                  i,
-             uint32_t                  ch
+             uint64_t                  index,
+             uint32_t                  channel_number
 )
 {
     DEBUG_PRINTF
@@ -491,7 +491,7 @@ event_sanity_checker::dumpReportBufferEntry
         "CH%2d - RB[%3ld]: calc_size=%08x\t"
         "reported_size=%08x\t"
         "offset=%lx\n",
-        ch, i, reportbuffer->calc_event_size,
+        channel_number, index, reportbuffer->calc_event_size,
         reportbuffer->reported_event_size,
         reportbuffer->offset
     );
@@ -507,7 +507,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
 )
 {
     uint32_t reported_event_size = reportedEventSize(report_buffer);
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
+    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
 
     /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
@@ -693,7 +693,7 @@ event_sanity_checker::checkForLostEvents
 
     if
     (
-        (last_id != -1) && (cur_event_id & 0xfffffffff)
+        ((last_id != -1) && (cur_event_id & 0xfffffffff))
         !=
         ((last_id + 1) & 0xfffffffff)
     )
