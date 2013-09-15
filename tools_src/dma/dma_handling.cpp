@@ -378,6 +378,9 @@ event_sanity_checker::eventSanityCheck
     retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
 
+    if(retval != 0)
+    { throw retval; }
+
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }
 
