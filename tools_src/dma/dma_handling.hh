@@ -183,7 +183,7 @@ class event_sanity_checker
         void
         dumpEvent
         (
-            volatile uint32_t *eventbuffer,
+            volatile uint32_t *event_buffer,
             uint64_t offset,
             uint64_t length
         );
@@ -283,7 +283,7 @@ class event_sanity_checker
         calculatedEventSize(volatile librorc_event_descriptor *report_buffer);
 
         uint32_t*
-        rawEventPointer(volatile librorc_event_descriptor* reportbuffer);
+        rawEventPointer(volatile librorc_event_descriptor* report_buffer);
 
         uint64_t
         dwordOffset(volatile librorc_event_descriptor* report_buffer);

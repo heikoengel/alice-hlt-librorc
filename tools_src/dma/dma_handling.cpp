@@ -390,7 +390,7 @@ event_sanity_checker::eventSanityCheck
 void
 event_sanity_checker::dumpEvent
 (
-    volatile uint32_t *eventbuffer,
+    volatile uint32_t *event_buffer,
     uint64_t offset,
     uint64_t length
 )
@@ -399,21 +399,21 @@ event_sanity_checker::dumpEvent
     uint64_t i = 0;
     for(i=0; i<length; i++)
     {
-        printf("%03ld: %08x\n", i, (uint32_t)*(eventbuffer + offset +i));
+        printf("%03ld: %08x\n", i, (uint32_t)*(event_buffer + offset +i));
     }
 
     if(length&0x01)
     {
-        printf("%03ld: %08x (dummy)\n", i, (uint32_t)*(eventbuffer + offset + i));
+        printf("%03ld: %08x (dummy)\n", i, (uint32_t)*(event_buffer + offset + i));
         i++;
     }
 
-    printf("%03ld: EOE reported_event_size: %08x\n", i, (uint32_t)*(eventbuffer + offset + i));
+    printf("%03ld: EOE reported_event_size: %08x\n", i, (uint32_t)*(event_buffer + offset + i));
 
     #if DMA_MODE==128
-        printf("%03ld: EOE calc_event_size: %08x\n", i+1, (uint32_t)*(eventbuffer + offset + i));
-        printf("%03ld: EOE dummy %08x\n", i+2, (uint32_t)*(eventbuffer + offset + i));
-        printf("%03ld: EOE dummy: %08x\n", i+3, (uint32_t)*(eventbuffer + offset + i));
+        printf("%03ld: EOE calc_event_size: %08x\n", i+1, (uint32_t)*(event_buffer + offset + i));
+        printf("%03ld: EOE dummy %08x\n", i+2, (uint32_t)*(event_buffer + offset + i));
+        printf("%03ld: EOE dummy: %08x\n", i+3, (uint32_t)*(event_buffer + offset + i));
     #endif
 #endif
 }
