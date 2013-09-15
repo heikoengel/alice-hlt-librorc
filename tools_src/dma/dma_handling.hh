@@ -294,7 +294,7 @@ class event_sanity_checker
          *  upper 24 bits in CDH[2][23:0]
          */
         uint64_t
-        getEventIdFromCdh(uint64_t tmp_offset);
+        getEventIdFromCdh(uint64_t offset);
 
 };
 

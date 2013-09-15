@@ -405,12 +405,12 @@ event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buff
 }
 
 uint64_t
-event_sanity_checker::getEventIdFromCdh(uint64_t tmp_offset)
+event_sanity_checker::getEventIdFromCdh(uint64_t offset)
 {
 
-    uint64_t cur_event_id = (uint32_t) * (m_eventbuffer + tmp_offset + 2) & 0x00ffffff;
+    uint64_t cur_event_id = (uint32_t) * (m_eventbuffer + offset + 2) & 0x00ffffff;
     cur_event_id <<= 12;
-    cur_event_id |= (uint32_t) * (m_eventbuffer + tmp_offset + 1) & 0x00000fff;
+    cur_event_id |= (uint32_t) * (m_eventbuffer + offset + 1) & 0x00000fff;
     return cur_event_id;
 }
 
