@@ -9,3 +9,4 @@
 #include "librorc/sysmon.hh"
 #include "librorc/dma_channel.hh"
 #include "librorc/event_stream.hh"
+#include "librorc/event_sanity_checker.hh"

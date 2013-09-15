@@ -60,7 +60,7 @@ event_sanity_check
              uint64_t                 *event_id
 )
 {
-    event_sanity_checker
+    librorc::event_sanity_checker
         checker(eventbuffer, channel_id, pattern_mode, check_mask,
                 ddl_reference, ddl_reference_size);
 
