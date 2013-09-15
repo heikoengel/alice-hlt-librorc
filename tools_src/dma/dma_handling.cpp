@@ -423,7 +423,7 @@ event_sanity_checker::dumpEvent
 void
 event_sanity_checker::dumpReportBufferEntry
 (
-    volatile librorc_event_descriptor *reportbuffer,
+    volatile librorc_event_descriptor *report_buffer,
              uint64_t                  index,
              uint32_t                  channel_number
 )
@@ -434,9 +434,9 @@ event_sanity_checker::dumpReportBufferEntry
         "CH%2d - RB[%3ld]: calc_size=%08x\t"
         "reported_size=%08x\t"
         "offset=%lx\n",
-        channel_number, index, reportbuffer->calc_event_size,
-        reportbuffer->reported_event_size,
-        reportbuffer->offset
+        channel_number, index, report_buffer->calc_event_size,
+        report_buffer->reported_event_size,
+        report_buffer->offset
     );
 }
 
