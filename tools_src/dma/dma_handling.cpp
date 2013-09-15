@@ -426,15 +426,14 @@ event_sanity_checker::eventSanityCheck
 )
 {
     m_event_index = 0;
-    int retval = 0;
+    int retval    = 0;
 
-
-    retval |= (m_check_mask & CHK_SIZES) ? compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index) : 0;
-    retval |= (m_check_mask & CHK_SOE) ? checkStartOfEvent(report_buffer, report_buffer_index) : 0;
-    retval |= (m_check_mask & CHK_PATTERN) ? checkPattern(report_buffer, report_buffer_index) : 0;
-    retval |= (m_check_mask & CHK_FILE) ? compareWithReferenceDdlFile(report_buffer, report_buffer_index) : 0;
-    retval |= (m_check_mask & CHK_EOE) ? checkEndOfEvent(report_buffer, report_buffer_index) : 0;
-    retval |= (m_check_mask & CHK_ID) ? checkForLostEvents(report_buffer, report_buffer_index, last_id) : 0;
+    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
 
     /** TODO : _return_ event ID to caller */
     *event_id = getEventIdFromCdh(dwordOffset(report_buffer));
