@@ -167,7 +167,7 @@ class event_sanity_checker
 
 
         uint64_t
-        eventSanityCheck
+        check
         (
             volatile librorc_event_descriptor *reportbuffer,
                      uint64_t                  report_buffer_index,

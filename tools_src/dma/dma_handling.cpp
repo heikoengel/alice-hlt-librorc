@@ -361,7 +361,7 @@ printFinalStatusLine
 
 ///////////////////////////
 uint64_t
-event_sanity_checker::eventSanityCheck
+event_sanity_checker::check
 (
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index,
@@ -519,6 +519,8 @@ event_sanity_checker::checkStartOfEvent
 
     return 0;
 }
+
+
 
 int
 event_sanity_checker::checkPatternRamp

@@ -68,7 +68,7 @@ event_sanity_check
     try
     {
         *event_id
-            = checker.eventSanityCheck
+            = checker.check
               (
                   reportbuffer,
                   report_buffer_index,
