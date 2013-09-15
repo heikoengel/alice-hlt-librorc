@@ -277,7 +277,7 @@ class event_sanity_checker
         );
 
         uint32_t
-        reportedEventSize(volatile librorc_event_descriptor *reportbuffer);
+        reportedEventSize(volatile librorc_event_descriptor *report_buffer);
 
         uint32_t
         calculatedEventSize(volatile librorc_event_descriptor *report_buffer);

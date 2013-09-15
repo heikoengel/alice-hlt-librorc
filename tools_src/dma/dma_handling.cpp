@@ -673,10 +673,10 @@ event_sanity_checker::checkForLostEvents
 
 uint32_t
 event_sanity_checker::reportedEventSize
-(volatile librorc_event_descriptor *reportbuffer)
+(volatile librorc_event_descriptor *report_buffer)
 {
     /** upper two bits are reserved for flags */
-    return(reportbuffer->reported_event_size & 0x3fffffff);
+    return(report_buffer->reported_event_size & 0x3fffffff);
 }
 
 
@@ -692,9 +692,9 @@ event_sanity_checker::calculatedEventSize
 
 
 uint32_t*
-event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* reportbuffer)
+event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* report_buffer)
 {
-    return (uint32_t*) (m_eventbuffer) + reportbuffer->offset;
+    return (uint32_t*) (m_eventbuffer) + report_buffer->offset;
 }
 
 
