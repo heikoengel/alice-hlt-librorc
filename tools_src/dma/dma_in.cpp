@@ -164,8 +164,8 @@ int main(int argc, char *argv[])
             printf("handle_channel_data failed for channel %d\n", opts.channelId);
             return result;
         }
-//        else if(result==0)
-//        { usleep(200); } /** no events available */
+        else if(result==0)
+        { usleep(200); } /** no events available */
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
