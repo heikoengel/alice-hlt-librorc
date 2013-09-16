@@ -39,9 +39,9 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
-    printf("in:calculated: 0x%x, in:reported: 0x%x\n",
-           (report_buffer->calc_event_size & 0x3fffffff),
-           (report_buffer->reported_event_size & 0x3fffffff)
+    printf("calculated: 0x%x, reported: 0x%x\n",
+           calculatedEventSize(report_buffer),
+           reportedEventSize(report_buffer)
           );
 
 //    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
