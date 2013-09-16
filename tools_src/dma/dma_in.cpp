@@ -75,7 +75,10 @@ event_sanity_check
               );
     }
     catch( int error )
-    { return error; }
+    {
+        printf("Error : %d\n", error);
+        return error;
+    }
 
     return 0;
 }
