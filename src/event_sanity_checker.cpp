@@ -39,19 +39,7 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
-    // copyEventToLocal
-
-//    uint32_t *event
-//        = (uint32_t*)malloc((reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
-//    if( event==NULL )
-//    {
-//        perror("Malloc EB");
-//        return 0;
-//    }
-//
-//    memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
-
-//    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
@@ -60,8 +48,6 @@ event_sanity_checker::check
 
     if(retval != 0)
     { throw retval; }
-
-//    free(event);
 
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }
