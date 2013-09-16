@@ -39,15 +39,20 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
-    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
+    printf("in:calculated: 0x%x, in:reported: 0x%x\n",
+           (report_buffer->calc_event_size & 0x3fffffff),
+           (report_buffer->reported_event_size & 0x3fffffff)
+          );
 
-    if(retval != 0)
-    { throw retval; }
+//    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
+//    retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
+//    retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
+//    retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
+//    retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
+//    retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
+//
+//    if(retval != 0)
+//    { throw retval; }
 
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }
