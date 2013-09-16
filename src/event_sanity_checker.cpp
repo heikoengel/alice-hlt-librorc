@@ -39,8 +39,8 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
-//    // copyEventToLocal
-//
+    // copyEventToLocal
+
 //    uint32_t *event
 //        = (uint32_t*)malloc((reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
 //    if( event==NULL )
@@ -51,6 +51,16 @@ event_sanity_checker::check
 //
 //    memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
 
+    // copyEventToLocal
+    uint32_t reported_event_size = (report_buffer->reported_event_size & 0x3fffffff);
+    event = (uint32_t*)malloc((reported_event_size+4)*sizeof(uint32_t));
+    if( event==NULL )
+    {
+      perror("Malloc EB");
+      return -1;
+    }
+
+    memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reported_event_size+4)*sizeof(uint32_t) );
 
     retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
@@ -62,7 +72,7 @@ event_sanity_checker::check
     if(retval != 0)
     { throw retval; }
 
-//    free(event);
+    free(event);
 
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }
@@ -150,8 +160,11 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
-    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
+//    uint32_t reported_event_size = reportedEventSize(report_buffer);
+//    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
+
+    uint32_t reported_event_size = (report_buffer->reported_event_size & 0x3fffffff);
+    uint32_t calc_event_size = (report_buffer->calc_event_size & 0x3fffffff);
 
     /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);

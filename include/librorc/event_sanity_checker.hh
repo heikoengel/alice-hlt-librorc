@@ -113,6 +113,9 @@ namespace librorc
                      uint64_t  m_ddl_reference_size;
                      uint32_t  m_event_index;
 
+                     //TODO: remove this
+                     uint32_t *event;
+
             int
             dumpError
             (
