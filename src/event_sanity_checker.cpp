@@ -39,6 +39,19 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
+    // copyEventToLocal
+
+    uint32_t *event
+        = (uint32_t*)malloc((reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
+    if( event==NULL )
+    {
+        perror("Malloc EB");
+        return 0;
+    }
+
+    memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
+
+
     retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
@@ -48,6 +61,8 @@ event_sanity_checker::check
 
     if(retval != 0)
     { throw retval; }
+
+    free(event);
 
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }
@@ -200,7 +215,7 @@ event_sanity_checker::checkPatternRamp
     uint32_t *event           = rawEventPointer(report_buffer);
     uint32_t  calc_event_size = calculatedEventSize(report_buffer);
 
-    for (m_event_index = 8; m_event_index < calc_event_size; m_event_index++)
+    for (m_event_index=8; m_event_index<calc_event_size; m_event_index++)
     {
         if ((uint32_t) * (event + m_event_index) != (m_event_index - 8))
         {
@@ -370,15 +385,17 @@ event_sanity_checker::calculatedEventSize
 
 
 uint32_t*
-event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor* report_buffer)
+event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor *report_buffer)
 {
-    return (uint32_t*) (m_eventbuffer) + report_buffer->offset;
+    //return m_eventbuffer + (uint32_t*)report_buffer->offset;
+
+    return (uint32_t*)&m_eventbuffer[dwordOffset(report_buffer)];
 }
 
 
 
 uint64_t
-event_sanity_checker::dwordOffset(volatile librorc_event_descriptor* report_buffer)
+event_sanity_checker::dwordOffset(volatile librorc_event_descriptor *report_buffer)
 {
     return(report_buffer->offset / 4);
 }
