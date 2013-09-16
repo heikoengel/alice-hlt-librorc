@@ -50,21 +50,6 @@
 /** Shared mem device offset **/
 #define SHM_DEV_OFFSET 32
 
-//typedef struct
-//{
-//    uint64_t n_events;
-//    uint64_t bytes_received;
-//    uint64_t min_epi;
-//    uint64_t max_epi;
-//    uint64_t index;
-//    uint64_t set_offset_count;
-//    uint64_t error_count;
-//    int64_t  last_id;
-//    uint32_t channel;
-//}librorcChannelStatus;
-
-
-
 typedef struct
 {
     uint64_t n_events;
