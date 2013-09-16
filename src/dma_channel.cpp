@@ -466,6 +466,7 @@ dma_channel::setBufferOffsetsOnDevice
 )
 {
     m_channelConfigurator->setOffsets(eboffset, rboffset);
+    m_last_ebdm_offset = eboffset;
 }
 
 

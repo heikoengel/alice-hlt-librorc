@@ -1,8 +1,8 @@
 /**
- * @file dmactrl.cpp
+ * @file channeldump.cpp
  * @author Heiko Engel <hengel@cern.ch>
  * @version 0.1
- * @date 2013-08-31
+ * @date 2013-09-11
  *
  * @section LICENSE
  * This program is free software; you can redistribute it and/or
@@ -28,27 +28,26 @@
 
 #include "librorc.h"
 
-#define HELP_TEXT "dmactrl usage: \n\
-        dmactrl [parameters] \n\
+using namespace std;
+
+#define HELP_TEXT "channeldump usage: \n\
+        channeldump [parameters] \n\
 parameters: \n\
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
-        -x            Clear error counters \n\
-        -s            Show link status \n\
         -h            Show this text \n\
 \n"
 
-using namespace std;
+#define HEX32(x) setw(8) << setfill('0') << hex << x << setfill(' ')
 
-int main
+
+int 
+main
 (
     int argc,
     char *argv[]
 )
 {
-    int do_clear = 0;
-    int do_status = 0;
-
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
@@ -70,18 +69,6 @@ int main
             }
             break;
             
-            case 's':
-            {
-                do_status = 1;
-            }
-            break;
-
-            case 'x':
-            {
-                do_clear = 1;
-            }
-            break;
-            
             default:
             {
                 cout << "Unknown parameter (" << arg << ")!" << endl;
@@ -98,6 +85,7 @@ int main
         cout << HELP_TEXT;
         abort();
     }
+
 
     /** Create new device instance */
     librorc::device *dev = NULL;
@@ -128,52 +116,20 @@ int main
     /** get number channels implemented in firmware */
     uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
 
-    uint32_t startChannel, endChannel;
-    if ( ChannelId==-1 )
+    if ( ChannelId < 0 || ChannelId > (int32_t)(type_channels & 0xffff) )
     {
-        /** no specific channel selected, iterate over all channels */
-        startChannel = 0;
-        endChannel = (type_channels & 0xffff) - 1;
-    }
-    else if ( ChannelId < (int32_t)(type_channels & 0xffff) )
-    {
-        /** use only selected channel */
-        startChannel = ChannelId;
-        endChannel = ChannelId;
-    }
-    else
-    {
-        cout << "ERROR: Selected Channel " << ChannelId
-             << " is not implemented in Firmware." << endl;
+        cout << "ChannelId invalid or not set: " << ChannelId << endl;
+        cout << HELP_TEXT;
         abort();
     }
 
-    /** iterate over selected channels */
-    for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
+    uint32_t m_base = (ChannelId + 1) * RORC_CHANNEL_OFFSET;
+
+    for ( int32_t i=0; i<25; i++ )
     {
-        /** Create DMA channel and bind channel to BAR1 */
-        librorc::dma_channel *ch
-            = new librorc::dma_channel(chID, dev, bar);
-
-        if ( do_status )
-        {
-            cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
-                 << hex << ch->packetizer(RORC_REG_DMA_STALL_CNT)
-                 << "; #Events processed: 0x"
-                 << ch->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED)
-                 << endl;
-        }
-
-        if ( do_clear )
-        {
-            /** clear DMA stall count */
-            ch->setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
-
-            /** clear Event Count */
-            ch->setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
-        }
-
-        delete ch;
+        cout << i << " 0x" 
+             << HEX32(bar->get32(m_base + i)) 
+             << endl;
     }
 
     delete bar;
