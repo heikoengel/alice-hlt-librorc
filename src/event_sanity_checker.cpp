@@ -39,17 +39,17 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
-    // copyEventToLocal
-
-    uint32_t *event
-        = (uint32_t*)malloc((reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
-    if( event==NULL )
-    {
-        perror("Malloc EB");
-        return 0;
-    }
-
-    memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
+//    // copyEventToLocal
+//
+//    uint32_t *event
+//        = (uint32_t*)malloc((reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
+//    if( event==NULL )
+//    {
+//        perror("Malloc EB");
+//        return 0;
+//    }
+//
+//    memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reportedEventSize(report_buffer)+4)*sizeof(uint32_t));
 
 
     retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
@@ -62,7 +62,7 @@ event_sanity_checker::check
     if(retval != 0)
     { throw retval; }
 
-    free(event);
+//    free(event);
 
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }
@@ -156,7 +156,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
     /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
 
-    if (timeout_flag)
+    if(timeout_flag)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
@@ -232,6 +232,8 @@ event_sanity_checker::checkPatternRamp
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
     }
+
+    return 0;
 }
 
 
@@ -243,9 +245,6 @@ event_sanity_checker::checkPattern
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t *event           = rawEventPointer(report_buffer);
-    uint32_t  calc_event_size = calculatedEventSize(report_buffer);
-
     switch(m_pattern_mode)
     {
         case PG_PATTERN_RAMP:
