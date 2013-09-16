@@ -43,7 +43,7 @@ int handle_channel_data
 
 DMA_ABORT_HANDLER
 
-#include "test.hh"
+//#include "test.hh"
 
 //int
 //event_sanity_check
@@ -59,11 +59,25 @@ DMA_ABORT_HANDLER
 //             uint64_t                  ddl_reference_size,
 //             uint64_t                 *event_id
 //)
-//{
-//    printf("in:calculated: 0x%x, in:reported: 0x%x\n",
-//           (reportbuffer->calc_event_size & 0x3fffffff),
-//           (reportbuffer->reported_event_size & 0x3fffffff)
-//          );
+
+int event_sanity_check
+(
+    librorc_event_descriptor *reportbuffer,
+    volatile uint32_t *eventbuffer,
+    uint64_t i,
+    uint32_t ch,
+    uint64_t last_id,
+    uint32_t pattern_mode,
+    uint32_t check_mask,
+    uint32_t *ddlref,
+    uint64_t ddlref_size,
+    uint64_t *event_id
+)
+{
+    printf("in:calculated: 0x%x, in:reported: 0x%x\n",
+           (reportbuffer->calc_event_size & 0x3fffffff),
+           (reportbuffer->reported_event_size & 0x3fffffff)
+          );
 //
 //    librorc::event_sanity_checker
 //        checker
@@ -93,7 +107,7 @@ DMA_ABORT_HANDLER
 //    }
 //
 //    return 0;
-//}
+}
 
 
 
