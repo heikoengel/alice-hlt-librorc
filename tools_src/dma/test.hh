@@ -64,6 +64,11 @@ int event_sanity_check
     uint64_t *event_id
 )
 {
+        printf("in:calculated: 0x%x, in:reported: 0x%x\n",
+               (reportbuffer->calc_event_size & 0x3fffffff),
+               (reportbuffer->reported_event_size & 0x3fffffff)
+              );
+
   uint64_t offset;
   uint32_t j;
   uint32_t *eb = NULL;
