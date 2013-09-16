@@ -53,12 +53,15 @@ event_sanity_checker::check
 
     // copyEventToLocal
     uint32_t reported_event_size = (report_buffer->reported_event_size & 0x3fffffff);
+    uint32_t calc_event_size = (report_buffer->calc_event_size & 0x3fffffff);
     event = (uint32_t*)malloc((reported_event_size+4)*sizeof(uint32_t));
     if( event==NULL )
     {
       perror("Malloc EB");
       return 0;
     }
+
+    printf("calculated: 0x%x" ,calc_event_size);
 
     memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reported_event_size+4)*sizeof(uint32_t) );
 
