@@ -64,16 +64,16 @@ int event_sanity_check
            (reportbuffer->reported_event_size & 0x3fffffff)
           );
 
-//    librorc::event_sanity_checker
-//        checker
-//        (
-//            eventbuffer,
-//            ch,
-//            pattern_mode,
-//            check_mask,
-//            ddlref,
-//            ddlref_size
-//        );
+    librorc::event_sanity_checker
+        checker
+        (
+            eventbuffer,
+            ch,
+            pattern_mode,
+            check_mask,
+            ddlref,
+            ddlref_size
+        );
 //
 //    try
 //    {
