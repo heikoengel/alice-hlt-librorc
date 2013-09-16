@@ -61,8 +61,15 @@ event_sanity_check
 )
 {
     librorc::event_sanity_checker
-        checker(eventbuffer, channel_id, pattern_mode, check_mask,
-                ddl_reference, ddl_reference_size);
+        checker
+        (
+            eventbuffer,
+            channel_id,
+            pattern_mode,
+            check_mask,
+            ddl_reference,
+            ddl_reference_size
+        );
 
     try
     {
