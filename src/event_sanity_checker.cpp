@@ -153,8 +153,8 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
 )
 {
     uint32_t reported_event_size = reportedEventSize(report_buffer);
-//    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
-    uint32_t calc_event_size = (report_buffer->calc_event_size & 0x3fffffff);
+    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
+//    uint32_t calc_event_size = (report_buffer->calc_event_size & 0x3fffffff);
 
     /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
