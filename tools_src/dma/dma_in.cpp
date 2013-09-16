@@ -79,32 +79,32 @@ int event_sanity_check
            (reportbuffer->reported_event_size & 0x3fffffff)
           );
 //
-//    librorc::event_sanity_checker
-//        checker
-//        (
-//            eventbuffer,
-//            channel_id,
-//            pattern_mode,
-//            check_mask,
-//            ddl_reference,
-//            ddl_reference_size
-//        );
-//
-//    try
-//    {
-//        *event_id
-//            = checker.check
-//              (
-//                  reportbuffer,
-//                  report_buffer_index,
-//                  last_id
-//              );
-//    }
-//    catch( int error )
-//    {
-//        printf("Error : %d\n", error);
-//        return error;
-//    }
+    librorc::event_sanity_checker
+        checker
+        (
+            eventbuffer,
+            ch,
+            pattern_mode,
+            check_mask,
+            ddlref,
+            ddlref_size
+        );
+
+    try
+    {
+        *event_id
+            = checker.check
+              (
+                  reportbuffer,
+                  i,
+                  last_id
+              );
+    }
+    catch( int error )
+    {
+        printf("Error : %d\n", error);
+        return error;
+    }
 //
 //    return 0;
 }
