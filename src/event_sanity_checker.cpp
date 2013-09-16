@@ -57,7 +57,7 @@ event_sanity_checker::check
     if( event==NULL )
     {
       perror("Malloc EB");
-      return -1;
+      return 0;
     }
 
     memcpy(event, (uint8_t *)m_eventbuffer + report_buffer->offset, (reported_event_size+4)*sizeof(uint32_t) );
@@ -90,9 +90,7 @@ event_sanity_checker::dumpEvent
 #ifdef SIM
     uint64_t i = 0;
     for(i=0; i<length; i++)
-    {
-        printf("%03ld: %08x\n", i, (uint32_t)*(event_buffer + offset +i));
-    }
+    { printf("%03ld: %08x\n", i, (uint32_t)*(event_buffer + offset +i)); }
 
     if(length&0x01)
     {
@@ -101,12 +99,6 @@ event_sanity_checker::dumpEvent
     }
 
     printf("%03ld: EOE reported_event_size: %08x\n", i, (uint32_t)*(event_buffer + offset + i));
-
-    #if DMA_MODE==128
-        printf("%03ld: EOE calc_event_size: %08x\n", i+1, (uint32_t)*(event_buffer + offset + i));
-        printf("%03ld: EOE dummy %08x\n", i+2, (uint32_t)*(event_buffer + offset + i));
-        printf("%03ld: EOE dummy: %08x\n", i+3, (uint32_t)*(event_buffer + offset + i));
-    #endif
 #endif
 }
 
@@ -169,15 +161,16 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
     /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
 
-    if(timeout_flag)
-    {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
-                m_channel_id, report_buffer_index);
-        abort();
-        return(CHK_SIZES);
-    }
-    else if (calc_event_size != reported_event_size)
+//    if(timeout_flag)
+//    {
+//        DEBUG_PRINTF(PDADEBUG_ERROR,
+//                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
+//                m_channel_id, report_buffer_index);
+//        abort();
+//        return(CHK_SIZES);
+//    }
+//    else
+    if (calc_event_size != reported_event_size)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] sizes do not match: \n"
@@ -270,6 +263,18 @@ event_sanity_checker::checkPattern
             return CHK_PATTERN;
         }
     }
+
+//    Hier die Liste aller momentan in der FW implementierten Pattern:
+//    inc    : increment value by 1 (wird bei uns momentan PG_RAMP genannt)
+//    dec    : decrement value by 1
+//    shift  : shifts the value to the left, the leftmost bit is
+//             inserted on the right side
+//    toggle : toggles between the value and the negated value : 0x000000A5
+//    -> 0xffffff5A
+//    Basis ist jeweils der Wert, der in RORC_REG_DDL_PG_PATTERN geschrieben
+//    wird (bei uns momentan unbenutzt, daher 0x00000000). Diese
+//    Konfiguration muss dann auch in
+//    dma_channel_pg::configurePatternGenerator mit rein.
 
     return 0;
 }

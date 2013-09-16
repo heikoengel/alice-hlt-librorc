@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 
     /** make clear what will be checked*/
     int     result        = 0;
-    int32_t sanity_checks = 0xff; /** no checks defaults */
+    int32_t sanity_checks = 0xff; /** all checks defaults */
     if(ddlref.map && ddlref.size)
         {sanity_checks = CHK_FILE;}
     else if(opts.esType == LIBRORC_ES_DDL)
