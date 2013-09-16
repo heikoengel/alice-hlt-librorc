@@ -74,18 +74,18 @@ int event_sanity_check
             ddlref,
             ddlref_size
         );
-//
-//    try
-//    {
+
+    try
+    {
         *event_id
             = checker.check
               (reportbuffer, i, last_id);
-//    }
-//    catch( int error )
-//    {
-//        printf("Error : %d\n", error);
-//        return error;
-//    }
+    }
+    catch( int error )
+    {
+        printf("Error : %d\n", error);
+        return error;
+    }
 
     return 0;
 }
