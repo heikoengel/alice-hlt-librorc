@@ -56,7 +56,7 @@ event_sanity_checker::check
     retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
-    //retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
+    retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
 
     if(retval != 0)
@@ -161,6 +161,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
                 m_channel_id, report_buffer_index);
+        abort();
         return(CHK_SIZES);
     }
     else if (calc_event_size != reported_event_size)
@@ -172,6 +173,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
                 report_buffer_index, calc_event_size, reported_event_size,
                 report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
+        abort();
         return(CHK_SIZES);
     }
 
@@ -197,6 +199,7 @@ event_sanity_checker::checkStartOfEvent
                 (uint32_t) * (event), report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
 
+        abort();
         return dumpError(report_buffer, report_buffer_index, CHK_SOE);
     }
 
@@ -225,6 +228,7 @@ event_sanity_checker::checkPatternRamp
                     (uint32_t)
                             * (m_eventbuffer + dwordOffset(report_buffer)
                                     + m_event_index));
+            abort();
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
     }
@@ -281,6 +285,8 @@ event_sanity_checker::compareWithReferenceDdlFile
             ((uint64_t) calc_event_size << 2),
             m_ddl_reference_size
         );
+
+        abort();
         retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
     }
 
@@ -297,6 +303,8 @@ event_sanity_checker::compareWithReferenceDdlFile
                 m_ddl_reference[m_event_index],
                 event[m_event_index]
             );
+
+            abort();
             retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
         }
     }
@@ -328,6 +336,8 @@ event_sanity_checker::checkEndOfEvent
             calc_event_size,
             (uint32_t) * (event + m_event_index)
         );
+
+        abort();
         return dumpError(report_buffer, report_buffer_index, CHK_EOE);
     }
     return 0;
@@ -357,6 +367,8 @@ event_sanity_checker::checkForLostEvents
                 "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
                         "current ID: %ld\n", m_channel_id, last_id,
                 cur_event_id);
+
+        abort();
         return dumpError(report_buffer, report_buffer_index, CHK_ID);
     }
     return 0;
