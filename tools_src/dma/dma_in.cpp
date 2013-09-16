@@ -43,57 +43,57 @@ int handle_channel_data
 
 DMA_ABORT_HANDLER
 
+#include "test.hh"
 
-
-int
-event_sanity_check
-(
-    volatile librorc_event_descriptor *reportbuffer,
-    volatile uint32_t                 *eventbuffer,
-             uint64_t                  report_buffer_index,
-             uint32_t                  channel_id,
-             int64_t                   last_id,
-             uint32_t                  pattern_mode,
-             uint32_t                  check_mask,
-             uint32_t                 *ddl_reference,
-             uint64_t                  ddl_reference_size,
-             uint64_t                 *event_id
-)
-{
-    printf("in:calculated: 0x%x, in:reported: 0x%x\n",
-           (reportbuffer->calc_event_size & 0x3fffffff),
-           (reportbuffer->reported_event_size & 0x3fffffff)
-          );
-
-    librorc::event_sanity_checker
-        checker
-        (
-            eventbuffer,
-            channel_id,
-            pattern_mode,
-            check_mask,
-            ddl_reference,
-            ddl_reference_size
-        );
-
-    try
-    {
-        *event_id
-            = checker.check
-              (
-                  reportbuffer,
-                  report_buffer_index,
-                  last_id
-              );
-    }
-    catch( int error )
-    {
-        printf("Error : %d\n", error);
-        return error;
-    }
-
-    return 0;
-}
+//int
+//event_sanity_check
+//(
+//    volatile librorc_event_descriptor *reportbuffer,
+//    volatile uint32_t                 *eventbuffer,
+//             uint64_t                  report_buffer_index,
+//             uint32_t                  channel_id,
+//             int64_t                   last_id,
+//             uint32_t                  pattern_mode,
+//             uint32_t                  check_mask,
+//             uint32_t                 *ddl_reference,
+//             uint64_t                  ddl_reference_size,
+//             uint64_t                 *event_id
+//)
+//{
+//    printf("in:calculated: 0x%x, in:reported: 0x%x\n",
+//           (reportbuffer->calc_event_size & 0x3fffffff),
+//           (reportbuffer->reported_event_size & 0x3fffffff)
+//          );
+//
+//    librorc::event_sanity_checker
+//        checker
+//        (
+//            eventbuffer,
+//            channel_id,
+//            pattern_mode,
+//            check_mask,
+//            ddl_reference,
+//            ddl_reference_size
+//        );
+//
+//    try
+//    {
+//        *event_id
+//            = checker.check
+//              (
+//                  reportbuffer,
+//                  report_buffer_index,
+//                  last_id
+//              );
+//    }
+//    catch( int error )
+//    {
+//        printf("Error : %d\n", error);
+//        return error;
+//    }
+//
+//    return 0;
+//}
 
 
 
