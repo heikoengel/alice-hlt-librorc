@@ -39,17 +39,11 @@ event_sanity_checker::check
     m_event_index = 0;
     int retval    = 0;
 
-    printf("calculated: 0x%x, reported: 0x%x\n",
-           calculatedEventSize(report_buffer),
-           reportedEventSize(report_buffer)
-          );
-
     retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
-//TODO: This little bugger is faulty ...
     retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
 
     if(retval != 0)
