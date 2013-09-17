@@ -300,7 +300,7 @@ event_sanity_checker::checkPatternToggle
     uint32_t *event        = (m_event+8);
     uint64_t  length       = (m_calc_event_size-8);
     m_event_index          = 8;
-    uint32_t toggled_value = ~base_value;
+    uint32_t toggled_value = base_value;
 
 
     for(uint32_t i=0; i<length; i++)
@@ -320,7 +320,7 @@ event_sanity_checker::checkPatternToggle
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
 
-        base_value = (base_value<<1) | (base_value>>31);
+        toggled_value = ~toggled_value;
         m_event_index++;
     }
 
