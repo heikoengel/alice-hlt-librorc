@@ -259,7 +259,6 @@ event_sanity_checker::compareWithReferenceDdlFile
 )
 {
     int       retval          = 0;
-    uint32_t *event           = rawEventPointer(report_buffer);
     uint32_t  calc_event_size = calculatedEventSize(report_buffer);
 
     if( ((uint64_t) calc_event_size << 2) != m_ddl_reference_size )
@@ -279,7 +278,7 @@ event_sanity_checker::compareWithReferenceDdlFile
 
     for(m_event_index = 0; m_event_index<calc_event_size; m_event_index++)
     {
-        if( event[m_event_index] != m_ddl_reference[m_event_index] )
+        if( m_event[m_event_index] != m_ddl_reference[m_event_index] )
         {
             DEBUG_PRINTF
             (
@@ -288,7 +287,7 @@ event_sanity_checker::compareWithReferenceDdlFile
                 report_buffer_index,
                 m_event_index,
                 m_ddl_reference[m_event_index],
-                event[m_event_index]
+                m_event[m_event_index]
             );
 
             abort();
