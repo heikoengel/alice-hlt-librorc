@@ -252,6 +252,18 @@ event_sanity_checker::checkPatternShift
 
 
 int
+event_sanity_checker::checkPatternToggle
+(
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    return 0;
+}
+
+
+
+int
 event_sanity_checker::checkPattern
 (
     volatile librorc_event_descriptor *report_buffer,
@@ -270,6 +282,10 @@ event_sanity_checker::checkPattern
 
         case PG_PATTERN_SHIFT:
         { return( checkPatternShift(report_buffer, report_buffer_index) ); }
+        break;
+
+        case PG_PATTERN_TOGGLE:
+        { return( checkPatternToggle(report_buffer, report_buffer_index) ); }
         break;
 
         default:
