@@ -188,6 +188,7 @@ event_sanity_checker::checkPatternInc
 
     uint32_t *event     = (m_event+8);
     uint64_t  length    = (m_calc_event_size-8);
+    m_event_index       = 8;
     for(uint32_t i = base_value; i<(length+base_value); i++)
     {
         if( event[i] != i )
@@ -223,6 +224,7 @@ event_sanity_checker::checkPatternDec
 {
     uint32_t *event  = (m_event+8);
     uint64_t  length = (m_calc_event_size-8);
+    m_event_index    = 8;
     for(uint32_t i=0; i<length; i++)
     {
         if( event[i] != ((length-1)-i) )
