@@ -130,7 +130,7 @@ main
 
     cout << "C0 Reset: " << (ddrctrl&0x01) << endl;
     cout << "C0 PhyInitDone: " << ((ddrctrl>>2)&1) << endl;
-    cout << "C0 PLL Lock: " << ((ddrctrl>>9)&1) << endl;
+    cout << "C0 PLL Lock: " << ((ddrctrl>>3)&1) << endl;
     cout << "C0 Read Levelling Started: " << ((ddrctrl>>4)&3) << endl;
     cout << "C0 Read Levelling Done: " << ((ddrctrl>>6)&3) << endl;
     cout << "C0 Read Levelling Error: " << ((ddrctrl>>8)&3) << endl;
