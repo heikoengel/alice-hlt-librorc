@@ -72,11 +72,7 @@ int event_sanity_check
         );
 
     try
-    {
-        *event_id
-            = checker.check
-              (reportbuffer, i, last_id);
-    }
+    { *event_id = checker.check(reportbuffer, i, last_id); }
     catch( int error )
     { return error; }
 
