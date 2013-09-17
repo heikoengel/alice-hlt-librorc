@@ -223,10 +223,10 @@ namespace librorc
             calculatedEventSize(volatile librorc_event_descriptor *report_buffer);
 
             uint32_t*
-            rawEventPointer(volatile librorc_event_descriptor* report_buffer);
+            rawEventPointer(volatile librorc_event_descriptor *report_buffer);
 
             uint64_t
-            dwordOffset(volatile librorc_event_descriptor* report_buffer);
+            dwordOffset(volatile librorc_event_descriptor *report_buffer);
 
             /**
              *  Get EventID from CDH:
