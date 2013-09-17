@@ -240,6 +240,18 @@ event_sanity_checker::checkPatternDec
 
 
 int
+event_sanity_checker::checkPatternShift
+(
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    return 0;
+}
+
+
+
+int
 event_sanity_checker::checkPattern
 (
     volatile librorc_event_descriptor *report_buffer,
@@ -256,6 +268,9 @@ event_sanity_checker::checkPattern
         { return( checkPatternDec(report_buffer, report_buffer_index) ); }
         break;
 
+        case PG_PATTERN_SHIFT:
+        { return( checkPatternShift(report_buffer, report_buffer_index) ); }
+        break;
 
         default:
         {
@@ -264,13 +279,7 @@ event_sanity_checker::checkPattern
         }
     }
 
-//    Hier die Liste aller momentan in der FW implementierten Pattern:
-//    inc    : increment value by 1 (wird bei uns momentan PG_RAMP genannt)
-//    dec    : decrement value by 1
-//    shift  : shifts the value to the left, the leftmost bit is
-//             inserted on the right side
-//    toggle : toggles between the value and the negated value : 0x000000A5
-//    -> 0xffffff5A
+
 //    Basis ist jeweils der Wert, der in RORC_REG_DDL_PG_PATTERN geschrieben
 //    wird (bei uns momentan unbenutzt, daher 0x00000000). Diese
 //    Konfiguration muss dann auch in

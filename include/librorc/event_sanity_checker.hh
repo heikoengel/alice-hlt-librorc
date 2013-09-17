@@ -163,6 +163,13 @@ namespace librorc
             );
 
             int
+            checkPatternShift
+            (
+                volatile librorc_event_descriptor *report_buffer,
+                         uint64_t                  report_buffer_index
+            );
+
+            int
             checkPattern
             (
                 volatile librorc_event_descriptor *report_buffer,
