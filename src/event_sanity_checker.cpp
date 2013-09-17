@@ -235,7 +235,7 @@ event_sanity_checker::checkPatternDec
                 "ERROR: Event[%ld][%d] expected %08x read %08x\n",
                 report_buffer_index,
                 m_event_index,
-                m_event_index,
+                ((length-1)-i),
                 event[m_event_index]
             );
             m_event_index++;
@@ -257,6 +257,31 @@ event_sanity_checker::checkPatternShift
 )
 {
     uint32_t base_value = 0;
+
+    uint32_t *event     = (m_event+8);
+    uint64_t  length    = (m_calc_event_size-8);
+    m_event_index       = 8;
+
+    for(uint32_t i=0; i<length; i++)
+    {
+        if( event[i] != base_value )
+        {
+            DEBUG_PRINTF
+            (
+                PDADEBUG_ERROR,
+                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                report_buffer_index,
+                m_event_index,
+                base_value,
+                event[m_event_index]
+            );
+            m_event_index++;
+            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
+        }
+
+        base_value = (base_value<<1) | (base_value>>31);
+        m_event_index++;
+    }
 
     return 0;
 }
