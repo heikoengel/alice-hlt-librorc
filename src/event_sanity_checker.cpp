@@ -36,6 +36,8 @@ event_sanity_checker::check
              int64_t                   last_id
 )
 {
+    m_event = rawEventPointer(report_buffer);
+
     m_event_index = 0;
     int retval    = 0;
 
@@ -166,14 +168,12 @@ event_sanity_checker::checkStartOfEvent
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t *event = rawEventPointer(report_buffer);
-
-    if ((uint32_t) * (event) != 0xffffffff)
+    if ((uint32_t) * (m_event) != 0xffffffff)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
                         "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
-                (uint32_t) * (event), report_buffer->offset,
+                (uint32_t) * (m_event), report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
 
         abort();

@@ -63,6 +63,8 @@ namespace librorc
                  m_ddl_reference      = ddl_reference;
                  m_ddl_reference_size = ddl_reference_size;
                  m_event_index        = 0;
+
+                 m_event              = NULL;
              };
 
             ~event_sanity_checker(){};
@@ -111,10 +113,10 @@ namespace librorc
                      uint32_t  m_check_mask;
                      uint32_t *m_ddl_reference;
                      uint64_t  m_ddl_reference_size;
-                     uint32_t  m_event_index;
 
-                     //TODO: remove this
-                     uint32_t *event;
+                     /** check() portion */
+                     uint32_t  m_event_index;
+                     uint32_t *m_event;
 
             int
             dumpError
