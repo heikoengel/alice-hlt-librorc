@@ -197,7 +197,7 @@ event_sanity_checker::checkPatternInc
                 report_buffer_index,
                 m_event_index,
                 m_event_index,
-                (uint32_t) *(m_eventbuffer + dwordOffset(report_buffer) + m_event_index)
+                event[m_event_index]
             );
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
@@ -219,14 +219,17 @@ event_sanity_checker::checkPatternDec
     uint64_t  length = (m_calc_event_size-8);
     for(m_event_index=0; m_event_index<length; m_event_index++)
     {
-        if( event[m_event_index] != m_event_index )
+        if( event[m_event_index] != ((length-1)-m_event_index) )
         {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    report_buffer_index, m_event_index, m_event_index,
-                    (uint32_t)
-                            * (m_eventbuffer + dwordOffset(report_buffer)
-                                    + m_event_index));
+            DEBUG_PRINTF
+            (
+                PDADEBUG_ERROR,
+                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                report_buffer_index,
+                m_event_index,
+                m_event_index,
+                event[m_event_index]
+            );
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
     }
