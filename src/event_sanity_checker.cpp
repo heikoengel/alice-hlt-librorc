@@ -50,7 +50,7 @@ event_sanity_checker::check
     retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
     retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
 //TODO: This little bugger is faulty ...
-//    retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
+    retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
 
     if(retval != 0)
     { throw retval; }
@@ -352,9 +352,8 @@ event_sanity_checker::checkForLostEvents
 
     if
     (
-        ((last_id != -1) && (cur_event_id & 0xfffffffff))
-        !=
-        ((last_id + 1) & 0xfffffffff)
+        (last_id != -1) &&
+        ((cur_event_id & 0xfffffffff) != ((last_id + 1) & 0xfffffffff))
     )
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
