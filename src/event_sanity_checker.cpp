@@ -186,7 +186,7 @@ event_sanity_checker::checkPatternInc
 {
     for(m_event_index=8; m_event_index<m_calc_event_size; m_event_index++)
     {
-        if((uint32_t) * (m_event + m_event_index) != (m_event_index - 8))
+        if( m_event[m_event_index] != (m_event_index-8) )
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",

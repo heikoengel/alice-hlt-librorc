@@ -12,7 +12,7 @@ $dmesg
 [  266.950956] DMAR:[DMA Write] Request device [85:00.0] fault addr fffff000 
 [  266.950958] DMAR:[fault reason 05] PTE Write access is not set
 
-There are two options to fix this problem. First, you can diasble the remapping
+There are two options to fix this problem. First, you can disable the remapping
 feature in the kernel configuration:
 
 Device Drivers ---> 

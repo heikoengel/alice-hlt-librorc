@@ -66,7 +66,6 @@ namespace librorc
                  m_ddl_reference       = ddl_reference;
                  m_ddl_reference_size  = ddl_reference_size;
                  m_event_index         = 0;
-
                  m_event               = NULL;
                  m_reported_event_size = 0;
              };
