@@ -185,16 +185,20 @@ event_sanity_checker::checkPatternInc
 )
 {
     uint32_t *event = m_event+8;
-    for(m_event_index=8; m_event_index<(m_calc_event_size-8); m_event_index++)
+    uint64_t  length = (m_calc_event_size-8);
+    for(m_event_index=0; m_event_index<length; m_event_index++)
     {
         if( event[m_event_index] != m_event_index )
         {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    report_buffer_index, m_event_index, (m_event_index - 8),
-                    (uint32_t)
-                            * (m_eventbuffer + dwordOffset(report_buffer)
-                                    + m_event_index));
+            DEBUG_PRINTF
+            (
+                PDADEBUG_ERROR,
+                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                report_buffer_index,
+                m_event_index,
+                m_event_index,
+                (uint32_t) *(m_eventbuffer + dwordOffset(report_buffer) + m_event_index)
+            );
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
     }
@@ -211,13 +215,15 @@ event_sanity_checker::checkPatternDec
              uint64_t                  report_buffer_index
 )
 {
-    for(m_event_index=8; m_event_index<m_calc_event_size; m_event_index++)
+    uint32_t *event = m_event+8;
+    uint64_t  length = (m_calc_event_size-8);
+    for(m_event_index=0; m_event_index<length; m_event_index++)
     {
-        if((uint32_t) * (m_event + m_event_index) != (m_event_index - 8))
+        if( event[m_event_index] != m_event_index )
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                    report_buffer_index, m_event_index, (m_event_index - 8),
+                    report_buffer_index, m_event_index, m_event_index,
                     (uint32_t)
                             * (m_eventbuffer + dwordOffset(report_buffer)
                                     + m_event_index));
