@@ -184,9 +184,10 @@ event_sanity_checker::checkPatternInc
              uint64_t                  report_buffer_index
 )
 {
-    for(m_event_index=8; m_event_index<m_calc_event_size; m_event_index++)
+    uint32_t *event = m_event+8;
+    for(m_event_index=8; m_event_index<(m_calc_event_size-8); m_event_index++)
     {
-        if( m_event[m_event_index] != (m_event_index-8) )
+        if( event[m_event_index] != m_event_index )
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
