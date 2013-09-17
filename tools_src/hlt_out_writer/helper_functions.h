@@ -124,13 +124,13 @@ dump_rb
  * */
 void print_summary_stats
 (
-    uint32_t       n,
-    channelStatus *chstats[],
-    uint64_t      *ch_last_bytes_received,
-    double         timediff
+    uint32_t              n,
+    librorcChannelStatus *chstats[],
+    uint64_t             *ch_last_bytes_received,
+    double                timediff
 )
 {
-  channelStatus statsum;
+  librorcChannelStatus statsum;
   uint64_t last_bytes_received = 0;
   uint32_t i;
   //sum up all channels
@@ -169,13 +169,15 @@ void print_summary_stats
  * fromt the last iteration
  * @param timediff time passed since the last iteration
  * */
-void print_channel_stats(
-    uint32_t n,
-    channelStatus *chstats[],
-    uint64_t *ch_last_bytes_received,
-    double timediff)
+void print_channel_stats
+(
+    uint32_t              n,
+    librorcChannelStatus *chstats[],
+    uint64_t             *ch_last_bytes_received,
+    double                timediff
+)
 {
-  channelStatus statsum;
+  librorcChannelStatus statsum;
   uint64_t last_bytes_received = 0;
   uint32_t i;
   //sum up all channels
@@ -252,13 +254,13 @@ dump_diu_state
  * */
 int dump_to_file
 (
-    char            *base_dir,
-    channelStatus   *stats,
-    uint64_t        EventID,
-    uint32_t         file_index,
+    char                     *base_dir,
+    librorcChannelStatus     *stats,
+    uint64_t                  EventID,
+    uint32_t                  file_index,
     librorc_event_descriptor *reportbuffer,
-    librorc::buffer *ebuf,
-    uint32_t        error_flags
+    librorc::buffer          *ebuf,
+    uint32_t                  error_flags
 )
 {
   char *ddlname = NULL;

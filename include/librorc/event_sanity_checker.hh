@@ -28,6 +28,9 @@
 #include <librorc/defines.hh>
 #include <librorc/buffer.hh>
 
+/** limit the number of corrupted events to be written to disk **/
+#define MAX_FILES_TO_DISK 100
+
 /** sanity checks **/
 #define CHK_SIZES   (1<<0)
 #define CHK_PATTERN (1<<1)
