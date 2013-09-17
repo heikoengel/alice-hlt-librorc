@@ -78,10 +78,7 @@ int event_sanity_check
               (reportbuffer, i, last_id);
     }
     catch( int error )
-    {
-        printf("Error : %d\n", error);
-        return error;
-    }
+    { return error; }
 
     return 0;
 }
