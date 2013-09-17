@@ -136,7 +136,6 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
                 m_channel_id, report_buffer_index);
-        abort();
         return(CHK_SIZES);
     }
     else if(m_calc_event_size != m_reported_event_size)
@@ -148,7 +147,6 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
                 report_buffer_index, m_calc_event_size, m_reported_event_size,
                 report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
-        abort();
         return(CHK_SIZES);
     }
 
@@ -171,8 +169,6 @@ event_sanity_checker::checkStartOfEvent
                         "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
                 (uint32_t) * (m_event), report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
-
-        abort();
         return dumpError(report_buffer, report_buffer_index, CHK_SOE);
     }
 
@@ -198,7 +194,32 @@ event_sanity_checker::checkPatternInc
                     (uint32_t)
                             * (m_eventbuffer + dwordOffset(report_buffer)
                                     + m_event_index));
-            abort();
+            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
+        }
+    }
+
+    return 0;
+}
+
+
+
+int
+event_sanity_checker::checkPatternDec
+(
+    volatile librorc_event_descriptor *report_buffer,
+             uint64_t                  report_buffer_index
+)
+{
+    for(m_event_index=8; m_event_index<m_calc_event_size; m_event_index++)
+    {
+        if((uint32_t) * (m_event + m_event_index) != (m_event_index - 8))
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                    report_buffer_index, m_event_index, (m_event_index - 8),
+                    (uint32_t)
+                            * (m_eventbuffer + dwordOffset(report_buffer)
+                                    + m_event_index));
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
     }
@@ -220,6 +241,11 @@ event_sanity_checker::checkPattern
         case PG_PATTERN_INC:
         { return( checkPatternInc(report_buffer, report_buffer_index) ); }
         break;
+
+        case PG_PATTERN_DEC:
+        { return( checkPatternDec(report_buffer, report_buffer_index) ); }
+        break;
+
 
         default:
         {
@@ -264,8 +290,6 @@ event_sanity_checker::compareWithReferenceDdlFile
             ((uint64_t) m_calc_event_size << 2),
             m_ddl_reference_size
         );
-
-        abort();
         return_value |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
     }
 
@@ -282,8 +306,6 @@ event_sanity_checker::compareWithReferenceDdlFile
                 m_ddl_reference[m_event_index],
                 m_event[m_event_index]
             );
-
-            abort();
             return_value |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
         }
     }
@@ -311,8 +333,6 @@ event_sanity_checker::checkEndOfEvent
             m_calc_event_size,
             (uint32_t) * (m_event + m_event_index)
         );
-
-        abort();
         return dumpError(report_buffer, report_buffer_index, CHK_EOE);
     }
     return 0;
@@ -336,12 +356,12 @@ event_sanity_checker::checkForLostEvents
         ((cur_event_id & 0xfffffffff) != ((last_id + 1) & 0xfffffffff))
     )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, "
-                        "current ID: %ld\n", m_channel_id, last_id,
-                cur_event_id);
-
-        abort();
+        DEBUG_PRINTF
+        (
+            PDADEBUG_ERROR,
+            "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, current ID: %ld\n",
+            m_channel_id, last_id, cur_event_id
+        );
         return dumpError(report_buffer, report_buffer_index, CHK_ID);
     }
     return 0;
