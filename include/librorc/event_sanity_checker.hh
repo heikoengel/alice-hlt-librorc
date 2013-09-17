@@ -36,8 +36,8 @@
 #define CHK_ID      (1<<4)
 #define CHK_FILE    (1<<8)
 
-/** Pattern Generator Mode: Ramp **/
-#define PG_PATTERN_RAMP (1<<0)
+/** Pattern Generator Modes:**/
+#define PG_PATTERN_INC (1<<0) /** Increment value by 1 */
 
 namespace librorc
 {

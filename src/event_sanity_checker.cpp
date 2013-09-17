@@ -217,7 +217,7 @@ event_sanity_checker::checkPattern
 {
     switch(m_pattern_mode)
     {
-        case PG_PATTERN_RAMP:
+        case PG_PATTERN_INC:
         { return( checkPatternRamp(report_buffer, report_buffer_index) ); }
         break;
 

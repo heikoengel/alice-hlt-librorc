@@ -254,7 +254,7 @@ int handle_channel_data
             stats->index,
             stats->channel,
             stats->last_id,
-            PG_PATTERN_RAMP,
+            PG_PATTERN_INC, /** TODO */
             do_sanity_check,
             ddlref,
             ddlref_size,
