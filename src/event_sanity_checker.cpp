@@ -114,10 +114,7 @@ event_sanity_checker::dumpError
              int32_t                   check_id
 )
 {
-    //TODO: function
-    uint64_t offset = (report_buffer->offset / 4);
-
-    dumpEvent(m_eventbuffer, offset, m_reported_event_size);
+    dumpEvent(m_eventbuffer, dwordOffset(report_buffer), m_reported_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
     return check_id;
 }
@@ -376,8 +373,6 @@ event_sanity_checker::calculatedEventSize
 uint32_t*
 event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor *report_buffer)
 {
-    //return m_eventbuffer + (uint32_t*)report_buffer->offset;
-
     return (uint32_t*)&m_eventbuffer[dwordOffset(report_buffer)];
 }
 
