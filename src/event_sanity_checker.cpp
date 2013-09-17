@@ -36,18 +36,19 @@ event_sanity_checker::check
              int64_t                   last_id
 )
 {
-    m_event = rawEventPointer(report_buffer);
+    m_event               = rawEventPointer(report_buffer);
+    m_reported_event_size = reportedEventSize(report_buffer);
+    m_event_index         = 0;
 
-    m_event_index = 0;
-    int retval    = 0;
-
-    retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
-    retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
-
+    int retval = 0;
+    {
+        retval |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer, report_buffer_index);
+        retval |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer, report_buffer_index);
+        retval |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer, report_buffer_index);
+        retval |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer, report_buffer_index);
+        retval |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer, report_buffer_index);
+        retval |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
+    }
     if(retval != 0)
     { throw retval; }
 
@@ -129,7 +130,6 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
     uint32_t calc_event_size     = calculatedEventSize(report_buffer);
 
     /** Bit 31 of calc_event_size is read completion timeout flag */
@@ -143,13 +143,13 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
         abort();
         return(CHK_SIZES);
     }
-    else if (calc_event_size != reported_event_size)
+    else if (calc_event_size != m_reported_event_size)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] sizes do not match: \n"
                         "calculated: 0x%x, reported: 0x%x\n"
                         "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
-                report_buffer_index, calc_event_size, reported_event_size,
+                report_buffer_index, calc_event_size, m_reported_event_size,
                 report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
         abort();
@@ -307,11 +307,9 @@ event_sanity_checker::checkEndOfEvent
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t *event              = rawEventPointer(report_buffer);
-    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
+    uint32_t calc_event_size = calculatedEventSize(report_buffer);
 
-    if( (uint32_t) *(event + calc_event_size) != reported_event_size)
+    if( (uint32_t) *(m_event + calc_event_size) != m_reported_event_size)
     {
         DEBUG_PRINTF
         (
@@ -320,7 +318,7 @@ event_sanity_checker::checkEndOfEvent
             "at Event[%d] expected %08x found %08x\n",
             m_event_index,
             calc_event_size,
-            (uint32_t) * (event + m_event_index)
+            (uint32_t) * (m_event + m_event_index)
         );
 
         abort();

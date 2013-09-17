@@ -56,15 +56,16 @@ namespace librorc
                  uint64_t           ddl_reference_size
              )
              {
-                 m_eventbuffer        = eventbuffer;
-                 m_channel_id         = channel_id;
-                 m_pattern_mode       = pattern_mode;
-                 m_check_mask         = check_mask;
-                 m_ddl_reference      = ddl_reference;
-                 m_ddl_reference_size = ddl_reference_size;
-                 m_event_index        = 0;
+                 m_eventbuffer         = eventbuffer;
+                 m_channel_id          = channel_id;
+                 m_pattern_mode        = pattern_mode;
+                 m_check_mask          = check_mask;
+                 m_ddl_reference       = ddl_reference;
+                 m_ddl_reference_size  = ddl_reference_size;
+                 m_event_index         = 0;
 
-                 m_event              = NULL;
+                 m_event               = NULL;
+                 m_reported_event_size = 0;
              };
 
             ~event_sanity_checker(){};
@@ -117,6 +118,7 @@ namespace librorc
                      /** check() portion */
                      uint32_t  m_event_index;
                      uint32_t *m_event;
+                     uint32_t  m_reported_event_size;
 
             int
             dumpError
