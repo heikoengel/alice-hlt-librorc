@@ -36,8 +36,11 @@
 #define CHK_ID      (1<<4)
 #define CHK_FILE    (1<<8)
 
-/** Pattern Generator Modes:**/
-#define PG_PATTERN_INC (1<<0) /** Increment value by 1 */
+/** Pattern Generator Modes : **/
+#define PG_PATTERN_INC    (1<<0) /** Increment value by 1 */
+#define PG_PATTERN_DEC    (1<<1) /** Decrement value by 1 */
+#define PG_PATTERN_SHIFT  (1<<2) /** Shifts the value to the left, the leftmost bit is inserted on the right side */
+#define PG_PATTERN_TOGGLE (1<<3) /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
 
 namespace librorc
 {
@@ -147,7 +150,7 @@ namespace librorc
             );
 
             int
-            checkPatternRamp
+            checkPatternInc
             (
                 volatile librorc_event_descriptor *report_buffer,
                          uint64_t                  report_buffer_index

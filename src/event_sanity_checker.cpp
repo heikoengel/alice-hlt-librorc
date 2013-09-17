@@ -182,7 +182,7 @@ event_sanity_checker::checkStartOfEvent
 
 
 int
-event_sanity_checker::checkPatternRamp
+event_sanity_checker::checkPatternInc
 (
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index
@@ -218,7 +218,7 @@ event_sanity_checker::checkPattern
     switch(m_pattern_mode)
     {
         case PG_PATTERN_INC:
-        { return( checkPatternRamp(report_buffer, report_buffer_index) ); }
+        { return( checkPatternInc(report_buffer, report_buffer_index) ); }
         break;
 
         default:
