@@ -36,7 +36,13 @@
 #define CHK_ID      (1<<4)
 #define CHK_FILE    (1<<8)
 
-/** Pattern Generator Modes : **/
+/** TODO :   Konfiguration muss dann auch in dma_channel_pg::configurePatternGenerator mit rein. */
+/*
+ *  The base value of the pattern generator is set to the register RORC_REG_DDL_PG_PATTERN.
+ *  This register defaults to zero if not set.
+ *
+ *  Pattern Generator Modes :
+ */
 #define PG_PATTERN_INC    (1<<0) /** Increment value by 1 */
 #define PG_PATTERN_DEC    (1<<1) /** Decrement value by 1 */
 #define PG_PATTERN_SHIFT  (1<<2) /** Shifts the value to the left, the leftmost bit is inserted on the right side */

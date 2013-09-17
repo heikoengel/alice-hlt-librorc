@@ -184,11 +184,13 @@ event_sanity_checker::checkPatternInc
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t *event = m_event+8;
-    uint64_t  length = (m_calc_event_size-8);
-    for(m_event_index=0; m_event_index<length; m_event_index++)
+    uint32_t base_value = 0;
+
+    uint32_t *event     = (m_event+8);
+    uint64_t  length    = (m_calc_event_size-8);
+    for(uint32_t i = base_value; i<(length+base_value); i++)
     {
-        if( event[m_event_index] != m_event_index )
+        if( event[i] != i )
         {
             DEBUG_PRINTF
             (
@@ -199,9 +201,13 @@ event_sanity_checker::checkPatternInc
                 m_event_index,
                 event[m_event_index]
             );
+            m_event_index++;
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
+        m_event_index++;
     }
+
+
 
     return 0;
 }
@@ -215,11 +221,11 @@ event_sanity_checker::checkPatternDec
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t *event = m_event+8;
+    uint32_t *event  = (m_event+8);
     uint64_t  length = (m_calc_event_size-8);
-    for(m_event_index=0; m_event_index<length; m_event_index++)
+    for(uint32_t i=0; i<length; i++)
     {
-        if( event[m_event_index] != ((length-1)-m_event_index) )
+        if( event[i] != ((length-1)-i) )
         {
             DEBUG_PRINTF
             (
@@ -230,8 +236,10 @@ event_sanity_checker::checkPatternDec
                 m_event_index,
                 event[m_event_index]
             );
+            m_event_index++;
             return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
         }
+        m_event_index++;
     }
 
     return 0;
@@ -246,6 +254,8 @@ event_sanity_checker::checkPatternShift
              uint64_t                  report_buffer_index
 )
 {
+    uint32_t base_value = 0;
+
     return 0;
 }
 
@@ -294,12 +304,6 @@ event_sanity_checker::checkPattern
             return CHK_PATTERN;
         }
     }
-
-
-//    Basis ist jeweils der Wert, der in RORC_REG_DDL_PG_PATTERN geschrieben
-//    wird (bei uns momentan unbenutzt, daher 0x00000000). Diese
-//    Konfiguration muss dann auch in
-//    dma_channel_pg::configurePatternGenerator mit rein.
 
     return 0;
 }
