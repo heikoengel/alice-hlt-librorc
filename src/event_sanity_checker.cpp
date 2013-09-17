@@ -38,6 +38,7 @@ event_sanity_checker::check
 {
     m_event               = rawEventPointer(report_buffer);
     m_reported_event_size = reportedEventSize(report_buffer);
+    m_calc_event_size     = calculatedEventSize(report_buffer);
     m_event_index         = 0;
 
     int retval = 0;
@@ -113,10 +114,10 @@ event_sanity_checker::dumpError
              int32_t                   check_id
 )
 {
-    uint32_t reported_event_size = reportedEventSize(report_buffer);
-    uint64_t offset              = (report_buffer->offset / 4);
+    //TODO: function
+    uint64_t offset = (report_buffer->offset / 4);
 
-    dumpEvent(m_eventbuffer, offset, reported_event_size);
+    dumpEvent(m_eventbuffer, offset, m_reported_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
     return check_id;
 }
@@ -130,8 +131,6 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t calc_event_size     = calculatedEventSize(report_buffer);
-
     /** Bit 31 of calc_event_size is read completion timeout flag */
     uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
 
@@ -143,13 +142,13 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
         abort();
         return(CHK_SIZES);
     }
-    else if (calc_event_size != m_reported_event_size)
+    else if(m_calc_event_size != m_reported_event_size)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] sizes do not match: \n"
                         "calculated: 0x%x, reported: 0x%x\n"
                         "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
-                report_buffer_index, calc_event_size, m_reported_event_size,
+                report_buffer_index, m_calc_event_size, m_reported_event_size,
                 report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
         abort();
@@ -168,7 +167,7 @@ event_sanity_checker::checkStartOfEvent
              uint64_t                  report_buffer_index
 )
 {
-    if ((uint32_t) * (m_event) != 0xffffffff)
+    if((uint32_t) * (m_event) != 0xffffffff)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
@@ -192,11 +191,9 @@ event_sanity_checker::checkPatternRamp
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t  calc_event_size = calculatedEventSize(report_buffer);
-
-    for (m_event_index=8; m_event_index<calc_event_size; m_event_index++)
+    for(m_event_index=8; m_event_index<m_calc_event_size; m_event_index++)
     {
-        if ((uint32_t) * (m_event + m_event_index) != (m_event_index - 8))
+        if((uint32_t) * (m_event + m_event_index) != (m_event_index - 8))
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "ERROR: Event[%ld][%d] expected %08x read %08x\n",
@@ -258,17 +255,16 @@ event_sanity_checker::compareWithReferenceDdlFile
              uint64_t                  report_buffer_index
 )
 {
-    int       retval          = 0;
-    uint32_t  calc_event_size = calculatedEventSize(report_buffer);
+    int retval = 0;
 
-    if( ((uint64_t) calc_event_size << 2) != m_ddl_reference_size )
+    if( ((uint64_t) m_calc_event_size << 2) != m_ddl_reference_size )
     {
         DEBUG_PRINTF
         (
             PDADEBUG_ERROR,
             "ERROR: Eventsize %lx does not match "
             "reference DDL file size %lx\n",
-            ((uint64_t) calc_event_size << 2),
+            ((uint64_t) m_calc_event_size << 2),
             m_ddl_reference_size
         );
 
@@ -276,7 +272,7 @@ event_sanity_checker::compareWithReferenceDdlFile
         retval |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
     }
 
-    for(m_event_index = 0; m_event_index<calc_event_size; m_event_index++)
+    for(m_event_index = 0; m_event_index<m_calc_event_size; m_event_index++)
     {
         if( m_event[m_event_index] != m_ddl_reference[m_event_index] )
         {
@@ -307,9 +303,7 @@ event_sanity_checker::checkEndOfEvent
              uint64_t                  report_buffer_index
 )
 {
-    uint32_t calc_event_size = calculatedEventSize(report_buffer);
-
-    if( (uint32_t) *(m_event + calc_event_size) != m_reported_event_size)
+    if( (uint32_t) *(m_event + m_calc_event_size) != m_reported_event_size)
     {
         DEBUG_PRINTF
         (
@@ -317,7 +311,7 @@ event_sanity_checker::checkEndOfEvent
             "ERROR: could not find matching reported event size "
             "at Event[%d] expected %08x found %08x\n",
             m_event_index,
-            calc_event_size,
+            m_calc_event_size,
             (uint32_t) * (m_event + m_event_index)
         );
 

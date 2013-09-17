@@ -119,6 +119,7 @@ namespace librorc
                      uint32_t  m_event_index;
                      uint32_t *m_event;
                      uint32_t  m_reported_event_size;
+                     uint32_t  m_calc_event_size;
 
             int
             dumpError
