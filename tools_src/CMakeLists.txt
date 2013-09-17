@@ -92,3 +92,6 @@ target_link_libraries( fanctrl rorc pthread ${EXTRA_LIBS})
 
 add_executable( ddr3_module_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_module_status.cpp)
 target_link_libraries( ddr3_module_status rorc pthread ${EXTRA_LIBS})
+
+add_executable( ddr3_tester_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_tester_status.cpp)
+target_link_libraries( ddr3_tester_status rorc pthread ${EXTRA_LIBS})
