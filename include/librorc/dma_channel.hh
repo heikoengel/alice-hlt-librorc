@@ -156,7 +156,7 @@ class dma_channel_configurator;
              * get base
              * @return channel base address
              **/
-            uint64_t getBase()
+            uint64_t getBase() //TODO
             {
                 return m_base;
             }
@@ -165,7 +165,7 @@ class dma_channel_configurator;
              * get BAR
              * @return bound librorc::bar
              **/
-            bar *getBar()
+            bar *getBar() //TODO
             {
                 return m_bar;
             }
@@ -330,25 +330,6 @@ class dma_channel_configurator;
              * @return data read from RBDRAM
              **/
             uint32_t getRBDRAM(uint32_t addr);
-
-            /**
-             * set DW in Packtizer
-             * @param addr address in PKT component
-             * @param data data to be writtem
-             **/
-            void
-            setPacketizer
-            (
-                uint32_t addr,
-                uint32_t data
-            );
-
-            /**
-             * get DW from  Packtizer
-             * @param addr address in PKT component
-             * @return data read from PKT
-             **/
-            uint32_t packetizer(uint32_t addr);
 
             /**
              * Printout the state of the DMA engine to the console

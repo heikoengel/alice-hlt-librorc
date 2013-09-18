@@ -657,27 +657,6 @@ dma_channel::getRBSize()
 }
 
 
-//LINK
-void
-dma_channel::setPacketizer
-(
-    uint32_t addr,
-    uint32_t data
-)
-{
-    m_bar->set32((m_base + addr), data);
-}
-
-
-//LINK
-uint32_t
-dma_channel::packetizer
-(
-    uint32_t addr
-)
-{
-    return m_bar->get32(m_base+addr);
-}
 
 //DMA
 void

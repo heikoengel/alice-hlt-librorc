@@ -41,6 +41,7 @@ namespace librorc
     };
 
 
+
     void
     link::setGTX
     (
@@ -60,4 +61,25 @@ namespace librorc
     }
 
 
+
+    void
+    link::setPacketizer
+    (
+        uint32_t addr,
+        uint32_t data
+    )
+    {
+        m_bar->set32((m_base + addr), data);
+    }
+
+
+
+    uint32_t
+    link::packetizer
+    (
+        uint32_t addr
+    )
+    {
+        return m_bar->get32(m_base+addr);
+    }
 }

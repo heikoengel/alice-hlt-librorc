@@ -61,6 +61,27 @@ class device;
              **/
             unsigned int getGTX(uint32_t addr);
 
+            /**
+             * set DW in Packtizer
+             * @param addr address in PKT component
+             * @param data data to be writtem
+             **/
+            void
+            setPacketizer
+            (
+                uint32_t addr,
+                uint32_t data
+            );
+
+            /**
+             * get DW from  Packtizer
+             * @param addr address in PKT component
+             * @return data read from PKT
+             **/
+            uint32_t packetizer(uint32_t addr);
+
+
+
         protected:
             bar      *m_bar;
             uint32_t  m_base;
