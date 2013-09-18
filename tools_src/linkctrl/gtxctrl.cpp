@@ -253,7 +253,7 @@ int main
         startChannel = 0;
         endChannel = (type_channels & 0xffff) - 1;
     }
-    else if( ChannelId < (int32_t)(type_channels & 0xffff) ) //TODO : ask device
+    else if( dev->DMAChannelIsImplemented(ChannelId) )
     {
         /** use only selected channel */
         startChannel = ChannelId;
