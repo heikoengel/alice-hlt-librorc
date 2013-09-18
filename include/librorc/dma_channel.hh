@@ -351,12 +351,10 @@ class dma_channel_configurator;
             /**
              * setDMAConfig set the DMA Controller operation mode
              * @param config Bit mapping:
-             * TODO
              **/
             void setDMAConfig(uint32_t config);
 
         protected:
-            //uint32_t  m_channel;
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
 

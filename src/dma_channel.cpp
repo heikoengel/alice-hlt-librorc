@@ -451,13 +451,13 @@ dma_channel::enableReportBuffer()
 }
 //TODO : this is protected when hlt out writer is refactored
 void
-dma_channel::disableReportBuffer()//DMA related
+dma_channel::disableReportBuffer()
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
 
 unsigned int
-dma_channel::isReportBufferEnabled()//DMA related
+dma_channel::isReportBufferEnabled()
 {
     return (packetizer( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
 }
@@ -524,7 +524,7 @@ dma_channel::pciePacketSize()
 
 
 //---checked global
-//DMA
+
 void
 dma_channel::setEBOffset
 (
@@ -543,7 +543,7 @@ dma_channel::setEBOffset
 }
 
 
-//DMA
+
 uint64_t
 dma_channel::getEBOffset()
 {
@@ -551,7 +551,8 @@ dma_channel::getEBOffset()
            (uint64_t)packetizer(RORC_REG_EBDM_SW_READ_POINTER_L);
 }
 
-//DMA
+
+
 uint64_t
 dma_channel::getLastEBOffset()
 {
@@ -559,7 +560,7 @@ dma_channel::getLastEBOffset()
 }
 
 
-//DMA
+
 uint64_t
 dma_channel::getLastRBOffset()
 {
@@ -567,7 +568,7 @@ dma_channel::getLastRBOffset()
 }
 
 
-//DMA
+
 uint64_t
 dma_channel::getEBDMAOffset()
 {
@@ -576,7 +577,7 @@ dma_channel::getEBDMAOffset()
 }
 
 
-//DMA
+
 void
 dma_channel::setRBOffset
 (
@@ -595,7 +596,7 @@ dma_channel::setRBOffset
 }
 
 
-//DMA
+
 uint64_t
 dma_channel::getRBOffset()
 {
@@ -604,7 +605,7 @@ dma_channel::getRBOffset()
 }
 
 
-//DMA
+
 uint64_t
 dma_channel::getRBDMAOffset()
 {
@@ -613,7 +614,7 @@ dma_channel::getRBDMAOffset()
 }
 
 
-//DMA
+
 uint32_t
 dma_channel::getEBDMnSGEntries()
 {
@@ -621,7 +622,7 @@ dma_channel::getEBDMnSGEntries()
 }
 
 
-//DMA
+
 uint32_t
 dma_channel::getRBDMnSGEntries()
 {
@@ -629,14 +630,14 @@ dma_channel::getRBDMnSGEntries()
 }
 
 
-//DMA
+
 uint32_t
 dma_channel::getDMABusy()
 {
     return (packetizer(RORC_REG_DMA_CTRL) >> 7) & 0x01;
 }
 
-//DMA
+
 uint64_t
 dma_channel::getEBSize()
 {
@@ -644,7 +645,7 @@ dma_channel::getEBSize()
            (uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
 }
 
-//DMA
+
 uint64_t
 dma_channel::getRBSize()
 {
@@ -655,7 +656,6 @@ dma_channel::getRBSize()
 
 
 /**PROTECTED:*/
-//DMA & LINK
     void
     dma_channel::initMembers
     (
@@ -688,7 +688,7 @@ dma_channel::getRBSize()
     }
 
 
-    //DMA
+
     void
     dma_channel::prepareBuffers()
     {
@@ -709,7 +709,7 @@ dma_channel::getRBSize()
     }
 
 
-    //DMA
+
     int32_t
     dma_channel::programSglistForEventBuffer
     (
@@ -721,7 +721,7 @@ dma_channel::getRBSize()
     }
 
 
-    //DMA
+
     int32_t
     dma_channel::programSglistForReportBuffer
     (
