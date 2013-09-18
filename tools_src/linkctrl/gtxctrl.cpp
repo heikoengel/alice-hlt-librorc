@@ -356,7 +356,7 @@ int main
             current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
 
             /** Write new PLL config */
-            current_link->drp_set_pll_config(available_configs[pllcfgnum]);
+            current_link->drpSetPllConfig(available_configs[pllcfgnum]);
 
             /** release GTXRESET */
             gtxasynccfg &= ~(0x00000001);

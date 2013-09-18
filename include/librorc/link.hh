@@ -137,7 +137,7 @@ class device;
              * @param pll struct gtxpll_settings with new values
              * */
             void
-            drp_set_pll_config(gtxpll_settings pll);
+            drpSetPllConfig(gtxpll_settings pll);
 
             /**
              * get DW from Packtizer
