@@ -45,42 +45,6 @@ DMA_ABORT_HANDLER
 
 
 
-
-int event_sanity_check
-(
-    librorc_event_descriptor *report_buffer_entry,
-    volatile uint32_t *raw_event_buffer,
-    uint64_t index,
-    uint32_t channel,
-    uint64_t last_id,
-    uint32_t pattern_mode,
-    uint32_t sanity_check_mask,
-    uint32_t *ddl_reference,
-    uint64_t ddl_reference_size,
-    uint64_t *event_id
-)
-{
-    librorc::event_sanity_checker
-        checker
-        (
-            raw_event_buffer,
-            channel,
-            PG_PATTERN_INC, /** TODO */
-            sanity_check_mask,
-            ddl_reference,
-            ddl_reference_size
-        );
-
-    try
-    { *event_id = checker.check(report_buffer_entry, index, last_id); }
-    catch( int error )
-    { return error; }
-
-    return 0;
-}
-
-
-
 int main(int argc, char *argv[])
 {
     DMAOptions opts = evaluateArguments(argc, argv);
@@ -213,15 +177,15 @@ int handle_channel_data
     uint64_t              ddl_reference_size
 )
 {
-    uint64_t                 events_per_iteration = 0;
-    int                      events_processed     = 0;
-    uint64_t                 event_buffer_offset  = 0;
-    uint64_t                 report_buffer_offset = 0;
-    uint64_t                 starting_index       = 0;
-    uint64_t                 entry_size           = 0;
-    uint64_t                 event_id             = 0;
-    int                      retval               = 0;
-    char                     basedir[]            = "/tmp";
+    uint64_t    events_per_iteration = 0;
+    int         events_processed     = 0;
+    uint64_t    event_buffer_offset  = 0;
+    uint64_t    report_buffer_offset = 0;
+    uint64_t    starting_index       = 0;
+    uint64_t    entry_size           = 0;
+    uint64_t    event_id             = 0;
+    int         retval               = 0;
+    char        basedir[]            = "/tmp";
 
 
 
@@ -229,6 +193,18 @@ int handle_channel_data
         = (librorc_event_descriptor *)(report_buffer->getMem());
     volatile uint32_t *raw_event_buffer
         = (uint32_t *)(event_buffer->getMem());
+
+    librorc::event_sanity_checker
+        checker
+        (
+            raw_event_buffer,
+            channel_status->channel,
+            PG_PATTERN_INC, /** TODO */
+            sanity_check_mask,
+            ddl_reference,
+            ddl_reference_size
+        );
+
 
     /** new event received */
     if( raw_report_buffer[channel_status->index].calc_event_size!=0 )
@@ -247,19 +223,18 @@ int handle_channel_data
             {
                 librorc_event_descriptor report_buffer_entry
                     = raw_report_buffer[channel_status->index];
-                retval = event_sanity_check
-                         (
-                             &report_buffer_entry,
-                             raw_event_buffer,
-                             channel_status->index,
-                             channel_status->channel,
-                             channel_status->last_id,
-                             PG_PATTERN_INC, /** TODO */
-                             sanity_check_mask,
-                             ddl_reference,
-                             ddl_reference_size,
-                             &event_id
-                         );
+
+                try
+                { event_id
+                    = checker.check
+                      (
+                          &report_buffer_entry,
+                          channel_status->index,
+                          channel_status->last_id
+                      );
+                }
+                catch( int error )
+                { retval = error; }
 
 
                 if ( retval!=0 )
