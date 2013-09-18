@@ -117,7 +117,7 @@ class device;
              * @param drp_data data to be written
              * */
             void
-            drp_write
+            drpWrite
             (
                 uint8_t  drp_addr,
                 uint16_t drp_data
