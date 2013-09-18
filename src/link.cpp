@@ -90,18 +90,17 @@ namespace librorc
 
         printf("\nDIU_IF: ");
 
-         (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
-         ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
-        !((status>>4) & 1)  ? printf("LF ")     : 0;
-        !((status>>5) & 1)  ? printf("LD ")     : 0;
-        !((status>>30) & 1) ? printf("BSY ")    : 0;
+        (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
+        ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
+        ((status>>4) & 1)  ? 0                 : printf("LF ");
+        ((status>>5) & 1)  ? 0                 : printf("LD ");
+        ((status>>30) & 1) ? 0                 : printf("BSY ");
 
-        /** PG disabled */
-         ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
-        /** PG disabled */
-        !((status>>8) & 1)  ? printf("CTSTW:%08x ", getGTX(RORC_REG_DDL_CTSTW))       : 0;
-        !((status>>8) & 1)  ? printf("DEADTIME:%08x ", getGTX(RORC_REG_DDL_DEADTIME)) : 0;
-        !((status>>8) & 1)  ? printf("EC:%08x ", getGTX(RORC_REG_DDL_EC))             : 0;
+        /** PG disabled or enabled */
+        ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
+        ((status>>8) & 1)  ? 0                 : printf("CTSTW: %08x ", getGTX(RORC_REG_DDL_CTSTW));
+        ((status>>8) & 1)  ? 0                 : printf("DEADTIME: %08x ", getGTX(RORC_REG_DDL_DEADTIME));
+        ((status>>8) & 1)  ? 0                 : printf("EC: %08x ", getGTX(RORC_REG_DDL_EC));
     }
 
 }
