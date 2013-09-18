@@ -364,8 +364,8 @@ dma_channel::dma_channel
     device   *dev,
     bar      *bar
 )
+: link(bar, channel_number)
 {
-    link(bar, channel_number);
     initMembers(0, dev, NULL, NULL);
     prepareBuffers();
 }
@@ -379,8 +379,8 @@ dma_channel::dma_channel
     buffer   *eventBuffer,
     buffer   *reportBuffer
 )
+: link(bar, channel_number)
 {
-    link(bar, channel_number);
     initMembers(pcie_packet_size, dev, eventBuffer, reportBuffer);
     prepareBuffers();
 }
