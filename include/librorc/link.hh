@@ -129,7 +129,7 @@ class device;
              * @return struct gtxpll_settings
              * */
             gtxpll_settings
-            drp_get_pll_config();
+            drpGetPllConfig();
 
             /**
              * set new PLL configuration
@@ -140,7 +140,7 @@ class device;
             drp_set_pll_config(gtxpll_settings pll);
 
             /**
-             * get DW from  Packtizer
+             * get DW from Packtizer
              * @param addr address in PKT component
              * @return data read from PKT
              **/

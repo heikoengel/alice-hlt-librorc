@@ -282,7 +282,7 @@ int main
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
 
-            gtxpll_settings pll = current_link->drp_get_pll_config();
+            gtxpll_settings pll = current_link->drpGetPllConfig();
             cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
                  << " CLK25DIV=" << (int)pll.clk25_div 

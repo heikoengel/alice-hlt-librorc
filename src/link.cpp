@@ -215,7 +215,7 @@ namespace librorc
 
 
     gtxpll_settings
-    link::drp_get_pll_config()
+    link::drpGetPllConfig()
     {
         uint16_t drpdata;
         gtxpll_settings pll;
