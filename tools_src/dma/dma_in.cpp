@@ -335,6 +335,7 @@ int handle_channel_data
  * @param ebuf pointer to librorc::buffer
  * @return 0 on sucess, -1 on error
  * */
+//TODO: refactor this into a class and merge it with event_sanity_checker afterwards
 int dump_to_file
 (
     char                     *base_dir,
