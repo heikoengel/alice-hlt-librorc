@@ -163,19 +163,6 @@ class device;
             uint32_t  m_base;
             uint32_t  m_link_number;
 
-            /**
-             * read-modify-write:
-             * replace rdval[bit+width-1:bit] with data[width-1:0]
-             * */
-            uint16_t
-            rmw
-            (
-                uint16_t rdval,
-                uint16_t data,
-                uint8_t  bit,
-                uint8_t  width
-            );
-
     };
 
 }

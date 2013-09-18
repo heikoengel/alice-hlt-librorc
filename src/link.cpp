@@ -30,20 +30,33 @@ using namespace std;
 
 
 /** Conversions between PLL values and their register representations */
+static inline
 uint8_t divselout_reg2val( uint8_t reg )
 {
-    if (reg==0) return 1;
-    else if (reg==1) return 2;
-    else return 4;
+    uint8_t ret;
+    ret = (reg==0) ? 1 : 4;
+    ret = (reg==1) ? 2 : ret;
+    return ret;
+
+//    if (reg==0) return 1;
+//    else if (reg==1) return 2;
+//    else return 4;
 }
 
+static inline
 uint8_t divselout_val2reg( uint8_t val )
 {
-    if (val==1) return 0;
-    else if (val==2) return 1;
-    else return 2;
+    uint8_t ret;
+    ret = (val==1) ? 0 : 2;
+    ret = (val==2) ? 1 : ret;
+    return ret;
+
+//    if (val==1) return 0;
+//    else if (val==2) return 1;
+//    else return 2;
 }
 
+static inline
 uint8_t divselfb_reg2val( uint8_t reg )
 {
     if (reg==0) return 2;
@@ -51,6 +64,7 @@ uint8_t divselfb_reg2val( uint8_t reg )
     else return 5;
 }
 
+static inline
 uint8_t divselfb_val2reg( uint8_t val )
 {
     if (val==2) return 0;
@@ -58,38 +72,64 @@ uint8_t divselfb_val2reg( uint8_t val )
     else return 3;
 }
 
+static inline
 uint8_t divselfb45_reg2val( uint8_t reg )
 {
     if (reg==1) return 5;
     else return 4;
 }
 
+static inline
 uint8_t divselfb45_val2reg( uint8_t val )
 {
     if (val==5) return 1;
     else return 0;
 }
 
+static inline
 uint8_t clk25div_reg2val( uint8_t reg )
 {
     return reg+1;
 }
 
+static inline
 uint8_t clk25div_val2reg( uint8_t val )
 {
     return val-1;
 }
 
+static inline
 uint8_t divselref_reg2val( uint8_t reg )
 {
     if (reg==16) return 1;
     else return 2;
 }
 
+static inline
 uint8_t divselref_val2reg( uint8_t val )
 {
     if (val==1) return 16;
     else return 0;
+}
+
+/**
+ * read-modify-write:
+ * replace rdval[bit+width-1:bit] with data[width-1:0]
+ * */
+static inline
+uint16_t
+rmw
+(
+    uint16_t rdval,
+    uint16_t data,
+    uint8_t  bit,
+    uint8_t  width
+)
+{
+    uint16_t mask = ((uint32_t)1<<width) - 1;
+    uint16_t wval = rdval & ~(mask<<bit);     /** clear current value */
+    wval |= ((data & mask)<<bit);             /** set new value */
+    return wval;
 }
 
 
@@ -318,9 +358,9 @@ namespace librorc
         printf("\nDIU_IF: ");
 
         (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
-        ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
-        ((status>>4) & 1)  ? 0                 : printf("LF ");
-        ((status>>5) & 1)  ? 0                 : printf("LD ");
+        ((status>>1)  & 1) ? printf("FC_ON ")  : printf("FC_OFF ");
+        ((status>>4)  & 1) ? 0                 : printf("LF ");
+        ((status>>5)  & 1) ? 0                 : printf("LD ");
         ((status>>30) & 1) ? 0                 : printf("BSY ");
 
         /** PG disabled or enabled */
@@ -387,20 +427,4 @@ namespace librorc
         );
     }
 
-/** PROTECTED */
-
-    uint16_t
-    link::rmw
-    (
-        uint16_t rdval,
-        uint16_t data,
-        uint8_t  bit,
-        uint8_t  width
-    )
-    {
-        uint16_t mask = ((uint32_t)1<<width) - 1;
-        uint16_t wval = rdval & ~(mask<<bit);     /** clear current value */
-        wval |= ((data & mask)<<bit);             /** set new value */
-        return wval;
-    }
 }
