@@ -394,9 +394,9 @@ dma_channel::~dma_channel()
 }
 
 
-//DMA
+
 void
-dma_channel::enable()//DMA related
+dma_channel::enable()
 {
     if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
@@ -406,9 +406,9 @@ dma_channel::enable()//DMA related
 
     setDMAConfig( DMAConfig() | 0x01 );
 }
-//DMA
+
 void
-dma_channel::disable()//DMA related
+dma_channel::disable()
 {
     disableEventBuffer();
 
@@ -420,42 +420,42 @@ dma_channel::disable()//DMA related
     /** Reset DFIFO, disable DMA PKT */
     setDMAConfig(0X00000002);
 }
+
+
 //TODO : this is protected when hlt out writer is refactored
-//DMA
 void
-dma_channel::enableEventBuffer()//DMA related
+dma_channel::enableEventBuffer()
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 2)) );
 }
-//DMA
+
 //TODO : this is protected when hlt out writer is refactored
 void
-dma_channel::disableEventBuffer()//DMA related
+dma_channel::disableEventBuffer()
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
 }
-//DMA
+
 uint32_t
-dma_channel::isEventBufferEnabled()//DMA related
+dma_channel::isEventBufferEnabled()
 {
     return (packetizer(RORC_REG_DMA_CTRL) >> 2 ) & 0x01;
 }
 
+
 //TODO : this is protected when hlt out writer is refactored
-//DMA
 void
-dma_channel::enableReportBuffer()//DMA related
+dma_channel::enableReportBuffer()
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 3)) );
 }
 //TODO : this is protected when hlt out writer is refactored
-//DMA
 void
 dma_channel::disableReportBuffer()//DMA related
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
-//DMA
+
 unsigned int
 dma_channel::isReportBufferEnabled()//DMA related
 {
@@ -463,7 +463,7 @@ dma_channel::isReportBufferEnabled()//DMA related
 }
 
 
-//DMA
+
 void
 dma_channel::setBufferOffsetsOnDevice
 (
@@ -476,7 +476,7 @@ dma_channel::setBufferOffsetsOnDevice
 }
 
 
-//DMA
+
 void
 dma_channel::waitForGTXDomain()
 {
@@ -492,14 +492,12 @@ dma_channel::waitForGTXDomain()
 
 
 //TODO : this is protected when hlt out writer is refactored
-//DMA
 void
 dma_channel::setDMAConfig(uint32_t config)
 {
     setPacketizer(RORC_REG_DMA_CTRL, config);
 }
 
-//DMA
 uint32_t
 dma_channel::DMAConfig()
 {
@@ -508,7 +506,6 @@ dma_channel::DMAConfig()
 
 
 //TODO : this is protected when hlt out writer is refactored
-//LINK
 void
 dma_channel::setPciePacketSize
 (
@@ -518,14 +515,13 @@ dma_channel::setPciePacketSize
     m_channelConfigurator->setPciePacketSize(packet_size);
 }
 
-
-//TODO : this is protected when hlt out writer is refactored
-//LINK
 uint32_t
 dma_channel::pciePacketSize()
 {
     return m_channelConfigurator->pciePacketSize();
 }
+
+
 
 //---checked global
 //DMA

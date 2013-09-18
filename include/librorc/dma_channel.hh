@@ -152,24 +152,6 @@ class dma_channel_configurator;
              **/
             uint64_t getRBSize();
 
-            /**
-             * get base
-             * @return channel base address
-             **/
-            uint64_t getBase() //TODO
-            {
-                return m_base;
-            }
-
-            /**
-             * get BAR
-             * @return bound librorc::bar
-             **/
-            bar *getBar() //TODO
-            {
-                return m_bar;
-            }
-
             void
             setOffsets
             (

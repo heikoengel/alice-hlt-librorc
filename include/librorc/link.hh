@@ -41,6 +41,23 @@ class device;
 
             virtual ~link(){};
 
+            /**
+             * get base
+             * @return channel base address
+             **/
+            uint64_t getBase()
+            {
+                return m_base;
+            }
+
+            /**
+             * get BAR
+             * @return bound librorc::bar
+             **/
+            bar *getBar()
+            {
+                return m_bar;
+            }
 
             /**
              * set DW in GTX Domain
