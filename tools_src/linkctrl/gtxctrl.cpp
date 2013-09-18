@@ -167,7 +167,7 @@ rmw
 }
 
 
-
+//TODO : to the link class
 /**
  * Read from GTX DRP port
  * @param ch pointer to dma_channel instance
@@ -177,31 +177,37 @@ rmw
 uint16_t
 drp_read
 (
-    librorc::dma_channel *ch,
-    uint8_t drp_addr
+    librorc::link *current_link,
+    uint8_t        drp_addr
 )
 {
-  uint32_t drp_status;
-  uint32_t drp_cmd = (0<<24) | //read
-    (drp_addr<<16) | //DRP addr
-    (0x00); // data
+    uint32_t drp_status;
+    uint32_t drp_cmd = (0<<24)        | //read
+                       (drp_addr<<16) | //DRP addr
+                       (0x00);          //data
 
-  ch->setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+    current_link->setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-  /** wait for drp_den to deassert */
-  do {
-    usleep(100);
-    drp_status = ch->packetizer(RORC_REG_GTX_DRP_CTRL);
-  } while (drp_status & (1<<31));
+    /** wait for drp_den to deassert */
+    do
+    {
+        usleep(100);
+        drp_status = current_link->packetizer(RORC_REG_GTX_DRP_CTRL);
+    } while(drp_status & (1<<31));
 
-  DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-          "drp_read(%x)=%04x\n", drp_addr, (drp_status & 0xffff));
+    DEBUG_PRINTF
+    (
+        PDADEBUG_CONTROL_FLOW,
+        "drp_read(%x)=%04x\n",
+        drp_addr,
+        (drp_status & 0xffff)
+    );
 
-  return (drp_status & 0xffff);
+    return (drp_status & 0xffff);
 }
 
 
-
+//TODO : to the link class
 /**
  * Write to GTX DRP port
  * @param ch pointer to dma_channel instane
@@ -211,29 +217,36 @@ drp_read
 void
 drp_write
 (
-    librorc::dma_channel *ch,
-    uint8_t drp_addr,
-    uint16_t drp_data
+    librorc::link *local_link,
+    uint8_t        drp_addr,
+    uint16_t       drp_data
 )
 {
-  uint32_t drp_status;
-  uint32_t drp_cmd = (1<<24) | //write
-    (drp_addr<<16) | //DRP addr
-    (drp_data); // data
+    uint32_t drp_status;
+    uint32_t drp_cmd = (1<<24)        | //write
+                       (drp_addr<<16) | //DRP addr
+                       (drp_data);      //data
 
-  ch->setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+    local_link->setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-  /** wait for drp_den to deassert */
-  do {
-    usleep(100);
-    drp_status = ch->packetizer(RORC_REG_GTX_DRP_CTRL);
-  } while (drp_status & (1<<31));
-  DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-          "drp_write(%x, %04x)\n", drp_addr, drp_data);
+    /** wait for drp_den to deassert */
+    do
+    {
+        usleep(100);
+        drp_status = local_link->packetizer(RORC_REG_GTX_DRP_CTRL);
+    } while(drp_status & (1<<31));
+
+    DEBUG_PRINTF
+    (
+        PDADEBUG_CONTROL_FLOW,
+        "drp_write(%x, %04x)\n",
+        drp_addr,
+        drp_data
+    );
 }
 
 
-
+//TODO : to the link class
 /**
  * get current PLL configuration
  * @param ch pointer to dma_channel instance
@@ -242,27 +255,27 @@ drp_write
 struct gtxpll_settings
 drp_get_pll_config
 (
-    librorc::dma_channel *ch
+    librorc::link *current_link
 )
 {
     uint16_t drpdata;
     struct gtxpll_settings pll;
 
-    drpdata = drp_read(ch, 0x1f);
-    pll.n1 = divselfb45_reg2val((drpdata>>6)&0x1);
-    pll.n2 = divselfb_reg2val((drpdata>>1)&0x1f);
-    pll.d = divselout_reg2val((drpdata>>14)&0x3);
+    drpdata         = drp_read(current_link, 0x1f);
+    pll.n1          = divselfb45_reg2val((drpdata>>6)&0x1);
+    pll.n2          = divselfb_reg2val((drpdata>>1)&0x1f);
+    pll.d           = divselout_reg2val((drpdata>>14)&0x3);
 
-    drpdata = drp_read(ch, 0x20);
-    pll.m = divselref_reg2val((drpdata>>1)&0x1f);
+    drpdata         = drp_read(current_link, 0x20);
+    pll.m           = divselref_reg2val((drpdata>>1)&0x1f);
 
-    drpdata = drp_read(ch, 0x23);
-    pll.clk25_div = clk25div_reg2val((drpdata>>10)&0x1f);
+    drpdata         = drp_read(current_link, 0x23);
+    pll.clk25_div   = clk25div_reg2val((drpdata>>10)&0x1f);
 
-    drpdata = drp_read(ch, 0x39);
+    drpdata         = drp_read(current_link, 0x39);
     pll.tx_tdcc_cfg = (drpdata>>14) & 0x03;
 
-    //Frequency = refclk_freq*gtx_n1*gtx_n2/gtx_m*2/gtx_d;
+    /**Frequency = refclk_freq*gtx_n1*gtx_n2/gtx_m*2/gtx_d; */
     return pll;
 }
 
@@ -277,74 +290,74 @@ drp_get_pll_config
 void
 drp_set_pll_config
 (
-    librorc::dma_channel *ch,
+    librorc::link *current_link,
     struct gtxpll_settings pll
 )
 {
     uint8_t n1_reg = divselfb45_val2reg(pll.n1);
     uint8_t n2_reg = divselfb_val2reg(pll.n2);
-    uint8_t d_reg = divselout_val2reg(pll.d);
-    uint8_t m_reg = divselref_val2reg(pll.m);
+    uint8_t d_reg  = divselout_val2reg(pll.d);
+    uint8_t m_reg  = divselref_val2reg(pll.m);
     uint8_t clkdiv = clk25div_val2reg(pll.clk25_div);
 
 
     /********************* TXPLL *********************/
 
-    uint16_t drp_data = drp_read(ch, 0x1f);
+    uint16_t drp_data = drp_read(current_link, 0x1f);
     /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
     drp_data = rmw(drp_data, n1_reg, 6, 1);
     /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
     drp_data = rmw(drp_data, n2_reg, 1, 5);
     /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
     drp_data = rmw(drp_data, d_reg, 14, 2);
-    drp_write(ch, 0x1f, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x1f, drp_data);
+    drp_read(current_link, 0x0);
 
     /** set TXPLL_DIVSEL_REF/M: addr 0x20, bits [5:1] */
-    drp_data = drp_read(ch, 0x20);
+    drp_data = drp_read(current_link, 0x20);
     drp_data = rmw(drp_data, m_reg, 1, 5);
-    drp_write(ch, 0x20, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x20, drp_data);
+    drp_read(current_link, 0x0);
 
     /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
-    drp_data = drp_read(ch, 0x23);
+    drp_data = drp_read(current_link, 0x23);
     drp_data = rmw(drp_data, clkdiv, 10, 5);
-    drp_write(ch, 0x23, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x23, drp_data);
+    drp_read(current_link, 0x0);
 
 
     /********************* RXPLL *********************/
 
-    drp_data = drp_read(ch, 0x1b);
+    drp_data = drp_read(current_link, 0x1b);
     /** set RXPLL_DIVSEL_FB45/N1: addr 0x1b bit [6] */
     drp_data = rmw(drp_data, n1_reg, 6, 1);
     /** set RXPLL_DIVSEL_FB/N2: addr 0x1b bits [5:1] */
     drp_data = rmw(drp_data, n2_reg, 1, 5);
     /** set RXPLL_DIVSEL_OUT/D: addr 0x1b bits [15:14] */
     drp_data = rmw(drp_data, d_reg, 14, 2);
-    drp_write(ch, 0x1b, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x1b, drp_data);
+    drp_read(current_link, 0x0);
 
     /** set RXPLL_DIVSEL_REF/M: addr 0x1c, bits [5:1] */
-    drp_data = drp_read(ch, 0x1c);
+    drp_data = drp_read(current_link, 0x1c);
     drp_data = rmw(drp_data, m_reg, 1, 5);
-    drp_write(ch, 0x1c, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x1c, drp_data);
+    drp_read(current_link, 0x0);
 
     /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
-    drp_data = drp_read(ch, 0x17);
+    drp_data = drp_read(current_link, 0x17);
     drp_data = rmw(drp_data, clkdiv, 5, 5);
-    drp_write(ch, 0x17, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x17, drp_data);
+    drp_read(current_link, 0x0);
 
 
     /********************* Common *********************/
 
     /** TX_TDCC_CFG: addr 0x39, bits [15:14] */
-    drp_data = drp_read(ch, 0x39);
+    drp_data = drp_read(current_link, 0x39);
     drp_data = rmw(drp_data, pll.tx_tdcc_cfg, 14, 2);
-    drp_write(ch, 0x39, drp_data);
-    drp_read(ch, 0x0);
+    drp_write(current_link, 0x39, drp_data);
+    drp_read(current_link, 0x0);
 }
 
 
@@ -476,21 +489,21 @@ int main
         abort();
     }
 
-    if ( gtxreset > 7 )
+    if( gtxreset > 7 )
     {
         cout << "gtxreset value invalid, allowed values are 0...7" << endl;
         cout << HELP_TEXT;
         abort();
     }
 
-    if ( loopback > 7 )
+    if( loopback > 7 )
     {
         cout << "loopback value invalid, allowed values are 0...7." << endl;
         cout << HELP_TEXT;
         abort();
     }
 
-    if ( pllcfgnum > nconfigs )
+    if( pllcfgnum > nconfigs )
     {
         cout << "Invalid PLL config number!" << endl;
         abort();
@@ -499,7 +512,6 @@ int main
     /** Create new device instance */
     librorc::device *dev = NULL;
     try{ dev = new librorc::device(DeviceId); }
-
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
@@ -532,7 +544,7 @@ int main
         startChannel = 0;
         endChannel = (type_channels & 0xffff) - 1;
     }
-    else if ( ChannelId < (int32_t)(type_channels & 0xffff) )
+    else if( ChannelId < (int32_t)(type_channels & 0xffff) ) //TODO : ask device
     {
         /** use only selected channel */
         startChannel = ChannelId;
@@ -549,8 +561,8 @@ int main
     for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
     {
         /** Create DMA channel and bind channel to BAR1 */
-        librorc::dma_channel *ch
-            = new librorc::dma_channel(chID, dev, bar);
+        librorc::link *ch
+            = new librorc::link(bar, chID);
 
         /** get current GTX configuration */
         uint32_t gtxasynccfg = ch->packetizer(RORC_REG_GTX_ASYNC_CFG);
