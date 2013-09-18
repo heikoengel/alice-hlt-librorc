@@ -155,7 +155,7 @@ int main
         librorc::link *current_link
             = new librorc::link(bar, chID);
 
-        if ( do_status )
+        if(do_status)
         {
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
                  << hex << current_link->packetizer(RORC_REG_DMA_STALL_CNT)
@@ -164,7 +164,7 @@ int main
                  << endl;
         }
 
-        if ( do_clear )
+        if(do_clear)
         {
             /** clear DMA stall count */
             current_link->setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
