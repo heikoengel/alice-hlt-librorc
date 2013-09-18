@@ -21,6 +21,7 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
+#include <librorc/link.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -42,8 +43,6 @@
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
-//////////////////////////////////////
-/** TODO : This might be obsolete */
 /** Shared mem key offset **/
 #define SHM_KEY_OFFSET 2048
 /** Shared mem device offset **/
@@ -62,7 +61,7 @@ typedef struct
     uint32_t channel;
 }librorcChannelStatus;
 
-//////////////////////////////////
+
 
 
 /**
@@ -85,7 +84,7 @@ class buffer;
 class device;
 class dma_channel_configurator;
 
-    class dma_channel
+    class dma_channel : link
     {
         friend class dma_channel_configurator;
 
