@@ -39,7 +39,7 @@ class device;
                 uint32_t  link_number
             );
 
-            ~link(){};
+            virtual ~link(){};
 
 
             /**
