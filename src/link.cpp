@@ -123,8 +123,10 @@ uint8_t divselref_reg2val( uint8_t reg )
 static inline
 uint8_t divselref_val2reg( uint8_t val )
 {
-    if (val==1) return 16;
-    else return 0;
+    return (val==1) ? 16 : 0 ;
+
+//    if (val==1) return 16;
+//    else return 0;
 }
 
 static inline
