@@ -153,7 +153,7 @@ namespace librorc
 
 
     uint16_t
-    link::drp_read(uint8_t drp_addr)
+    link::drpRead(uint8_t drp_addr)
     {
         uint32_t drp_status;
         uint32_t drp_cmd = (0<<24)        | //read
@@ -172,7 +172,7 @@ namespace librorc
         DEBUG_PRINTF
         (
             PDADEBUG_CONTROL_FLOW,
-            "drp_read(%x)=%04x\n",
+            "drpRead(%x)=%04x\n",
             drp_addr,
             (drp_status & 0xffff)
         );
@@ -220,18 +220,18 @@ namespace librorc
         uint16_t drpdata;
         gtxpll_settings pll;
 
-        drpdata         = drp_read(0x1f);
+        drpdata         = drpRead(0x1f);
         pll.n1          = divselfb45_reg2val((drpdata>>6)&0x1);
         pll.n2          = divselfb_reg2val((drpdata>>1)&0x1f);
         pll.d           = divselout_reg2val((drpdata>>14)&0x3);
 
-        drpdata         = drp_read(0x20);
+        drpdata         = drpRead(0x20);
         pll.m           = divselref_reg2val((drpdata>>1)&0x1f);
 
-        drpdata         = drp_read(0x23);
+        drpdata         = drpRead(0x23);
         pll.clk25_div   = clk25div_reg2val((drpdata>>10)&0x1f);
 
-        drpdata         = drp_read(0x39);
+        drpdata         = drpRead(0x39);
         pll.tx_tdcc_cfg = (drpdata>>14) & 0x03;
 
         /**Frequency = refclk_freq*gtx_n1*gtx_n2/gtx_m*2/gtx_d; */
@@ -258,54 +258,54 @@ namespace librorc
 
         /********************* TXPLL *********************/
 
-        drp_data = drp_read(0x1f);
+        drp_data = drpRead(0x1f);
         drp_data = rmw(drp_data, n1_reg, 6, 1); /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
         drp_data = rmw(drp_data, n2_reg, 1, 5); /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
         drp_data = rmw(drp_data, d_reg, 14, 2); /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
         drp_write(0x1f, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
 
         /** set TXPLL_DIVSEL_REF/M: addr 0x20, bits [5:1] */
-        drp_data = drp_read(0x20);
+        drp_data = drpRead(0x20);
         drp_data = rmw(drp_data, m_reg, 1, 5);
         drp_write(0x20, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
 
         /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
-        drp_data = drp_read(0x23);
+        drp_data = drpRead(0x23);
         drp_data = rmw(drp_data, clkdiv, 10, 5);
         drp_write(0x23, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
 
         /********************* RXPLL *********************/
 
-        drp_data = drp_read(0x1b);
+        drp_data = drpRead(0x1b);
         drp_data = rmw(drp_data, n1_reg, 6, 1); /** set RXPLL_DIVSEL_FB45/N1: addr 0x1b bit [6] */
         drp_data = rmw(drp_data, n2_reg, 1, 5); /** set RXPLL_DIVSEL_FB/N2: addr 0x1b bits [5:1] */
         drp_data = rmw(drp_data, d_reg, 14, 2); /** set RXPLL_DIVSEL_OUT/D: addr 0x1b bits [15:14] */
         drp_write(0x1b, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
 
         /** set RXPLL_DIVSEL_REF/M: addr 0x1c, bits [5:1] */
-        drp_data = drp_read(0x1c);
+        drp_data = drpRead(0x1c);
         drp_data = rmw(drp_data, m_reg, 1, 5);
         drp_write(0x1c, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
-        drp_data = drp_read(0x17);
+        drp_data = drpRead(0x17);
         drp_data = rmw(drp_data, clkdiv, 5, 5);
         drp_write(0x17, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
 
 
         /********************* Common *********************/
 
         /** TX_TDCC_CFG: addr 0x39, bits [15:14] */
-        drp_data = drp_read(0x39);
+        drp_data = drpRead(0x39);
         drp_data = rmw(drp_data, pll.tx_tdcc_cfg, 14, 2);
         drp_write(0x39, drp_data);
-        drp_read(0x0);
+        drpRead(0x0);
     }
 
 

@@ -370,7 +370,7 @@ int main
             {
                 cout << hex << setw(2) << i << ": 0x"
                      << setw(4) << setfill('0')
-                     << current_link->drp_read(i) << endl;
+                     << current_link->drpRead(i) << endl;
             }
         }
 

@@ -109,7 +109,7 @@ class device;
              * @return DRP value
              * */
             uint16_t
-            drp_read(uint8_t drp_addr);
+            drpRead(uint8_t drp_addr);
 
             /**
              * Write to GTX DRP port
