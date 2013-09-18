@@ -270,11 +270,11 @@ int main
     for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
     {
         /** Create DMA channel and bind channel to BAR1 */
-        librorc::link *ch
+        librorc::link *current_link
             = new librorc::link(bar, chID);
 
         /** get current GTX configuration */
-        uint32_t gtxasynccfg = ch->packetizer(RORC_REG_GTX_ASYNC_CFG);
+        uint32_t gtxasynccfg = current_link->packetizer(RORC_REG_GTX_ASYNC_CFG);
 
         if ( do_status )
         {
@@ -282,7 +282,7 @@ int main
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
 
-            struct gtxpll_settings pll = ch->drp_get_pll_config();
+            struct gtxpll_settings pll = current_link->drp_get_pll_config();
             cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
                  << " CLK25DIV=" << (int)pll.clk25_div 
@@ -302,21 +302,21 @@ int main
             }
 
             /** clear disparity error count */
-            ch->setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
+            current_link->setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
 
             /** clear RX-not-in-table count */
-            ch->setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
+            current_link->setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
 
             /** clear RX-Loss-Of-Signal count */
-            ch->setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
+            current_link->setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
 
             /** clear RX-Byte-Realign count */
-            ch->setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
+            current_link->setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
 
             /** also clear GTX error counter for HWTest firmwares */
             if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
             {
-                ch->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+                current_link->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
             }
 
         }
@@ -346,21 +346,21 @@ int main
         if ( do_reset || do_loopback )
         {
             /** write new values to RORC */
-            ch->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
         }
 
         if ( do_pllcfg )
         {
             /** set GTXRESET */
             gtxasynccfg |= 0x00000001;
-            ch->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
 
             /** Write new PLL config */
-            ch->drp_set_pll_config(available_configs[pllcfgnum]);
+            current_link->drp_set_pll_config(available_configs[pllcfgnum]);
 
             /** release GTXRESET */
             gtxasynccfg &= ~(0x00000001);
-            ch->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
         }
 
         if ( do_dump )
@@ -370,11 +370,11 @@ int main
             {
                 cout << hex << setw(2) << i << ": 0x"
                      << setw(4) << setfill('0')
-                     << ch->drp_read(i) << endl;
+                     << current_link->drp_read(i) << endl;
             }
         }
 
-        delete ch;
+        delete current_link;
     }
 
     delete bar;
