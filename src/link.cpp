@@ -114,8 +114,10 @@ uint8_t clk25div_val2reg( uint8_t val )
 static inline
 uint8_t divselref_reg2val( uint8_t reg )
 {
-    if (reg==16) return 1;
-    else return 2;
+    return (reg==16) ? 1 : 2 ;
+
+//    if (reg==16) return 1;
+//    else return 2;
 }
 
 static inline
