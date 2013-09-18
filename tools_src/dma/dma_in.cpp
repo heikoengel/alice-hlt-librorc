@@ -204,133 +204,133 @@ int main(int argc, char *argv[])
 //TODO: refactor this into a class and merge it with event stream afterwards
 int handle_channel_data
 (
-    librorc::buffer      *rbuf,
-    librorc::buffer      *ebuf,
+    librorc::buffer      *report_buffer,
+    librorc::buffer      *event_buffer,
     librorc::dma_channel *channel,
-    librorcChannelStatus *stats,
-    int                   do_sanity_check,
-    uint32_t             *ddlref,
-    uint64_t              ddlref_size
+    librorcChannelStatus *channel_status,
+    int                   sanity_check_mask,
+    uint32_t             *ddl_reference,
+    uint64_t              ddl_reference_size
 )
 {
     uint64_t                 events_per_iteration = 0;
     int                      events_processed     = 0;
-    uint64_t                 eboffset             = 0;
-    uint64_t                 rboffset             = 0;
+    uint64_t                 event_buffer_offset  = 0;
+    uint64_t                 report_buffer_offset = 0;
     uint64_t                 starting_index       = 0;
-    uint64_t                 entrysize            = 0;
-    uint64_t                 EventID              = 0;
+    uint64_t                 entry_size           = 0;
+    uint64_t                 event_id             = 0;
     int                      retval               = 0;
-    char                     basedir[] = "/tmp";
-    librorc_event_descriptor rb;
+    char                     basedir[]            = "/tmp";
 
     librorc_event_descriptor *reportbuffer
-        = (librorc_event_descriptor *)(rbuf->getMem());
+        = (librorc_event_descriptor *)(report_buffer->getMem());
     volatile uint32_t *eventbuffer
-        = (uint32_t *)(ebuf->getMem());
+        = (uint32_t *)(event_buffer->getMem());
 
     /** new event received */
-    if( reportbuffer[stats->index].calc_event_size!=0 )
+    if( reportbuffer[channel_status->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
-        starting_index = stats->index;
+        starting_index = channel_status->index;
 
         // handle all following entries
-        while( reportbuffer[stats->index].calc_event_size!=0 )
+        while( reportbuffer[channel_status->index].calc_event_size!=0 )
         {
             // increment number of events processed in this interation
             events_processed++;
 
             // perform validity tests on the received data (if enabled)
-            if(do_sanity_check)
+            if(sanity_check_mask)
             {
-                rb = reportbuffer[stats->index];
+                librorc_event_descriptor rb
+                    = reportbuffer[channel_status->index];
                 retval = event_sanity_check
                          (
                              &rb,
                              eventbuffer,
-                             stats->index,
-                             stats->channel,
-                             stats->last_id,
+                             channel_status->index,
+                             channel_status->channel,
+                             channel_status->last_id,
                              PG_PATTERN_INC, /** TODO */
-                             do_sanity_check,
-                             ddlref,
-                             ddlref_size,
-                             &EventID
+                             sanity_check_mask,
+                             ddl_reference,
+                             ddl_reference_size,
+                             &event_id
                          );
 
 
                 if ( retval!=0 )
                 {
-                    stats->error_count++;
-                    if (stats->error_count < MAX_FILES_TO_DISK)
+                    channel_status->error_count++;
+                    if (channel_status->error_count < MAX_FILES_TO_DISK)
                     {
                         dump_to_file
                         (
                             basedir, // base dir
-                            stats, // channel stats
-                            EventID, // current EventID
-                            stats->error_count, // file index
+                            channel_status, // channel stats
+                            event_id, // current EventID
+                            channel_status->error_count, // file index
                             reportbuffer, // Report Buffer
-                            ebuf, // Event Buffer
+                            event_buffer, // Event Buffer
                             retval // Error flags
                         );
                     }
 
                 }
 
-                stats->last_id = EventID;
+                channel_status->last_id = event_id;
             }
 
             // increment the number of bytes received
-            stats->bytes_received +=
-                (reportbuffer[stats->index].calc_event_size<<2);
+            channel_status->bytes_received +=
+                (reportbuffer[channel_status->index].calc_event_size<<2);
 
             // save new EBOffset
-            eboffset = reportbuffer[stats->index].offset;
+            event_buffer_offset = reportbuffer[channel_status->index].offset;
 
             // increment reportbuffer offset
-            rboffset = ((stats->index)*sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
+            report_buffer_offset = ((channel_status->index)*sizeof(librorc_event_descriptor)) % report_buffer->getPhysicalSize();
 
             // wrap RB index if necessary
-            if( stats->index < rbuf->getMaxRBEntries()-1 )
-            { stats->index++; }
+            if( channel_status->index < report_buffer->getMaxRBEntries()-1 )
+            { channel_status->index++; }
             else
-            { stats->index=0; }
+            { channel_status->index=0; }
 
             //increment total number of events received
-            stats->n_events++;
+            channel_status->n_events++;
 
             //increment number of events processed in this while-loop
             events_per_iteration++;
         }
 
         // clear processed reportbuffer entries
-        entrysize = sizeof(librorc_event_descriptor);
-        memset(&reportbuffer[starting_index], 0, events_per_iteration*entrysize);
+        entry_size = sizeof(librorc_event_descriptor);
+        memset(&reportbuffer[starting_index], 0, events_per_iteration*entry_size);
 
 
         // update min/max statistics on how many events have been received
         // in the above while-loop
-        if(events_per_iteration > stats->max_epi)
-        { stats->max_epi = events_per_iteration; }
+        if(events_per_iteration > channel_status->max_epi)
+        { channel_status->max_epi = events_per_iteration; }
 
-        if(events_per_iteration < stats->min_epi)
-        { stats->min_epi = events_per_iteration; }
+        if(events_per_iteration < channel_status->min_epi)
+        { channel_status->min_epi = events_per_iteration; }
 
         events_per_iteration = 0;
-        stats->set_offset_count++;
+        channel_status->set_offset_count++;
 
         // actually update the offset pointers in the firmware
-        channel->setBufferOffsetsOnDevice(eboffset, rboffset);
+        channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
         DEBUG_PRINTF
         (
             PDADEBUG_CONTROL_FLOW,
             "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
-            stats->channel,
-            rboffset,
-            eboffset
+            channel_status->channel,
+            report_buffer_offset,
+            event_buffer_offset
         );
     }
 
