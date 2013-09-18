@@ -23,6 +23,21 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 
+
+struct
+gtxpll_settings
+{
+    uint8_t clk25_div;
+    uint8_t n1;
+    uint8_t n2;
+    uint8_t d;
+    uint8_t m;
+    uint8_t tx_tdcc_cfg;
+    float refclk;
+};
+
+
+
 namespace librorc
 {
 class bar;
@@ -89,6 +104,42 @@ class device;
             );
 
             /**
+             * Read from GTX DRP port
+             * @param drp_addr DRP address to read from
+             * @return DRP value
+             * */
+            uint16_t
+            drp_read(uint8_t drp_addr);
+
+            /**
+             * Write to GTX DRP port
+             * @param drp_addr DRP address to write to
+             * @param drp_data data to be written
+             * */
+            void
+            drp_write
+            (
+                uint8_t  drp_addr,
+                uint16_t drp_data
+            );
+
+            /**
+             * get current PLL configuration
+             * @param ch pointer to dma_channel instance
+             * @return struct gtxpll_settings
+             * */
+            struct gtxpll_settings
+            drp_get_pll_config();
+
+            /**
+             * set new PLL configuration
+             * @param ch pointer to dma_channel instance
+             * @param pll struct gtxpll_settings with new values
+             * */
+            void
+            drp_set_pll_config(struct gtxpll_settings pll);
+
+            /**
              * get DW from  Packtizer
              * @param addr address in PKT component
              * @return data read from PKT
@@ -111,6 +162,19 @@ class device;
             bar      *m_bar;
             uint32_t  m_base;
             uint32_t  m_link_number;
+
+            /**
+             * read-modify-write:
+             * replace rdval[bit+width-1:bit] with data[width-1:0]
+             * */
+            uint16_t
+            rmw
+            (
+                uint16_t rdval,
+                uint16_t data,
+                uint8_t  bit,
+                uint8_t  width
+            );
 
     };
 
