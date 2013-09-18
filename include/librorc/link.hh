@@ -80,6 +80,11 @@ class device;
              **/
             uint32_t packetizer(uint32_t addr);
 
+            /**
+             * Printout the DIU-state to the console
+             * */
+            void printDiuState();
+
 
 
         protected:

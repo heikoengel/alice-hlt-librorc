@@ -82,4 +82,26 @@ namespace librorc
     {
         return m_bar->get32(m_base+addr);
     }
+
+    void
+    link::printDiuState()
+    {
+        uint32_t status = getGTX(RORC_REG_DDL_CTRL);
+
+        printf("\nDIU_IF: ");
+
+         (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
+         ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
+        !((status>>4) & 1)  ? printf("LF ")     : 0;
+        !((status>>5) & 1)  ? printf("LD ")     : 0;
+        !((status>>30) & 1) ? printf("BSY ")    : 0;
+
+        /** PG disabled */
+         ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
+        /** PG disabled */
+        !((status>>8) & 1)  ? printf("CTSTW:%08x ", getGTX(RORC_REG_DDL_CTSTW))       : 0;
+        !((status>>8) & 1)  ? printf("DEADTIME:%08x ", getGTX(RORC_REG_DDL_DEADTIME)) : 0;
+        !((status>>8) & 1)  ? printf("EC:%08x ", getGTX(RORC_REG_DDL_EC))             : 0;
+    }
+
 }
