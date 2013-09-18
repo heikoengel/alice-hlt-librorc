@@ -221,6 +221,23 @@ namespace librorc
     }
 
 
+
+    uint32_t
+    link::stallCount()
+    {
+        return packetizer(RORC_REG_DMA_STALL_CNT);
+    }
+
+
+
+    uint32_t
+    link::numberOfEventsProcessed()
+    {
+        return packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED);
+    }
+
+
+
     uint16_t
     link::drpRead(uint8_t drp_addr)
     {

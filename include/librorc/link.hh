@@ -109,6 +109,10 @@ class device;
             /** clear Event Count */
             void clearEventCount();
 
+            uint32_t stallCount();
+
+            uint32_t numberOfEventsProcessed();
+
             /**
              * Read from GTX DRP port
              * @param drp_addr DRP address to read from

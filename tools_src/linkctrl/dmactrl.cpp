@@ -158,9 +158,9 @@ int main
         if(do_status)
         {
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
-                 << hex << current_link->packetizer(RORC_REG_DMA_STALL_CNT)
+                 << hex << current_link->stallCount()
                  << "; #Events processed: 0x"
-                 << current_link->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED)
+                 << current_link->numberOfEventsProcessed()
                  << endl;
         }
 
