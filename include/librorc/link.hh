@@ -24,8 +24,8 @@
 #include <librorc/defines.hh>
 
 
-struct
-gtxpll_settings
+typedef struct
+gtxpll_settings_struct
 {
     uint8_t clk25_div;
     uint8_t n1;
@@ -34,7 +34,7 @@ gtxpll_settings
     uint8_t m;
     uint8_t tx_tdcc_cfg;
     float refclk;
-};
+}gtxpll_settings;
 
 
 
@@ -128,7 +128,7 @@ class device;
              * @param ch pointer to dma_channel instance
              * @return struct gtxpll_settings
              * */
-            struct gtxpll_settings
+            gtxpll_settings
             drp_get_pll_config();
 
             /**
@@ -137,7 +137,7 @@ class device;
              * @param pll struct gtxpll_settings with new values
              * */
             void
-            drp_set_pll_config(struct gtxpll_settings pll);
+            drp_set_pll_config(gtxpll_settings pll);
 
             /**
              * get DW from  Packtizer

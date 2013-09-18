@@ -59,7 +59,7 @@ To release all resets, do \n\
  * fPLL = fREF * N1 * N2 / M
  * fLineRate = fPLL * 2 / D
  * */
-const struct gtxpll_settings available_configs[] =
+const gtxpll_settings available_configs[] =
 {
     //div,n1,n2,d, m, tdcc, refclk
     {  9, 5, 2, 2, 1, 0, 212.5}, // 2.125 Gbps with RefClk=212.5 MHz
@@ -93,7 +93,7 @@ int main
     int32_t pllcfgnum = 0;
 
     int32_t nconfigs = sizeof(available_configs) /
-                       sizeof(struct gtxpll_settings);
+                       sizeof(gtxpll_settings);
 
     int arg;
     while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:dP")) != -1 )
@@ -178,7 +178,7 @@ int main
         cout << "Available PLL Configurations:" << endl;
         for ( int i=0; i<nconfigs; i++ )
         {
-            struct gtxpll_settings pll = available_configs[i];
+            gtxpll_settings pll = available_configs[i];
             float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
             float link_rate = fPLL * 2 / pll.d / 1000.0;
             cout << "[" << i << "] RefClk="
@@ -282,7 +282,7 @@ int main
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
 
-            struct gtxpll_settings pll = current_link->drp_get_pll_config();
+            gtxpll_settings pll = current_link->drp_get_pll_config();
             cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
                  << " CLK25DIV=" << (int)pll.clk25_div 

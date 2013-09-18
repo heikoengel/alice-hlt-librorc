@@ -214,11 +214,11 @@ namespace librorc
 
 
 
-    struct gtxpll_settings
+    gtxpll_settings
     link::drp_get_pll_config()
     {
         uint16_t drpdata;
-        struct gtxpll_settings pll;
+        gtxpll_settings pll;
 
         drpdata         = drp_read(0x1f);
         pll.n1          = divselfb45_reg2val((drpdata>>6)&0x1);
@@ -246,7 +246,7 @@ namespace librorc
      * @param pll struct gtxpll_settings with new values
      * */
     void
-    link::drp_set_pll_config(struct gtxpll_settings pll)
+    link::drp_set_pll_config(gtxpll_settings pll)
     {
         uint8_t  n1_reg   = divselfb45_val2reg(pll.n1);
         uint8_t  n2_reg   = divselfb_val2reg(pll.n2);
