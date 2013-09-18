@@ -206,6 +206,21 @@ namespace librorc
 
 
 
+    void
+    link::clearDmaStallCount()
+    {
+        setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
+    }
+
+
+
+    void
+    link::clearEventCount()
+    {
+        setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
+    }
+
+
     uint16_t
     link::drpRead(uint8_t drp_addr)
     {

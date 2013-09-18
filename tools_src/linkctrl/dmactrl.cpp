@@ -166,11 +166,8 @@ int main
 
         if(do_clear)
         {
-            /** clear DMA stall count */
-            current_link->setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
-
-            /** clear Event Count */
-            current_link->setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
+            current_link->clearDmaStallCount();
+            current_link->clearEventCount();
         }
 
         delete current_link;

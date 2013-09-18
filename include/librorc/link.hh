@@ -103,6 +103,12 @@ class device;
                 uint32_t data
             );
 
+            /** clear DMA stall count */
+            void clearDmaStallCount();
+
+            /** clear Event Count */
+            void clearEventCount();
+
             /**
              * Read from GTX DRP port
              * @param drp_addr DRP address to read from
