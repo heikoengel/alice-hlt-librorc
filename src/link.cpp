@@ -59,9 +59,14 @@ uint8_t divselout_val2reg( uint8_t val )
 static inline
 uint8_t divselfb_reg2val( uint8_t reg )
 {
-    if (reg==0) return 2;
-    else if (reg==2) return 4;
-    else return 5;
+    uint8_t ret;
+    ret = (reg==0) ? 2 : 5;
+    ret = (reg==2) ? 4 : ret;
+    return ret;
+
+//    if (reg==0) return 2;
+//    else if (reg==2) return 4;
+//    else return 5;
 }
 
 static inline
