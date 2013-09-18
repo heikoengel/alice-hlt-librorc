@@ -152,28 +152,28 @@ int main
     for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
     {
         /** Create DMA channel and bind channel to BAR1 */
-        librorc::dma_channel *ch
-            = new librorc::dma_channel(chID, dev, bar);
+        librorc::link *current_link
+            = new librorc::link(bar, chID);
 
         if ( do_status )
         {
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
-                 << hex << ch->packetizer(RORC_REG_DMA_STALL_CNT)
+                 << hex << current_link->packetizer(RORC_REG_DMA_STALL_CNT)
                  << "; #Events processed: 0x"
-                 << ch->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED)
+                 << current_link->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED)
                  << endl;
         }
 
         if ( do_clear )
         {
             /** clear DMA stall count */
-            ch->setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
+            current_link->setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
 
             /** clear Event Count */
-            ch->setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
+            current_link->setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
         }
 
-        delete ch;
+        delete current_link;
     }
 
     delete bar;
