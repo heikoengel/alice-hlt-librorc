@@ -94,8 +94,9 @@ uint8_t divselfb45_reg2val( uint8_t reg )
 static inline
 uint8_t divselfb45_val2reg( uint8_t val )
 {
-    if (val==5) return 1;
-    else return 0;
+    return (val==5) ? 1 : 0 ;
+//    if (val==5) return 1;
+//    else return 0;
 }
 
 static inline
