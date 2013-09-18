@@ -17,17 +17,25 @@
  *
  */
 
-#include <librorc/registers.h>
-#include <librorc/link.hh>
+#ifndef LIBRORC_LINK_H
+#define LIBRORC_LINK_H
 
-#include <pda.h>
 
-using namespace std;
+#endif /** LIBRORC_LINK_H */
 
 namespace librorc
 {
+class bar;
+class device;
 
+    class link
+    {
+        public:
+            link(){};
+            ~link(){};
 
+        protected:
 
+    };
 
 }

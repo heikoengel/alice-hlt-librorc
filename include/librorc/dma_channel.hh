@@ -1,6 +1,5 @@
 /**
  * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
- * @version 0.2
  * @date 2011-08-17
  *
  * @section LICENSE
@@ -81,7 +80,6 @@ typedef struct
  **/
 namespace librorc
 {
-
 class bar;
 class buffer;
 class device;
