@@ -392,7 +392,7 @@ dma_channel::~dma_channel()
 }
 
 
-
+//DMA
 void
 dma_channel::enable()//DMA related
 {
@@ -404,7 +404,7 @@ dma_channel::enable()//DMA related
 
     setDMAConfig( DMAConfig() | 0x01 );
 }
-
+//DMA
 void
 dma_channel::disable()//DMA related
 {
@@ -419,18 +419,20 @@ dma_channel::disable()//DMA related
     setDMAConfig(0X00000002);
 }
 //TODO : this is protected when hlt out writer is refactored
+//DMA
 void
 dma_channel::enableEventBuffer()//DMA related
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 2)) );
 }
+//DMA
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableEventBuffer()//DMA related
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
 }
-
+//DMA
 uint32_t
 dma_channel::isEventBufferEnabled()//DMA related
 {
@@ -438,18 +440,20 @@ dma_channel::isEventBufferEnabled()//DMA related
 }
 
 //TODO : this is protected when hlt out writer is refactored
+//DMA
 void
 dma_channel::enableReportBuffer()//DMA related
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) | (1 << 3)) );
 }
 //TODO : this is protected when hlt out writer is refactored
+//DMA
 void
 dma_channel::disableReportBuffer()//DMA related
 {
     setPacketizer(RORC_REG_DMA_CTRL, (packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
 }
-
+//DMA
 unsigned int
 dma_channel::isReportBufferEnabled()//DMA related
 {
@@ -457,7 +461,7 @@ dma_channel::isReportBufferEnabled()//DMA related
 }
 
 
-
+//DMA
 void
 dma_channel::setBufferOffsetsOnDevice
 (
@@ -470,7 +474,7 @@ dma_channel::setBufferOffsetsOnDevice
 }
 
 
-
+//DMA
 void
 dma_channel::waitForGTXDomain()
 {
@@ -486,12 +490,14 @@ dma_channel::waitForGTXDomain()
 
 
 //TODO : this is protected when hlt out writer is refactored
+//DMA
 void
 dma_channel::setDMAConfig(uint32_t config)
 {
     setPacketizer(RORC_REG_DMA_CTRL, config);
 }
 
+//DMA
 uint32_t
 dma_channel::DMAConfig()
 {
@@ -500,6 +506,7 @@ dma_channel::DMAConfig()
 
 
 //TODO : this is protected when hlt out writer is refactored
+//LINK
 void
 dma_channel::setPciePacketSize
 (
@@ -508,7 +515,10 @@ dma_channel::setPciePacketSize
 {
     m_channelConfigurator->setPciePacketSize(packet_size);
 }
+
+
 //TODO : this is protected when hlt out writer is refactored
+//LINK
 uint32_t
 dma_channel::pciePacketSize()
 {
@@ -516,7 +526,7 @@ dma_channel::pciePacketSize()
 }
 
 //---checked global
-
+//DMA
 void
 dma_channel::setEBOffset
 (
@@ -535,7 +545,7 @@ dma_channel::setEBOffset
 }
 
 
-
+//DMA
 uint64_t
 dma_channel::getEBOffset()
 {
@@ -543,7 +553,7 @@ dma_channel::getEBOffset()
            (uint64_t)packetizer(RORC_REG_EBDM_SW_READ_POINTER_L);
 }
 
-
+//DMA
 uint64_t
 dma_channel::getLastEBOffset()
 {
@@ -551,7 +561,7 @@ dma_channel::getLastEBOffset()
 }
 
 
-
+//DMA
 uint64_t
 dma_channel::getLastRBOffset()
 {
@@ -559,7 +569,7 @@ dma_channel::getLastRBOffset()
 }
 
 
-
+//DMA
 uint64_t
 dma_channel::getEBDMAOffset()
 {
@@ -568,7 +578,7 @@ dma_channel::getEBDMAOffset()
 }
 
 
-
+//DMA
 void
 dma_channel::setRBOffset
 (
@@ -587,7 +597,7 @@ dma_channel::setRBOffset
 }
 
 
-
+//DMA
 uint64_t
 dma_channel::getRBOffset()
 {
@@ -596,7 +606,7 @@ dma_channel::getRBOffset()
 }
 
 
-
+//DMA
 uint64_t
 dma_channel::getRBDMAOffset()
 {
@@ -605,7 +615,7 @@ dma_channel::getRBDMAOffset()
 }
 
 
-
+//DMA
 uint32_t
 dma_channel::getEBDMnSGEntries()
 {
@@ -613,7 +623,7 @@ dma_channel::getEBDMnSGEntries()
 }
 
 
-
+//DMA
 uint32_t
 dma_channel::getRBDMnSGEntries()
 {
@@ -621,15 +631,14 @@ dma_channel::getRBDMnSGEntries()
 }
 
 
-
+//DMA
 uint32_t
 dma_channel::getDMABusy()
 {
     return (packetizer(RORC_REG_DMA_CTRL) >> 7) & 0x01;
 }
 
-
-
+//DMA
 uint64_t
 dma_channel::getEBSize()
 {
@@ -637,6 +646,7 @@ dma_channel::getEBSize()
            (uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
 }
 
+//DMA
 uint64_t
 dma_channel::getRBSize()
 {
@@ -645,7 +655,7 @@ dma_channel::getRBSize()
 }
 
 
-//TODO : this little bugger is link specific
+//LINK
 void
 dma_channel::setPacketizer
 (
@@ -657,7 +667,7 @@ dma_channel::setPacketizer
 }
 
 
-//TODO : this little bugger is link specific
+//LINK
 uint32_t
 dma_channel::packetizer
 (
@@ -667,7 +677,7 @@ dma_channel::packetizer
     return m_bar->get32(m_base+addr);
 }
 
-//TODO : this little bugger is link specific
+//DMA
 void
 dma_channel::printDMAState()
 {
@@ -706,7 +716,7 @@ dma_channel::printDMAState()
 }
 
 
-//TODO : this little bugger is DMA specific
+//DMA
 void
 dma_channel::printDiuState()
 {
@@ -731,7 +741,7 @@ dma_channel::printDiuState()
 
 
 /**PROTECTED:*/
-
+//DMA & LINK
     void
     dma_channel::initMembers
     (
@@ -770,7 +780,7 @@ dma_channel::printDiuState()
     }
 
 
-
+    //DMA
     void
     dma_channel::prepareBuffers()
     {
@@ -791,7 +801,7 @@ dma_channel::printDiuState()
     }
 
 
-
+    //DMA
     int32_t
     dma_channel::programSglistForEventBuffer
     (
@@ -803,7 +813,7 @@ dma_channel::printDiuState()
     }
 
 
-
+    //DMA
     int32_t
     dma_channel::programSglistForReportBuffer
     (
@@ -815,6 +825,7 @@ dma_channel::printDiuState()
     }
 
 
+    //LINK
     void
     dma_channel::setGTX
     (
@@ -826,7 +837,7 @@ dma_channel::printDiuState()
     }
 
 
-
+    //LINK
     uint32_t
     dma_channel::getGTX
     (

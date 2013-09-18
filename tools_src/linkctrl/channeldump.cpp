@@ -90,7 +90,6 @@ main
     /** Create new device instance */
     librorc::device *dev = NULL;
     try{ dev = new librorc::device(DeviceId); }
-
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
@@ -113,10 +112,8 @@ main
         abort();
     }
 
-    /** get number channels implemented in firmware */
-    uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
 
-    if ( ChannelId < 0 || ChannelId > (int32_t)(type_channels & 0xffff) )
+    if( !(dev->DMAChannelIsImplemented(ChannelId)) )
     {
         cout << "ChannelId invalid or not set: " << ChannelId << endl;
         cout << HELP_TEXT;
