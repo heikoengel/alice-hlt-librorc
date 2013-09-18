@@ -19,6 +19,9 @@
 
 #include <librorc/registers.h>
 #include <librorc/link.hh>
+#include <librorc/bar_proto.hh>
+#include <librorc/sim_bar.hh>
+#include <librorc/bar.hh>
 
 #include <pda.h>
 
@@ -26,8 +29,35 @@ using namespace std;
 
 namespace librorc
 {
+    link::link
+    (
+        bar      *bar,
+        uint32_t  link_number
+    )
+    {
+        m_bar         = bar;
+        m_base        = (link_number + 1) * RORC_CHANNEL_OFFSET;
+        m_link_number = link_number;
+    };
 
 
+    void
+    link::setGTX
+    (
+        uint32_t addr,
+        uint32_t data
+    )
+    {
+        m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
+    }
+
+
+
+    uint32_t
+    link::getGTX(uint32_t addr)
+    {
+        return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
+    }
 
 
 }

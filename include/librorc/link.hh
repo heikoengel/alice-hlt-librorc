@@ -20,8 +20,8 @@
 #ifndef LIBRORC_LINK_H
 #define LIBRORC_LINK_H
 
-
-#endif /** LIBRORC_LINK_H */
+#include <librorc/include_ext.hh>
+#include <librorc/defines.hh>
 
 namespace librorc
 {
@@ -32,10 +32,42 @@ class device;
     {
         public:
             link(){};
+
+            link
+            (
+                bar      *bar,
+                uint32_t  link_number
+            );
+
             ~link(){};
 
+
+            /**
+             * set DW in GTX Domain
+             * @param addr address in GTX component
+             * @param data data to be writtem
+             **/
+            void
+            setGTX
+            (
+                uint32_t addr,
+                uint32_t data
+            );
+
+            /**
+             * get DW from GTX Domain
+             * @param addr address in GTX component
+             * @return data read from GTX
+             **/
+            unsigned int getGTX(uint32_t addr);
+
         protected:
+            bar      *m_bar;
+            uint32_t  m_base;
+            uint32_t  m_link_number;
 
     };
 
 }
+
+#endif /** LIBRORC_LINK_H */

@@ -365,7 +365,8 @@ dma_channel::dma_channel
     bar      *bar
 )
 {
-    initMembers(channel_number, 0, dev, bar,NULL, NULL);
+//    link(bar);
+    initMembers(0, dev, NULL, NULL);
     prepareBuffers();
 }
 
@@ -379,7 +380,8 @@ dma_channel::dma_channel
     buffer   *reportBuffer
 )
 {
-    initMembers(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer);
+//    link(bar);
+    initMembers(pcie_packet_size, dev, eventBuffer, reportBuffer);
     prepareBuffers();
 }
 
@@ -716,7 +718,7 @@ dma_channel::printDMAState()
 }
 
 
-//DMA
+//LINK
 void
 dma_channel::printDiuState()
 {
@@ -726,16 +728,16 @@ dma_channel::printDiuState()
 
      (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
      ((status>>1) & 1)  ? printf("FC_ON ")  : printf("FC_OFF ");
-    !((status>>4) & 1)  ? printf("LF ")     : printf("");
-    !((status>>5) & 1)  ? printf("LD ")     : printf("");
-    !((status>>30) & 1) ? printf("BSY ")    : printf("");
+    !((status>>4) & 1)  ? printf("LF ")     : 0;
+    !((status>>5) & 1)  ? printf("LD ")     : 0;
+    !((status>>30) & 1) ? printf("BSY ")    : 0;
 
     /** PG disabled */
      ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
     /** PG disabled */
-    !((status>>8) & 1)  ? printf("CTSTW:%08x ", getGTX(RORC_REG_DDL_CTSTW))       : printf("");
-    !((status>>8) & 1)  ? printf("DEADTIME:%08x ", getGTX(RORC_REG_DDL_DEADTIME)) : printf("");
-    !((status>>8) & 1)  ? printf("EC:%08x ", getGTX(RORC_REG_DDL_EC))             : printf("");
+    !((status>>8) & 1)  ? printf("CTSTW:%08x ", getGTX(RORC_REG_DDL_CTSTW))       : 0;
+    !((status>>8) & 1)  ? printf("DEADTIME:%08x ", getGTX(RORC_REG_DDL_DEADTIME)) : 0;
+    !((status>>8) & 1)  ? printf("EC:%08x ", getGTX(RORC_REG_DDL_EC))             : 0;
 }
 
 
@@ -745,18 +747,13 @@ dma_channel::printDiuState()
     void
     dma_channel::initMembers
     (
-        uint32_t  channel_number,
         uint32_t  pcie_packet_size,
         device   *dev,
-        bar      *bar,
         buffer   *eventBuffer,
         buffer   *reportBuffer
     )
     {
-        m_base         = (channel_number + 1) * RORC_CHANNEL_OFFSET;
-        m_channel      = channel_number;
         m_dev          = dev;
-        m_bar          = bar;
 
         m_eventBuffer  = eventBuffer;
         m_reportBuffer = reportBuffer;
@@ -776,7 +773,7 @@ dma_channel::printDiuState()
 
         m_channelConfigurator
             = new dma_channel_configurator
-                (pcie_packet_size, channel_number, m_base, m_eventBuffer, m_reportBuffer, m_bar, this);
+                (pcie_packet_size, m_link_number, m_base, m_eventBuffer, m_reportBuffer, m_bar, this);
     }
 
 
@@ -784,7 +781,7 @@ dma_channel::printDiuState()
     void
     dma_channel::prepareBuffers()
     {
-        if( !m_dev->DMAChannelIsImplemented(m_channel) )
+        if( !m_dev->DMAChannelIsImplemented(m_link_number) )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
         if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
@@ -822,29 +819,6 @@ dma_channel::printDiuState()
     {
         buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_RBDM_N_SG_CONFIG);
         return(programmer.program());
-    }
-
-
-    //LINK
-    void
-    dma_channel::setGTX
-    (
-        uint32_t addr,
-        uint32_t data
-    )
-    {
-        m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
-    }
-
-
-    //LINK
-    uint32_t
-    dma_channel::getGTX
-    (
-        uint32_t addr
-    )
-    {
-        return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
     }
 
 

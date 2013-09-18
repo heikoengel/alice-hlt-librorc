@@ -84,7 +84,7 @@ class buffer;
 class device;
 class dma_channel_configurator;
 
-    class dma_channel : link
+    class dma_channel : public link
     {
         friend class dma_channel_configurator;
 
@@ -359,24 +359,6 @@ class dma_channel_configurator;
 
 
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
-            /**
-             * set DW in GTX Domain
-             * @param addr address in GTX component
-             * @param data data to be writtem
-             **/
-            void
-            setGTX
-            (
-                uint32_t addr,
-                uint32_t data
-            );
-
-            /**
-             * get DW from GTX Domain
-             * @param addr address in GTX component
-             * @return data read from GTX
-             **/
-            unsigned int getGTX(uint32_t addr);
 
             /**
              * Set maximum PCIe packet size. This is MAX_PAYLOAD for
@@ -418,13 +400,10 @@ class dma_channel_configurator;
             void setDMAConfig(uint32_t config);
 
         protected:
-
-            uint32_t  m_base;
-            uint32_t  m_channel;
+            //uint32_t  m_channel;
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
 
-            bar      *m_bar;
             device   *m_dev;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
@@ -434,10 +413,8 @@ class dma_channel_configurator;
             void
             initMembers
             (
-                uint32_t  channel_number,
                 uint32_t  pcie_packet_size,
                 device   *dev,
-                bar      *bar,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer
             );
