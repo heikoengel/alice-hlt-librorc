@@ -83,6 +83,8 @@ namespace librorc
         return m_bar->get32(m_base+addr);
     }
 
+
+
     void
     link::printDiuState()
     {
@@ -101,6 +103,45 @@ namespace librorc
         ((status>>8) & 1)  ? 0                 : printf("CTSTW: %08x ", getGTX(RORC_REG_DDL_CTSTW));
         ((status>>8) & 1)  ? 0                 : printf("DEADTIME: %08x ", getGTX(RORC_REG_DDL_DEADTIME));
         ((status>>8) & 1)  ? 0                 : printf("EC: %08x ", getGTX(RORC_REG_DDL_EC));
+    }
+
+
+
+    void
+    link::printDMAState()
+    {
+        printf("\nPKT:\n");
+        printf("#Events: 0x%08x; ", packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED));
+        printf("#Stall: 0x%08x; ", packetizer(RORC_REG_DMA_STALL_CNT));
+
+        uint32_t dma_ctrl = packetizer(RORC_REG_DMA_CTRL);
+        printf("PKT_EN:%d; FIFO_RST:%d; EOE_IN_FIFO:%d; FIFO_EMPTY:%d; "
+        "FIFO_PEMPTY:%d; BUSY:%d; EBDM_EN:%d, RBDM_EN:%d\n",
+        dma_ctrl&1, (dma_ctrl>>1)&1, (dma_ctrl>>4)&1, (dma_ctrl>>5)&1,
+        (dma_ctrl>>6)&1, (dma_ctrl>>7)&1, (dma_ctrl>>2)&1,
+        (dma_ctrl>>3)&1);
+
+        printf("EBDM:\n");
+
+        printf("EBDM rdptr: 0x%08x_%08x; ",
+        packetizer(RORC_REG_EBDM_SW_READ_POINTER_L),
+        packetizer(RORC_REG_EBDM_SW_READ_POINTER_H));
+
+        printf("EBDM wrptr: 0x%08x_%08x; ",
+        packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_L),
+        packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_H));
+
+        printf("\n");
+
+        printf("RBDM:\n");
+
+        printf("RBDM rdptr: 0x%08x_%08x; ",
+        packetizer(RORC_REG_RBDM_SW_READ_POINTER_L),
+        packetizer(RORC_REG_RBDM_SW_READ_POINTER_H));
+
+        printf("RBDM wrptr: 0x%08x_%08x; ",
+        packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_L),
+        packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H));
     }
 
 }

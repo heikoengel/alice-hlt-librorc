@@ -85,6 +85,11 @@ class device;
              * */
             void printDiuState();
 
+            /**
+             * Printout the state of the DMA engine to the console
+             * */
+            void printDMAState();
+
 
 
         protected:
