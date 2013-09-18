@@ -43,11 +43,8 @@ namespace LIBRARY_NAME
     )
     : dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
     {
-        //cout << "Enabling Pattern Generator!" << endl;
         enable();
-        //cout << "Waiting for GTX to be ready..." << endl;
         waitForGTXDomain();
-        //cout << "Configuring pattern generator ..." << endl;
         configurePatternGenerator(eventSize);
     }
 
@@ -63,8 +60,8 @@ namespace LIBRARY_NAME
     {
         /** Configure Pattern Generator */
         setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-        setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x600) );
-        setGTX(RORC_REG_DDL_CTRL, (getGTX(RORC_REG_DDL_CTRL) | 0x100) );
+        setGTX(RORC_REG_DDL_CTRL, (GTX(RORC_REG_DDL_CTRL) | 0x600) );
+        setGTX(RORC_REG_DDL_CTRL, (GTX(RORC_REG_DDL_CTRL) | 0x100) );
     }
 
 

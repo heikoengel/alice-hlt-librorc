@@ -734,10 +734,10 @@ dma_channel::getRBSize()
 
 
 
-    void
+    void //TODO LINK
     dma_channel::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
     {
-        while( getGTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
+        while( GTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
         { usleep(100); }
     }
 

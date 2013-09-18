@@ -55,7 +55,7 @@ namespace librorc
 
 
     uint32_t
-    link::getGTX(uint32_t addr)
+    link::GTX(uint32_t addr)
     {
         return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
     }
@@ -88,7 +88,7 @@ namespace librorc
     void
     link::printDiuState()
     {
-        uint32_t status = getGTX(RORC_REG_DDL_CTRL);
+        uint32_t status = GTX(RORC_REG_DDL_CTRL);
 
         printf("\nDIU_IF: ");
 
@@ -100,9 +100,9 @@ namespace librorc
 
         /** PG disabled or enabled */
         ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
-        ((status>>8) & 1)  ? 0                 : printf("CTSTW: %08x ", getGTX(RORC_REG_DDL_CTSTW));
-        ((status>>8) & 1)  ? 0                 : printf("DEADTIME: %08x ", getGTX(RORC_REG_DDL_DEADTIME));
-        ((status>>8) & 1)  ? 0                 : printf("EC: %08x ", getGTX(RORC_REG_DDL_EC));
+        ((status>>8) & 1)  ? 0                 : printf("CTSTW: %08x ", GTX(RORC_REG_DDL_CTSTW));
+        ((status>>8) & 1)  ? 0                 : printf("DEADTIME: %08x ", GTX(RORC_REG_DDL_DEADTIME));
+        ((status>>8) & 1)  ? 0                 : printf("EC: %08x ", GTX(RORC_REG_DDL_EC));
     }
 
 

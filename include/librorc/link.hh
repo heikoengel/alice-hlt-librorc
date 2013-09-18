@@ -31,8 +31,6 @@ class device;
     class link
     {
         public:
-            link(){};
-
             link
             (
                 bar      *bar,
@@ -76,7 +74,7 @@ class device;
              * @param addr address in GTX component
              * @return data read from GTX
              **/
-            unsigned int getGTX(uint32_t addr);
+            uint32_t GTX(uint32_t addr);
 
             /**
              * set DW in Packtizer

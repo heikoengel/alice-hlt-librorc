@@ -44,11 +44,8 @@ namespace LIBRARY_NAME
     )
     : dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
     {
-        //cout << "Enabling DDL link!" << endl;
         enable();
-        //cout << "Waiting for GTX to be ready..." << endl;
         waitForGTXDomain();
-        //cout << "Configuring GTX ..." << endl;
         configureDDL();
     }
 
@@ -68,7 +65,7 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CTRL, 0x00000003);
 
         /** wait for riLD_N='1' */
-        while( (getGTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
+        while( (GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
             {usleep(100);}
 
         /** clear DIU_IF IFSTW, CTSTW */
@@ -100,13 +97,13 @@ namespace LIBRARY_NAME
     dma_channel_ddl::closeDDL()
     {
         /** check if link is still up: LD_N == 1 */
-        if( getGTX(RORC_REG_DDL_CTRL) & (1<<5) )
+        if( GTX(RORC_REG_DDL_CTRL) & (1<<5) )
         {
             /** disable BUSY -> drop current data in chain */
             setGTX(RORC_REG_DDL_CTRL, 0x00000001);
 
             /** wait for LF_N to go high */
-            while(!(getGTX(RORC_REG_DDL_CTRL) & (1<<4)))
+            while(!(GTX(RORC_REG_DDL_CTRL) & (1<<4)))
             {usleep(100);}
 
             /** clear DIU_IF IFSTW */
@@ -120,7 +117,7 @@ namespace LIBRARY_NAME
              * in response to the EOBTR:
              * STS[7:4]="0000"
              */
-            while(getGTX(RORC_REG_DDL_CTSTW) & 0xf0)
+            while(GTX(RORC_REG_DDL_CTSTW) & 0xf0)
             {usleep(100);}
 
             /** disable DIU_IF */

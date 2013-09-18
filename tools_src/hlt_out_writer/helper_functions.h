@@ -223,7 +223,7 @@ dump_diu_state
 )
 {
   uint32_t status;
-  status = ch->getGTX(RORC_REG_DDL_CTRL);
+  status = ch->GTX(RORC_REG_DDL_CTRL);
   printf("\nDIU_IF: ");
   if ( status & 1 ) printf("DIU_ON ");
   else printf("DIU_OFF ");
@@ -236,9 +236,9 @@ dump_diu_state
   else printf("PG_OFF");
 
   if ( !(status>>8 & 1) ) { // PG disabled
-    printf("CTSTW:%08x ", ch->getGTX(RORC_REG_DDL_CTSTW));
-    printf("DEADTIME:%08x ", ch->getGTX(RORC_REG_DDL_DEADTIME));
-    printf("EC:%08x ", ch->getGTX(RORC_REG_DDL_EC));
+    printf("CTSTW:%08x ", ch->GTX(RORC_REG_DDL_CTSTW));
+    printf("DEADTIME:%08x ", ch->GTX(RORC_REG_DDL_DEADTIME));
+    printf("EC:%08x ", ch->GTX(RORC_REG_DDL_EC));
   }
 }
 
