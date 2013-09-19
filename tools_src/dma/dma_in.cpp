@@ -70,7 +70,7 @@ class file_dumper
 
 
             // check for reasonable calculated event size
-            if(report_buffer_entry[channel_status->index].calc_event_size > (event_buffer->getPhysicalSize()>>2))
+            if(isCalculatedLargerPhysical(report_buffer_entry, channel_status, event_buffer))
             {
                 fprintf
                 (
@@ -217,6 +217,19 @@ class file_dumper
             }
             fprintf(m_fd_log, "\n\n");
         }
+
+        bool
+        isCalculatedLargerPhysical
+        (
+            librorc_event_descriptor *report_buffer_entry,
+            librorcChannelStatus     *channel_status,
+            librorc::buffer          *event_buffer
+        )
+        {
+        return   report_buffer_entry[channel_status->index].calc_event_size
+               > (event_buffer->getPhysicalSize() >> 2);
+        }
+
 };
 
 ////////////////////////////////////////////////////////
