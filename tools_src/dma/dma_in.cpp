@@ -60,7 +60,6 @@ class file_dumper
         (
             librorcChannelStatus     *channel_status,
             uint64_t                  event_id,
-            uint32_t                  file_index,
             librorc_event_descriptor *report_buffer_entry,
             librorc::buffer          *event_buffer,
             uint32_t                  error_bit_mask
@@ -68,6 +67,7 @@ class file_dumper
         {
             if (channel_status->error_count < MAX_FILES_TO_DISK)
             {
+                uint32_t file_index = channel_status->error_count;
                 m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
                 openFiles(file_index, channel_status);
@@ -308,7 +308,6 @@ int dump_to_file
     char                     *base_dir,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id,
-    uint32_t                  file_index,
     librorc_event_descriptor *report_buffer_entry,
     librorc::buffer          *event_buffer,
     uint32_t                  error_bit_mask
@@ -321,7 +320,6 @@ int dump_to_file
         (
            channel_status,
            event_id,
-           file_index,
            report_buffer_entry,
            event_buffer,
            error_bit_mask
@@ -474,7 +472,7 @@ int handle_channel_data
     uint64_t    starting_index       = 0;
     uint64_t    entry_size           = 0;
     uint64_t    event_id             = 0;
-    char        basedir[]            = "/tmp";
+    char        log_directory_path[] = "/tmp";
 
 
 
@@ -521,13 +519,11 @@ int handle_channel_data
                 }
                 catch( int error )
                 {
-                    channel_status->error_count++;
                     dump_to_file
                     (
-                        basedir, // base dir
+                        log_directory_path, // base dir
                         channel_status, // channel stats
                         event_id, // current EventID
-                        channel_status->error_count, // file index
                         raw_report_buffer, // Report Buffer
                         event_buffer, // Event Buffer
                         error // Error flags

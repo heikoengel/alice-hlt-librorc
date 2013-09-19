@@ -53,7 +53,10 @@ event_sanity_checker::check
         return_value |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer, report_buffer_index, last_id);
     }
     if(return_value != 0)
-    { throw return_value; }
+    {
+        channel_status->error_count++;
+        throw return_value;
+    }
 
     return getEventIdFromCdh(dwordOffset(report_buffer));
 }

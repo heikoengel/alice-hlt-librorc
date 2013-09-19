@@ -114,8 +114,8 @@ int handle_channel_data
             &EventID);
 
 
-        if ( retval!=0 ) {
-          stats->error_count++;
+        if ( retval!=0 )
+        {
           if (stats->error_count < MAX_FILES_TO_DISK)
             dump_to_file(
                 basedir, // base dir
