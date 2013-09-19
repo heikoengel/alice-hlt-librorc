@@ -10,8 +10,6 @@
 
 #include <pda.h>
 
-using namespace std;
-
 
 
 namespace LIBRARY_NAME

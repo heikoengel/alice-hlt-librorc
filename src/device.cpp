@@ -22,7 +22,7 @@
 
 #include <librorc/bar.hh>
 
-using namespace std;
+
 
 namespace LIBRARY_NAME
 {

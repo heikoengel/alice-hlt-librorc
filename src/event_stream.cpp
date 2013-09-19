@@ -31,8 +31,6 @@
 #include <librorc/dma_channel_pg.hh>
 
 
-using namespace std;
-
 
 namespace LIBRARY_NAME
 {
