@@ -158,8 +158,7 @@ class file_dumper
                 }
             }
 
-            fclose(m_fd_log);
-            fclose(m_fd_ddl);
+            closeFiles();
 
             return 0;
         }
@@ -200,6 +199,12 @@ class file_dumper
             m_fd_log = fopen(m_log_file_name, "w");
             if(m_fd_ddl == NULL)
             { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
+        }
+
+        void closeFiles()
+        {
+            fclose(m_fd_log);
+            fclose(m_fd_ddl);
         }
 };
 
