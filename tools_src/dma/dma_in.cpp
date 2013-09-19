@@ -30,6 +30,9 @@ using namespace std;
 #define LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED     2
 #define LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED 3
 
+/** limit the number of corrupted events to be written to disk **/
+#define MAX_FILES_TO_DISK 100
+
 class file_dumper
 {
 //TODO: add device number
@@ -63,25 +66,28 @@ class file_dumper
             uint32_t                  error_bit_mask
         )
         {
-            m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
+            if (channel_status->error_count < MAX_FILES_TO_DISK)
+            {
+                m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
-            openFiles(file_index, channel_status);
-            dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
-            dumpErrorTypeToLog(error_bit_mask);
+                openFiles(file_index, channel_status);
+                dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
+                dumpErrorTypeToLog(error_bit_mask);
 
-            bool dump_event =
-                  calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
-                ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
-                : true;
+                bool dump_event =
+                      calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
+                    ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
+                    : true;
 
-            dump_event =
-                  offsetIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
-                ? dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
-                : true;
+                dump_event =
+                      offsetIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
+                    ? dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
+                    : true;
 
-            dump_event ? dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status) : (void)0;
+                dump_event ? dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status) : (void)0;
 
-            closeFiles();
+                closeFiles();
+            }
         }
 
 
@@ -436,9 +442,6 @@ int main(int argc, char *argv[])
 
 
 
-/** limit the number of corrupted events to be written to disk **/
-#define MAX_FILES_TO_DISK 100
-
 /**
  * handle incoming data
  *
@@ -471,7 +474,6 @@ int handle_channel_data
     uint64_t    starting_index       = 0;
     uint64_t    entry_size           = 0;
     uint64_t    event_id             = 0;
-    int         retval               = 0;
     char        basedir[]            = "/tmp";
 
 
@@ -516,31 +518,23 @@ int handle_channel_data
                     = checker.check
                       (
                           &report_buffer_entry,
-                          channel_status->index,
-                          channel_status->last_id
+                           channel_status->index,
+                           channel_status->last_id
                       );
                 }
                 catch( int error )
-                { retval = error; }
-
-
-                if ( retval!=0 )
                 {
                     channel_status->error_count++;
-                    if (channel_status->error_count < MAX_FILES_TO_DISK)
-                    {
-                        dump_to_file
-                        (
-                            basedir, // base dir
-                            channel_status, // channel stats
-                            event_id, // current EventID
-                            channel_status->error_count, // file index
-                            raw_report_buffer, // Report Buffer
-                            event_buffer, // Event Buffer
-                            retval // Error flags
-                        );
-                    }
-
+                    dump_to_file
+                    (
+                        basedir, // base dir
+                        channel_status, // channel stats
+                        event_id, // current EventID
+                        channel_status->error_count, // file index
+                        raw_report_buffer, // Report Buffer
+                        event_buffer, // Event Buffer
+                        error // Error flags
+                    );
                 }
 
                 channel_status->last_id = event_id;
