@@ -347,20 +347,22 @@ int dump_to_file
     uint32_t                  error_flags
 )
 {
-  char *ddlname = NULL;
-  char *logname = NULL;
-  int len, result;
-  FILE *fd_ddl, *fd_log;
-  uint32_t i;
-  uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
+    char *ddlname = NULL;
+    char *logname = NULL;
+    int len;
+    int result;
+    FILE *fd_ddl;
+    FILE *fd_log;
+    uint32_t i;
+    uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
-  // get length of destination file string
-  len = snprintf(NULL, 0, "%s/ch%d_%d.ddl",
-      base_dir, stats->channel, file_index);
-  if (len<0) {
-    perror("dump_to_file::snprintf failed");
-    return -1;
-  }
+    // get length of destination file string
+    len = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
+    if (len<0)
+    {
+        perror("dump_to_file::snprintf failed");
+        return -1;
+    }
 
   // allocate memory for destination file string
   ddlname = (char *)malloc(len+1);

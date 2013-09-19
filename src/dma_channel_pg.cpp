@@ -19,18 +19,6 @@ extern int errno;
 
 namespace LIBRARY_NAME
 {
-
-    dma_channel_pg::dma_channel_pg
-    (
-        uint32_t  channel_number,
-        device   *dev,
-        bar      *bar
-    )
-    : dma_channel(channel_number, dev, bar)
-    {
-
-    }
-
     dma_channel_pg::dma_channel_pg
     (
         uint32_t  channel_number,
