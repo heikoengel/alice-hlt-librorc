@@ -458,7 +458,7 @@ int handle_channel_data
     librorc::event_sanity_checker
         checker
         (
-            raw_event_buffer,
+            raw_event_buffer, //TODO: <- maybe this is easier pass the real event buffer
             channel_status->channel,
             PG_PATTERN_INC, /** TODO */
             sanity_check_mask,
@@ -499,7 +499,7 @@ int handle_channel_data
                            channel_status,    //known by checker
                            event_id,          //known by checker (returns it)
                            raw_report_buffer, //known by checker
-                           event_buffer,
+                           event_buffer,      //TODO -> this has to be revised
                            error_bit_mask     //known by checker (throws it)
                         );
                     }
