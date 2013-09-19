@@ -27,6 +27,179 @@
 using namespace std;
 
 
+class file_dumper
+{
+    public:
+
+         file_dumper()
+         {
+
+         };
+
+        ~file_dumper()
+         {
+
+         };
+
+        /**
+         * Dump event to file(s)
+         * @param destination directory string
+         * @param channel status
+         * @param index of according file, appears in file name
+         * @param report buffer
+         * @param event buffer
+         * @return 0 on sucess, -1 on error
+         * */
+        int dump
+        (
+            char                     *base_dir,
+            librorcChannelStatus     *channel_status,
+            uint64_t                  event_id,
+            uint32_t                  file_index,
+            librorc_event_descriptor *report_buffer_entry,
+            librorc::buffer          *event_buffer,
+            uint32_t                  error_bit_mask
+        )
+        {
+            char ddl_file_name[4096];
+            char log_file_name[4096];
+            int length;
+            int result;
+
+            uint32_t i;
+            uint32_t *raw_event_buffer;
+
+            FILE *fd_ddl;
+            FILE *fd_log;
+
+            raw_event_buffer = (uint32_t *)event_buffer->getMem();
+
+            // get length of destination file string
+            length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
+            if(length<0)
+            {
+                perror("dump_to_file::snprintf failed");
+                return -1;
+            }
+
+            // fill destination file string
+            snprintf(ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
+            snprintf(log_file_name, length+1, "%s/ch%d_%d.log", base_dir, channel_status->channel, file_index);
+
+            // open DDL file
+            fd_ddl = fopen(ddl_file_name, "w");
+            if( fd_ddl < 0 )
+            {
+                perror("Failed to open destination DDL file!\n");
+                return -1;
+            }
+
+            // open log file
+            fd_log = fopen(log_file_name, "w");
+            if( fd_ddl == NULL )
+            {
+                printf("Failed to open destination LOG file : %s!\n", ddl_file_name);
+                return -1;
+            }
+
+            // dump RB entry to log
+            fprintf
+            (
+                fd_log,
+                "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
+                "reported_size=%08x\n"
+                "offset=%lx\n"
+                "EventID=%lx\n"
+                "LastID=%lx\n",
+                channel_status->channel,
+                channel_status->index,
+                report_buffer_entry[channel_status->index].calc_event_size,
+                report_buffer_entry[channel_status->index].reported_event_size,
+                report_buffer_entry[channel_status->index].offset,
+                event_id,
+                channel_status->last_id
+            );
+
+            /** dump error type */
+            fprintf(fd_log, "Check Failed: ");
+            {
+                !( error_bit_mask & CHK_SIZES)    ? 0 : fprintf(fd_log, " CHK_SIZES");
+                !( error_bit_mask & CHK_PATTERN ) ? 0 : fprintf(fd_log, " CHK_PATTERN");
+                !( error_bit_mask & CHK_SOE )     ? 0 : fprintf(fd_log, " CHK_SOE");
+                !( error_bit_mask & CHK_EOE )     ? 0 : fprintf(fd_log, " CHK_EOE");
+                !( error_bit_mask & CHK_ID )      ? 0 : fprintf(fd_log, " CHK_ID");
+                !( error_bit_mask & CHK_FILE )    ? 0 : fprintf(fd_log, " CHK_FILE");
+            }
+            fprintf(fd_log, "\n\n");
+
+            // check for reasonable calculated event size
+            if(report_buffer_entry[channel_status->index].calc_event_size > (event_buffer->getPhysicalSize()>>2))
+            {
+                fprintf
+                (
+                    fd_log,
+                    "calc_event_size (0x%x DWs) is larger than physical "
+                    "buffer size (0x%lx DWs) - not dumping event.\n",
+                    report_buffer_entry[channel_status->index].calc_event_size,
+                    (event_buffer->getPhysicalSize()>>2)
+                );
+            }
+            else if (report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())// check for reasonable offset
+            {
+                fprintf(fd_log, "offset (0x%lx) is larger than physical "
+                "buffer size (0x%lx) - not dumping event.\n",
+                report_buffer_entry[channel_status->index].offset,
+                event_buffer->getPhysicalSize() );
+            }
+            else // dump event to log
+            {
+                for(i=0;i<report_buffer_entry[channel_status->index].calc_event_size;i++)
+                {
+                    uint32_t ebword =
+                        (uint32_t)*(raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i); // TODO: array this
+
+                    fprintf(fd_log, "%03d: %08x", i, ebword);
+
+                    if ( (error_bit_mask & CHK_PATTERN) && (i>7) && (ebword != i-8) )
+                    { fprintf(fd_log, " expected %08x", i-8); }
+
+                    fprintf(fd_log, "\n");
+                }
+
+                fprintf
+                (
+                    fd_log,
+                    "%03d: EOE reported_event_size: %08x\n",
+                    i,
+                    (uint32_t)*(raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i)
+                );
+
+                //dump event to DDL file
+                result =
+                    fwrite
+                    (
+                        raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2),
+                        4,
+                        report_buffer_entry[channel_status->index].calc_event_size,
+                        fd_ddl
+                    );
+                if( result<0 )
+                {
+                    perror("failed to copy event data into DDL file");
+                    return -1;
+                }
+            }
+
+            fclose(fd_log);
+            fclose(fd_ddl);
+
+            return 0;
+        }
+
+    protected:
+};
+
+////////////////////////////////////////////////////////
 int handle_channel_data
 (
     librorc::buffer      *rbuf,
@@ -47,11 +220,14 @@ int dump_to_file
     librorc_event_descriptor *reportbuffer,
     librorc::buffer          *ebuf,
     uint32_t                  error_flags
-);
+)
+{
+    file_dumper dumper;
+    return dumper.dump(base_dir, stats, EventID, file_index, reportbuffer, ebuf, error_flags);
+}
 
 
 DMA_ABORT_HANDLER
-
 
 
 int main(int argc, char *argv[])
@@ -326,157 +502,5 @@ int handle_channel_data
 
 
 
-/**
- * Dump event to file(s)
- * @param destination directory string
- * @param channel status
- * @param index of according file, appears in file name
- * @param report buffer
- * @param event buffer
- * @return 0 on sucess, -1 on error
- * */
-//TODO: refactor this into a class and merge it with event_sanity_checker afterwards
-int dump_to_file
-(
-    char                     *base_dir,
-    librorcChannelStatus     *channel_status,
-    uint64_t                  event_id,
-    uint32_t                  file_index,
-    librorc_event_descriptor *report_buffer_entry,
-    librorc::buffer          *event_buffer,
-    uint32_t                  error_bit_mask
-)
-{
-    char ddl_file_name[4096];
-    char log_file_name[4096];
-    int length;
-    int result;
 
-    uint32_t i;
-    uint32_t *eventbuffer = (uint32_t *)event_buffer->getMem();
-
-    FILE *fd_ddl;
-    FILE *fd_log;
-
-    // get length of destination file string
-    length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
-    if(length<0)
-    {
-        perror("dump_to_file::snprintf failed");
-        return -1;
-    }
-
-    // fill destination file string
-    snprintf(ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
-    snprintf(log_file_name, length+1, "%s/ch%d_%d.log", base_dir, channel_status->channel, file_index);
-
-    // open DDL file
-    fd_ddl = fopen(ddl_file_name, "w");
-    if( fd_ddl < 0 )
-    {
-        perror("Failed to open destination DDL file!\n");
-        return -1;
-    }
-
-    // open log file
-    fd_log = fopen(log_file_name, "w");
-    if( fd_ddl == NULL )
-    {
-        printf("Failed to open destination LOG file : %s!\n", ddl_file_name);
-        return -1;
-    }
-
-    // dump RB entry to log
-    fprintf
-    (
-        fd_log,
-        "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
-        "reported_size=%08x\n"
-        "offset=%lx\n"
-        "EventID=%lx\n"
-        "LastID=%lx\n",
-        channel_status->channel,
-        channel_status->index,
-        report_buffer_entry[channel_status->index].calc_event_size,
-        report_buffer_entry[channel_status->index].reported_event_size,
-        report_buffer_entry[channel_status->index].offset,
-        event_id,
-        channel_status->last_id
-    );
-
-    /** dump error type */
-    fprintf(fd_log, "Check Failed: ");
-    {
-        !( error_bit_mask & CHK_SIZES)    ? 0 : fprintf(fd_log, " CHK_SIZES");
-        !( error_bit_mask & CHK_PATTERN ) ? 0 : fprintf(fd_log, " CHK_PATTERN");
-        !( error_bit_mask & CHK_SOE )     ? 0 : fprintf(fd_log, " CHK_SOE");
-        !( error_bit_mask & CHK_EOE )     ? 0 : fprintf(fd_log, " CHK_EOE");
-        !( error_bit_mask & CHK_ID )      ? 0 : fprintf(fd_log, " CHK_ID");
-        !( error_bit_mask & CHK_FILE )    ? 0 : fprintf(fd_log, " CHK_FILE");
-    }
-    fprintf(fd_log, "\n\n");
-
-    // check for reasonable calculated event size
-    if(report_buffer_entry[channel_status->index].calc_event_size > (event_buffer->getPhysicalSize()>>2))
-    {
-        fprintf
-        (
-            fd_log,
-            "calc_event_size (0x%x DWs) is larger than physical "
-            "buffer size (0x%lx DWs) - not dumping event.\n",
-            report_buffer_entry[channel_status->index].calc_event_size,
-            (event_buffer->getPhysicalSize()>>2)
-        );
-    }
-    else if (report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())// check for reasonable offset
-    {
-        fprintf(fd_log, "offset (0x%lx) is larger than physical "
-        "buffer size (0x%lx) - not dumping event.\n",
-        report_buffer_entry[channel_status->index].offset,
-        event_buffer->getPhysicalSize() );
-    }
-    else // dump event to log
-    {
-        for(i=0;i<report_buffer_entry[channel_status->index].calc_event_size;i++)
-        {
-            uint32_t ebword =
-                (uint32_t)*(eventbuffer + (report_buffer_entry[channel_status->index].offset>>2) + i); // TODO: array this
-
-            fprintf(fd_log, "%03d: %08x", i, ebword);
-
-            if ( (error_bit_mask & CHK_PATTERN) && (i>7) && (ebword != i-8) )
-            { fprintf(fd_log, " expected %08x", i-8); }
-
-            fprintf(fd_log, "\n");
-        }
-
-        fprintf
-        (
-            fd_log,
-            "%03d: EOE reported_event_size: %08x\n",
-            i,
-            (uint32_t)*(eventbuffer + (report_buffer_entry[channel_status->index].offset>>2) + i)
-        );
-
-        //dump event to DDL file
-        result =
-            fwrite
-            (
-                eventbuffer + (report_buffer_entry[channel_status->index].offset>>2),
-                4,
-                report_buffer_entry[channel_status->index].calc_event_size,
-                fd_ddl
-            );
-        if( result<0 )
-        {
-            perror("failed to copy event data into DDL file");
-            return -1;
-        }
-    }
-
-    fclose(fd_log);
-    fclose(fd_ddl);
-
-    return 0;
-}
 
