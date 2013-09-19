@@ -33,14 +33,10 @@ flash::flash
 )
 {
     if(flashbar == NULL)
-    {
-        throw 1;
-    }
+    { throw 1; }
 
     if(chip_select > 1)
-    {
-        throw 2;
-    }
+    { throw 2; }
 
     m_bar           = flashbar;
     m_base_addr     = chip_select << FLASH_CHIP_SELECT_BIT;
@@ -94,12 +90,8 @@ uint16_t
 flash::getManufacturerCode()
 {
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
-
-    /** get code */
     uint16_t code = get(0x00);
-
-    /** return into read array mode */
-    resetBlock(0);
+    resetBlock(0); /** return into read array mode */
 
     return code;
 }
@@ -109,14 +101,9 @@ flash::getManufacturerCode()
 uint16_t
 flash::getDeviceID()
 {
-    /** send read id code command */
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
-
-    /** get ID */
     uint16_t id = get(0x01);
-
-    /** return into read array mode */
-    resetBlock(0);
+    resetBlock(0); /** return into read array mode */
 
     return id;
 }
@@ -131,9 +118,7 @@ flash::getBlockLockConfiguration
 {
     sendCommand(blkaddr, FLASH_CMD_READ_IDENTIFIER);
     uint16_t cfg = get(blkaddr + 0x02);
-
-    /** return into read array mode */
-    resetBlock(0);
+    resetBlock(0); /** return into read array mode */
 
     return cfg;
 }
@@ -145,9 +130,7 @@ flash::getReadConfigurationRegister()
 {
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
     uint16_t rcr = get(0x05);
-
-    /** return into read array mode */
-    resetBlock(0);
+    resetBlock(0); /** return into read array mode */
 
     return rcr;
 }
@@ -157,17 +140,13 @@ flash::getReadConfigurationRegister()
 uint64_t
 flash::getUniqueDeviceNumber()
 {
-    uint64_t udn = 0;
+    uint64_t unique_device_number = 0;
     sendCommand(0x00, FLASH_CMD_READ_IDENTIFIER);
     for ( int i=0; i<4; i++ )
-    {
-        udn += ( get(0x81 + i) )<<(16*i);
-    }
+    { unique_device_number += ( get(0x81 + i) )<<(16*i); }
+    resetBlock(0); /** return into read array mode */
 
-    /** return into read array mode */
-    resetBlock(0);
-
-    return udn;
+    return unique_device_number;
 }
 
 
@@ -189,12 +168,8 @@ flash::resetBlock
     uint32_t blkaddr
 )
 {
-    /** Send Clear Status Command **/
     clearStatusRegister(blkaddr);
-
-    /** Sample the Status **/
     uint16_t status = getStatusRegister(blkaddr);
-
     sendCommand(blkaddr, FLASH_CMD_RESET);
     sendCommand(blkaddr, FLASH_CMD_READ_ARRAY);
 
@@ -209,7 +184,7 @@ flash::resetChip()
     uint32_t blkaddr = 0;
     struct flash_architecture arch;
 
-    /** iterate over all blocks */
+    /** Iterate over all blocks */
     while( getFlashArchitecture(blkaddr, &arch) == 0 )
     {
         uint16_t status = resetBlock(blkaddr);
@@ -237,7 +212,7 @@ flash::programBuffer
 {
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    /** get current block address */
+    /** Get current block address */
     struct flash_architecture arch;
     if ( getFlashArchitecture(addr, &arch) )
     {
@@ -245,10 +220,9 @@ flash::programBuffer
         return -1;
     }
 
-    /** check if block is locked */
+    /** Check if block is locked */
     if( getBlockLockConfiguration(arch.blkaddr) )
     {
-        /** try to unlock block */
         int32_t ret = unlockBlock(arch.blkaddr) ;
         if ( ret < 0 )
         {
@@ -258,37 +232,29 @@ flash::programBuffer
         }
     }
 
-    /** send write buffer command */
     sendCommand(addr, FLASH_CMD_BUFFER_PROG);
-    /** read Status register */
     uint16_t status = get(addr);
 
     while( !(status & FLASH_PEC_BUSY) )
     {
         usleep(100);
-        /** read Status register */
         status = get(addr);
         timeout--;
         if(timeout == 0)
         {
-            if ( verbose==LIBRORC_VERBOSE_ON )
-            {
-                cout << "programBuffer: Timeout waiting for buffer!"
-                     << endl;
-            }
+            if( verbose==LIBRORC_VERBOSE_ON )
+            { cout << "programBuffer: Timeout waiting for buffer!" << endl; }
             return -status;
         }
     }
 
     /** write word count */
     m_bar->set16(m_base_addr + addr, length - 1);
-
     for(int32_t i=0; i < length; i++)
     {
         m_bar->set16(m_base_addr + addr + i, data[i]);
     }
 
-    /** send write confirm command */
     sendCommand(arch.blkaddr, FLASH_CMD_CONFIRM);
 
     /** Wait while device is busy */
@@ -301,10 +267,8 @@ flash::programBuffer
         timeout--;
         if(timeout == 0)
         {
-            if ( verbose==LIBRORC_VERBOSE_ON )
-            {
-                cout << "programBuffer: Timeout waiting for busy!" << endl;
-            }
+            if( verbose==LIBRORC_VERBOSE_ON )
+            { cout << "programBuffer: Timeout waiting for busy!" << endl; }
             return -status;
         }
     }
@@ -312,7 +276,7 @@ flash::programBuffer
     /** SR.5 or SR.4 nonzero -> program/erase/sequence error */
     if(status != FLASH_PEC_BUSY)
     {
-        if ( verbose==LIBRORC_VERBOSE_ON )
+        if( verbose==LIBRORC_VERBOSE_ON )
         {
             cout << "programBuffer: program/erase sequence error: "
                  << hex << status << endl;
@@ -337,10 +301,7 @@ flash::eraseBlock
     uint16_t status;
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    /** erase command */
     sendCommand(blkaddr, FLASH_CMD_BLOCK_ERASE_SETUP);
-
-    /** confim command */
     sendCommand(blkaddr, FLASH_CMD_CONFIRM);
 
     status = get(blkaddr);
@@ -350,13 +311,10 @@ flash::eraseBlock
         status = get(blkaddr);
         timeout--;
         if(timeout == 0)
-        {
-            return -status;
-        }
+        { return -status; }
     }
 
-    /** return into read array mode */
-    resetBlock(blkaddr);
+    resetBlock(blkaddr); /** return into read array mode */
 
     return 0;
 }
@@ -407,14 +365,10 @@ flash::lockBlock
         status = getStatusRegister(blkaddr);
         timeout--;
         if(timeout == 0)
-        {
-            return -status;
-        }
+        { return -status; }
     }
     clearStatusRegister(blkaddr);
-
-    /** return into read array mode */
-    resetBlock(blkaddr);
+    resetBlock(blkaddr); /** return into read array mode */
 
     return 0;
 }
@@ -429,7 +383,6 @@ flash::unlockBlock
 {
     uint32_t timeout = CFG_FLASH_TIMEOUT;
 
-    /** clear any latched status register contents */
     clearStatusRegister(blkaddr);
 
     /** unlock block */
@@ -444,14 +397,10 @@ flash::unlockBlock
         status = getStatusRegister(blkaddr);
         timeout--;
         if(timeout == 0)
-        {
-            return -status;
-        }
+        { return -status; }
     }
     clearStatusRegister(blkaddr);
-
-    /** return into read array mode */
-    resetBlock(blkaddr);
+    resetBlock(blkaddr); /** return into read array mode */
 
     return 0;
 }
@@ -490,9 +439,7 @@ flash::blankCheck
         status = get(blkaddr);
         timeout--;
         if(timeout == 0)
-        {
-            return -status;
-        }
+        { return -status; }
     }
     clearStatusRegister(blkaddr);
 
@@ -532,11 +479,9 @@ flash::getFlashArchitecture
         fa.blksize = 0x8000; /** 256 kbit  = 32kByte*/
         fa.blknum = 3 - ((addr>>14) & 0x03);
     }
-    else
-    {
-        /** invalid flash address */
-        return -1;
-    }
+    else /** invalid flash address */
+    { return -1; }
+
     *arch = fa;
     return 0;
 }
@@ -556,9 +501,7 @@ flash::dump
 
     FILE *filep = fopen(filename, "w");
     if(filep == NULL)
-    {
-        return -1;
-    }
+    { return -1; }
 
     if(verbose == LIBRORC_VERBOSE_ON)
     {
@@ -572,17 +515,11 @@ flash::dump
     else
     {
         for(uint64_t i=0; i<flash_words; i++)
-        {
-            flash_buffer[i] = get(i);
-        }
+        { flash_buffer[i] = get(i); }
     }
 
-    size_t bytes_written =
-       fwrite(flash_buffer, FLASH_SIZE, 1, filep);
-    if(bytes_written != 1)
-    {
-        return -1;
-    }
+    if( fwrite(flash_buffer, FLASH_SIZE, 1, filep) != 1 )
+    { return -1; }
 
     fclose(filep);
     free(flash_buffer);
@@ -653,9 +590,7 @@ flash::erase
     }
 
     if(verbose == LIBRORC_VERBOSE_ON)
-    {
-        cout << "Erase complete!" << endl;
-    }
+    { cout << "Erase complete!" << endl; }
 
     return 0;
 }
@@ -761,15 +696,11 @@ flash::flashWrite
     }
 
     if(verbose == LIBRORC_VERBOSE_ON)
-    {
-        cout << endl << "DONE!" << endl;
-    }
+    { cout << endl << "DONE!" << endl; }
 
     /* Close everything */
 	free(buffer);
     close(fd);
-
-    /* TODO : Use dump_device to verify */
 
     return 0;
 }
