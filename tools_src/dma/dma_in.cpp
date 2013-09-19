@@ -61,13 +61,7 @@ class file_dumper
             uint32_t                  error_bit_mask
         )
         {
-            char      ddl_file_name[4096];
-            FILE     *fd_ddl;
-            char      log_file_name[4096];
-            FILE     *fd_log;
-            uint32_t *raw_event_buffer;
-
-            raw_event_buffer = (uint32_t *)event_buffer->getMem();
+            m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
             // get length of destination file string
             int length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
@@ -78,29 +72,29 @@ class file_dumper
             }
 
             // fill destination file string
-            snprintf(ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
-            snprintf(log_file_name, length+1, "%s/ch%d_%d.log", base_dir, channel_status->channel, file_index);
+            snprintf(m_ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
+            snprintf(m_log_file_name, length+1, "%s/ch%d_%d.log", base_dir, channel_status->channel, file_index);
 
             // open DDL file
-            fd_ddl = fopen(ddl_file_name, "w");
-            if( fd_ddl < 0 )
+            m_fd_ddl = fopen(m_ddl_file_name, "w");
+            if( m_fd_ddl < 0 )
             {
                 perror("Failed to open destination DDL file!\n");
                 return -1;
             }
 
             // open log file
-            fd_log = fopen(log_file_name, "w");
-            if( fd_ddl == NULL )
+            m_fd_log = fopen(m_log_file_name, "w");
+            if( m_fd_ddl == NULL )
             {
-                printf("Failed to open destination LOG file : %s!\n", ddl_file_name);
+                printf("Failed to open destination LOG file : %s!\n", m_ddl_file_name);
                 return -1;
             }
 
             // dump RB entry to log
             fprintf
             (
-                fd_log,
+                m_fd_log,
                 "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
                 "reported_size=%08x\n"
                 "offset=%lx\n"
@@ -116,23 +110,23 @@ class file_dumper
             );
 
             /** dump error type */
-            fprintf(fd_log, "Check Failed: ");
+            fprintf(m_fd_log, "Check Failed: ");
             {
-                !( error_bit_mask & CHK_SIZES)    ? 0 : fprintf(fd_log, " CHK_SIZES");
-                !( error_bit_mask & CHK_PATTERN ) ? 0 : fprintf(fd_log, " CHK_PATTERN");
-                !( error_bit_mask & CHK_SOE )     ? 0 : fprintf(fd_log, " CHK_SOE");
-                !( error_bit_mask & CHK_EOE )     ? 0 : fprintf(fd_log, " CHK_EOE");
-                !( error_bit_mask & CHK_ID )      ? 0 : fprintf(fd_log, " CHK_ID");
-                !( error_bit_mask & CHK_FILE )    ? 0 : fprintf(fd_log, " CHK_FILE");
+                !( error_bit_mask & CHK_SIZES)    ? 0 : fprintf(m_fd_log, " CHK_SIZES");
+                !( error_bit_mask & CHK_PATTERN ) ? 0 : fprintf(m_fd_log, " CHK_PATTERN");
+                !( error_bit_mask & CHK_SOE )     ? 0 : fprintf(m_fd_log, " CHK_SOE");
+                !( error_bit_mask & CHK_EOE )     ? 0 : fprintf(m_fd_log, " CHK_EOE");
+                !( error_bit_mask & CHK_ID )      ? 0 : fprintf(m_fd_log, " CHK_ID");
+                !( error_bit_mask & CHK_FILE )    ? 0 : fprintf(m_fd_log, " CHK_FILE");
             }
-            fprintf(fd_log, "\n\n");
+            fprintf(m_fd_log, "\n\n");
 
             // check for reasonable calculated event size
             if(report_buffer_entry[channel_status->index].calc_event_size > (event_buffer->getPhysicalSize()>>2))
             {
                 fprintf
                 (
-                    fd_log,
+                    m_fd_log,
                     "calc_event_size (0x%x DWs) is larger than physical "
                     "buffer size (0x%lx DWs) - not dumping event.\n",
                     report_buffer_entry[channel_status->index].calc_event_size,
@@ -141,7 +135,7 @@ class file_dumper
             }
             else if (report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())// check for reasonable offset
             {
-                fprintf(fd_log, "offset (0x%lx) is larger than physical "
+                fprintf(m_fd_log, "offset (0x%lx) is larger than physical "
                 "buffer size (0x%lx) - not dumping event.\n",
                 report_buffer_entry[channel_status->index].offset,
                 event_buffer->getPhysicalSize() );
@@ -152,22 +146,22 @@ class file_dumper
                 for(i=0;i<report_buffer_entry[channel_status->index].calc_event_size;i++)
                 {
                     uint32_t ebword =
-                        (uint32_t)*(raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i); // TODO: array this
+                        (uint32_t)*(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i); // TODO: array this
 
-                    fprintf(fd_log, "%03d: %08x", i, ebword);
+                    fprintf(m_fd_log, "%03d: %08x", i, ebword);
 
                     if ( (error_bit_mask & CHK_PATTERN) && (i>7) && (ebword != i-8) )
-                    { fprintf(fd_log, " expected %08x", i-8); }
+                    { fprintf(m_fd_log, " expected %08x", i-8); }
 
-                    fprintf(fd_log, "\n");
+                    fprintf(m_fd_log, "\n");
                 }
 
                 fprintf
                 (
-                    fd_log,
+                    m_fd_log,
                     "%03d: EOE reported_event_size: %08x\n",
                     i,
-                    (uint32_t)*(raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i)
+                    (uint32_t)*(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i)
                 );
 
                 //dump event to DDL file
@@ -175,10 +169,10 @@ class file_dumper
                 (
                     fwrite
                     (
-                        raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2),
+                        m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2),
                         4,
                         report_buffer_entry[channel_status->index].calc_event_size,
-                        fd_ddl
+                        m_fd_ddl
                     ) < 0
                 )
                 {
@@ -187,13 +181,20 @@ class file_dumper
                 }
             }
 
-            fclose(fd_log);
-            fclose(fd_ddl);
+            fclose(m_fd_log);
+            fclose(m_fd_ddl);
 
             return 0;
         }
 
+
+
     protected:
+        char      m_ddl_file_name[4096];
+        FILE     *m_fd_ddl;
+        char      m_log_file_name[4096];
+        FILE     *m_fd_log;
+        uint32_t *m_raw_event_buffer;
 };
 
 ////////////////////////////////////////////////////////
