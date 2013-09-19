@@ -27,6 +27,7 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 #include <librorc/buffer.hh>
+#include <librorc/dma_channel.hh>
 
 /** limit the number of corrupted events to be written to disk **/
 #define MAX_FILES_TO_DISK 100
@@ -53,7 +54,6 @@
 
 namespace LIBRARY_NAME
 {
-
     class event_sanity_checker
     {
         public:
@@ -81,13 +81,11 @@ namespace LIBRARY_NAME
 
             ~event_sanity_checker(){};
 
-
             uint64_t
             check
             (
-                volatile librorc_event_descriptor *reportbuffer,
-                         uint64_t                  report_buffer_index,
-                         int64_t                   last_id
+                volatile librorc_event_descriptor *report_buffer,
+                         librorcChannelStatus     *channel_status
             );
 
             /**

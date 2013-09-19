@@ -32,10 +32,12 @@ uint64_t
 event_sanity_checker::check
 (
     volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index,
-             int64_t                   last_id
+             librorcChannelStatus     *channel_status
 )
 {
+    uint64_t report_buffer_index = channel_status->index;
+    int64_t  last_id             = channel_status->last_id;
+
     m_event               = rawEventPointer(report_buffer);
     m_reported_event_size = reportedEventSize(report_buffer);
     m_calc_event_size     = calculatedEventSize(report_buffer);

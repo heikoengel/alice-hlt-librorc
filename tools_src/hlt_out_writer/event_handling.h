@@ -19,11 +19,9 @@
 
 int event_sanity_check
 (
+    librorcChannelStatus *stats,
     librorc_event_descriptor *reportbuffer,
     volatile uint32_t *eventbuffer,
-    uint64_t i,
-    uint32_t ch,
-    uint64_t last_id,
     uint32_t pattern_mode,
     uint32_t check_mask,
     uint32_t *ddlref,
@@ -35,7 +33,7 @@ int event_sanity_check
         checker
         (
             eventbuffer,
-            ch,
+            stats->channel,
             pattern_mode,
             check_mask,
             ddlref,
@@ -43,7 +41,7 @@ int event_sanity_check
         );
 
     try
-    { *event_id = checker.check(reportbuffer, i, last_id); }
+    { *event_id = checker.check(reportbuffer, stats); }
     catch( int error )
     { return error; }
 
@@ -70,7 +68,7 @@ int handle_channel_data
     librorc::buffer      *rbuf,
     librorc::buffer      *ebuf,
     librorc::dma_channel *channel,
-    librorcChannelStatus        *stats,
+    librorcChannelStatus *stats,
     int                   do_sanity_check,
     uint32_t             *ddlref,
     uint64_t              ddlref_size
@@ -106,11 +104,9 @@ int handle_channel_data
       if (do_sanity_check) {
         rb = reportbuffer[stats->index];
         retval = event_sanity_check(
+            stats,
             &rb,
             eventbuffer,
-            stats->index,
-            stats->channel,
-            stats->last_id,
             PG_PATTERN_INC,
             do_sanity_check,
             ddlref,

@@ -514,13 +514,10 @@ int handle_channel_data
                     = raw_report_buffer[channel_status->index];
 
                 try
-                { event_id
-                    = checker.check
-                      (
-                          &report_buffer_entry,
-                           channel_status->index,
-                           channel_status->last_id
-                      );
+                {
+                    event_id
+                        = checker.check
+                            (&report_buffer_entry, channel_status);
                 }
                 catch( int error )
                 {
