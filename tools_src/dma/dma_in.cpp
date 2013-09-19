@@ -70,7 +70,7 @@ class file_dumper
 
 
             // check for reasonable calculated event size
-            if(isCalculatedLargerPhysical(report_buffer_entry, channel_status, event_buffer))
+            if(calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer))
             {
                 fprintf
                 (
@@ -219,7 +219,7 @@ class file_dumper
         }
 
         bool
-        isCalculatedLargerPhysical
+        calculatedIsLargerThanPhysical
         (
             librorc_event_descriptor *report_buffer_entry,
             librorcChannelStatus     *channel_status,
