@@ -304,33 +304,6 @@ int handle_channel_data
     uint64_t              ddlref_size
 );
 
-int dump_to_file
-(
-    char                     *log_directory_path,
-    librorcChannelStatus     *channel_status,
-    uint64_t                  event_id,
-    librorc_event_descriptor *raw_report_buffer,
-    librorc::buffer          *event_buffer,
-    uint32_t                  error_bit_mask
-)
-{
-    file_dumper dumper(log_directory_path);
-    try
-    {
-        dumper.dump
-        (
-           channel_status,
-           event_id,
-           raw_report_buffer,
-           event_buffer,
-           error_bit_mask
-        );
-    }
-    catch(...)
-    { return -1; }
-
-    return 0;
-}
 
 
 DMA_ABORT_HANDLER
@@ -521,15 +494,21 @@ int handle_channel_data
                 }
                 catch( int error_bit_mask )
                 {
-                    dump_to_file
-                    (
-                        log_directory_path, //known by checker
-                        channel_status,     //known by checker
-                        event_id,           //known by checker
-                        raw_report_buffer,
-                        event_buffer,
-                        error_bit_mask               //known by checker
-                    );
+                    file_dumper dumper(log_directory_path);
+                    try
+                    {
+                        dumper.dump
+                        (
+                           channel_status,
+                           event_id,
+                           raw_report_buffer,
+                           event_buffer,
+                           error_bit_mask
+                        );
+                    }
+                    catch(...)
+                    { abort(); }
+
                 }
 
                 channel_status->last_id = event_id;
