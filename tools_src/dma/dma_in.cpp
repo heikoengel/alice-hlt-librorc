@@ -32,6 +32,7 @@ using namespace std;
 
 class file_dumper
 {
+//TODO: add device number
     public:
 
          file_dumper(char *base_dir)
@@ -45,7 +46,7 @@ class file_dumper
          };
 
         /**
-         * Dump event to file(s)
+         * Dump event to files
          * @param channel status
          * @param index of according file, appears in file name
          * @param report buffer
@@ -68,12 +69,17 @@ class file_dumper
             dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
             dumpErrorTypeToLog(error_bit_mask);
 
-            if(calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer))
-            { dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
-            else
+            bool dump_event =
+                calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
+                ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
+                : true;
+
+            //dump_event =
+
             if(report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())
             { dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
-            else
+
+            if(dump_event)
             { dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status); }
 
             closeFiles();
@@ -88,8 +94,6 @@ class file_dumper
         char      m_log_file_name[4096];
         FILE     *m_fd_log;
         uint32_t *m_raw_event_buffer;
-
-    private:
 
         void
         openFiles
@@ -175,7 +179,7 @@ class file_dumper
                    > (event_buffer->getPhysicalSize() >> 2);
         }
 
-        void
+        bool
         dumpCalculatedIsLargerThanPhysicalToLog
         (
             librorc_event_descriptor *report_buffer_entry,
@@ -191,6 +195,8 @@ class file_dumper
                 report_buffer_entry[channel_status->index].calc_event_size,
                 (event_buffer->getPhysicalSize() >> 2)
             );
+
+            return false;
         }
 
         void
@@ -245,7 +251,7 @@ class file_dumper
             { throw LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED; }
         }
 
-        void
+        bool
         dumpOffsetIsLargerThanPhysicalToLog
         (
             librorc_event_descriptor* report_buffer_entry,
@@ -261,6 +267,8 @@ class file_dumper
                 report_buffer_entry[channel_status->index].offset,
                 event_buffer->getPhysicalSize()
             );
+
+            return false;
         }
 };
 
