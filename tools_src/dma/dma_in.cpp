@@ -347,7 +347,7 @@ int dump_to_file
     uint32_t                  error_flags
 )
 {
-    char *ddlname = NULL;
+    char ddlname[4096];
     char *logname = NULL;
     int length;
     int result;
@@ -361,14 +361,6 @@ int dump_to_file
     if(length<0)
     {
         perror("dump_to_file::snprintf failed");
-        return -1;
-    }
-
-    // allocate memory for destination file string
-    ddlname = (char *)malloc(length+1);
-    if(ddlname==NULL)
-    {
-        perror("dump_to_file::malloc(ddlname) failed");
         return -1;
     }
 
