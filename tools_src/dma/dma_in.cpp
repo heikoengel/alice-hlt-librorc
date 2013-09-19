@@ -66,18 +66,8 @@ class file_dumper
 
             openFiles(file_index, channel_status);
             dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
+            dumpErrorTypeToLog(error_bit_mask);
 
-            /** dump error type */
-            fprintf(m_fd_log, "Check Failed: ");
-            {
-                !( error_bit_mask & CHK_SIZES)    ? 0 : fprintf(m_fd_log, " CHK_SIZES");
-                !( error_bit_mask & CHK_PATTERN ) ? 0 : fprintf(m_fd_log, " CHK_PATTERN");
-                !( error_bit_mask & CHK_SOE )     ? 0 : fprintf(m_fd_log, " CHK_SOE");
-                !( error_bit_mask & CHK_EOE )     ? 0 : fprintf(m_fd_log, " CHK_EOE");
-                !( error_bit_mask & CHK_ID )      ? 0 : fprintf(m_fd_log, " CHK_ID");
-                !( error_bit_mask & CHK_FILE )    ? 0 : fprintf(m_fd_log, " CHK_FILE");
-            }
-            fprintf(m_fd_log, "\n\n");
 
             // check for reasonable calculated event size
             if(report_buffer_entry[channel_status->index].calc_event_size > (event_buffer->getPhysicalSize()>>2))
@@ -203,12 +193,29 @@ class file_dumper
                 m_fd_log,
                 "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
                 "reported_size=%08x\noffset=%lx\nEventID=%lx\nLastID=%lx\n",
-                channel_status->channel, channel_status->index,
+                channel_status->channel,
+                channel_status->index,
                 report_buffer_entry[channel_status->index].calc_event_size,
                 report_buffer_entry[channel_status->index].reported_event_size,
-                report_buffer_entry[channel_status->index].offset, event_id,
+                report_buffer_entry[channel_status->index].offset,
+                event_id,
                 channel_status->last_id
             );
+        }
+
+        void
+        dumpErrorTypeToLog(uint32_t error_bit_mask)
+        {
+            fprintf(m_fd_log, "Check Failed: ");
+            {
+                !(error_bit_mask & CHK_SIZES)   ? 0 : fprintf(m_fd_log, " CHK_SIZES");
+                !(error_bit_mask & CHK_PATTERN) ? 0 : fprintf(m_fd_log, " CHK_PATTERN");
+                !(error_bit_mask & CHK_SOE)     ? 0 : fprintf(m_fd_log, " CHK_SOE");
+                !(error_bit_mask & CHK_EOE)     ? 0 : fprintf(m_fd_log, " CHK_EOE");
+                !(error_bit_mask & CHK_ID)      ? 0 : fprintf(m_fd_log, " CHK_ID");
+                !(error_bit_mask & CHK_FILE)    ? 0 : fprintf(m_fd_log, " CHK_FILE");
+            }
+            fprintf(m_fd_log, "\n\n");
         }
 };
 
