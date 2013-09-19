@@ -448,7 +448,20 @@ namespace LIBRARY_NAME
         return packetizer(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
     }
 
+    uint64_t
+    link::getEBSize()
+    {
+        return ((uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
+    }
 
+
+    uint64_t
+    link::getRBSize()
+    {
+        return ((uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
+    }
 
     void
     link::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
