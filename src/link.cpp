@@ -148,7 +148,7 @@ read_modify_write
 
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
     link::link
     (
