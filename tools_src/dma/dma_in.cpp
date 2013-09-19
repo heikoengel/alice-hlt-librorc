@@ -61,18 +61,16 @@ class file_dumper
             uint32_t                  error_bit_mask
         )
         {
-            char ddl_file_name[4096];
-            char log_file_name[4096];
-            int length;
-            int result;
+            char      ddl_file_name[4096];
+            FILE     *fd_ddl;
+            char      log_file_name[4096];
+            FILE     *fd_log;
             uint32_t *raw_event_buffer;
-            FILE *fd_ddl;
-            FILE *fd_log;
 
             raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
             // get length of destination file string
-            length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
+            int length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
             if(length<0)
             {
                 perror("dump_to_file::snprintf failed");
@@ -173,17 +171,18 @@ class file_dumper
                 );
 
                 //dump event to DDL file
-                result =
+                if
+                (
                     fwrite
                     (
                         raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2),
                         4,
                         report_buffer_entry[channel_status->index].calc_event_size,
                         fd_ddl
-                    );
-                if( result<0 )
+                    ) < 0
+                )
                 {
-                    perror("failed to copy event data into DDL file");
+                    perror("Failed to copy event data into DDL file");
                     return -1;
                 }
             }
