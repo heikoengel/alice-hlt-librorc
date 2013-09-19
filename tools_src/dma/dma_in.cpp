@@ -364,17 +364,20 @@ int dump_to_file
         return -1;
     }
 
-  // allocate memory for destination file string
-  ddlname = (char *)malloc(len+1);
-  if (ddlname==NULL) {
-    perror("dump_to_file::malloc(ddlname) failed");
-    return -1;
-  }
-  logname = (char *)malloc(len+1);
-  if (logname==NULL) {
-    perror("dump_to_file::malloc(logname) failed");
-    return -1;
-  }
+    // allocate memory for destination file string
+    ddlname = (char *)malloc(len+1);
+    if(ddlname==NULL)
+    {
+        perror("dump_to_file::malloc(ddlname) failed");
+        return -1;
+    }
+
+    logname = (char *)malloc(len+1);
+    if (logname==NULL)
+    {
+        perror("dump_to_file::malloc(logname) failed");
+        return -1;
+    }
 
   // fill destination file string
   snprintf(ddlname, len+1, "%s/ch%d_%d.ddl",

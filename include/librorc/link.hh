@@ -156,6 +156,16 @@ class device;
              **/
             uint32_t packetizer(uint32_t addr);
 
+            void waitForCommandTransmissionStatusWord();
+
+            /**
+             * wait for GTX domain to be ready read asynchronous GTX status
+             * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
+             * & !gtx_in_rst
+            **/
+            void waitForGTXDomain();
+
+
             /**
              * Printout the DIU-state to the console
              * */

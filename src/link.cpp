@@ -395,6 +395,21 @@ namespace LIBRARY_NAME
 
 
     void
+    link::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
+    {
+        while( GTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
+        { usleep(100); }
+    }
+
+    void
+    link::waitForGTXDomain()
+    {
+        while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
+        { usleep(100); }
+    }
+
+
+    void
     link::printDiuState()
     {
         uint32_t status = GTX(RORC_REG_DDL_CTRL);

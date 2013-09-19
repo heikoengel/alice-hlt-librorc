@@ -459,21 +459,6 @@ dma_channel::setBufferOffsetsOnDevice
 }
 
 
-
-void
-dma_channel::waitForGTXDomain()
-{
-    /**
-     * wait for GTX domain to be ready read asynchronous GTX status
-     * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
-     * & !gtx_in_rst
-    **/
-    while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
-    { usleep(100); }
-}
-
-
-
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::setDMAConfig(uint32_t config)
@@ -714,14 +699,4 @@ dma_channel::getRBSize()
         buffer_sglist_programmer programmer(this, buf, m_bar, m_base, RORC_REG_RBDM_N_SG_CONFIG);
         return(programmer.program());
     }
-
-
-
-    void //TODO LINK
-    dma_channel::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
-    {
-        while( GTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
-        { usleep(100); }
-    }
-
 }

@@ -103,7 +103,7 @@ class dma_channel_configurator;
 
             void enable();
             void disable();
-            void waitForGTXDomain();
+
 
             void
             setBufferOffsetsOnDevice
@@ -385,8 +385,6 @@ class dma_channel_configurator;
             int32_t programSglistForReportBuffer(buffer *buf);
 
             /****** ATOMICS **************************************************************/
-
-            void waitForCommandTransmissionStatusWord();
 
             /**
              * get Enable Bit of the Event Buffer Descriptor Manager
