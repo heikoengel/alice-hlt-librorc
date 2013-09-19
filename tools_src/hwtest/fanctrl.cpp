@@ -43,10 +43,9 @@ main
 )
 {
     int32_t device_number = -1;
-    int32_t enable_val;
-
-    int do_enable = 0;
-    int arg;
+    int32_t enable_val    =  0;
+    int do_enable         =  0;
+    int arg               =  0;
 
     while ( (arg = getopt(argc, argv, "hn:e:")) != -1 )
     {

@@ -76,10 +76,9 @@ main
 )
 {
     int32_t device_number = -1;
-    int32_t qsfp_number = -1;
-    uint32_t reset_val;
-
-    int do_reset = 0;
+    int32_t qsfp_number   = -1;
+    uint32_t reset_val    =  0;
+    int do_reset          =  0;
     int arg;
 
     /** parse command line arguments */
@@ -191,7 +190,7 @@ main
             cout << "Wavelength    : " << sm->qsfpWavelength(qsfp_number)
                  << " nm" << endl;
             cout << "Temperature   : " << sm->qsfpTemperature(qsfp_number)
-                 << " °C" << endl;
+                 << " ��C" << endl;
             cout << "Voltage       : " << sm->qsfpVoltage(qsfp_number)
                  << " V" << endl;
             cout << "RateSel Sup.  : " ;

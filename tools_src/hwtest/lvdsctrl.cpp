@@ -59,11 +59,12 @@ main
 {
     int32_t device_number = -1;
 
-    int set_reset = 0;
-    int set_enable = 0;
-    int print_status = 0;
+    int set_reset         =  0;
+    int set_enable        =  0;
+    int print_status      =  0;
 
-    uint32_t reset_val, enable_val;
+    uint32_t reset_val    =  0;
+    uint32_t enable_val   =  0;
 
     int arg;
 

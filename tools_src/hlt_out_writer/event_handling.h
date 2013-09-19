@@ -82,7 +82,7 @@ int handle_channel_data
   uint64_t rboffset = 0;
   uint64_t starting_index, entrysize;
   librorc_event_descriptor rb;
-  uint64_t EventID;
+  uint64_t EventID = 0;
   char    basedir[] = "/tmp";
   int retval;
 

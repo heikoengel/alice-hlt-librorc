@@ -240,16 +240,16 @@ class file_dumper
                 (uint32_t) *(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2) + i)
             );
 
-            if
-            (
+            size_t size_written =
                 fwrite
                 (
                         m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2),
                         4,
                         report_buffer_entry[channel_status->index].calc_event_size,
                         m_fd_ddl
-                ) < 0
-            )
+                );
+            if
+            ( size_written < 0 )
             { throw LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED; }
         }
 };

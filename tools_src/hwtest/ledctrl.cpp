@@ -83,15 +83,16 @@ main
 )
 {
     int32_t device_number = -1;
+    int set_qsfp          =  0;
+    int set_bracket       =  0;
+    int set_gpio          =  0;
+    int print_status      =  0;
 
-    int set_qsfp = 0;
-    int set_bracket = 0;
-    int set_gpio = 0;
-    int print_status = 0;
+    uint32_t qsfp_map     =  0;
+    uint32_t gpio_map     =  0;
+    uint32_t bracket_map  =  0;
 
-    uint32_t qsfp_map, gpio_map, bracket_map;
-
-    int arg;
+    int arg               =  0;
 
     while ( (arg = getopt(argc, argv, "hn:b:g:q:s")) != -1 )
     {
