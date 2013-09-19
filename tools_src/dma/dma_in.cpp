@@ -347,14 +347,16 @@ int dump_to_file
     uint32_t                  error_flags
 )
 {
-    char ddlname[4096];
-    char logname[4096];
+    char ddl_file_name[4096];
+    char log_file_name[4096];
     int length;
     int result;
-    FILE *fd_ddl;
-    FILE *fd_log;
+
     uint32_t i;
     uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
+
+    FILE *fd_ddl;
+    FILE *fd_log;
 
     // get length of destination file string
     length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
@@ -365,11 +367,11 @@ int dump_to_file
     }
 
     // fill destination file string
-    snprintf(ddlname, length+1, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
-    snprintf(logname, length+1, "%s/ch%d_%d.log", base_dir, stats->channel, file_index);
+    snprintf(ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
+    snprintf(log_file_name, length+1, "%s/ch%d_%d.log", base_dir, stats->channel, file_index);
 
     // open DDL file
-    fd_ddl = fopen(ddlname, "w");
+    fd_ddl = fopen(ddl_file_name, "w");
     if( fd_ddl < 0 )
     {
         perror("Failed to open destination DDL file!\n");
@@ -377,10 +379,10 @@ int dump_to_file
     }
 
     // open log file
-    fd_log =  fopen(logname, "w");
+    fd_log =  fopen(log_file_name, "w");
     if( fd_ddl == NULL )
     {
-        printf("Failed to open destination LOG file : %s!\n", ddlname);
+        printf("Failed to open destination LOG file : %s!\n", ddl_file_name);
         return -1;
     }
 
