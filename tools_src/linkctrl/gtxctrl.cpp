@@ -269,7 +269,7 @@ int main
         /** get current GTX configuration */
         uint32_t gtxasynccfg = current_link->packetizer(RORC_REG_GTX_ASYNC_CFG);
 
-        if ( do_status )
+        if( do_status )
         {
             cout << "CH " << setw(2) << chID << ": 0x"
                  << hex << setw(8) << setfill('0') << gtxasynccfg
@@ -284,34 +284,21 @@ int main
             /** TODO: also provide error counter values here */
         }
 
-        if ( do_clear )
+        if( do_clear ) //TODO: clear all error counter
         {
             /** make sure GTX clock is running */
-            if ( (gtxasynccfg & (1<<8)) != 0 )
+            if( current_link->isGtxClockRunning() )
             {
                 cout << "WARNING: CH " << chID
-                     << " : GTX clock is not running - skipping." << endl;
-                continue;
+                     << " : GTX clock is not running - skipping."
+                     << endl;
             }
 
-            /** clear disparity error count */
-            current_link->setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
-
-            /** clear RX-not-in-table count */
-            current_link->setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
-
-            /** clear RX-Loss-Of-Signal count */
-            current_link->setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
-
-            /** clear RX-Byte-Realign count */
-            current_link->setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
+            current_link->clearAllErrorCounter();
 
             /** also clear GTX error counter for HWTest firmwares */
             if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
-            {
-                current_link->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
-            }
-
+            { current_link->setGTX(RORC_REG_GTX_ERROR_CNT, 0); }
         }
 
         /** set {tx/rx/gtx}reset */

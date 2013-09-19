@@ -109,10 +109,21 @@ class device;
             /** clear Event Count */
             void clearEventCount();
 
+            bool isGtxClockRunning();
+
+            void clearDisparityErrorCount();
+            void clearRxNotInTableCount();
+            void clearRxLossOfSignalCount();
+            void clearRxByteRealignCount();
+            void clearAllErrorCounter();
+
             uint32_t stallCount();
 
             uint32_t numberOfEventsProcessed();
 
+
+            //TODO DRP = Dynamic Reconfiguratin Port -> transcieiver#
+            //TODO Phase Locked Loop
             /**
              * Read from GTX DRP port
              * @param drp_addr DRP address to read from
@@ -164,7 +175,6 @@ class device;
              * & !gtx_in_rst
             **/
             void waitForGTXDomain();
-
 
             /**
              * Printout the DIU-state to the console

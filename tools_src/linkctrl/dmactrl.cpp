@@ -119,7 +119,7 @@ int main
         abort();
     }
 
-    /** get number channels implemented in firmware */
+    /** get number channels implemented in firmware */ //TODO
     uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
 
     uint32_t startChannel, endChannel;

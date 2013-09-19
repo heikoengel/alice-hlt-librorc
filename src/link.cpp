@@ -218,8 +218,48 @@ namespace LIBRARY_NAME
         setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
     }
 
+//
+    bool
+    link::isGtxClockRunning()
+    {
+        uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
+        return( (gtxasynccfg & (1<<8)) != 0 );
+    }
 
+    void
+    link::clearDisparityErrorCount()
+    {
+        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
+    }
 
+    void
+    link::clearRxNotInTableCount()
+    {
+        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
+    }
+
+    void
+    link::clearRxLossOfSignalCount()
+    {
+        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
+    }
+
+    void
+    link::clearRxByteRealignCount()
+    {
+        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
+    }
+
+    void
+    link::clearAllErrorCounter()
+    {
+        clearDisparityErrorCount();
+        clearRxNotInTableCount();
+        clearRxLossOfSignalCount();
+        clearRxByteRealignCount();
+    }
+
+//
     uint32_t
     link::stallCount()
     {
