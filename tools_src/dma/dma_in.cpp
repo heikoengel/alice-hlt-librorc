@@ -339,12 +339,12 @@ int handle_channel_data
 int dump_to_file
 (
     char                     *base_dir,
-    librorcChannelStatus     *stats,
-    uint64_t                  EventID,
+    librorcChannelStatus     *channel_status,
+    uint64_t                  event_id,
     uint32_t                  file_index,
-    librorc_event_descriptor *reportbuffer,
-    librorc::buffer          *ebuf,
-    uint32_t                  error_flags
+    librorc_event_descriptor *report_buffer_entry,
+    librorc::buffer          *event_buffer,
+    uint32_t                  error_bit_mask
 )
 {
     char ddl_file_name[4096];
@@ -353,13 +353,13 @@ int dump_to_file
     int result;
 
     uint32_t i;
-    uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
+    uint32_t *eventbuffer = (uint32_t *)event_buffer->getMem();
 
     FILE *fd_ddl;
     FILE *fd_log;
 
     // get length of destination file string
-    length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
+    length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
     if(length<0)
     {
         perror("dump_to_file::snprintf failed");
@@ -367,8 +367,8 @@ int dump_to_file
     }
 
     // fill destination file string
-    snprintf(ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
-    snprintf(log_file_name, length+1, "%s/ch%d_%d.log", base_dir, stats->channel, file_index);
+    snprintf(ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
+    snprintf(log_file_name, length+1, "%s/ch%d_%d.log", base_dir, channel_status->channel, file_index);
 
     // open DDL file
     fd_ddl = fopen(ddl_file_name, "w");
@@ -379,7 +379,7 @@ int dump_to_file
     }
 
     // open log file
-    fd_log =  fopen(log_file_name, "w");
+    fd_log = fopen(log_file_name, "w");
     if( fd_ddl == NULL )
     {
         printf("Failed to open destination LOG file : %s!\n", ddl_file_name);
@@ -395,56 +395,56 @@ int dump_to_file
         "offset=%lx\n"
         "EventID=%lx\n"
         "LastID=%lx\n",
-        stats->channel,
-        stats->index,
-        reportbuffer[stats->index].calc_event_size,
-        reportbuffer[stats->index].reported_event_size,
-        reportbuffer[stats->index].offset,
-        EventID,
-        stats->last_id
+        channel_status->channel,
+        channel_status->index,
+        report_buffer_entry[channel_status->index].calc_event_size,
+        report_buffer_entry[channel_status->index].reported_event_size,
+        report_buffer_entry[channel_status->index].offset,
+        event_id,
+        channel_status->last_id
     );
 
     /** dump error type */
     fprintf(fd_log, "Check Failed: ");
     {
-        !( error_flags & CHK_SIZES)    ? 0 : fprintf(fd_log, " CHK_SIZES");
-        !( error_flags & CHK_PATTERN ) ? 0 : fprintf(fd_log, " CHK_PATTERN");
-        !( error_flags & CHK_SOE )     ? 0 : fprintf(fd_log, " CHK_SOE");
-        !( error_flags & CHK_EOE )     ? 0 : fprintf(fd_log, " CHK_EOE");
-        !( error_flags & CHK_ID )      ? 0 : fprintf(fd_log, " CHK_ID");
-        !( error_flags & CHK_FILE )    ? 0 : fprintf(fd_log, " CHK_FILE");
+        !( error_bit_mask & CHK_SIZES)    ? 0 : fprintf(fd_log, " CHK_SIZES");
+        !( error_bit_mask & CHK_PATTERN ) ? 0 : fprintf(fd_log, " CHK_PATTERN");
+        !( error_bit_mask & CHK_SOE )     ? 0 : fprintf(fd_log, " CHK_SOE");
+        !( error_bit_mask & CHK_EOE )     ? 0 : fprintf(fd_log, " CHK_EOE");
+        !( error_bit_mask & CHK_ID )      ? 0 : fprintf(fd_log, " CHK_ID");
+        !( error_bit_mask & CHK_FILE )    ? 0 : fprintf(fd_log, " CHK_FILE");
     }
     fprintf(fd_log, "\n\n");
 
     // check for reasonable calculated event size
-    if(reportbuffer[stats->index].calc_event_size > (ebuf->getPhysicalSize()>>2))
+    if(report_buffer_entry[channel_status->index].calc_event_size > (event_buffer->getPhysicalSize()>>2))
     {
         fprintf
         (
             fd_log,
             "calc_event_size (0x%x DWs) is larger than physical "
             "buffer size (0x%lx DWs) - not dumping event.\n",
-            reportbuffer[stats->index].calc_event_size,
-            (ebuf->getPhysicalSize()>>2)
+            report_buffer_entry[channel_status->index].calc_event_size,
+            (event_buffer->getPhysicalSize()>>2)
         );
     }
-    else if (reportbuffer[stats->index].offset > ebuf->getPhysicalSize())// check for reasonable offset
+    else if (report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())// check for reasonable offset
     {
         fprintf(fd_log, "offset (0x%lx) is larger than physical "
         "buffer size (0x%lx) - not dumping event.\n",
-        reportbuffer[stats->index].offset,
-        ebuf->getPhysicalSize() );
+        report_buffer_entry[channel_status->index].offset,
+        event_buffer->getPhysicalSize() );
     }
     else // dump event to log
     {
-        for(i=0;i<reportbuffer[stats->index].calc_event_size;i++)
+        for(i=0;i<report_buffer_entry[channel_status->index].calc_event_size;i++)
         {
             uint32_t ebword =
-                (uint32_t)*(eventbuffer + (reportbuffer[stats->index].offset>>2) + i); // TODO: array this
+                (uint32_t)*(eventbuffer + (report_buffer_entry[channel_status->index].offset>>2) + i); // TODO: array this
 
             fprintf(fd_log, "%03d: %08x", i, ebword);
 
-            if ( (error_flags & CHK_PATTERN) && (i>7) && (ebword != i-8) )
+            if ( (error_bit_mask & CHK_PATTERN) && (i>7) && (ebword != i-8) )
             { fprintf(fd_log, " expected %08x", i-8); }
 
             fprintf(fd_log, "\n");
@@ -455,16 +455,16 @@ int dump_to_file
             fd_log,
             "%03d: EOE reported_event_size: %08x\n",
             i,
-            (uint32_t)*(eventbuffer + (reportbuffer[stats->index].offset>>2) + i)
+            (uint32_t)*(eventbuffer + (report_buffer_entry[channel_status->index].offset>>2) + i)
         );
 
         //dump event to DDL file
         result =
             fwrite
             (
-                eventbuffer + (reportbuffer[stats->index].offset>>2),
+                eventbuffer + (report_buffer_entry[channel_status->index].offset>>2),
                 4,
-                reportbuffer[stats->index].calc_event_size,
+                report_buffer_entry[channel_status->index].calc_event_size,
                 fd_ddl
             );
         if( result<0 )
