@@ -28,6 +28,7 @@ using namespace std;
 
 #define LIBRORC_FILE_DUMPER_ERROR_CONSTRUCTOR_FAILED   1
 #define LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED     2
+#define LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED 3
 
 class file_dumper
 {
@@ -45,14 +46,14 @@ class file_dumper
 
         /**
          * Dump event to file(s)
-         * @param destination directory string
          * @param channel status
          * @param index of according file, appears in file name
          * @param report buffer
          * @param event buffer
          * @return 0 on sucess, -1 on error
          * */
-        int dump
+        void
+        dump
         (
             librorcChannelStatus     *channel_status,
             uint64_t                  event_id,
@@ -72,58 +73,18 @@ class file_dumper
 
             if(calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer))
             { dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
-
-            else if (report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())// check for reasonable offset
+            else
+            if(report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())
             {
                 fprintf(m_fd_log, "offset (0x%lx) is larger than physical "
                 "buffer size (0x%lx) - not dumping event.\n",
                 report_buffer_entry[channel_status->index].offset,
                 event_buffer->getPhysicalSize() );
             }
-            else // dump event to log
-            {
-                uint32_t i;
-                for(i=0;i<report_buffer_entry[channel_status->index].calc_event_size;i++)
-                {
-                    uint32_t ebword =
-                        (uint32_t)*(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i); // TODO: array this
-
-                    fprintf(m_fd_log, "%03d: %08x", i, ebword);
-
-                    if ( (error_bit_mask & CHK_PATTERN) && (i>7) && (ebword != i-8) )
-                    { fprintf(m_fd_log, " expected %08x", i-8); }
-
-                    fprintf(m_fd_log, "\n");
-                }
-
-                fprintf
-                (
-                    m_fd_log,
-                    "%03d: EOE reported_event_size: %08x\n",
-                    i,
-                    (uint32_t)*(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2) + i)
-                );
-
-                //dump event to DDL file
-                if
-                (
-                    fwrite
-                    (
-                        m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset>>2),
-                        4,
-                        report_buffer_entry[channel_status->index].calc_event_size,
-                        m_fd_ddl
-                    ) < 0
-                )
-                {
-                    perror("Failed to copy event data into DDL file");
-                    return -1;
-                }
-            }
+            else
+            { dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status); }
 
             closeFiles();
-
-            return 0;
         }
 
 
@@ -239,6 +200,58 @@ class file_dumper
                 (event_buffer->getPhysicalSize() >> 2)
             );
         }
+
+        void
+        dumpEventToLog
+        (
+            uint32_t                  error_bit_mask,
+            librorc_event_descriptor *report_buffer_entry,
+            librorcChannelStatus     *channel_status
+        )
+        {
+            uint32_t i;
+
+            for
+            (
+                i = 0;
+                i < report_buffer_entry[channel_status->index].calc_event_size;
+                i++
+            )
+            {
+                uint32_t ebword =
+                    (uint32_t) *(
+                                    m_raw_event_buffer +
+                                    (report_buffer_entry[channel_status->index].offset >> 2) + i
+                                );
+
+                fprintf(m_fd_log, "%03d: %08x", i, ebword);
+
+                if((error_bit_mask & CHK_PATTERN) && (i > 7) && (ebword != i - 8))
+                { fprintf(m_fd_log, " expected %08x", i - 8); }
+
+                fprintf(m_fd_log, "\n");
+            }
+
+            fprintf
+            (
+                m_fd_log,
+                "%03d: EOE reported_event_size: %08x\n",
+                i,
+                (uint32_t) *(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2) + i)
+            );
+
+            if
+            (
+                fwrite
+                (
+                        m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2),
+                        4,
+                        report_buffer_entry[channel_status->index].calc_event_size,
+                        m_fd_ddl
+                ) < 0
+            )
+            { throw LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED; }
+        }
 };
 
 ////////////////////////////////////////////////////////
@@ -265,15 +278,22 @@ int dump_to_file
 )
 {
     file_dumper dumper(base_dir);
-    return dumper.dump
-           (
-               channel_status,
-               event_id,
-               file_index,
-               report_buffer_entry,
-               event_buffer,
-               error_bit_mask
-           );
+    try
+    {
+        dumper.dump
+        (
+           channel_status,
+           event_id,
+           file_index,
+           report_buffer_entry,
+           event_buffer,
+           error_bit_mask
+        );
+    }
+    catch(...)
+    { return -1; }
+
+    return 0;
 }
 
 
