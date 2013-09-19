@@ -36,7 +36,7 @@ extern int errno;
 
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
     /** Class that programs a scatter-gather list into a device */
@@ -357,18 +357,6 @@ namespace librorc
 
 
 /**PUBLIC:*/
-
-//dma_channel::dma_channel
-//(
-//    uint32_t  channel_number,
-//    device   *dev,
-//    bar      *bar
-//)
-//: link(bar, channel_number)
-//{
-//    initMembers(0, dev, NULL, NULL);
-//    prepareBuffers();
-//}
 
 dma_channel::dma_channel
 (

@@ -77,7 +77,7 @@ typedef struct
  * No DMA transfer will start unless setDMAEnable() has been called
  * with enable=1.
  **/
-namespace librorc
+namespace LIBRARY_NAME
 {
 class bar;
 class buffer;

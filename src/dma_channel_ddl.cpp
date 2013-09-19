@@ -12,9 +12,6 @@
 
 using namespace std;
 
-/** extern error number **/
-extern int errno;
-
 
 
 namespace LIBRARY_NAME
@@ -34,8 +31,6 @@ namespace LIBRARY_NAME
         waitForGTXDomain();
         configureDDL();
     }
-
-
 
     dma_channel_ddl::~dma_channel_ddl()
     {
