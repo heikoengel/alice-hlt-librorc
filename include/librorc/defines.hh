@@ -4,18 +4,18 @@
 #include <time.h>
 #include <sys/time.h>
 
-    #define LIBRARY_NAME librorc
+#define LIBRARY_NAME librorc
 
-    enum librorc_verbosity_enum
-    {
-        LIBRORC_VERBOSE_OFF = 0,
-        LIBRORC_VERBOSE_ON  = 1
-    };
+enum librorc_verbosity_enum
+{
+    LIBRORC_VERBOSE_OFF = 0,
+    LIBRORC_VERBOSE_ON  = 1
+};
 
-    typedef enum librorc_verbosity_enum librorc_verbosity;
+typedef enum librorc_verbosity_enum librorc_verbosity;
 
-    #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
-    #define PAGE_SIZE sysconf(_SC_PAGESIZE)
+#define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
+#define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
 
 /**

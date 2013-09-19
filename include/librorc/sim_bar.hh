@@ -55,7 +55,7 @@
  * read from and/or write to the device.
  */
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 class device;
 

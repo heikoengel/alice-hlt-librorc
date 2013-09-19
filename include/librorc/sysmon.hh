@@ -19,6 +19,7 @@
  * */
 
 #include "include_ext.hh"
+#include "defines.hh"
 
 #ifndef LIBRORC_SYSMON_H
 #define LIBRORC_SYSMON_H
@@ -49,7 +50,7 @@
  * static parts of the design, like PCIe status, SystemMonitor readings
  * and access to the ICAP interface
  **/
-namespace librorc
+namespace LIBRARY_NAME
 {
 class bar;
 

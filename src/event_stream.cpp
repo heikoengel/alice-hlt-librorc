@@ -34,7 +34,7 @@
 using namespace std;
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
     event_stream::event_stream

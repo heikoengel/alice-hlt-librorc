@@ -23,7 +23,7 @@
 #include <librorc/event_sanity_checker.hh>
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 

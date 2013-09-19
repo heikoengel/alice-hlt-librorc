@@ -8,7 +8,7 @@
 typedef uint64_t librorc_bar_address;
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 class device;
 

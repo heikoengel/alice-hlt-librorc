@@ -24,6 +24,7 @@
 #define LIBRORC_DEVICE_H
 
 #include "include_ext.hh"
+#include "defines.hh"
 
 
 typedef struct DeviceOperator_struct DeviceOperator;
@@ -49,7 +50,7 @@ typedef struct PciDevice_struct PciDevice;
  * instances of librorc::bar.
  **/
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
     class device

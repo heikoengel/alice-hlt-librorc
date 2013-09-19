@@ -27,7 +27,7 @@
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 

@@ -51,7 +51,7 @@
 #define PG_PATTERN_SHIFT  (1<<2) /** Shifts the value to the left, the leftmost bit is inserted on the right side */
 #define PG_PATTERN_TOGGLE (1<<3) /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
     class event_sanity_checker

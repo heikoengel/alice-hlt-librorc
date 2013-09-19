@@ -38,7 +38,7 @@ gtxpll_settings_struct
 
 
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 class bar;
 class device;

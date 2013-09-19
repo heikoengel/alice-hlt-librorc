@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 device::device

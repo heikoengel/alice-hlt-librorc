@@ -20,7 +20,7 @@
 #include <librorc/device.hh>
 #include <librorc/bar.hh>
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 rorc_bar::rorc_bar

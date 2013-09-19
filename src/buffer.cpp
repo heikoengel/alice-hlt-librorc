@@ -24,7 +24,7 @@
 
 #include <pda.h>
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 

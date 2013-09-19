@@ -20,6 +20,7 @@
 #define LIBRORC_EVENT_STREAM_H
 
 #include <librorc/include_ext.hh>
+#include "defines.hh"
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED   1
 
@@ -43,7 +44,7 @@ typedef enum
     #define STAT_INTERVAL 0.00001
 #endif
 
-namespace librorc
+namespace LIBRARY_NAME
 {
 
 class dma_channel;

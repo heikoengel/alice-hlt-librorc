@@ -32,8 +32,10 @@
  * */
 #define USLEEP_TIME 50
 
-namespace librorc
+namespace LIBRARY_NAME
 {
+
+
 
 sim_bar::sim_bar
 (
