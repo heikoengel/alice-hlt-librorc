@@ -31,9 +31,9 @@ class file_dumper
 {
     public:
 
-         file_dumper()
+         file_dumper(char *base_dir)
          {
-
+             m_base_dir = base_dir;
          };
 
         ~file_dumper()
@@ -52,7 +52,6 @@ class file_dumper
          * */
         int dump
         (
-            char                     *base_dir,
             librorcChannelStatus     *channel_status,
             uint64_t                  event_id,
             uint32_t                  file_index,
@@ -64,7 +63,7 @@ class file_dumper
             m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
             // get length of destination file string
-            int length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
+            int length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
             if(length<0)
             {
                 perror("dump_to_file::snprintf failed");
@@ -72,8 +71,8 @@ class file_dumper
             }
 
             // fill destination file string
-            snprintf(m_ddl_file_name, length+1, "%s/ch%d_%d.ddl", base_dir, channel_status->channel, file_index);
-            snprintf(m_log_file_name, length+1, "%s/ch%d_%d.log", base_dir, channel_status->channel, file_index);
+            snprintf(m_ddl_file_name, length+1, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
+            snprintf(m_log_file_name, length+1, "%s/ch%d_%d.log", m_base_dir, channel_status->channel, file_index);
 
             // open DDL file
             m_fd_ddl = fopen(m_ddl_file_name, "w");
@@ -190,6 +189,7 @@ class file_dumper
 
 
     protected:
+        char     *m_base_dir;
         char      m_ddl_file_name[4096];
         FILE     *m_fd_ddl;
         char      m_log_file_name[4096];
@@ -220,10 +220,9 @@ int dump_to_file
     uint32_t                  error_bit_mask
 )
 {
-    file_dumper dumper;
+    file_dumper dumper(base_dir);
     return dumper.dump
            (
-               base_dir,
                channel_status,
                event_id,
                file_index,
