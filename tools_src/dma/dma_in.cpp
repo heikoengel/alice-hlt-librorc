@@ -65,26 +65,7 @@ class file_dumper
             m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
             openFiles(file_index, channel_status);
-
-
-
-            // dump RB entry to log
-            fprintf
-            (
-                m_fd_log,
-                "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
-                "reported_size=%08x\n"
-                "offset=%lx\n"
-                "EventID=%lx\n"
-                "LastID=%lx\n",
-                channel_status->channel,
-                channel_status->index,
-                report_buffer_entry[channel_status->index].calc_event_size,
-                report_buffer_entry[channel_status->index].reported_event_size,
-                report_buffer_entry[channel_status->index].offset,
-                event_id,
-                channel_status->last_id
-            );
+            dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
 
             /** dump error type */
             fprintf(m_fd_log, "Check Failed: ");
@@ -175,7 +156,8 @@ class file_dumper
 
     private:
 
-        void openFiles
+        void
+        openFiles
         (
             uint32_t              file_index,
             librorcChannelStatus *channel_status
@@ -201,10 +183,32 @@ class file_dumper
             { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
         }
 
-        void closeFiles()
+        void
+        closeFiles()
         {
             fclose(m_fd_log);
             fclose(m_fd_ddl);
+        }
+
+        void
+        dumpReportBufferEntryToLog
+        (
+            uint64_t                  event_id,
+            librorcChannelStatus     *channel_status,
+            librorc_event_descriptor *report_buffer_entry
+        )
+        {
+            fprintf
+            (
+                m_fd_log,
+                "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
+                "reported_size=%08x\noffset=%lx\nEventID=%lx\nLastID=%lx\n",
+                channel_status->channel, channel_status->index,
+                report_buffer_entry[channel_status->index].calc_event_size,
+                report_buffer_entry[channel_status->index].reported_event_size,
+                report_buffer_entry[channel_status->index].offset, event_id,
+                channel_status->last_id
+            );
         }
 };
 
