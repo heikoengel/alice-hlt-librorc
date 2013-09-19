@@ -348,7 +348,7 @@ int dump_to_file
 )
 {
     char ddlname[4096];
-    char *logname = NULL;
+    char logname[4096];
     int length;
     int result;
     FILE *fd_ddl;
@@ -364,13 +364,6 @@ int dump_to_file
         return -1;
     }
 
-    logname = (char *)malloc(length+1);
-    if(logname==NULL)
-    {
-        perror("dump_to_file::malloc(logname) failed");
-        return -1;
-    }
-
     // fill destination file string
     snprintf(ddlname, length+1, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
     snprintf(logname, length+1, "%s/ch%d_%d.log", base_dir, stats->channel, file_index);
@@ -379,7 +372,7 @@ int dump_to_file
     fd_ddl = fopen(ddlname, "w");
     if( fd_ddl < 0 )
     {
-        perror("failed to open destination DDL file");
+        perror("Failed to open destination DDL file!\n");
         return -1;
     }
 
@@ -387,7 +380,7 @@ int dump_to_file
     fd_log =  fopen(logname, "w");
     if( fd_ddl == NULL )
     {
-        printf("failed to open destination LOG file : %s\n", ddlname);
+        printf("Failed to open destination LOG file : %s!\n", ddlname);
         return -1;
     }
 
