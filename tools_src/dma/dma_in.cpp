@@ -65,10 +65,7 @@ class file_dumper
             char log_file_name[4096];
             int length;
             int result;
-
-            uint32_t i;
             uint32_t *raw_event_buffer;
-
             FILE *fd_ddl;
             FILE *fd_log;
 
@@ -153,6 +150,7 @@ class file_dumper
             }
             else // dump event to log
             {
+                uint32_t i;
                 for(i=0;i<report_buffer_entry[channel_status->index].calc_event_size;i++)
                 {
                     uint32_t ebword =
