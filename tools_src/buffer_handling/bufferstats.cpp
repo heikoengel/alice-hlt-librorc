@@ -18,10 +18,6 @@
  *
  * */
 
-#include <cstdio>
-#include <cstdlib>
-#include <getopt.h>
-
 #include <pda.h>
 #include <librorc.h>
 
