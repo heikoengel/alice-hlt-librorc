@@ -50,7 +50,6 @@ class file_dumper
          * @param index of according file, appears in file name
          * @param report buffer
          * @param event buffer
-         * @return 0 on sucess, -1 on error
          * */
         void
         dump
@@ -69,18 +68,11 @@ class file_dumper
             dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
             dumpErrorTypeToLog(error_bit_mask);
 
-
-
             if(calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer))
             { dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
             else
             if(report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())
-            {
-                fprintf(m_fd_log, "offset (0x%lx) is larger than physical "
-                "buffer size (0x%lx) - not dumping event.\n",
-                report_buffer_entry[channel_status->index].offset,
-                event_buffer->getPhysicalSize() );
-            }
+            { dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
             else
             { dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status); }
 
@@ -251,6 +243,24 @@ class file_dumper
             if
             ( size_written < 0 )
             { throw LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED; }
+        }
+
+        void
+        dumpOffsetIsLargerThanPhysicalToLog
+        (
+            librorc_event_descriptor* report_buffer_entry,
+            librorcChannelStatus* channel_status,
+            librorc::buffer* event_buffer
+        )
+        {
+            fprintf
+            (
+                m_fd_log,
+                "offset (0x%lx) is larger than physical buffer"
+                " size (0x%lx) - not dumping event.\n",
+                report_buffer_entry[channel_status->index].offset,
+                event_buffer->getPhysicalSize()
+            );
         }
 };
 
