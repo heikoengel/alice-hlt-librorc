@@ -69,18 +69,10 @@ class file_dumper
             dumpErrorTypeToLog(error_bit_mask);
 
 
-            // check for reasonable calculated event size
+
             if(calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer))
-            {
-                fprintf
-                (
-                    m_fd_log,
-                    "calc_event_size (0x%x DWs) is larger than physical "
-                    "buffer size (0x%lx DWs) - not dumping event.\n",
-                    report_buffer_entry[channel_status->index].calc_event_size,
-                    (event_buffer->getPhysicalSize()>>2)
-                );
-            }
+            { dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
+
             else if (report_buffer_entry[channel_status->index].offset > event_buffer->getPhysicalSize())// check for reasonable offset
             {
                 fprintf(m_fd_log, "offset (0x%lx) is larger than physical "
@@ -226,10 +218,27 @@ class file_dumper
             librorc::buffer          *event_buffer
         )
         {
-        return   report_buffer_entry[channel_status->index].calc_event_size
-               > (event_buffer->getPhysicalSize() >> 2);
+            return   report_buffer_entry[channel_status->index].calc_event_size
+                   > (event_buffer->getPhysicalSize() >> 2);
         }
 
+        void
+        dumpCalculatedIsLargerThanPhysicalToLog
+        (
+            librorc_event_descriptor *report_buffer_entry,
+            librorcChannelStatus     *channel_status,
+            librorc::buffer          *event_buffer
+        )
+        {
+            fprintf
+            (
+                m_fd_log,
+                "calc_event_size (0x%x DWs) is larger"
+                " than physical buffer size (0x%lx DWs) - not dumping event.\n",
+                report_buffer_entry[channel_status->index].calc_event_size,
+                (event_buffer->getPhysicalSize() >> 2)
+            );
+        }
 };
 
 ////////////////////////////////////////////////////////
