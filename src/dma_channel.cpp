@@ -29,11 +29,6 @@
 
 #include <pda.h>
 
-using namespace std;
-
-/** extern error number **/
-extern int errno;
-
 
 
 namespace LIBRARY_NAME

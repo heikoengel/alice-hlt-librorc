@@ -1,12 +1,9 @@
 #ifndef INCLUDE_EXT_H
 #define INCLUDE_EXT_H
 
-#include <xlocale.h>
-
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <errno.h>
 
 #include <sys/mman.h>
 #include <sys/stat.h>

@@ -23,20 +23,6 @@
  *
  **/
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <errno.h>
-#include <limits.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdint.h>
-#include <sys/shm.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-
 #include <librorc.h>
 
 #define UINT16_MAX 65535
