@@ -1,27 +1,11 @@
 #ifndef DMA_HANDLING_H
 #define DMA_HANDLING_H
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <iostream>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/shm.h>
-#include <sys/mman.h>
-
-#include <unistd.h>
-#include <stdint.h>
-#include <errno.h>
-#include <limits.h>
 #include <signal.h>
-#include <fcntl.h>
 #include <getopt.h>
-
 #include <librorc.h>
+
 
 /** Help text, that is displayed when -h is used */
 #define HELP_TEXT "%s usage:                                 \n\
