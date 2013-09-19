@@ -86,8 +86,8 @@ namespace LIBRARY_NAME
             uint64_t
             check
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         librorcChannelStatus     *channel_status
+                librorc_event_descriptor *raw_report_buffer,
+                librorcChannelStatus     *channel_status
             );
 
             /**

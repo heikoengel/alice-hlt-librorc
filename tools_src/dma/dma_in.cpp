@@ -483,27 +483,24 @@ int handle_channel_data
             // perform validity tests on the received data (if enabled)
             if(sanity_check_mask)
             {
-                librorc_event_descriptor report_buffer_entry
-                    = raw_report_buffer[channel_status->index];
-
                 try
                 {
                     event_id
                         = checker.check
-                            (&report_buffer_entry, channel_status);
+                            (raw_report_buffer, channel_status);
                 }
                 catch( int error_bit_mask )
                 {
-                    file_dumper dumper(log_directory_path);
+                    file_dumper dumper(log_directory_path); //known by checker
                     try
                     {
                         dumper.dump
                         (
-                           channel_status,
-                           event_id,
-                           raw_report_buffer,
+                           channel_status,    //known by checker
+                           event_id,          //known by checker (returns it)
+                           raw_report_buffer, //known by checker
                            event_buffer,
-                           error_bit_mask
+                           error_bit_mask     //known by checker (throws it)
                         );
                     }
                     catch(...)
