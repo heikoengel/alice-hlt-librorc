@@ -327,12 +327,12 @@ int handle_channel_data
 
 
 /**
- * dump event to file(s)
- * @param base_dir pointer to destination directory string
- * @param pointer to stats channel stats struct
- * @param file_index index of according file, appears in file name
- * @param reportbuffer pointer to reportbuffer
- * @param ebuf pointer to librorc::buffer
+ * Dump event to file(s)
+ * @param destination directory string
+ * @param channel status
+ * @param index of according file, appears in file name
+ * @param report buffer
+ * @param event buffer
  * @return 0 on sucess, -1 on error
  * */
 //TODO: refactor this into a class and merge it with event_sanity_checker afterwards
