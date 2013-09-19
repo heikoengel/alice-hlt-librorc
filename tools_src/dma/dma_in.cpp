@@ -74,7 +74,8 @@ class file_dumper
                 dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
                 dumpErrorTypeToLog(error_bit_mask);
 
-                bool dump_event =
+                bool
+                dump_event =
                       calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
                     ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
                     : true;
@@ -305,22 +306,22 @@ int handle_channel_data
 
 int dump_to_file
 (
-    char                     *base_dir,
+    char                     *log_directory_path,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id,
-    librorc_event_descriptor *report_buffer_entry,
+    librorc_event_descriptor *raw_report_buffer,
     librorc::buffer          *event_buffer,
     uint32_t                  error_bit_mask
 )
 {
-    file_dumper dumper(base_dir);
+    file_dumper dumper(log_directory_path);
     try
     {
         dumper.dump
         (
            channel_status,
            event_id,
-           report_buffer_entry,
+           raw_report_buffer,
            event_buffer,
            error_bit_mask
         );
@@ -488,6 +489,7 @@ int handle_channel_data
             channel_status->channel,
             PG_PATTERN_INC, /** TODO */
             sanity_check_mask,
+            log_directory_path,
             ddl_reference,
             ddl_reference_size
         );
@@ -517,16 +519,16 @@ int handle_channel_data
                         = checker.check
                             (&report_buffer_entry, channel_status);
                 }
-                catch( int error )
+                catch( int error_bit_mask )
                 {
                     dump_to_file
                     (
-                        log_directory_path, // base dir
-                        channel_status, // channel stats
-                        event_id, // current EventID
-                        raw_report_buffer, // Report Buffer
-                        event_buffer, // Event Buffer
-                        error // Error flags
+                        log_directory_path, //known by checker
+                        channel_status,     //known by checker
+                        event_id,           //known by checker
+                        raw_report_buffer,
+                        event_buffer,
+                        error_bit_mask               //known by checker
                     );
                 }
 

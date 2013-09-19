@@ -36,6 +36,7 @@ int event_sanity_check
             stats->channel,
             pattern_mode,
             check_mask,
+            "tmp",
             ddlref,
             ddlref_size
         );
