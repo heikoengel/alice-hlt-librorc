@@ -70,17 +70,16 @@ class file_dumper
             dumpErrorTypeToLog(error_bit_mask);
 
             bool dump_event =
-                calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
+                  calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
                 ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
                 : true;
 
-            //dump_event =
+            dump_event =
+                  offsetIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
+                ? dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
+                : true;
 
-            if(offsetIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer))
-            { dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer); }
-
-            if(dump_event)
-            { dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status); }
+            dump_event ? dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status) : (void)0;
 
             closeFiles();
         }
