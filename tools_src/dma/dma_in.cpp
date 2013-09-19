@@ -214,16 +214,25 @@ int handle_channel_data
 int dump_to_file
 (
     char                     *base_dir,
-    librorcChannelStatus     *stats,
-    uint64_t                  EventID,
+    librorcChannelStatus     *channel_status,
+    uint64_t                  event_id,
     uint32_t                  file_index,
-    librorc_event_descriptor *reportbuffer,
-    librorc::buffer          *ebuf,
-    uint32_t                  error_flags
+    librorc_event_descriptor *report_buffer_entry,
+    librorc::buffer          *event_buffer,
+    uint32_t                  error_bit_mask
 )
 {
     file_dumper dumper;
-    return dumper.dump(base_dir, stats, EventID, file_index, reportbuffer, ebuf, error_flags);
+    return dumper.dump
+           (
+               base_dir,
+               channel_status,
+               event_id,
+               file_index,
+               report_buffer_entry,
+               event_buffer,
+               error_bit_mask
+           );
 }
 
 
