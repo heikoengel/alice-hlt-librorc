@@ -18,15 +18,9 @@
  *
  * */
 
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <iomanip>
 #include <getopt.h>
-#include <stdint.h>
 #include <pda.h>
-
-#include "librorc.h"
+#include <librorc.h>
 
 #define HELP_TEXT "dmactrl usage: \n\
         dmactrl [parameters] \n\

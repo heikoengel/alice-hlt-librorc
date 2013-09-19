@@ -18,12 +18,7 @@
  *
  * */
 
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <iomanip>
 #include <getopt.h>
-#include <stdint.h>
 #include <pda.h>
 
 #include "librorc.h"
