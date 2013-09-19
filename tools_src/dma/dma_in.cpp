@@ -349,7 +349,7 @@ int dump_to_file
 {
     char *ddlname = NULL;
     char *logname = NULL;
-    int len;
+    int length;
     int result;
     FILE *fd_ddl;
     FILE *fd_log;
@@ -357,22 +357,22 @@ int dump_to_file
     uint32_t *eventbuffer = (uint32_t *)ebuf->getMem();
 
     // get length of destination file string
-    len = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
-    if(len<0)
+    length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
+    if(length<0)
     {
         perror("dump_to_file::snprintf failed");
         return -1;
     }
 
     // allocate memory for destination file string
-    ddlname = (char *)malloc(len+1);
+    ddlname = (char *)malloc(length+1);
     if(ddlname==NULL)
     {
         perror("dump_to_file::malloc(ddlname) failed");
         return -1;
     }
 
-    logname = (char *)malloc(len+1);
+    logname = (char *)malloc(length+1);
     if(logname==NULL)
     {
         perror("dump_to_file::malloc(logname) failed");
@@ -380,8 +380,8 @@ int dump_to_file
     }
 
     // fill destination file string
-    snprintf(ddlname, len+1, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
-    snprintf(logname, len+1, "%s/ch%d_%d.log", base_dir, stats->channel, file_index);
+    snprintf(ddlname, length+1, "%s/ch%d_%d.ddl", base_dir, stats->channel, file_index);
+    snprintf(logname, length+1, "%s/ch%d_%d.log", base_dir, stats->channel, file_index);
 
     // open DDL file
     fd_ddl = fopen(ddlname, "w");
