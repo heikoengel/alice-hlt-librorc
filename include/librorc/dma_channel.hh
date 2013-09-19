@@ -112,17 +112,7 @@ class dma_channel_configurator;
                 uint64_t rboffset
             );
 
-            /**
-             * get number of Scatter Gather entries for the Event buffer
-             * @return number of entries
-             **/
-            uint32_t getEBDMnSGEntries();
 
-            /**
-             * get number of Scatter Gather entries for the Report buffer
-             * @return number of entries
-             **/
-            uint32_t getRBDMnSGEntries();
 
             /**
              * get DMA Packetizer 'Busy' flag
