@@ -17,22 +17,10 @@
  *
  * */
 
-#include <errno.h>
-#include <limits.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdint.h>
 #include <sys/shm.h>
 #include <getopt.h>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-
 #include <librorc.h>
-//#include <event_handling.h>
+
 
 using namespace std;
 
