@@ -26,6 +26,8 @@
 
 using namespace std;
 
+#define LIBRORC_FILE_DUMPER_ERROR_CONSTRUCTOR_FAILED   1
+#define LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED     2
 
 class file_dumper
 {
@@ -62,33 +64,9 @@ class file_dumper
         {
             m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
 
-            // get length of destination file string
-            int length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
-            if(length<0)
-            {
-                perror("dump_to_file::snprintf failed");
-                return -1;
-            }
+            openFiles(file_index, channel_status);
 
-            // fill destination file string
-            snprintf(m_ddl_file_name, length+1, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
-            snprintf(m_log_file_name, length+1, "%s/ch%d_%d.log", m_base_dir, channel_status->channel, file_index);
 
-            // open DDL file
-            m_fd_ddl = fopen(m_ddl_file_name, "w");
-            if( m_fd_ddl < 0 )
-            {
-                perror("Failed to open destination DDL file!\n");
-                return -1;
-            }
-
-            // open log file
-            m_fd_log = fopen(m_log_file_name, "w");
-            if( m_fd_ddl == NULL )
-            {
-                printf("Failed to open destination LOG file : %s!\n", m_ddl_file_name);
-                return -1;
-            }
 
             // dump RB entry to log
             fprintf
@@ -195,6 +173,32 @@ class file_dumper
         char      m_log_file_name[4096];
         FILE     *m_fd_log;
         uint32_t *m_raw_event_buffer;
+
+    private:
+
+        void openFiles
+        (
+            uint32_t              file_index,
+            librorcChannelStatus *channel_status
+        )
+        {
+        // get length of destination file string
+        int length = snprintf(NULL, 0, "%s/ch%d_%d.ddl", m_base_dir,
+                              channel_status->channel, file_index);
+        if (length < 0)
+        { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
+
+        snprintf(m_ddl_file_name, length+1, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
+        snprintf(m_log_file_name, length+1, "%s/ch%d_%d.log", m_base_dir, channel_status->channel, file_index);
+
+        m_fd_ddl = fopen(m_ddl_file_name, "w");
+        if(m_fd_ddl < 0)
+        { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
+
+        m_fd_log = fopen(m_log_file_name, "w");
+        if(m_fd_ddl == NULL)
+        { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
+    }
 };
 
 ////////////////////////////////////////////////////////
