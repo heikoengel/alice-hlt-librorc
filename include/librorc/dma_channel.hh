@@ -118,13 +118,6 @@ class dma_channel_configurator;
              **/
             uint32_t getDMABusy();
 
-            void
-            setOffsets
-            (
-            	uint64_t eboffset,
-            	uint64_t rboffset
-            );
-
             /**
              * set Event Buffer File Offset
              * the DMA engine only writes to the Event buffer as long as
