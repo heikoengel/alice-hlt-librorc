@@ -20,43 +20,45 @@
 void
 event_sanity_check
 (
-    librorcChannelStatus *channel_status,
+    librorcChannelStatus     *channel_status,
     librorc_event_descriptor *report_buffer,
-    librorc::buffer *event_buffer,
-    uint32_t pattern_mode,
-    uint32_t sanity_check_mask,
-    uint64_t *event_id,
-    bool      ddl_reference_is_enabled,
-    char     *ddl_path
+    librorc::buffer          *event_buffer,
+    uint32_t                  pattern_mode,
+    uint32_t                  sanity_check_mask,
+    uint64_t                 *event_id,
+    bool                      ddl_reference_is_enabled,
+    char                     *ddl_path
 )
 {
     char log_directory_path[] = "/tmp";
 
-    librorc::event_sanity_checker checker =
-        ddl_reference_is_enabled
-        ?
-            librorc::event_sanity_checker
-            (
-                event_buffer,
-                channel_status->channel,
-                pattern_mode,
-                sanity_check_mask,
-                log_directory_path,
-                ddl_path
-            )
-        :
-            librorc::event_sanity_checker
-            (
-                event_buffer,
-                channel_status->channel,
-                pattern_mode,
-                sanity_check_mask,
-                log_directory_path
-            )
-        ;
-
     try
-    { *event_id = checker.check(report_buffer, channel_status); }
+    {
+        librorc::event_sanity_checker checker =
+            ddl_reference_is_enabled
+            ?
+                librorc::event_sanity_checker
+                (
+                    event_buffer,
+                    channel_status->channel,
+                    pattern_mode,
+                    sanity_check_mask,
+                    log_directory_path,
+                    ddl_path
+                )
+            :
+                librorc::event_sanity_checker
+                (
+                    event_buffer,
+                    channel_status->channel,
+                    pattern_mode,
+                    sanity_check_mask,
+                    log_directory_path
+                )
+            ;
+
+        *event_id = checker.check(report_buffer, channel_status);
+    }
     catch( int error )
     { abort(); }
 }

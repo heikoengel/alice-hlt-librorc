@@ -49,10 +49,7 @@ namespace LIBRARY_NAME
                  m_reports  = reports;
              };
 
-            ~file_dumper()
-             {
-
-             };
+            ~file_dumper(){ };
 
             /**
              * Dump event to files
@@ -73,25 +70,25 @@ namespace LIBRARY_NAME
                 if (channel_status->error_count < MAX_FILES_TO_DISK)
                 {
                     uint32_t                  file_index          = channel_status->error_count;
-                    librorc_event_descriptor *report_buffer_entry = &m_reports[channel_status->index];
                                               m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
 
                     openFiles(file_index, channel_status);
-                    dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
+                    dumpReportBufferEntryToLog(event_id, channel_status, m_reports);
                     dumpErrorTypeToLog(error_bit_mask);
 
+                    //TODO : review this bool (dump event if something fails)?
                     bool
                     dump_event =
-                          calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
-                        ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
+                          calculatedIsLargerThanPhysical(m_reports, channel_status, event_buffer)
+                        ? dumpCalculatedIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
                         : true;
 
                     dump_event =
-                          offsetIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
-                        ? dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
+                          offsetIsLargerThanPhysical(m_reports, channel_status, event_buffer)
+                        ? dumpOffsetIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
                         : true;
 
-                    dump_event ? dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status) : (void)0;
+                    dump_event ? dumpEventToLog(error_bit_mask, m_reports, channel_status) : (void)0;
 
                     closeFiles();
                 }
