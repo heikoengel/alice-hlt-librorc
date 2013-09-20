@@ -767,7 +767,7 @@ event_sanity_checker::compareWithReferenceDdlFile
              uint64_t                  report_buffer_index
 )
 {
-    int return_value           = 0;
+    int return_value = 0;
     uint32_t *ddl_mapping      = m_ddl->mapping();
     uint64_t  ddl_mapping_size = m_ddl->size();
 
