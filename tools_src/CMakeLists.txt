@@ -58,6 +58,10 @@ target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
 add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
 target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
 
+# Build pgctrl
+add_executable( pgctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/pgctrl.cpp)
+target_link_libraries( pgctrl rorc pthread ${EXTRA_LIBS})
+
 
 # Build dmactrl
 add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
