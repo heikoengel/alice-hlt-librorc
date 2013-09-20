@@ -204,7 +204,7 @@ prepareEventStream
 }
 
 
-// TODO -> that should belong into sanity checker
+// TODO : remove
 DDLRefFile
 getDDLReferenceFile
 (
@@ -248,7 +248,7 @@ getDDLReferenceFile
 }
 
 
-
+// TODO : remove
 void
 deleteDDLReferenceFile
 (

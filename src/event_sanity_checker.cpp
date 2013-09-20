@@ -26,6 +26,7 @@
 namespace LIBRARY_NAME
 {
 
+    /** Class that dumps errors to files */
     #define LIBRORC_FILE_DUMPER_ERROR_CONSTRUCTOR_FAILED   1
     #define LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED     2
     #define LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED 3
@@ -297,6 +298,64 @@ namespace LIBRARY_NAME
             }
 
     };
+
+
+    /** class to handle DDL reference files */
+    class ddl_reference_file
+    {
+        public:
+            ddl_reference_file
+            (
+                char *refname
+            )
+            {
+                m_size = 0;
+                m_fd   = 0;
+                m_map  = NULL;
+
+                m_fd = open(refname, O_RDONLY);
+                if(m_fd<0)
+                {
+                    perror("failed to open reference DDL file");
+                    abort();
+                }
+
+                struct stat ddlref_stat;
+                if(fstat(m_fd, &ddlref_stat)==-1)
+                {
+                    perror("fstat DDL reference file");
+                    abort();
+                }
+
+                m_size = ddlref_stat.st_size;
+                m_map =
+                    (uint32_t *)
+                        mmap(0, m_size, PROT_READ, MAP_SHARED, m_fd, 0);
+                if(m_map == MAP_FAILED)
+                {
+                    perror("failed to mmap file");
+                    abort();
+                }
+            }
+
+            ~ddl_reference_file()
+            {
+//                if(ddlref.map != NULL)
+//                {
+//                    if( munmap(ddlref.map, ddlref.size)==-1 )
+//                    { perror("ERROR: failed to unmap file"); }
+//                }
+//
+//                if(ddlref.fd >= 0)
+//                { close(ddlref.fd); }
+            }
+
+        protected:
+            uint64_t  m_size;
+            int       m_fd;
+            uint32_t *m_map;
+    };
+
 
 
 uint64_t
@@ -797,6 +856,9 @@ event_sanity_checker::getEventIdFromCdh(uint64_t offset)
     cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
     return cur_event_id;
 }
+
+
+
 
 
 

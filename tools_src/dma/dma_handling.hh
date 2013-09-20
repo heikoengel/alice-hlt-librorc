@@ -73,6 +73,7 @@ typedef struct
     LibrorcEsType esType;
 } DMAOptions;
 
+//TODO: remove
 /** Struct to hanlde DDL refernce file */
 typedef struct
 {

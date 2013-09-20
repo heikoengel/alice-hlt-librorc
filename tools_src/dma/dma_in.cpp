@@ -78,8 +78,7 @@ int main(int argc, char *argv[])
         ddlref.map  = NULL;
         ddlref.size = 0;
     }
-    else
-        { exit(-1); }
+    else{ exit(-1); }
 
     /** Create event stream */
     librorc::event_stream *eventStream = NULL;
