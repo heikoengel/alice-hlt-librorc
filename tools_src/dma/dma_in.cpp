@@ -225,7 +225,7 @@ int handle_channel_data
                         = checker.check
                             (reports, channel_status);
                 }
-                catch(...){}
+                catch(...){ abort(); }
 
 
 //                catch( int error_bit_mask )

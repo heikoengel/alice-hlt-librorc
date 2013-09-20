@@ -315,7 +315,8 @@ event_sanity_checker::check
     m_calc_event_size     = calculatedEventSize(report_entry);
     m_event_index         = 0;
 
-    int return_value = 0;
+    uint64_t event_id     = getEventIdFromCdh(dwordOffset(report_entry));
+    int      return_value = 0;
     {
         return_value |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
         return_value |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_entry, report_buffer_index);
@@ -327,10 +328,19 @@ event_sanity_checker::check
     if(return_value != 0)
     {
         channel_status->error_count++;
-        throw return_value;
+
+        file_dumper dumper(m_log_base_dir, reports);
+
+        dumper.dump
+        (
+           channel_status,
+           event_id,
+           m_event_buffer,
+           return_value
+        );
     }
 
-    return getEventIdFromCdh(dwordOffset(report_entry));
+    return event_id;
 }
 
 
