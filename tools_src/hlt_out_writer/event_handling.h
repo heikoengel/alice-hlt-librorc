@@ -20,31 +20,43 @@
 void
 event_sanity_check
 (
-    librorcChannelStatus *stats,
-    librorc_event_descriptor *reportbuffer,
-    librorc::buffer *eventbuffer,
+    librorcChannelStatus *channel_status,
+    librorc_event_descriptor *report_buffer,
+    librorc::buffer *event_buffer,
     uint32_t pattern_mode,
-    uint32_t check_mask,
-    uint32_t *ddlref,
-    uint64_t ddlref_size,
-    uint64_t *event_id
+    uint32_t sanity_check_mask,
+    uint64_t *event_id,
+    bool      ddl_reference_is_enabled,
+    char     *ddl_path
 )
 {
     char log_directory_path[] = "/tmp";
-    librorc::event_sanity_checker
-        checker
-        (
-            eventbuffer,
-            stats->channel,
-            pattern_mode,
-            check_mask,
-            log_directory_path,
-            ddlref,
-            ddlref_size
-        );
+
+    librorc::event_sanity_checker checker =
+        ddl_reference_is_enabled
+        ?
+            librorc::event_sanity_checker
+            (
+                event_buffer,
+                channel_status->channel,
+                pattern_mode,
+                sanity_check_mask,
+                log_directory_path,
+                ddl_path
+            )
+        :
+            librorc::event_sanity_checker
+            (
+                event_buffer,
+                channel_status->channel,
+                pattern_mode,
+                sanity_check_mask,
+                log_directory_path
+            )
+        ;
 
     try
-    { *event_id = checker.check(reportbuffer, stats); }
+    { *event_id = checker.check(report_buffer, channel_status); }
     catch( int error )
     { abort(); }
 }
@@ -71,8 +83,8 @@ int handle_channel_data
     librorc::dma_channel *channel,
     librorcChannelStatus *stats,
     int                   do_sanity_check,
-    uint32_t             *ddlref,
-    uint64_t              ddlref_size
+    bool                  ddl_reference_is_enabled,
+    char                 *ddl_path
 )
 {
   uint64_t events_per_iteration = 0;
@@ -108,9 +120,9 @@ int handle_channel_data
             ebuf,
             PG_PATTERN_INC,
             do_sanity_check,
-            ddlref,
-            ddlref_size,
-            &EventID
+            &EventID,
+            ddl_reference_is_enabled,
+            ddl_path
         );
 
         stats->last_id = EventID;

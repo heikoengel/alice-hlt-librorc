@@ -28,7 +28,6 @@ using namespace std;
 
 
 
-////////////////////////////////////////////////////////
 int handle_channel_data
 (
     librorc::buffer      *rbuf,
@@ -36,13 +35,14 @@ int handle_channel_data
     librorc::dma_channel *channel,
     librorcChannelStatus *stats,
     int                   do_sanity_check,
-    uint32_t             *ddlref,
-    uint64_t              ddlref_size
+    bool                  ddl_reference_is_enabled,
+    char                 *ddl_path
 );
 
 
 
 DMA_ABORT_HANDLER
+
 
 
 int main(int argc, char *argv[])
@@ -70,16 +70,6 @@ int main(int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-    DDLRefFile ddlref;
-    if(opts.esType == LIBRORC_ES_DDL)
-        { ddlref = getDDLReferenceFile(opts); }
-    else if(opts.esType == LIBRORC_ES_PG)
-    {
-        ddlref.map  = NULL;
-        ddlref.size = 0;
-    }
-    else{ exit(-1); }
-
     /** Create event stream */
     librorc::event_stream *eventStream = NULL;
     if( !(eventStream = prepareEventStream(opts)) )
@@ -99,10 +89,8 @@ int main(int argc, char *argv[])
     /** make clear what will be checked*/
     int     result        = 0;
     int32_t sanity_checks = 0xff; /** all checks defaults */
-    if(ddlref.map && ddlref.size)
-        {sanity_checks = CHK_FILE;}
-    else if(opts.esType == LIBRORC_ES_DDL)
-        {sanity_checks = CHK_SIZES;}
+    if(opts.esType == LIBRORC_ES_DDL)
+    { sanity_checks = CHK_FILE | CHK_SIZES; }
 
     /** Event loop */
     while( !done )
@@ -114,8 +102,8 @@ int main(int argc, char *argv[])
             eventStream->m_channel,
             chstats,
             sanity_checks,
-            ddlref.map,
-            ddlref.size
+            (opts.esType==LIBRORC_ES_DDL),
+            opts.refname
         );
 
         if(result < 0)
@@ -141,7 +129,6 @@ int main(int argc, char *argv[])
 
     /** Cleanup */
     delete eventStream;
-    deleteDDLReferenceFile(ddlref);
     shmdt(chstats);
 
     return result;
@@ -170,8 +157,8 @@ int handle_channel_data
     librorc::dma_channel *channel,
     librorcChannelStatus *channel_status,
     int                   sanity_check_mask,
-    uint32_t             *ddl_reference,
-    uint64_t              ddl_reference_size
+    bool                  ddl_reference_is_enabled,
+    char                 *ddl_path
 )
 {
     uint64_t    events_per_iteration = 0;
@@ -183,22 +170,31 @@ int handle_channel_data
     uint64_t    event_id             = 0;
     char        log_directory_path[] = "/tmp";
 
-
-
     librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(report_buffer->getMem());
 
-    librorc::event_sanity_checker
-        checker
-        (
-            event_buffer,
-            channel_status->channel,
-            PG_PATTERN_INC, /** TODO */
-            sanity_check_mask,
-            log_directory_path,
-            ddl_reference,
-            ddl_reference_size
-        );
+    librorc::event_sanity_checker checker =
+        ddl_reference_is_enabled
+        ?
+            librorc::event_sanity_checker
+            (
+                event_buffer,
+                channel_status->channel,
+                PG_PATTERN_INC, /** TODO */
+                sanity_check_mask,
+                log_directory_path,
+                ddl_path
+            )
+        :
+            librorc::event_sanity_checker
+            (
+                event_buffer,
+                channel_status->channel,
+                PG_PATTERN_INC,
+                sanity_check_mask,
+                log_directory_path
+            )
+        ;
 
 
     /** new event received */

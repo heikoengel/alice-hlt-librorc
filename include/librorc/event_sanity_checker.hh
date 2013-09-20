@@ -64,9 +64,7 @@ namespace LIBRARY_NAME
                  uint32_t           channel_id,
                  uint32_t           pattern_mode,
                  uint32_t           check_mask,
-                 char              *log_base_dir,
-                 uint32_t          *ddl_reference,
-                 uint64_t           ddl_reference_size
+                 char              *log_base_dir
              )
              {
                  m_event_buffer        = event_buffer;
@@ -74,8 +72,27 @@ namespace LIBRARY_NAME
                  m_channel_id          = channel_id;
                  m_pattern_mode        = pattern_mode;
                  m_check_mask          = check_mask;
-                 m_ddl_reference       = ddl_reference;
-                 m_ddl_reference_size  = ddl_reference_size;
+                 m_event_index         = 0;
+                 m_event               = NULL;
+                 m_reported_event_size = 0;
+                 m_log_base_dir        = log_base_dir;
+             };
+
+             event_sanity_checker
+             (
+                 buffer            *event_buffer,
+                 uint32_t           channel_id,
+                 uint32_t           pattern_mode,
+                 uint32_t           check_mask,
+                 char              *log_base_dir,
+                 char              *ddl_reference_file_path
+             )
+             {
+                 m_event_buffer        = event_buffer;
+                 m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
+                 m_channel_id          = channel_id;
+                 m_pattern_mode        = pattern_mode;
+                 m_check_mask          = check_mask;
                  m_event_index         = 0;
                  m_event               = NULL;
                  m_reported_event_size = 0;

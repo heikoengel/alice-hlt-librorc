@@ -73,14 +73,6 @@ typedef struct
     LibrorcEsType esType;
 } DMAOptions;
 
-//TODO: remove
-/** Struct to hanlde DDL refernce file */
-typedef struct
-{
-    uint64_t  size;
-    int       fd;
-    uint32_t *map;
-} DDLRefFile;
 
 
 DMAOptions evaluateArguments(int argc, char *argv[]);
@@ -90,8 +82,8 @@ bool checkEventSize(uint32_t eventSize, char *argv);
 
 librorcChannelStatus *prepareSharedMemory(DMAOptions opts);
 librorc::event_stream *prepareEventStream(DMAOptions opts);
-DDLRefFile getDDLReferenceFile(DMAOptions opts);
-void deleteDDLReferenceFile(DDLRefFile ddlref);
+
+
 
 timeval
 printStatusLine

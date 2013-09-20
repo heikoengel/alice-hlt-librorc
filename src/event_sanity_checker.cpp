@@ -311,10 +311,6 @@ namespace LIBRARY_NAME
                 char *refname
             )
             {
-                m_size = 0;
-                m_fd   = 0;
-                m_map  = NULL;
-
                 m_fd = open(refname, O_RDONLY);
                 if(m_fd<0)
                 { throw(LIBRORC_DDL_REFERENCE_FILE_ERROR_CONSTRUCTOR_FAILED); }
