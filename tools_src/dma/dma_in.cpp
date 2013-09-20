@@ -215,12 +215,9 @@ int handle_channel_data
             events_processed++;
 
             // perform validity tests on the received data (if enabled)
-            if(sanity_check_mask)
-            {
-                try
-                { event_id = checker.check(reports, channel_status); }
-                catch(...){ abort(); }
-            }
+            try
+            { event_id = checker.check(reports, channel_status); }
+            catch(...){ abort(); }
 
             channel_status->last_id = event_id;
 
