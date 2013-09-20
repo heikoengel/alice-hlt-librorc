@@ -26,277 +26,7 @@
 
 using namespace std;
 
-#define LIBRORC_FILE_DUMPER_ERROR_CONSTRUCTOR_FAILED   1
-#define LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED     2
-#define LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED 3
 
-/** limit the number of corrupted events to be written to disk **/
-#define MAX_FILES_TO_DISK 100
-
-class file_dumper
-{
-//TODO: add device number
-    public:
-
-         file_dumper
-         (
-             char *base_dir,
-             librorc_event_descriptor *reports
-         )
-         {
-             m_base_dir = base_dir;
-             m_reports  = reports;
-         };
-
-        ~file_dumper()
-         {
-
-         };
-
-        /**
-         * Dump event to files
-         * @param channel status
-         * @param index of according file, appears in file name
-         * @param report buffer
-         * @param event buffer
-         * */
-        void
-        dump
-        (
-            librorcChannelStatus     *channel_status,
-            uint64_t                  event_id,
-            librorc::buffer          *event_buffer,
-            uint32_t                  error_bit_mask
-        )
-        {
-            if (channel_status->error_count < MAX_FILES_TO_DISK)
-            {
-                uint32_t                  file_index          = channel_status->error_count;
-                librorc_event_descriptor *report_buffer_entry = &m_reports[channel_status->index];
-                                          m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
-
-                openFiles(file_index, channel_status);
-                dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
-                dumpErrorTypeToLog(error_bit_mask);
-
-                bool
-                dump_event =
-                      calculatedIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
-                    ? dumpCalculatedIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
-                    : true;
-
-                dump_event =
-                      offsetIsLargerThanPhysical(report_buffer_entry, channel_status, event_buffer)
-                    ? dumpOffsetIsLargerThanPhysicalToLog(report_buffer_entry, channel_status, event_buffer)
-                    : true;
-
-                dump_event ? dumpEventToLog(error_bit_mask, report_buffer_entry, channel_status) : (void)0;
-
-                closeFiles();
-            }
-        }
-
-
-
-    protected:
-        char     *m_base_dir;
-        char      m_ddl_file_name[4096];
-        FILE     *m_fd_ddl;
-        char      m_log_file_name[4096];
-        FILE     *m_fd_log;
-        uint32_t *m_raw_event_buffer;
-        librorc_event_descriptor *m_reports;
-
-        void
-        openFiles
-        (
-            uint32_t              file_index,
-            librorcChannelStatus *channel_status
-        )
-        {
-            int lengthOfDestinationFilePath =
-                    snprintf(NULL, 0, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
-
-            if (lengthOfDestinationFilePath < 0)
-            { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
-
-            snprintf(m_ddl_file_name, lengthOfDestinationFilePath+1, "%s/ch%d_%d.ddl",
-                     m_base_dir, channel_status->channel, file_index);
-            snprintf(m_log_file_name, lengthOfDestinationFilePath+1, "%s/ch%d_%d.log",
-                     m_base_dir, channel_status->channel, file_index);
-
-            m_fd_ddl = fopen(m_ddl_file_name, "w");
-            if(m_fd_ddl < 0)
-            { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
-
-            m_fd_log = fopen(m_log_file_name, "w");
-            if(m_fd_ddl == NULL)
-            { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
-        }
-
-        void
-        closeFiles()
-        {
-            fclose(m_fd_log);
-            fclose(m_fd_ddl);
-        }
-
-        void
-        dumpReportBufferEntryToLog
-        (
-            uint64_t                  event_id,
-            librorcChannelStatus     *channel_status,
-            librorc_event_descriptor *report_buffer_entry
-        )
-        {
-            fprintf
-            (
-                m_fd_log,
-                "CH%2d - RB[%3ld]: \ncalc_size=%08x\n"
-                "reported_size=%08x\noffset=%lx\nEventID=%lx\nLastID=%lx\n",
-                channel_status->channel,
-                channel_status->index,
-                report_buffer_entry[channel_status->index].calc_event_size,
-                report_buffer_entry[channel_status->index].reported_event_size,
-                report_buffer_entry[channel_status->index].offset,
-                event_id,
-                channel_status->last_id
-            );
-        }
-
-        void
-        dumpErrorTypeToLog(uint32_t error_bit_mask)
-        {
-            fprintf(m_fd_log, "Check Failed: ");
-            {
-                !(error_bit_mask & CHK_SIZES)   ? 0 : fprintf(m_fd_log, " CHK_SIZES");
-                !(error_bit_mask & CHK_PATTERN) ? 0 : fprintf(m_fd_log, " CHK_PATTERN");
-                !(error_bit_mask & CHK_SOE)     ? 0 : fprintf(m_fd_log, " CHK_SOE");
-                !(error_bit_mask & CHK_EOE)     ? 0 : fprintf(m_fd_log, " CHK_EOE");
-                !(error_bit_mask & CHK_ID)      ? 0 : fprintf(m_fd_log, " CHK_ID");
-                !(error_bit_mask & CHK_FILE)    ? 0 : fprintf(m_fd_log, " CHK_FILE");
-            }
-            fprintf(m_fd_log, "\n\n");
-        }
-
-        bool
-        calculatedIsLargerThanPhysical
-        (
-            librorc_event_descriptor *report_buffer_entry,
-            librorcChannelStatus     *channel_status,
-            librorc::buffer          *event_buffer
-        )
-        {
-            return   report_buffer_entry[channel_status->index].calc_event_size
-                   > (event_buffer->getPhysicalSize() >> 2);
-        }
-
-        bool
-        dumpCalculatedIsLargerThanPhysicalToLog
-        (
-            librorc_event_descriptor *report_buffer_entry,
-            librorcChannelStatus     *channel_status,
-            librorc::buffer          *event_buffer
-        )
-        {
-            fprintf
-            (
-                m_fd_log,
-                "calc_event_size (0x%x DWs) is larger"
-                " than physical buffer size (0x%lx DWs) - not dumping event.\n",
-                report_buffer_entry[channel_status->index].calc_event_size,
-                (event_buffer->getPhysicalSize() >> 2)
-            );
-
-            return false;
-        }
-
-        bool
-        offsetIsLargerThanPhysical
-        (
-            librorc_event_descriptor* report_buffer_entry,
-            librorcChannelStatus* channel_status,
-            librorc::buffer* event_buffer
-        )
-        {
-            return   report_buffer_entry[channel_status->index].offset
-                   > event_buffer->getPhysicalSize();
-        }
-
-
-        bool
-        dumpOffsetIsLargerThanPhysicalToLog
-        (
-            librorc_event_descriptor* report_buffer_entry,
-            librorcChannelStatus* channel_status,
-            librorc::buffer* event_buffer
-        )
-        {
-            fprintf
-            (
-                m_fd_log,
-                "offset (0x%lx) is larger than physical buffer"
-                " size (0x%lx) - not dumping event.\n",
-                report_buffer_entry[channel_status->index].offset,
-                event_buffer->getPhysicalSize()
-            );
-
-            return false;
-        }
-
-        void
-        dumpEventToLog
-        (
-            uint32_t                  error_bit_mask,
-            librorc_event_descriptor *report_buffer_entry,
-            librorcChannelStatus     *channel_status
-        )
-        {
-            uint32_t i;
-
-            for
-            (
-                i = 0;
-                i < report_buffer_entry[channel_status->index].calc_event_size;
-                i++
-            )
-            {
-                uint32_t ebword =
-                    (uint32_t) *(
-                                    m_raw_event_buffer +
-                                    (report_buffer_entry[channel_status->index].offset >> 2) + i
-                                );
-
-                fprintf(m_fd_log, "%03d: %08x", i, ebword);
-
-                if((error_bit_mask & CHK_PATTERN) && (i > 7) && (ebword != i - 8))
-                { fprintf(m_fd_log, " expected %08x", i - 8); }
-
-                fprintf(m_fd_log, "\n");
-            }
-
-            fprintf
-            (
-                m_fd_log,
-                "%03d: EOE reported_event_size: %08x\n",
-                i,
-                (uint32_t) *(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2) + i)
-            );
-
-            size_t size_written =
-                fwrite
-                (
-                        m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2),
-                        4,
-                        report_buffer_entry[channel_status->index].calc_event_size,
-                        m_fd_ddl
-                );
-
-            if( size_written < 0 )
-            { throw LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED; }
-        }
-
-};
 
 ////////////////////////////////////////////////////////
 int handle_channel_data
@@ -495,23 +225,26 @@ int handle_channel_data
                         = checker.check
                             (reports, channel_status);
                 }
-                catch( int error_bit_mask )
-                {
-                    file_dumper dumper(log_directory_path, reports); //known by checker
-                    try
-                    {
-                        dumper.dump
-                        (
-                           channel_status,    //known by checker (gets passed to check)
-                           event_id,          //known by checker (returns it)
-                           event_buffer,      //known by checker (member)
-                           error_bit_mask     //known by checker (throws it)
-                        );
-                    }
-                    catch(...)
-                    { abort(); }
+                catch(...){}
 
-                }
+
+//                catch( int error_bit_mask )
+//                {
+//                    file_dumper dumper(log_directory_path, reports); //known by checker
+//                    try
+//                    {
+//                        dumper.dump
+//                        (
+//                           channel_status,    //known by checker (gets passed to check)
+//                           event_id,          //known by checker (returns it)
+//                           event_buffer,      //known by checker (member)
+//                           error_bit_mask     //known by checker (throws it)
+//                        );
+//                    }
+//                    catch(...)
+//                    { abort(); }
+//
+//                }
 
                 channel_status->last_id = event_id;
             }
