@@ -325,6 +325,7 @@ event_sanity_checker::check
         return_value |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_entry, report_buffer_index);
         return_value |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_entry, report_buffer_index, last_id);
     }
+
     if(return_value != 0)
     {
         channel_status->error_count++;

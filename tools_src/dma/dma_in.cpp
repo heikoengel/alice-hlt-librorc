@@ -188,8 +188,6 @@ int handle_channel_data
 
     librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(report_buffer->getMem());
-//    volatile uint32_t *raw_event_buffer
-//        = (uint32_t *)(event_buffer->getMem());
 
     librorc::event_sanity_checker
         checker
@@ -220,34 +218,11 @@ int handle_channel_data
             if(sanity_check_mask)
             {
                 try
-                {
-                    event_id
-                        = checker.check
-                            (reports, channel_status);
-                }
+                { event_id = checker.check(reports, channel_status); }
                 catch(...){ abort(); }
-
-
-//                catch( int error_bit_mask )
-//                {
-//                    file_dumper dumper(log_directory_path, reports); //known by checker
-//                    try
-//                    {
-//                        dumper.dump
-//                        (
-//                           channel_status,    //known by checker (gets passed to check)
-//                           event_id,          //known by checker (returns it)
-//                           event_buffer,      //known by checker (member)
-//                           error_bit_mask     //known by checker (throws it)
-//                        );
-//                    }
-//                    catch(...)
-//                    { abort(); }
-//
-//                }
-
-                channel_status->last_id = event_id;
             }
+
+            channel_status->last_id = event_id;
 
             // increment the number of bytes received
             channel_status->bytes_received +=
