@@ -31,27 +31,27 @@ namespace LIBRARY_NAME
 uint64_t
 event_sanity_checker::check
 (
-    librorc_event_descriptor *raw_report_buffer,
+    librorc_event_descriptor *reports,
     librorcChannelStatus     *channel_status
 )
 {
-    uint64_t                  report_buffer_index = channel_status->index;
-    librorc_event_descriptor *report_buffer_entry = &raw_report_buffer[channel_status->index];
-    int64_t                   last_id             = channel_status->last_id;
+    uint64_t                  report_buffer_index =  channel_status->index;
+    librorc_event_descriptor *report_entry        = &reports[channel_status->index];
+    int64_t                   last_id             =  channel_status->last_id;
 
-    m_event               = rawEventPointer(report_buffer_entry);
-    m_reported_event_size = reportedEventSize(report_buffer_entry);
-    m_calc_event_size     = calculatedEventSize(report_buffer_entry);
+    m_event               = rawEventPointer(report_entry);
+    m_reported_event_size = reportedEventSize(report_entry);
+    m_calc_event_size     = calculatedEventSize(report_entry);
     m_event_index         = 0;
 
     int return_value = 0;
     {
-        return_value |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_buffer_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_buffer_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_buffer_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_buffer_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_buffer_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_buffer_entry, report_buffer_index, last_id);
+        return_value |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
+        return_value |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_entry, report_buffer_index);
+        return_value |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_entry, report_buffer_index);
+        return_value |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_entry, report_buffer_index);
+        return_value |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_entry, report_buffer_index);
+        return_value |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_entry, report_buffer_index, last_id);
     }
     if(return_value != 0)
     {
@@ -59,7 +59,7 @@ event_sanity_checker::check
         throw return_value;
     }
 
-    return getEventIdFromCdh(dwordOffset(report_buffer_entry));
+    return getEventIdFromCdh(dwordOffset(report_entry));
 }
 
 

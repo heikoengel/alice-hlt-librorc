@@ -450,7 +450,7 @@ int handle_channel_data
 
 
 
-    librorc_event_descriptor *raw_report_buffer
+    librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(report_buffer->getMem());
     volatile uint32_t *raw_event_buffer
         = (uint32_t *)(event_buffer->getMem());
@@ -469,13 +469,13 @@ int handle_channel_data
 
 
     /** new event received */
-    if( raw_report_buffer[channel_status->index].calc_event_size!=0 )
+    if( reports[channel_status->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
         starting_index = channel_status->index;
 
         // handle all following entries
-        while( raw_report_buffer[channel_status->index].calc_event_size!=0 )
+        while( reports[channel_status->index].calc_event_size!=0 )
         {
             // increment number of events processed in this interation
             events_processed++;
@@ -487,7 +487,7 @@ int handle_channel_data
                 {
                     event_id
                         = checker.check
-                            (raw_report_buffer, channel_status);
+                            (reports, channel_status);
                 }
                 catch( int error_bit_mask )
                 {
@@ -496,9 +496,9 @@ int handle_channel_data
                     {
                         dumper.dump
                         (
-                           channel_status,    //known by checker
+                           channel_status,    //known by checker (gets passed to check)
                            event_id,          //known by checker (returns it)
-                           raw_report_buffer, //known by checker
+                           reports,           //known by checker (gets passed to check)
                            event_buffer,      //TODO -> this has to be revised
                            error_bit_mask     //known by checker (throws it)
                         );
@@ -513,10 +513,10 @@ int handle_channel_data
 
             // increment the number of bytes received
             channel_status->bytes_received +=
-                (raw_report_buffer[channel_status->index].calc_event_size<<2);
+                (reports[channel_status->index].calc_event_size<<2);
 
             // save new EBOffset
-            event_buffer_offset = raw_report_buffer[channel_status->index].offset;
+            event_buffer_offset = reports[channel_status->index].offset;
 
             // increment reportbuffer offset
             report_buffer_offset = ((channel_status->index)*sizeof(librorc_event_descriptor)) % report_buffer->getPhysicalSize();
@@ -536,7 +536,7 @@ int handle_channel_data
 
         // clear processed reportbuffer entries
         entry_size = sizeof(librorc_event_descriptor);
-        memset(&raw_report_buffer[starting_index], 0, events_per_iteration*entry_size);
+        memset(&reports[starting_index], 0, events_per_iteration*entry_size);
 
 
         // update min/max statistics on how many events have been received
