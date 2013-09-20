@@ -54,6 +54,8 @@
 
 namespace LIBRARY_NAME
 {
+class ddl_reference_file;
+
     class event_sanity_checker
     {
         public:
@@ -65,18 +67,7 @@ namespace LIBRARY_NAME
                  uint32_t           pattern_mode,
                  uint32_t           check_mask,
                  char              *log_base_dir
-             )
-             {
-                 m_event_buffer        = event_buffer;
-                 m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
-                 m_channel_id          = channel_id;
-                 m_pattern_mode        = pattern_mode;
-                 m_check_mask          = check_mask;
-                 m_event_index         = 0;
-                 m_event               = NULL;
-                 m_reported_event_size = 0;
-                 m_log_base_dir        = log_base_dir;
-             };
+             );
 
              event_sanity_checker
              (
@@ -86,20 +77,9 @@ namespace LIBRARY_NAME
                  uint32_t           check_mask,
                  char              *log_base_dir,
                  char              *ddl_reference_file_path
-             )
-             {
-                 m_event_buffer        = event_buffer;
-                 m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
-                 m_channel_id          = channel_id;
-                 m_pattern_mode        = pattern_mode;
-                 m_check_mask          = check_mask;
-                 m_event_index         = 0;
-                 m_event               = NULL;
-                 m_reported_event_size = 0;
-                 m_log_base_dir        = log_base_dir;
-             };
+             );
 
-            ~event_sanity_checker(){};
+            ~event_sanity_checker();
 
             uint64_t
             check
@@ -137,14 +117,13 @@ namespace LIBRARY_NAME
             );
 
         protected:
-            volatile uint32_t *m_raw_event_buffer;
-                     buffer   *m_event_buffer;
-                     uint32_t  m_channel_id;
-                     uint32_t  m_pattern_mode;
-                     uint32_t  m_check_mask;
-                     uint32_t *m_ddl_reference;
-                     uint64_t  m_ddl_reference_size;
-                     char     *m_log_base_dir;
+            volatile uint32_t           *m_raw_event_buffer;
+                     buffer             *m_event_buffer;
+                     uint32_t            m_channel_id;
+                     uint32_t            m_pattern_mode;
+                     uint32_t            m_check_mask;
+                     ddl_reference_file *m_ddl;
+                     char               *m_log_base_dir;
 
                      /** check() portion */
                      uint32_t  m_event_index;

@@ -333,11 +333,75 @@ namespace LIBRARY_NAME
                 close(m_fd);
              }
 
+            uint64_t size()
+            {
+                return m_size;
+            }
+
+            uint32_t *mapping()
+            {
+                return m_map;
+            }
+
         protected:
             uint64_t  m_size;
             int       m_fd;
             uint32_t *m_map;
     };
+
+/*************event_sanit_checker - METHODS ********************************/
+
+event_sanity_checker::event_sanity_checker
+(
+    buffer            *event_buffer,
+    uint32_t           channel_id,
+    uint32_t           pattern_mode,
+    uint32_t           check_mask,
+    char              *log_base_dir
+)
+{
+    m_event_buffer        = event_buffer;
+    m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
+    m_channel_id          = channel_id;
+    m_pattern_mode        = pattern_mode;
+    m_check_mask          = check_mask;
+    m_event_index         = 0;
+    m_event               = NULL;
+    m_reported_event_size = 0;
+    m_log_base_dir        = log_base_dir;
+};
+
+
+
+event_sanity_checker::event_sanity_checker
+(
+    buffer            *event_buffer,
+    uint32_t           channel_id,
+    uint32_t           pattern_mode,
+    uint32_t           check_mask,
+    char              *log_base_dir,
+    char              *ddl_reference_file_path
+)
+{
+    m_event_buffer        = event_buffer;
+    m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
+    m_channel_id          = channel_id;
+    m_pattern_mode        = pattern_mode;
+    m_check_mask          = check_mask;
+    m_event_index         = 0;
+    m_event               = NULL;
+    m_reported_event_size = 0;
+    m_log_base_dir        = log_base_dir;
+
+    m_ddl                 = new ddl_reference_file(ddl_reference_file_path);
+};
+
+
+
+event_sanity_checker::~event_sanity_checker()
+{
+    delete m_ddl;
+};
 
 
 
@@ -703,9 +767,11 @@ event_sanity_checker::compareWithReferenceDdlFile
              uint64_t                  report_buffer_index
 )
 {
-    int return_value = 0;
+    int return_value           = 0;
+    uint32_t *ddl_mapping      = m_ddl->mapping();
+    uint64_t  ddl_mapping_size = m_ddl->size();
 
-    if( ((uint64_t) m_calc_event_size << 2) != m_ddl_reference_size )
+    if( ((uint64_t) m_calc_event_size << 2) != ddl_mapping_size )
     {
         DEBUG_PRINTF
         (
@@ -713,14 +779,14 @@ event_sanity_checker::compareWithReferenceDdlFile
             "ERROR: Eventsize %lx does not match "
             "reference DDL file size %lx\n",
             ((uint64_t) m_calc_event_size << 2),
-            m_ddl_reference_size
+            ddl_mapping_size
         );
         return_value |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
     }
 
     for(m_event_index = 0; m_event_index<m_calc_event_size; m_event_index++)
     {
-        if( m_event[m_event_index] != m_ddl_reference[m_event_index] )
+        if( m_event[m_event_index] != ddl_mapping[m_event_index] )
         {
             DEBUG_PRINTF
             (
@@ -728,7 +794,7 @@ event_sanity_checker::compareWithReferenceDdlFile
                 "ERROR: Event[%ld][%d] expected %08x read %08x\n",
                 report_buffer_index,
                 m_event_index,
-                m_ddl_reference[m_event_index],
+                ddl_mapping[m_event_index],
                 m_event[m_event_index]
             );
             return_value |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
