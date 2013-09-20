@@ -60,15 +60,16 @@ class file_dumper
         (
             librorcChannelStatus     *channel_status,
             uint64_t                  event_id,
-            librorc_event_descriptor *report_buffer_entry,
+            librorc_event_descriptor *reports,
             librorc::buffer          *event_buffer,
             uint32_t                  error_bit_mask
         )
         {
             if (channel_status->error_count < MAX_FILES_TO_DISK)
             {
-                uint32_t file_index = channel_status->error_count;
-                m_raw_event_buffer = (uint32_t *)event_buffer->getMem();
+                uint32_t                  file_index          = channel_status->error_count;
+                librorc_event_descriptor *report_buffer_entry = &reports[channel_status->index];
+                                          m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
 
                 openFiles(file_index, channel_status);
                 dumpReportBufferEntryToLog(event_id, channel_status, report_buffer_entry);
