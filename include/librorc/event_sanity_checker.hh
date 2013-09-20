@@ -69,7 +69,7 @@ namespace LIBRARY_NAME
                  uint64_t           ddl_reference_size
              )
              {
-                 m_eventbuffer         = eventbuffer;
+                 m_raw_event_buffer    = eventbuffer;
                  m_channel_id          = channel_id;
                  m_pattern_mode        = pattern_mode;
                  m_check_mask          = check_mask;
@@ -119,7 +119,7 @@ namespace LIBRARY_NAME
             );
 
         protected:
-            volatile uint32_t *m_eventbuffer;
+            volatile uint32_t *m_raw_event_buffer;
                      uint32_t  m_channel_id;
                      uint32_t  m_pattern_mode;
                      uint32_t  m_check_mask;

@@ -120,7 +120,7 @@ event_sanity_checker::dumpError
              int32_t                   check_id
 )
 {
-    dumpEvent(m_eventbuffer, dwordOffset(report_buffer), m_reported_event_size);
+    dumpEvent(m_raw_event_buffer, dwordOffset(report_buffer), m_reported_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
     return check_id;
 }
@@ -493,7 +493,7 @@ event_sanity_checker::calculatedEventSize
 uint32_t*
 event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor *report_buffer)
 {
-    return (uint32_t*)&m_eventbuffer[dwordOffset(report_buffer)];
+    return (uint32_t*)&m_raw_event_buffer[dwordOffset(report_buffer)];
 }
 
 
@@ -510,9 +510,9 @@ uint64_t
 event_sanity_checker::getEventIdFromCdh(uint64_t offset)
 {
 
-    uint64_t cur_event_id = (uint32_t) * (m_eventbuffer + offset + 2) & 0x00ffffff;
+    uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
     cur_event_id <<= 12;
-    cur_event_id |= (uint32_t) * (m_eventbuffer + offset + 1) & 0x00000fff;
+    cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
     return cur_event_id;
 }
 
