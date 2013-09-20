@@ -17,7 +17,8 @@
  * @return !=0 on error, 0 on sucess
  **/
 
-int event_sanity_check
+void
+event_sanity_check
 (
     librorcChannelStatus *stats,
     librorc_event_descriptor *reportbuffer,
@@ -29,6 +30,7 @@ int event_sanity_check
     uint64_t *event_id
 )
 {
+    char log_directory_path[] = "/tmp";
     librorc::event_sanity_checker
         checker
         (
@@ -36,7 +38,7 @@ int event_sanity_check
             stats->channel,
             pattern_mode,
             check_mask,
-            "tmp",
+            log_directory_path,
             ddlref,
             ddlref_size
         );
@@ -44,9 +46,7 @@ int event_sanity_check
     try
     { *event_id = checker.check(reportbuffer, stats); }
     catch( int error )
-    { return error; }
-
-    return 0;
+    { abort(); }
 }
 
 
@@ -82,8 +82,6 @@ int handle_channel_data
   uint64_t starting_index, entrysize;
   librorc_event_descriptor rb;
   uint64_t EventID = 0;
-  char    basedir[] = "/tmp";
-  int retval;
 
   librorc_event_descriptor *raw_report_buffer =
     (librorc_event_descriptor *)(rbuf->getMem());
@@ -103,7 +101,8 @@ int handle_channel_data
       // perform validity tests on the received data (if enabled)
       if (do_sanity_check) {
         rb = raw_report_buffer[stats->index];
-        retval = event_sanity_check(
+        event_sanity_check
+        (
             stats,
             raw_report_buffer,
             ebuf,
@@ -111,25 +110,8 @@ int handle_channel_data
             do_sanity_check,
             ddlref,
             ddlref_size,
-            &EventID);
-
-
-        if ( retval!=0 )
-        {
-          if (stats->error_count < MAX_FILES_TO_DISK)
-            dump_to_file(
-                basedir, // base dir
-                stats, // channel stats
-                EventID, // current EventID
-                stats->error_count, // file index
-                raw_report_buffer, // Report Buffer
-                ebuf, // Event Buffer
-                retval // Error flags
-                );
-#ifdef SIM
-          //return -1;
-#endif
-        }
+            &EventID
+        );
 
         stats->last_id = EventID;
       }

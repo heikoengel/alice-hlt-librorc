@@ -214,7 +214,8 @@ int handle_channel_data
             // increment number of events processed in this interation
             events_processed++;
 
-            // perform validity tests on the received data (if enabled)
+            // perform selected validity tests on the received data
+            // dump stuff if errors happen
             try
             { event_id = checker.check(reports, channel_status); }
             catch(...){ abort(); }
