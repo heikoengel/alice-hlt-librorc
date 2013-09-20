@@ -301,6 +301,8 @@ namespace LIBRARY_NAME
 
 
     /** class to handle DDL reference files */
+    #define LIBRORC_DDL_REFERENCE_FILE_ERROR_CONSTRUCTOR_FAILED   1
+
     class ddl_reference_file
     {
         public:
@@ -315,40 +317,25 @@ namespace LIBRARY_NAME
 
                 m_fd = open(refname, O_RDONLY);
                 if(m_fd<0)
-                {
-                    perror("failed to open reference DDL file");
-                    abort();
-                }
+                { throw(LIBRORC_DDL_REFERENCE_FILE_ERROR_CONSTRUCTOR_FAILED); }
 
                 struct stat ddlref_stat;
                 if(fstat(m_fd, &ddlref_stat)==-1)
-                {
-                    perror("fstat DDL reference file");
-                    abort();
-                }
+                { throw(LIBRORC_DDL_REFERENCE_FILE_ERROR_CONSTRUCTOR_FAILED); }
 
                 m_size = ddlref_stat.st_size;
                 m_map =
                     (uint32_t *)
                         mmap(0, m_size, PROT_READ, MAP_SHARED, m_fd, 0);
                 if(m_map == MAP_FAILED)
-                {
-                    perror("failed to mmap file");
-                    abort();
-                }
+                { throw(LIBRORC_DDL_REFERENCE_FILE_ERROR_CONSTRUCTOR_FAILED); }
             }
 
             ~ddl_reference_file()
-            {
-//                if(ddlref.map != NULL)
-//                {
-//                    if( munmap(ddlref.map, ddlref.size)==-1 )
-//                    { perror("ERROR: failed to unmap file"); }
-//                }
-//
-//                if(ddlref.fd >= 0)
-//                { close(ddlref.fd); }
-            }
+             {
+                munmap(m_map, m_size);
+                close(m_fd);
+             }
 
         protected:
             uint64_t  m_size;
