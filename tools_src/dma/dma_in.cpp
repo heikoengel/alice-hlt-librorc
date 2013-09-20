@@ -458,13 +458,13 @@ int handle_channel_data
 
     librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(report_buffer->getMem());
-    volatile uint32_t *raw_event_buffer
-        = (uint32_t *)(event_buffer->getMem());
+//    volatile uint32_t *raw_event_buffer
+//        = (uint32_t *)(event_buffer->getMem());
 
     librorc::event_sanity_checker
         checker
         (
-            raw_event_buffer, //TODO: <- maybe this is easier pass the real event buffer
+            event_buffer,
             channel_status->channel,
             PG_PATTERN_INC, /** TODO */
             sanity_check_mask,
@@ -504,7 +504,7 @@ int handle_channel_data
                         (
                            channel_status,    //known by checker (gets passed to check)
                            event_id,          //known by checker (returns it)
-                           event_buffer,      //TODO -> this has to be revised
+                           event_buffer,      //known by checker (member)
                            error_bit_mask     //known by checker (throws it)
                         );
                     }

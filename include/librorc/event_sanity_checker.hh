@@ -60,7 +60,7 @@ namespace LIBRARY_NAME
              event_sanity_checker(){};
              event_sanity_checker
              (
-                 volatile uint32_t *eventbuffer,
+                 buffer            *event_buffer,
                  uint32_t           channel_id,
                  uint32_t           pattern_mode,
                  uint32_t           check_mask,
@@ -69,7 +69,8 @@ namespace LIBRARY_NAME
                  uint64_t           ddl_reference_size
              )
              {
-                 m_raw_event_buffer    = eventbuffer;
+                 m_event_buffer        = event_buffer;
+                 m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
                  m_channel_id          = channel_id;
                  m_pattern_mode        = pattern_mode;
                  m_check_mask          = check_mask;
@@ -120,6 +121,7 @@ namespace LIBRARY_NAME
 
         protected:
             volatile uint32_t *m_raw_event_buffer;
+                     buffer   *m_event_buffer;
                      uint32_t  m_channel_id;
                      uint32_t  m_pattern_mode;
                      uint32_t  m_check_mask;

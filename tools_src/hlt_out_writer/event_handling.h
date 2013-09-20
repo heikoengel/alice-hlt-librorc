@@ -21,7 +21,7 @@ int event_sanity_check
 (
     librorcChannelStatus *stats,
     librorc_event_descriptor *reportbuffer,
-    volatile uint32_t *eventbuffer,
+    librorc::buffer *eventbuffer,
     uint32_t pattern_mode,
     uint32_t check_mask,
     uint32_t *ddlref,
@@ -87,7 +87,6 @@ int handle_channel_data
 
   librorc_event_descriptor *raw_report_buffer =
     (librorc_event_descriptor *)(rbuf->getMem());
-  volatile uint32_t *eventbuffer = (uint32_t *)(ebuf->getMem());
 
   // new event received
   if( raw_report_buffer[stats->index].calc_event_size!=0 ) {
@@ -107,7 +106,7 @@ int handle_channel_data
         retval = event_sanity_check(
             stats,
             raw_report_buffer,
-            eventbuffer,
+            ebuf,
             PG_PATTERN_INC,
             do_sanity_check,
             ddlref,
