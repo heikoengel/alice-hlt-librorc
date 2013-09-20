@@ -316,17 +316,17 @@ event_sanity_checker::check
     m_event_index         = 0;
 
     uint64_t event_id     = getEventIdFromCdh(dwordOffset(report_entry));
-    int      return_value = 0;
+    int      error_code   = 0;
     {
-        return_value |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_entry, report_buffer_index);
-        return_value |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_entry, report_buffer_index, last_id);
+        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_entry, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_entry, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_entry, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_entry, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_entry, report_buffer_index, last_id);
     }
 
-    if(return_value != 0)
+    if(error_code != 0)
     {
         channel_status->error_count++;
 
@@ -337,7 +337,7 @@ event_sanity_checker::check
            channel_status,
            event_id,
            m_event_buffer,
-           return_value
+           error_code
         );
     }
 
