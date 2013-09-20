@@ -369,6 +369,8 @@ event_sanity_checker::event_sanity_checker
     m_event               = NULL;
     m_reported_event_size = 0;
     m_log_base_dir        = log_base_dir;
+
+    m_ddl                 = NULL;
 };
 
 
@@ -400,7 +402,8 @@ event_sanity_checker::event_sanity_checker
 
 event_sanity_checker::~event_sanity_checker()
 {
-    delete m_ddl;
+    if(m_ddl != NULL)
+    { delete m_ddl; }
 };
 
 
