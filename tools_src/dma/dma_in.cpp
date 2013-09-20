@@ -38,9 +38,14 @@ class file_dumper
 //TODO: add device number
     public:
 
-         file_dumper(char *base_dir)
+         file_dumper
+         (
+             char *base_dir,
+             librorc_event_descriptor *reports
+         )
          {
              m_base_dir = base_dir;
+             m_reports  = reports;
          };
 
         ~file_dumper()
@@ -60,7 +65,6 @@ class file_dumper
         (
             librorcChannelStatus     *channel_status,
             uint64_t                  event_id,
-            librorc_event_descriptor *reports,
             librorc::buffer          *event_buffer,
             uint32_t                  error_bit_mask
         )
@@ -68,7 +72,7 @@ class file_dumper
             if (channel_status->error_count < MAX_FILES_TO_DISK)
             {
                 uint32_t                  file_index          = channel_status->error_count;
-                librorc_event_descriptor *report_buffer_entry = &reports[channel_status->index];
+                librorc_event_descriptor *report_buffer_entry = &m_reports[channel_status->index];
                                           m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
 
                 openFiles(file_index, channel_status);
@@ -101,6 +105,7 @@ class file_dumper
         char      m_log_file_name[4096];
         FILE     *m_fd_log;
         uint32_t *m_raw_event_buffer;
+        librorc_event_descriptor *m_reports;
 
         void
         openFiles
@@ -492,14 +497,13 @@ int handle_channel_data
                 }
                 catch( int error_bit_mask )
                 {
-                    file_dumper dumper(log_directory_path); //known by checker
+                    file_dumper dumper(log_directory_path, reports); //known by checker
                     try
                     {
                         dumper.dump
                         (
                            channel_status,    //known by checker (gets passed to check)
                            event_id,          //known by checker (returns it)
-                           reports,           //known by checker (gets passed to check)
                            event_buffer,      //TODO -> this has to be revised
                            error_bit_mask     //known by checker (throws it)
                         );
