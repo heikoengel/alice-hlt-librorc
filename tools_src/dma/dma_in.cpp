@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    librorcChannelStatus *chstats
+    librorcChannelStatus *channel_status
         = prepareSharedMemory(opts);
-    if(chstats == NULL)
+    if(channel_status == NULL)
     { exit(-1); }
 
     /** Create event stream */
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
             eventStream->m_reportBuffer,
             eventStream->m_eventBuffer,
             eventStream->m_channel,
-            chstats,
+            channel_status,
             sanity_checks,
             (opts.esType==LIBRORC_ES_DDL),
             opts.refname
@@ -118,18 +118,18 @@ int main(int argc, char *argv[])
 
         last_time =
             printStatusLine
-                (last_time, cur_time, chstats,
+                (last_time, cur_time, channel_status,
                     &last_events_received, &last_bytes_received);
     }
 
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
-    printFinalStatusLine(chstats, opts, start_time, end_time);
+    printFinalStatusLine(channel_status, opts, start_time, end_time);
 
     /** Cleanup */
     delete eventStream;
-    shmdt(chstats);
+    shmdt(channel_status);
 
     return result;
 }
@@ -228,10 +228,9 @@ int handle_channel_data
             report_buffer_offset = ((channel_status->index)*sizeof(librorc_event_descriptor)) % report_buffer->getPhysicalSize();
 
             // wrap RB index if necessary
-            if( channel_status->index < report_buffer->getMaxRBEntries()-1 )
-            { channel_status->index++; }
-            else
-            { channel_status->index=0; }
+            channel_status->index
+                = (channel_status->index < report_buffer->getMaxRBEntries()-1)
+                ? (channel_status->index+1) : 0;
 
             //increment total number of events received
             channel_status->n_events++;
