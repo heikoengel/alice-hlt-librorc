@@ -32,11 +32,8 @@ int handle_channel_data
 (
     librorc::event_stream *eventStream,
     librorcChannelStatus  *channel_status,
-    int                    sanity_check_mask,
-    bool                   ddl_reference_is_enabled,
-    char                  *ddl_path
+    librorc::event_sanity_checker *checker
 );
-
 
 
 DMA_ABORT_HANDLER
@@ -75,32 +72,46 @@ int main(int argc, char *argv[])
 
     eventStream->printDeviceStatus();
 
+    /** make clear what will be checked*/
+    int     result            = 0;
+    int32_t sanity_check_mask = 0xff; /** all checks defaults */
+    if(opts.esType == LIBRORC_ES_DDL)
+    { sanity_check_mask = CHK_FILE | CHK_SIZES; }
+
+    librorc::event_sanity_checker checker =
+        (opts.esType==LIBRORC_ES_DDL) //is DDL reference file enabled?
+        ?   librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                channel_status->channel,
+                PG_PATTERN_INC, /** TODO */
+                sanity_check_mask,
+                "/tmp",
+                opts.refname
+            )
+        :   librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                channel_status->channel,
+                PG_PATTERN_INC,
+                sanity_check_mask,
+                "/tmp"
+            ) ;
+
+
+    /** Event loop */
+    uint64_t last_bytes_received  = 0;
+    uint64_t last_events_received = 0;
     /** Capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval cur_time = start_time;
-
-    uint64_t last_bytes_received  = 0;
-    uint64_t last_events_received = 0;
-
-    /** make clear what will be checked*/
-    int     result        = 0;
-    int32_t sanity_checks = 0xff; /** all checks defaults */
-    if(opts.esType == LIBRORC_ES_DDL)
-    { sanity_checks = CHK_FILE | CHK_SIZES; }
-
-    /** Event loop */
     while( !done )
     {
-        result = handle_channel_data
-        (
-            eventStream,
-            channel_status,
-            sanity_checks,
-            (opts.esType==LIBRORC_ES_DDL),
-            opts.refname
-        );
+        result =
+            handle_channel_data
+                (eventStream, channel_status, &checker);
 
         if(result < 0)
         {
@@ -148,45 +159,18 @@ int main(int argc, char *argv[])
 //TODO: refactor this into a class and merge it with event stream afterwards
 int handle_channel_data
 (
-    librorc::event_stream *eventStream,
-    librorcChannelStatus  *channel_status,
-    int                    sanity_check_mask,//checker does not change
-    bool                   ddl_reference_is_enabled,//checker does not change
-    char                  *ddl_path //checker does not change
+    librorc::event_stream         *eventStream,
+    librorcChannelStatus          *channel_status,
+    librorc::event_sanity_checker *checker
 )
 {
 
     librorc::buffer      *m_reportBuffer = eventStream->m_reportBuffer;
-    librorc::buffer      *m_eventBuffer  = eventStream->m_eventBuffer;
     librorc::dma_channel *m_channel      = eventStream->m_channel;
+
 
     librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(m_reportBuffer->getMem());
-
-    librorc::event_sanity_checker checker =
-        ddl_reference_is_enabled
-        ?
-            librorc::event_sanity_checker
-            (
-                m_eventBuffer, //does not change
-                channel_status->channel, //does not change
-                PG_PATTERN_INC, /** TODO *///does not change
-                sanity_check_mask, //does not change
-                "/tmp", //does not change
-                ddl_path //does not change
-            )
-        :
-            librorc::event_sanity_checker
-            (
-                m_eventBuffer,
-                channel_status->channel,
-                PG_PATTERN_INC,
-                sanity_check_mask,
-                "/tmp"
-            )
-        ;
-
-
     int events_processed = 0;
     /** new event received */
     if( reports[channel_status->index].calc_event_size!=0 )
@@ -207,7 +191,7 @@ int handle_channel_data
             // dump stuff if errors happen
             uint64_t event_id = 0;
             try
-            { event_id = checker.check(reports, channel_status); }
+            { event_id = checker->check(reports, channel_status); }
             catch(...){ abort(); }
 
             channel_status->last_id = event_id;
