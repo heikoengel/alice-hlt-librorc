@@ -150,9 +150,9 @@ int handle_channel_data
 (
     librorc::event_stream *eventStream,
     librorcChannelStatus  *channel_status,
-    int                    sanity_check_mask,
-    bool                   ddl_reference_is_enabled,
-    char                  *ddl_path
+    int                    sanity_check_mask,//checker does not change
+    bool                   ddl_reference_is_enabled,//checker does not change
+    char                  *ddl_path //checker does not change
 )
 {
 
@@ -160,11 +160,6 @@ int handle_channel_data
     librorc::buffer      *event_buffer  = eventStream->m_eventBuffer;
     librorc::dma_channel *channel       = eventStream->m_channel;
 
-    int         events_processed     = 0;
-    uint64_t    event_buffer_offset  = 0;
-    uint64_t    report_buffer_offset = 0;
-    uint64_t    starting_index       = 0;
-    uint64_t    entry_size           = 0;
     uint64_t    event_id             = 0;
     char        log_directory_path[] = "/tmp";
 
@@ -195,12 +190,15 @@ int handle_channel_data
         ;
 
 
+    int events_processed = 0;
     /** new event received */
     if( reports[channel_status->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
-        starting_index = channel_status->index;
+        uint64_t starting_index       = channel_status->index;
         uint64_t events_per_iteration = 0;
+        uint64_t event_buffer_offset  = 0;
+        uint64_t report_buffer_offset = 0;
 
         // handle all following entries
         while( reports[channel_status->index].calc_event_size!=0 )
@@ -239,8 +237,7 @@ int handle_channel_data
         }
 
         // clear processed reportbuffer entries
-        entry_size = sizeof(librorc_event_descriptor);
-        memset(&reports[starting_index], 0, events_per_iteration*entry_size);
+        memset(&reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
 
 
         // update min/max statistics on how many events have been received
