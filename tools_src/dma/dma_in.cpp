@@ -227,11 +227,10 @@ int handle_channel_data
             // increment reportbuffer offset
             report_buffer_offset = ((channel_status->index)*sizeof(librorc_event_descriptor)) % report_buffer->getPhysicalSize();
 
-            // wrap RB index if necessary
-            if( channel_status->index < report_buffer->getMaxRBEntries()-1 )
-            { channel_status->index++; }
-            else
-            { channel_status->index=0; }
+            channel_status->index
+                = (channel_status->index < report_buffer->getMaxRBEntries()-1)
+                ? (channel_status->index+1) : 0;
+
 
             //increment total number of events received
             channel_status->n_events++;
