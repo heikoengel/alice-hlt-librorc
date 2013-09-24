@@ -30,13 +30,11 @@ using namespace std;
 
 int handle_channel_data
 (
-    librorc::buffer      *rbuf,
-    librorc::buffer      *ebuf,
-    librorc::dma_channel *channel,
-    librorcChannelStatus *stats,
-    int                   do_sanity_check,
-    bool                  ddl_reference_is_enabled,
-    char                 *ddl_path
+    librorc::event_stream *eventStream,
+    librorcChannelStatus  *channel_status,
+    int                    sanity_check_mask,
+    bool                   ddl_reference_is_enabled,
+    char                  *ddl_path
 );
 
 
@@ -97,9 +95,7 @@ int main(int argc, char *argv[])
     {
         result = handle_channel_data
         (
-            eventStream->m_reportBuffer,
-            eventStream->m_eventBuffer,
-            eventStream->m_channel,
+            eventStream,
             channel_status,
             sanity_checks,
             (opts.esType==LIBRORC_ES_DDL),
@@ -152,16 +148,18 @@ int main(int argc, char *argv[])
 //TODO: refactor this into a class and merge it with event stream afterwards
 int handle_channel_data
 (
-    librorc::buffer      *report_buffer,
-    librorc::buffer      *event_buffer,
-    librorc::dma_channel *channel,
-    librorcChannelStatus *channel_status,
-    int                   sanity_check_mask,
-    bool                  ddl_reference_is_enabled,
-    char                 *ddl_path
+    librorc::event_stream *eventStream,
+    librorcChannelStatus  *channel_status,
+    int                    sanity_check_mask,
+    bool                   ddl_reference_is_enabled,
+    char                  *ddl_path
 )
 {
-    uint64_t    events_per_iteration = 0;
+
+    librorc::buffer      *report_buffer = eventStream->m_reportBuffer;
+    librorc::buffer      *event_buffer  = eventStream->m_eventBuffer;
+    librorc::dma_channel *channel       = eventStream->m_channel;
+
     int         events_processed     = 0;
     uint64_t    event_buffer_offset  = 0;
     uint64_t    report_buffer_offset = 0;
@@ -202,6 +200,7 @@ int handle_channel_data
     {
         // capture index of the first found reportbuffer entry
         starting_index = channel_status->index;
+        uint64_t events_per_iteration = 0;
 
         // handle all following entries
         while( reports[channel_status->index].calc_event_size!=0 )
