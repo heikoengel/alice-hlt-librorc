@@ -156,20 +156,20 @@ int handle_channel_data
 )
 {
 
-    librorc::buffer      *report_buffer = eventStream->m_reportBuffer;
-    librorc::buffer      *event_buffer  = eventStream->m_eventBuffer;
-    librorc::dma_channel *channel       = eventStream->m_channel;
+    librorc::buffer      *m_reportBuffer = eventStream->m_reportBuffer;
+    librorc::buffer      *m_eventBuffer  = eventStream->m_eventBuffer;
+    librorc::dma_channel *m_channel      = eventStream->m_channel;
 
     librorc_event_descriptor *reports
-        = (librorc_event_descriptor *)(report_buffer->getMem());
+        = (librorc_event_descriptor *)(m_reportBuffer->getMem());
 
     librorc::event_sanity_checker checker =
         ddl_reference_is_enabled
         ?
             librorc::event_sanity_checker
             (
-                event_buffer,
-                channel_status->channel,
+                m_eventBuffer, //does not change
+                channel_status->channel, //does not change
                 PG_PATTERN_INC, /** TODO *///does not change
                 sanity_check_mask, //does not change
                 "/tmp", //does not change
@@ -178,7 +178,7 @@ int handle_channel_data
         :
             librorc::event_sanity_checker
             (
-                event_buffer,
+                m_eventBuffer,
                 channel_status->channel,
                 PG_PATTERN_INC,
                 sanity_check_mask,
@@ -222,11 +222,11 @@ int handle_channel_data
             // increment reportbuffer offset
             report_buffer_offset
                 = ((channel_status->index)*sizeof(librorc_event_descriptor))
-                % report_buffer->getPhysicalSize();
+                % m_reportBuffer->getPhysicalSize();
 
             // wrap RB index if necessary
             channel_status->index
-                = (channel_status->index < report_buffer->getMaxRBEntries()-1)
+                = (channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
                 ? (channel_status->index+1) : 0;
 
             //increment total number of events received
@@ -252,7 +252,7 @@ int handle_channel_data
         channel_status->set_offset_count++;
 
         // actually update the offset pointers in the firmware
-        channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
         DEBUG_PRINTF
         (
