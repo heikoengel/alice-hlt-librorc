@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
             ) ;
 
 
+//--->
     /** Event loop */
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
@@ -128,9 +129,9 @@ int main(int argc, char *argv[])
                 (last_time, cur_time, channel_status,
                     &last_events_received, &last_bytes_received);
     }
-
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
+//--->
 
     printFinalStatusLine(channel_status, opts, start_time, end_time);
 
@@ -143,19 +144,6 @@ int main(int argc, char *argv[])
 
 
 
-/**
- * handle incoming data
- *
- * check if there is a reportbuffer entry at the current polling index
- * if yes, handle all available reportbuffer entries
- * @param rbuf pointer to ReportBuffer
- * @param eventbuffer pointer to EventBuffer Memory
- * @param channel pointer
- * @param ch_stats pointer to channel stats struct
- * @param do_sanity_check mask of sanity checks to be done on the
- * received data. See CHK_* defines above.
- * @return number of events processed
- **/
 //TODO: refactor this into a class and merge it with event stream afterwards
 int handle_channel_data
 (
@@ -189,10 +177,12 @@ int handle_channel_data
 
             // perform selected validity tests on the received data
             // dump stuff if errors happen
+            //___THIS_IS_CALLBACK_CODE__//
             uint64_t event_id = 0;
             try
             { event_id = checker->check(reports, channel_status); }
             catch(...){ abort(); }
+            //___THIS_IS_CALLBACK_CODE__//
 
             channel_status->last_id = event_id;
 
