@@ -160,9 +160,6 @@ int handle_channel_data
     librorc::buffer      *event_buffer  = eventStream->m_eventBuffer;
     librorc::dma_channel *channel       = eventStream->m_channel;
 
-    uint64_t    event_id             = 0;
-    char        log_directory_path[] = "/tmp";
-
     librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(report_buffer->getMem());
 
@@ -173,10 +170,10 @@ int handle_channel_data
             (
                 event_buffer,
                 channel_status->channel,
-                PG_PATTERN_INC, /** TODO */
-                sanity_check_mask,
-                log_directory_path,
-                ddl_path
+                PG_PATTERN_INC, /** TODO *///does not change
+                sanity_check_mask, //does not change
+                "/tmp", //does not change
+                ddl_path //does not change
             )
         :
             librorc::event_sanity_checker
@@ -185,7 +182,7 @@ int handle_channel_data
                 channel_status->channel,
                 PG_PATTERN_INC,
                 sanity_check_mask,
-                log_directory_path
+                "/tmp"
             )
         ;
 
@@ -208,6 +205,7 @@ int handle_channel_data
 
             // perform selected validity tests on the received data
             // dump stuff if errors happen
+            uint64_t event_id = 0;
             try
             { event_id = checker.check(reports, channel_status); }
             catch(...){ abort(); }
@@ -222,7 +220,9 @@ int handle_channel_data
             event_buffer_offset = reports[channel_status->index].offset;
 
             // increment reportbuffer offset
-            report_buffer_offset = ((channel_status->index)*sizeof(librorc_event_descriptor)) % report_buffer->getPhysicalSize();
+            report_buffer_offset
+                = ((channel_status->index)*sizeof(librorc_event_descriptor))
+                % report_buffer->getPhysicalSize();
 
             // wrap RB index if necessary
             channel_status->index
