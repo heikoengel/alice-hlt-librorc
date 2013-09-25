@@ -105,6 +105,7 @@ namespace LIBRARY_NAME
             chooseDMAChannel(esType);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+            m_done = false;
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
