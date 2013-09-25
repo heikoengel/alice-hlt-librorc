@@ -287,7 +287,7 @@ int main
         if( do_clear ) //TODO: clear all error counter
         {
             /** make sure GTX clock is running */
-            if( current_link->isGtxClockRunning() )
+            if( !current_link->isGtxDomainReady() )
             {
                 cout << "WARNING: CH " << chID
                      << " : GTX clock is not running - skipping."

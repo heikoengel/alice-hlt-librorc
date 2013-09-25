@@ -29,6 +29,7 @@ using namespace std;
 parameters: \n\
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
+        -e [0,1]      Enable Pattern Generator \n\
         -m [0...3]    set PG mode \n\
 \n\
 "
@@ -41,12 +42,15 @@ int main
 {
     int set_mode = 0;
     int modeval = -1;
+    int set_en = 0;
+    int enval = -1;
+
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:m:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:m:e:")) != -1 )
     {
         switch(arg)
         {
@@ -66,6 +70,13 @@ int main
             {
                 modeval = strtol(optarg, NULL, 0);
                 set_mode = 1;
+            }
+            break;
+
+            case 'e':
+            {
+                enval = strtol(optarg, NULL, 0);
+                set_en = 1;
             }
             break;
 
@@ -147,10 +158,12 @@ int main
         librorc::link *current_link
             = new librorc::link(bar, chID);
 
+        /** wait for GTX domain to be ready */
+        while( !current_link->isGtxDomainReady() ) { usleep(1000); }
+
         /** get PG config */
         uint32_t pgctrl = current_link->GTX(RORC_REG_DDL_CTRL);
 
-        /** PG 'adaptive' is bit 9 */
         if ( set_mode )
         {
             if ( modeval<0 || modeval>3 )
@@ -159,12 +172,31 @@ int main
             }
             else
             {
-                /** clear bits 11:10, set new value and write back */
-                pgctrl &= ~(3<<10);
-                pgctrl |= (modeval<<10);
-
-                current_link->setGTX(RORC_REG_DDL_CTRL, pgctrl);
+                /** clear bits 12:11, set new value and write back */
+                pgctrl &= ~(3<<11);
+                pgctrl |= (modeval<<11);
             }
+        }
+
+        if ( set_en )
+        {
+            if ( enval!=0 && enval!=1 )
+            {
+                cout << "Invalid Enable value " << enval << endl;
+            }
+            else
+            {
+                /** clear bits 10:8, set new value and write back */
+                pgctrl &= ~(7<<8);
+                pgctrl |= (enval<<8);
+                pgctrl |= (1<<9); //adaptive on
+                pgctrl |= (1<<10); //continuous on
+            }
+        }
+
+        if ( set_mode || set_en )
+        {
+            current_link->setGTX(RORC_REG_DDL_CTRL, pgctrl);
         }
 
         cout << "Channel " << chID << " PG Mode: "
