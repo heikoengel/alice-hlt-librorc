@@ -32,6 +32,53 @@
 #include <librorc/event_sanity_checker.hh>
 
 
+void
+printStatusLine
+(
+    timeval               last_time,
+    timeval               current_time,
+    librorcChannelStatus *channel_status,
+    uint64_t              last_events_received,
+    uint64_t              last_bytes_received
+)
+{
+    if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
+    {
+        printf
+        (
+            "Events: %10ld, DataSize: %8.3f GB ",
+            channel_status->n_events,
+            (double)channel_status->bytes_received/(double)(1<<30)
+        );
+
+        if(channel_status->bytes_received - last_bytes_received)
+        {
+            printf
+            (
+                " DataRate: %9.3f MB/s",
+                (double)(channel_status->bytes_received - last_bytes_received)/
+                gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
+            );
+        }
+        else
+        { printf(" DataRate: -"); }
+
+        if(channel_status->n_events - last_events_received)
+        {
+            printf
+            (
+                " EventRate: %9.3f kHz/s",
+                (double)(channel_status->n_events - last_events_received)/
+                gettimeofdayDiff(last_time, current_time)/1000.0
+            );
+        }
+        else
+        { printf(" EventRate: -"); }
+
+        printf(" Errors: %ld\n", channel_status->error_count);
+    }
+}
+
 namespace LIBRARY_NAME
 {
 
@@ -306,25 +353,24 @@ namespace LIBRARY_NAME
 
                 uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
 
+//___THIS_IS_CALLBACK_CODE__//
                 // perform selected validity tests on the received data
                 // dump stuff if errors happen
-                //___THIS_IS_CALLBACK_CODE__//
 
-                //        printStatusLine
-                //        (
-                //            m_last_time,
-                //            m_current_time,
-                //            m_channel_status,
-                //            m_last_events_received,
-                //            m_last_bytes_received
-                //        );
+                printStatusLine
+                (
+                    m_last_time,
+                    m_current_time,
+                    m_channel_status,
+                    m_last_events_received,
+                    m_last_bytes_received
+                );
 
                 try
                 { checker->check(reports, m_channel_status, event_id); }
                 catch(...){ abort(); }
 
-
-                //___THIS_IS_CALLBACK_CODE__//
+//___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
 
