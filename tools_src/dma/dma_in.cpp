@@ -153,10 +153,12 @@ eventLoop
             m_last_bytes_received
         );
 
-        m_last_bytes_received  = eventStream->m_channel_status->bytes_received;
-        m_last_events_received = eventStream->m_channel_status->n_events;
         if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
-        { last_time = current_time; }
+        {
+            m_last_bytes_received  = eventStream->m_channel_status->bytes_received;
+            m_last_events_received = eventStream->m_channel_status->n_events;
+            last_time = current_time;
+        }
     }
 
     eventStream->m_bar1->gettime(&m_end_time, 0);
