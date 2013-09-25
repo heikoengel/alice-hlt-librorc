@@ -109,7 +109,7 @@ class device;
             /** clear Event Count */
             void clearEventCount();
 
-            bool isGtxClockRunning();
+            bool isGtxDomainReady();
 
             void clearDisparityErrorCount();
             void clearRxNotInTableCount();
