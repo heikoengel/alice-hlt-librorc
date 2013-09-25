@@ -22,7 +22,8 @@
 #include <librorc/include_ext.hh>
 #include "defines.hh"
 
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED   1
+#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
+#define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
 
 
 typedef enum
@@ -103,6 +104,7 @@ class device;
 
         protected:
             uint32_t  m_eventSize;
+            int32_t   m_deviceId;
             int32_t   m_channelId;
 
             void
@@ -114,6 +116,7 @@ class device;
             );
 
             void chooseDMAChannel(LibrorcEsType esType);
+            void prepareSharedMemory();
             void deleteParts();
 
     };

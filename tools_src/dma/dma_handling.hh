@@ -54,7 +54,7 @@ bool checkDeviceID(int32_t deviceID, char *argv);
 bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
-librorcChannelStatus *prepareSharedMemory(DMAOptions opts);
+//librorcChannelStatus *prepareSharedMemory(DMAOptions opts);
 librorc::event_stream *prepareEventStream(DMAOptions opts);
 
 

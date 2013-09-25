@@ -59,14 +59,8 @@ int main(int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-
-    /** Create event stream */
     librorc::event_stream *eventStream = NULL;
     if( !(eventStream = prepareEventStream(opts)) )
-    { exit(-1); }
-
-    eventStream->m_channel_status = prepareSharedMemory(opts);
-    if(eventStream->m_channel_status == NULL)
     { exit(-1); }
 
     eventStream->printDeviceStatus();
@@ -78,7 +72,7 @@ int main(int argc, char *argv[])
     { sanity_check_mask = CHK_FILE | CHK_SIZES; }
 
     librorc::event_sanity_checker checker =
-        (opts.esType==LIBRORC_ES_DDL) //is DDL reference file enabled?
+        (opts.esType==LIBRORC_ES_DDL) /** is DDL reference file enabled? */
         ?   librorc::event_sanity_checker
             (
                 eventStream->m_eventBuffer,
@@ -133,7 +127,6 @@ int main(int argc, char *argv[])
     printFinalStatusLine(eventStream->m_channel_status, opts, start_time, end_time);
 
     /** Cleanup */
-    shmdt(eventStream->m_channel_status);
     delete eventStream;
 
     return result;
@@ -149,8 +142,8 @@ int handle_channel_data
 )
 {
     librorcChannelStatus *m_channel_status = eventStream->m_channel_status;
-    librorc::buffer      *m_reportBuffer = eventStream->m_reportBuffer;
-    librorc::dma_channel *m_channel      = eventStream->m_channel;
+    librorc::buffer      *m_reportBuffer   = eventStream->m_reportBuffer;
+    librorc::dma_channel *m_channel        = eventStream->m_channel;
 
 
     librorc_event_descriptor *reports

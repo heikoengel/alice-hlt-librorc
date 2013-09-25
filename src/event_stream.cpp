@@ -42,6 +42,7 @@ namespace LIBRARY_NAME
     )
     {
         generateDMAChannel(deviceId, channelId, LIBRORC_ES_PURE);
+        prepareSharedMemory();
     }
 
     event_stream::event_stream
@@ -54,11 +55,13 @@ namespace LIBRARY_NAME
     {
         m_eventSize = eventSize;
         generateDMAChannel(deviceId, channelId, esType);
+        prepareSharedMemory();
     }
 
     event_stream::~event_stream()
     {
         deleteParts();
+        shmdt(m_channel_status);
     }
 
 
@@ -83,6 +86,7 @@ namespace LIBRARY_NAME
         LibrorcEsType esType
     )
     {
+        m_deviceId  = deviceId;
         m_channelId = channelId;
 
         try
@@ -154,6 +158,31 @@ namespace LIBRARY_NAME
         default:
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
+    }
+
+
+    void
+    event_stream::prepareSharedMemory()
+    {
+        m_channel_status = NULL;
+
+        int shID =
+            shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
+                sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+        if(shID==-1)
+        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+
+        /** attach to shared memory */
+        char *shm = (char*)shmat(shID, 0, 0);
+        if(shm==(char*)-1)
+        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+
+        m_channel_status = (librorcChannelStatus*)shm;
+
+        memset(m_channel_status, 0, sizeof(librorcChannelStatus));
+        m_channel_status->index = 0;
+        m_channel_status->last_id = 0xfffffffff;
+        m_channel_status->channel = (unsigned int)m_channelId;
     }
 
 

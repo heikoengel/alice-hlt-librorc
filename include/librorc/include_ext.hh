@@ -21,6 +21,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
+#include <sys/shm.h>
+
 #include <pda.h>
 
 #include <iostream>
