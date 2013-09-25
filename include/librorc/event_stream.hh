@@ -96,11 +96,7 @@ class event_sanity_checker;
             ~event_stream();
             void printDeviceStatus();
 
-            uint64_t
-            eventLoop
-            (
-                event_sanity_checker checker
-            );
+            uint64_t eventLoop(event_sanity_checker *checker);
 
             /** Member Variables */
             device      *m_dev;

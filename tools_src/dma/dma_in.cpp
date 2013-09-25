@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());//REMOVE
     uint64_t result = eventLoop(checker, eventStream);
 
-    //printFinalStatusLine(eventStream->m_channel_status, eventStream->m_start_time, eventStream->m_end_time);
+    printFinalStatusLine(eventStream->m_channel_status, eventStream->m_start_time, eventStream->m_end_time);
 
     /** Cleanup */
     delete eventStream;

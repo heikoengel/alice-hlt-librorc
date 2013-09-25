@@ -218,7 +218,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::eventLoop
     (
-        event_sanity_checker checker
+        event_sanity_checker *checker
     )
     {
         m_last_bytes_received  = 0;
@@ -232,20 +232,7 @@ namespace LIBRARY_NAME
         uint64_t result = 0;
         while( !m_done )
         {
-            //result = handleChannelData(eventStream, &checker);
-
-            if(result == 0)
-            { usleep(200); } /** no events available */
-
             m_bar1->gettime(&m_current_time, 0);
-    //        printStatusLine
-    //        (
-    //            m_last_time,
-    //            m_current_time,
-    //            m_channel_status,
-    //            m_last_events_received,
-    //            m_last_bytes_received
-    //        );
 
             if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
             {
@@ -253,6 +240,12 @@ namespace LIBRARY_NAME
                 m_last_events_received = m_channel_status->n_events;
                 m_last_time = m_current_time;
             }
+
+            result = handleChannelData(checker);
+
+            if(result == 0)
+            { usleep(200); } /** no events available */
+
         }
 
         m_bar1->gettime(&m_end_time, 0);
@@ -285,7 +278,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData
     (
-        librorc::event_sanity_checker *checker
+        event_sanity_checker *checker
     )
     {
         librorc_event_descriptor *reports
@@ -315,6 +308,15 @@ namespace LIBRARY_NAME
                 // perform selected validity tests on the received data
                 // dump stuff if errors happen
                 //___THIS_IS_CALLBACK_CODE__//
+
+                //        printStatusLine
+                //        (
+                //            m_last_time,
+                //            m_current_time,
+                //            m_channel_status,
+                //            m_last_events_received,
+                //            m_last_bytes_received
+                //        );
 
                 try
                 { checker->check(reports, m_channel_status, event_id); }
