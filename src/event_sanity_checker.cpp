@@ -405,11 +405,12 @@ event_sanity_checker::~event_sanity_checker()
 
 
 
-uint64_t
+void
 event_sanity_checker::check
 (
     librorc_event_descriptor *reports,
-    librorcChannelStatus     *channel_status
+    librorcChannelStatus     *channel_status,
+    uint64_t                  event_id
 )
 {
     uint64_t                  report_buffer_index =  channel_status->index;
@@ -421,7 +422,6 @@ event_sanity_checker::check
     m_calc_event_size     = calculatedEventSize(report_entry);
     m_event_index         = 0;
 
-    uint64_t event_id     = getEventIdFromCdh(dwordOffset(report_entry));
     int      error_code   = 0;
     {
         error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
@@ -446,7 +446,20 @@ event_sanity_checker::check
            error_code
         );
     }
+}
 
+
+//TODO: legacy code
+uint64_t
+event_sanity_checker::check
+(
+    librorc_event_descriptor *reports,
+    librorcChannelStatus     *channel_status
+)
+{
+    librorc_event_descriptor *report_entry = &reports[channel_status->index];
+    uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
+    check(reports, channel_status, event_id);
     return event_id;
 }
 

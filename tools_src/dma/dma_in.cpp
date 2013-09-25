@@ -202,17 +202,18 @@ handleChannelData
 
             librorc_event_descriptor report_entry = reports[m_channel_status->index];
 
+            uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
+
             // perform selected validity tests on the received data
             // dump stuff if errors happen
             //___THIS_IS_CALLBACK_CODE__//
-            uint64_t event_id = 0;
+
             try
-            { event_id = checker->check(reports, m_channel_status); }
+            { checker->check(reports, m_channel_status, event_id); }
             catch(...){ abort(); }
             //___THIS_IS_CALLBACK_CODE__//
 
-            m_channel_status->last_id
-                = getEventIdFromCdh(dwordOffset(report_entry));
+            m_channel_status->last_id = event_id;
 
             // increment the number of bytes received
             m_channel_status->bytes_received +=
