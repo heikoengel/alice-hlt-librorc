@@ -49,6 +49,8 @@ volatile uint32_t *m_raw_event_buffer = NULL;
 
 int main(int argc, char *argv[])
 {
+    char logdirectory[] = "/tmp";
+
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -86,7 +88,7 @@ int main(int argc, char *argv[])
                 opts.channelId,
                 PG_PATTERN_INC, /** TODO */
                 sanity_check_mask,
-                "/tmp",
+                logdirectory,
                 opts.refname
             )
         :   librorc::event_sanity_checker
@@ -95,7 +97,7 @@ int main(int argc, char *argv[])
                 opts.channelId,
                 PG_PATTERN_INC,
                 sanity_check_mask,
-                "/tmp"
+                logdirectory
             ) ;
 
     m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());//REMOVE
@@ -153,7 +155,8 @@ eventLoop
 
         m_last_bytes_received  = eventStream->m_channel_status->bytes_received;
         m_last_events_received = eventStream->m_channel_status->n_events;
-        last_time              = current_time;
+        if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
+        { last_time = current_time; }
     }
 
     eventStream->m_bar1->gettime(&m_end_time, 0);
