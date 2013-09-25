@@ -112,8 +112,11 @@ class event_sanity_checker;
             bool         m_done;
             uint64_t     m_last_bytes_received;
             uint64_t     m_last_events_received;
+
             timeval      m_start_time;
             timeval      m_end_time;
+            timeval      m_last_time;
+            timeval      m_current_time;
 
             librorcChannelStatus *m_channel_status;
 
@@ -140,6 +143,8 @@ class event_sanity_checker;
 
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
+
+            uint64_t handleChannelData(event_sanity_checker *checker);
 
     };
 
