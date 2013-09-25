@@ -28,14 +28,14 @@ using namespace std;
 
 
 
-int
+uint64_t
 handleChannelData
 (
     librorc::event_stream *eventStream,
     librorc::event_sanity_checker *checker
 );
 
-int
+uint64_t
 eventLoop
 (
     librorc::event_sanity_checker checker,
@@ -101,26 +101,26 @@ int main(int argc, char *argv[])
             ) ;
 
     m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());//REMOVE
-    int result = eventLoop(checker, eventStream);
+    uint64_t result = eventLoop(checker, eventStream);
 
     //printFinalStatusLine(eventStream->m_channel_status, m_start_time, m_end_time);
 
     /** Cleanup */
     delete eventStream;
 
-    return result;
+    return 0;
 }
 
 
 
-int
+uint64_t
 eventLoop
 (
     librorc::event_sanity_checker  checker,
     librorc::event_stream         *eventStream
 )
 {
-    uint64_t m_last_bytes_received = 0;
+    uint64_t m_last_bytes_received  = 0;
     uint64_t m_last_events_received = 0;
     timeval  m_start_time;
     timeval  m_end_time;
@@ -130,17 +130,12 @@ eventLoop
     timeval last_time     = m_start_time;
     timeval current_time  = m_start_time;
 
-    int result = 0;
+    uint64_t result = 0;
     while( !done )
     {
         result = handleChannelData(eventStream, &checker);
-        if (result < 0)
-        {
-            printf("handle_channel_data failed for channel %d\n",
-                    eventStream->m_channel_status->channel);
-            return result;
-        }
-        else if (result == 0)
+
+        if(result == 0)
         { usleep(200); } /** no events available */
 
         eventStream->m_bar1->gettime(&current_time, 0);
@@ -186,7 +181,7 @@ getEventIdFromCdh(uint64_t offset)
 
 
 
-int
+uint64_t
 handleChannelData
 (
     librorc::event_stream         *eventStream,
@@ -200,7 +195,9 @@ handleChannelData
 
     librorc_event_descriptor *reports
         = (librorc_event_descriptor *)(m_reportBuffer->getMem());
-    int events_processed = 0;
+
+    //TODO: make this global
+    uint64_t events_processed = 0;
     /** new event received */
     if( reports[m_channel_status->index].calc_event_size!=0 )
     {
