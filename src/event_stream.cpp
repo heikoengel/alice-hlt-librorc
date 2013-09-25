@@ -29,7 +29,7 @@
 #include <librorc/dma_channel.hh>
 #include <librorc/dma_channel_ddl.hh>
 #include <librorc/dma_channel_pg.hh>
-
+#include <librorc/event_sanity_checker.hh>
 
 
 namespace LIBRARY_NAME
@@ -211,6 +211,73 @@ namespace LIBRARY_NAME
         }
         catch(...)
         { cout << "Firmware Rev. and Date not available!" << endl; }
+    }
+
+
+
+    uint64_t
+    event_stream::eventLoop
+    (
+        event_sanity_checker checker
+    )
+    {
+        m_last_bytes_received  = 0;
+        m_last_events_received = 0;
+
+        /** Capture starting time */
+        m_bar1->gettime(&m_start_time, 0);
+        timeval last_time     = m_start_time;
+        timeval current_time  = m_start_time;
+
+        uint64_t result = 0;
+        while( !m_done )
+        {
+            //result = handleChannelData(eventStream, &checker);
+
+            if(result == 0)
+            { usleep(200); } /** no events available */
+
+            m_bar1->gettime(&current_time, 0);
+    //        printStatusLine
+    //        (
+    //            last_time,
+    //            current_time,
+    //            eventStream->m_channel_status,
+    //            m_last_events_received,
+    //            m_last_bytes_received
+    //        );
+
+            if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
+            {
+                m_last_bytes_received  = m_channel_status->bytes_received;
+                m_last_events_received = m_channel_status->n_events;
+                last_time = current_time;
+            }
+        }
+
+        m_bar1->gettime(&m_end_time, 0);
+
+        return result;
+    }
+
+
+
+    uint64_t
+    event_stream::dwordOffset(librorc_event_descriptor report_entry)
+    {
+        return(report_entry.offset / 4);
+    }
+
+
+
+    uint64_t
+    event_stream::getEventIdFromCdh(uint64_t offset)
+    {
+
+        uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
+        cur_event_id <<= 12;
+        cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
+        return cur_event_id;
     }
 
 

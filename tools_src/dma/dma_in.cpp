@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());//REMOVE
     uint64_t result = eventLoop(checker, eventStream);
 
-    //printFinalStatusLine(eventStream->m_channel_status, m_start_time, m_end_time);
+    //printFinalStatusLine(eventStream->m_channel_status, eventStream->m_start_time, eventStream->m_end_time);
 
     /** Cleanup */
     delete eventStream;
@@ -139,14 +139,14 @@ eventLoop
         { usleep(200); } /** no events available */
 
         eventStream->m_bar1->gettime(&current_time, 0);
-        printStatusLine
-        (
-            last_time,
-            current_time,
-            eventStream->m_channel_status,
-            m_last_events_received,
-            m_last_bytes_received
-        );
+//        printStatusLine
+//        (
+//            last_time,
+//            current_time,
+//            eventStream->m_channel_status,
+//            m_last_events_received,
+//            m_last_bytes_received
+//        );
 
         if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
         {
@@ -194,7 +194,7 @@ handleChannelData
 
 
     librorc_event_descriptor *reports
-        = (librorc_event_descriptor *)(m_reportBuffer->getMem());
+        = (librorc_event_descriptor*)m_reportBuffer->getMem();
 
     //TODO: make this global
     uint64_t events_processed = 0;
@@ -224,6 +224,8 @@ handleChannelData
             try
             { checker->check(reports, m_channel_status, event_id); }
             catch(...){ abort(); }
+
+
             //___THIS_IS_CALLBACK_CODE__//
 
             m_channel_status->last_id = event_id;

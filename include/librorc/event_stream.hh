@@ -21,6 +21,7 @@
 
 #include <librorc/include_ext.hh>
 #include "defines.hh"
+#include <librorc/buffer.hh>
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
@@ -64,6 +65,7 @@ typedef struct
 }librorcChannelStatus;
 
 
+
 namespace LIBRARY_NAME
 {
 
@@ -71,6 +73,7 @@ class dma_channel;
 class bar;
 class buffer;
 class device;
+class event_sanity_checker;
 
     class event_stream
     {
@@ -93,6 +96,12 @@ class device;
             ~event_stream();
             void printDeviceStatus();
 
+            uint64_t
+            eventLoop
+            (
+                event_sanity_checker checker
+            );
+
             /** Member Variables */
             device      *m_dev;
             bar         *m_bar1;
@@ -100,7 +109,15 @@ class device;
             buffer      *m_reportBuffer;
             dma_channel *m_channel;
 
+            bool         m_done;
+            uint64_t     m_last_bytes_received;
+            uint64_t     m_last_events_received;
+            timeval      m_start_time;
+            timeval      m_end_time;
+
             librorcChannelStatus *m_channel_status;
+
+
 
         protected:
             uint32_t  m_eventSize;
@@ -120,6 +137,9 @@ class device;
             void chooseDMAChannel(LibrorcEsType esType);
             void prepareSharedMemory();
             void deleteParts();
+
+            uint64_t dwordOffset(librorc_event_descriptor report_entry);
+            uint64_t getEventIdFromCdh(uint64_t offset);
 
     };
 
