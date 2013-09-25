@@ -125,8 +125,8 @@ eventLoop
 
     /** Capture starting time */
     eventStream->m_bar1->gettime(&m_start_time, 0);
-    timeval last_time = m_start_time;
-    timeval cur_time  = m_start_time;
+    timeval last_time     = m_start_time;
+    timeval current_time  = m_start_time;
 
     int result = 0;
     while( !done )
@@ -141,11 +141,11 @@ eventLoop
         else if (result == 0)
         { usleep(200); } /** no events available */
 
-        eventStream->m_bar1->gettime(&cur_time, 0);
+        eventStream->m_bar1->gettime(&current_time, 0);
         printStatusLine
         (
             last_time,
-            cur_time,
+            current_time,
             eventStream->m_channel_status,
             m_last_events_received,
             m_last_bytes_received
@@ -153,7 +153,7 @@ eventLoop
 
         m_last_bytes_received  = eventStream->m_channel_status->bytes_received;
         m_last_events_received = eventStream->m_channel_status->n_events;
-        last_time = cur_time;
+        last_time              = current_time;
     }
 
     eventStream->m_bar1->gettime(&m_end_time, 0);
