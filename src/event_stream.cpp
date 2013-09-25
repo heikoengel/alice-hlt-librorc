@@ -282,14 +282,14 @@ namespace LIBRARY_NAME
         {
             m_bar1->gettime(&m_current_time, 0);
 
+            result = handleChannelData(checker);
+
             if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
             {
                 m_last_bytes_received  = m_channel_status->bytes_received;
                 m_last_events_received = m_channel_status->n_events;
                 m_last_time = m_current_time;
             }
-
-            result = handleChannelData(checker);
 
             if(result == 0)
             { usleep(200); } /** no events available */
