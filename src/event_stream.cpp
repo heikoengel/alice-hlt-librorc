@@ -103,6 +103,8 @@ namespace LIBRARY_NAME
                 = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
             chooseDMAChannel(esType);
+
+            m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }

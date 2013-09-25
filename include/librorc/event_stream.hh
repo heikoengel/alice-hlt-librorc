@@ -107,6 +107,8 @@ class device;
             int32_t   m_deviceId;
             int32_t   m_channelId;
 
+            volatile uint32_t *m_raw_event_buffer;
+
             void
             generateDMAChannel
             (

@@ -160,7 +160,7 @@ prepareEventStream
 
 
 
-timeval
+void
 printStatusLine
 (
     timeval               last_time,
@@ -204,12 +204,9 @@ printStatusLine
         { printf(" EventRate: -"); }
 
         printf(" Errors: %ld\n", chstats->error_count);
-        last_time = cur_time;
         *last_bytes_received  = chstats->bytes_received;
         *last_events_received = chstats->n_events;
     }
-
-    return last_time;
 }
 
 

@@ -98,8 +98,10 @@ int main(int argc, char *argv[])
                 "/tmp"
             ) ;
 
-    m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());
+    m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());//REMOVE
     int result = eventLoop(checker, eventStream);
+
+    //printFinalStatusLine(eventStream->m_channel_status, m_start_time, m_end_time);
 
     /** Cleanup */
     delete eventStream;
@@ -140,13 +142,19 @@ eventLoop
         { usleep(200); } /** no events available */
 
         eventStream->m_bar1->gettime(&cur_time, 0);
-        last_time = printStatusLine(last_time, cur_time,
-                eventStream->m_channel_status, &m_last_events_received,
-                &m_last_bytes_received);
+        printStatusLine
+        (
+            last_time,
+            cur_time,
+            eventStream->m_channel_status,
+            &m_last_events_received,
+            &m_last_bytes_received
+        );
+        last_time = cur_time;
     }
 
     eventStream->m_bar1->gettime(&m_end_time, 0);
-    printFinalStatusLine(eventStream->m_channel_status, m_start_time, m_end_time);
+
     return result;
 }
 
