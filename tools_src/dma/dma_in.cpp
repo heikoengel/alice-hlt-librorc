@@ -147,9 +147,12 @@ eventLoop
             last_time,
             cur_time,
             eventStream->m_channel_status,
-            &m_last_events_received,
-            &m_last_bytes_received
+            m_last_events_received,
+            m_last_bytes_received
         );
+
+        m_last_bytes_received  = eventStream->m_channel_status->bytes_received;
+        m_last_events_received = eventStream->m_channel_status->n_events;
         last_time = cur_time;
     }
 
