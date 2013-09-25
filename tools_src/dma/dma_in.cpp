@@ -31,7 +31,6 @@ using namespace std;
 int handle_channel_data
 (
     librorc::event_stream *eventStream,
-    librorcChannelStatus  *channel_status,
     librorc::event_sanity_checker *checker
 );
 
@@ -46,7 +45,7 @@ int main(int argc, char *argv[])
 
     if
     (!(
-        checkDeviceID(opts.deviceId, argv[0])   &&
+        checkDeviceID(opts.deviceId, argv[0])    &&
         checkChannelID(opts.channelId, argv[0])
     ) )
     { exit(-1); }
@@ -60,14 +59,14 @@ int main(int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    librorcChannelStatus *channel_status
-        = prepareSharedMemory(opts);
-    if(channel_status == NULL)
-    { exit(-1); }
 
     /** Create event stream */
     librorc::event_stream *eventStream = NULL;
     if( !(eventStream = prepareEventStream(opts)) )
+    { exit(-1); }
+
+    eventStream->m_channel_status = prepareSharedMemory(opts);
+    if(eventStream->m_channel_status == NULL)
     { exit(-1); }
 
     eventStream->printDeviceStatus();
@@ -83,7 +82,7 @@ int main(int argc, char *argv[])
         ?   librorc::event_sanity_checker
             (
                 eventStream->m_eventBuffer,
-                channel_status->channel,
+                opts.channelId,
                 PG_PATTERN_INC, /** TODO */
                 sanity_check_mask,
                 "/tmp",
@@ -92,7 +91,7 @@ int main(int argc, char *argv[])
         :   librorc::event_sanity_checker
             (
                 eventStream->m_eventBuffer,
-                channel_status->channel,
+                opts.channelId,
                 PG_PATTERN_INC,
                 sanity_check_mask,
                 "/tmp"
@@ -110,9 +109,7 @@ int main(int argc, char *argv[])
     timeval cur_time = start_time;
     while( !done )
     {
-        result =
-            handle_channel_data
-                (eventStream, channel_status, &checker);
+        result = handle_channel_data(eventStream, &checker);
 
         if(result < 0)
         {
@@ -126,18 +123,18 @@ int main(int argc, char *argv[])
 
         last_time =
             printStatusLine
-                (last_time, cur_time, channel_status,
+                (last_time, cur_time, eventStream->m_channel_status,
                     &last_events_received, &last_bytes_received);
     }
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 //--->
 
-    printFinalStatusLine(channel_status, opts, start_time, end_time);
+    printFinalStatusLine(eventStream->m_channel_status, opts, start_time, end_time);
 
     /** Cleanup */
+    shmdt(eventStream->m_channel_status);
     delete eventStream;
-    shmdt(channel_status);
 
     return result;
 }
@@ -148,11 +145,10 @@ int main(int argc, char *argv[])
 int handle_channel_data
 (
     librorc::event_stream         *eventStream,
-    librorcChannelStatus          *channel_status,
     librorc::event_sanity_checker *checker
 )
 {
-
+    librorcChannelStatus *m_channel_status = eventStream->m_channel_status;
     librorc::buffer      *m_reportBuffer = eventStream->m_reportBuffer;
     librorc::dma_channel *m_channel      = eventStream->m_channel;
 
@@ -161,16 +157,16 @@ int handle_channel_data
         = (librorc_event_descriptor *)(m_reportBuffer->getMem());
     int events_processed = 0;
     /** new event received */
-    if( reports[channel_status->index].calc_event_size!=0 )
+    if( reports[m_channel_status->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
-        uint64_t starting_index       = channel_status->index;
+        uint64_t starting_index       = m_channel_status->index;
         uint64_t events_per_iteration = 0;
         uint64_t event_buffer_offset  = 0;
         uint64_t report_buffer_offset = 0;
 
         // handle all following entries
-        while( reports[channel_status->index].calc_event_size!=0 )
+        while( reports[m_channel_status->index].calc_event_size!=0 )
         {
             // increment number of events processed in this interation
             events_processed++;
@@ -180,31 +176,31 @@ int handle_channel_data
             //___THIS_IS_CALLBACK_CODE__//
             uint64_t event_id = 0;
             try
-            { event_id = checker->check(reports, channel_status); }
+            { event_id = checker->check(reports, m_channel_status); }
             catch(...){ abort(); }
             //___THIS_IS_CALLBACK_CODE__//
 
-            channel_status->last_id = event_id;
+            m_channel_status->last_id = event_id;
 
             // increment the number of bytes received
-            channel_status->bytes_received +=
-                (reports[channel_status->index].calc_event_size<<2);
+            m_channel_status->bytes_received +=
+                (reports[m_channel_status->index].calc_event_size<<2);
 
             // save new EBOffset
-            event_buffer_offset = reports[channel_status->index].offset;
+            event_buffer_offset = reports[m_channel_status->index].offset;
 
             // increment reportbuffer offset
             report_buffer_offset
-                = ((channel_status->index)*sizeof(librorc_event_descriptor))
+                = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
                 % m_reportBuffer->getPhysicalSize();
 
             // wrap RB index if necessary
-            channel_status->index
-                = (channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-                ? (channel_status->index+1) : 0;
+            m_channel_status->index
+                = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                ? (m_channel_status->index+1) : 0;
 
             //increment total number of events received
-            channel_status->n_events++;
+            m_channel_status->n_events++;
 
             //increment number of events processed in this while-loop
             events_per_iteration++;
@@ -216,14 +212,14 @@ int handle_channel_data
 
         // update min/max statistics on how many events have been received
         // in the above while-loop
-        if(events_per_iteration > channel_status->max_epi)
-        { channel_status->max_epi = events_per_iteration; }
+        if(events_per_iteration > m_channel_status->max_epi)
+        { m_channel_status->max_epi = events_per_iteration; }
 
-        if(events_per_iteration < channel_status->min_epi)
-        { channel_status->min_epi = events_per_iteration; }
+        if(events_per_iteration < m_channel_status->min_epi)
+        { m_channel_status->min_epi = events_per_iteration; }
 
         events_per_iteration = 0;
-        channel_status->set_offset_count++;
+        m_channel_status->set_offset_count++;
 
         // actually update the offset pointers in the firmware
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
@@ -232,7 +228,7 @@ int handle_channel_data
         (
             PDADEBUG_CONTROL_FLOW,
             "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
-            channel_status->channel,
+            m_channel_status->channel,
             report_buffer_offset,
             event_buffer_offset
         );

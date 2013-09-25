@@ -28,6 +28,7 @@
 #include <librorc/defines.hh>
 #include <librorc/buffer.hh>
 #include <librorc/dma_channel.hh>
+#include <librorc/event_stream.hh>
 
 /** limit the number of corrupted events to be written to disk **/
 #define MAX_FILES_TO_DISK 100

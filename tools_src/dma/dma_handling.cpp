@@ -38,19 +38,13 @@ evaluateArguments(int argc, char *argv[])
 
     ret.esType = LIBRORC_ES_PURE;
     if( 0 == strcmp(app_name, "dma_in_pg") )
-    {
-        ret.esType = LIBRORC_ES_PG;
-    }
+    { ret.esType = LIBRORC_ES_PG; }
 
     if( 0 == strcmp(app_name, "dma_in_ddl") )
-    {
-        ret.esType = LIBRORC_ES_DDL;
-    }
+    { ret.esType = LIBRORC_ES_DDL; }
 
     if(ret.esType == LIBRORC_ES_PURE)
-    {
-        return ret;
-    }
+    { return ret; }
 
     /** Parse command line arguments **/
     while(1)

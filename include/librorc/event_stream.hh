@@ -44,6 +44,25 @@ typedef enum
     #define STAT_INTERVAL 0.00001
 #endif
 
+/** Shared mem key offset **/
+#define SHM_KEY_OFFSET 2048
+/** Shared mem device offset **/
+#define SHM_DEV_OFFSET 32
+
+typedef struct
+{
+    uint64_t n_events;
+    uint64_t bytes_received;
+    uint64_t min_epi;
+    uint64_t max_epi;
+    uint64_t index;
+    uint64_t set_offset_count;
+    uint64_t error_count;
+    uint64_t last_id;
+    uint32_t channel;
+}librorcChannelStatus;
+
+
 namespace LIBRARY_NAME
 {
 
@@ -80,6 +99,7 @@ class device;
             buffer      *m_reportBuffer;
             dma_channel *m_channel;
 
+            librorcChannelStatus *m_channel_status;
 
         protected:
             uint32_t  m_eventSize;

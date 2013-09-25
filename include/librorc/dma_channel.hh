@@ -43,24 +43,6 @@
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
-/** Shared mem key offset **/
-#define SHM_KEY_OFFSET 2048
-/** Shared mem device offset **/
-#define SHM_DEV_OFFSET 32
-
-typedef struct
-{
-    uint64_t n_events;
-    uint64_t bytes_received;
-    uint64_t min_epi;
-    uint64_t max_epi;
-    uint64_t index;
-    uint64_t set_offset_count;
-    uint64_t error_count;
-    uint64_t last_id;
-    uint32_t channel;
-}librorcChannelStatus;
-
 
 
 
