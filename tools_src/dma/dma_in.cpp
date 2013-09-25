@@ -28,10 +28,18 @@ using namespace std;
 
 
 
-int handle_channel_data
+int
+handle_channel_data
 (
     librorc::event_stream *eventStream,
     librorc::event_sanity_checker *checker
+);
+
+int
+eventLoop
+(
+    librorc::event_sanity_checker checker,
+    librorc::event_stream* eventStream
 );
 
 
@@ -66,7 +74,6 @@ int main(int argc, char *argv[])
     eventStream->printDeviceStatus();
 
     /** make clear what will be checked*/
-    int     result            = 0;
     int32_t sanity_check_mask = 0xff; /** all checks defaults */
     if(opts.esType == LIBRORC_ES_DDL)
     { sanity_check_mask = CHK_FILE | CHK_SIZES; }
@@ -91,40 +98,7 @@ int main(int argc, char *argv[])
                 "/tmp"
             ) ;
 
-
-//--->
-    /** Event loop */
-    uint64_t last_bytes_received  = 0;
-    uint64_t last_events_received = 0;
-    /** Capture starting time */
-    timeval start_time;
-    eventStream->m_bar1->gettime(&start_time, 0);
-    timeval last_time = start_time;
-    timeval cur_time = start_time;
-    while( !done )
-    {
-        result = handle_channel_data(eventStream, &checker);
-
-        if(result < 0)
-        {
-            printf("handle_channel_data failed for channel %d\n", opts.channelId);
-            return result;
-        }
-        else if(result==0)
-        { usleep(200); } /** no events available */
-
-        eventStream->m_bar1->gettime(&cur_time, 0);
-
-        last_time =
-            printStatusLine
-                (last_time, cur_time, eventStream->m_channel_status,
-                    &last_events_received, &last_bytes_received);
-    }
-    timeval end_time;
-    eventStream->m_bar1->gettime(&end_time, 0);
-//--->
-
-    printFinalStatusLine(eventStream->m_channel_status, opts, start_time, end_time);
+    int result = eventLoop(checker, eventStream);
 
     /** Cleanup */
     delete eventStream;
@@ -134,7 +108,49 @@ int main(int argc, char *argv[])
 
 
 
-//TODO: refactor this into a class and merge it with event stream afterwards
+int
+eventLoop
+(
+    librorc::event_sanity_checker checker,
+    librorc::event_stream* eventStream
+)
+{
+    uint64_t m_last_bytes_received = 0;
+    uint64_t m_last_events_received = 0;
+
+    /** Capture starting time */
+    timeval start_time;
+    eventStream->m_bar1->gettime(&start_time, 0);
+    timeval last_time = start_time;
+    timeval cur_time = start_time;
+
+    int result = 0;
+    while( !done )
+    {
+        result = handle_channel_data(eventStream, &checker);
+        if (result < 0)
+        {
+            printf("handle_channel_data failed for channel %d\n",
+                    eventStream->m_channel_status->channel);
+            return result;
+        }
+        else if (result == 0)
+        { usleep(200); } /** no events available */
+
+        eventStream->m_bar1->gettime(&cur_time, 0);
+        last_time = printStatusLine(last_time, cur_time,
+                eventStream->m_channel_status, &m_last_events_received,
+                &m_last_bytes_received);
+    }
+    timeval end_time;
+    eventStream->m_bar1->gettime(&end_time, 0);
+    printFinalStatusLine(eventStream->m_channel_status, start_time, end_time);
+    return result;
+}
+
+
+
+
 int handle_channel_data
 (
     librorc::event_stream         *eventStream,

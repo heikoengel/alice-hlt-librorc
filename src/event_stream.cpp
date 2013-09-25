@@ -118,15 +118,22 @@ namespace LIBRARY_NAME
         {
             case LIBRORC_ES_PURE:
             {
-            m_channel =
+                m_channel =
                 new librorc::dma_channel
-                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+                (
+                    m_channelId,
+                    MAX_PAYLOAD,
+                    m_dev,
+                    m_bar1,
+                    m_eventBuffer,
+                    m_reportBuffer
+                );
             }
             break;
 
             case LIBRORC_ES_DDL:
             {
-            m_channel =
+                m_channel =
                 new librorc::dma_channel_ddl
                 (
                     m_channelId,
@@ -141,7 +148,7 @@ namespace LIBRARY_NAME
 
             case LIBRORC_ES_PG:
             {
-            m_channel =
+                m_channel =
                 new librorc::dma_channel_pg
                 (
                     m_channelId,

@@ -72,7 +72,6 @@ void
 printFinalStatusLine
 (
     librorcChannelStatus *chstats,
-    DMAOptions            opts,
     timeval               start_time,
     timeval               end_time
 );
