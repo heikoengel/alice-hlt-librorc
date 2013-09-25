@@ -29,7 +29,7 @@ using namespace std;
 
 
 int
-handle_channel_data
+handleChannelData
 (
     librorc::event_stream *eventStream,
     librorc::event_sanity_checker *checker
@@ -45,7 +45,7 @@ eventLoop
 
 DMA_ABORT_HANDLER
 
-
+volatile uint32_t *m_raw_event_buffer = NULL;
 
 int main(int argc, char *argv[])
 {
@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
                 "/tmp"
             ) ;
 
+    m_raw_event_buffer = (uint32_t *)(eventStream->m_eventBuffer->getMem());
     int result = eventLoop(checker, eventStream);
 
     /** Cleanup */
@@ -111,24 +112,24 @@ int main(int argc, char *argv[])
 int
 eventLoop
 (
-    librorc::event_sanity_checker checker,
-    librorc::event_stream* eventStream
+    librorc::event_sanity_checker  checker,
+    librorc::event_stream         *eventStream
 )
 {
     uint64_t m_last_bytes_received = 0;
     uint64_t m_last_events_received = 0;
+    timeval  m_start_time;
+    timeval  m_end_time;
 
     /** Capture starting time */
-    timeval start_time;
-    timeval end_time;
-    eventStream->m_bar1->gettime(&start_time, 0);
-    timeval last_time = start_time;
-    timeval cur_time = start_time;
+    eventStream->m_bar1->gettime(&m_start_time, 0);
+    timeval last_time = m_start_time;
+    timeval cur_time  = m_start_time;
 
     int result = 0;
     while( !done )
     {
-        result = handle_channel_data(eventStream, &checker);
+        result = handleChannelData(eventStream, &checker);
         if (result < 0)
         {
             printf("handle_channel_data failed for channel %d\n",
@@ -144,15 +145,33 @@ eventLoop
                 &m_last_bytes_received);
     }
 
-    eventStream->m_bar1->gettime(&end_time, 0);
-    printFinalStatusLine(eventStream->m_channel_status, start_time, end_time);
+    eventStream->m_bar1->gettime(&m_end_time, 0);
+    printFinalStatusLine(eventStream->m_channel_status, m_start_time, m_end_time);
     return result;
 }
 
 
 
+uint64_t
+dwordOffset(librorc_event_descriptor report_entry)
+{
+    return(report_entry.offset / 4);
+}
 
-int handle_channel_data
+uint64_t
+getEventIdFromCdh(uint64_t offset)
+{
+
+    uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
+    cur_event_id <<= 12;
+    cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
+    return cur_event_id;
+}
+
+
+
+int
+handleChannelData
 (
     librorc::event_stream         *eventStream,
     librorc::event_sanity_checker *checker
@@ -181,6 +200,8 @@ int handle_channel_data
             // increment number of events processed in this interation
             events_processed++;
 
+            librorc_event_descriptor report_entry = reports[m_channel_status->index];
+
             // perform selected validity tests on the received data
             // dump stuff if errors happen
             //___THIS_IS_CALLBACK_CODE__//
@@ -190,7 +211,8 @@ int handle_channel_data
             catch(...){ abort(); }
             //___THIS_IS_CALLBACK_CODE__//
 
-            m_channel_status->last_id = event_id;
+            m_channel_status->last_id
+                = getEventIdFromCdh(dwordOffset(report_entry));
 
             // increment the number of bytes received
             m_channel_status->bytes_received +=
