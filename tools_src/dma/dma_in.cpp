@@ -120,6 +120,7 @@ eventLoop
 
     /** Capture starting time */
     timeval start_time;
+    timeval end_time;
     eventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval cur_time = start_time;
@@ -142,7 +143,7 @@ eventLoop
                 eventStream->m_channel_status, &m_last_events_received,
                 &m_last_bytes_received);
     }
-    timeval end_time;
+
     eventStream->m_bar1->gettime(&end_time, 0);
     printFinalStatusLine(eventStream->m_channel_status, start_time, end_time);
     return result;
