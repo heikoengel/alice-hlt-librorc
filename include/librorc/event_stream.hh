@@ -64,6 +64,15 @@ typedef struct
     uint32_t channel;
 }librorcChannelStatus;
 
+typedef uint64_t (*librorc_event_callback)
+(
+    void*,
+    uint64_t,
+    librorc_event_descriptor,
+    const uint32_t*,
+    librorcChannelStatus*
+);
+
 
 
 namespace LIBRARY_NAME

@@ -393,7 +393,7 @@ eventCallBack
                 // save new EBOffset
                 event_buffer_offset = reports[m_channel_status->index].offset;
 
-                // increment reportbuffer offset
+                // increment report-buffer offset
                 report_buffer_offset
                     = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
                     % m_reportBuffer->getPhysicalSize();
@@ -410,7 +410,7 @@ eventCallBack
                 events_per_iteration++;
             }
 
-            // clear processed reportbuffer entries
+            // clear processed report-buffer entries
             memset(&reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
 
 
