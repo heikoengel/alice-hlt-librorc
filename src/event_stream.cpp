@@ -153,6 +153,7 @@ namespace LIBRARY_NAME
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done = false;
+            m_event_callback = NULL;
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }

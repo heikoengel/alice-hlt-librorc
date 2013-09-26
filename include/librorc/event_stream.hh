@@ -140,7 +140,7 @@ class event_sanity_checker;
 
             volatile uint32_t *m_raw_event_buffer;
 
-            librorc_event_callback m_event_callback = NULL;
+            librorc_event_callback m_event_callback;
 
             void
             generateDMAChannel
