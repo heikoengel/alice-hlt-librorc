@@ -80,8 +80,8 @@ namespace LIBRARY_NAME
                     //TODO : review this bool (dump event if something fails)?
                     bool
                     dump_event =
-                          calculatedIsLargerThanPhysical(m_reports, channel_status, event_buffer)
-                        ? dumpCalculatedIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
+                          calculatedIsLargerThanPhysical(report, channel_status, event_buffer)
+                        ? dumpCalculatedIsLargerThanPhysicalToLog(report, channel_status, event_buffer)
                         : true;
 
                     dump_event =
@@ -181,19 +181,18 @@ namespace LIBRARY_NAME
             bool
             calculatedIsLargerThanPhysical
             (
-                librorc_event_descriptor *report_buffer_entry,
+                librorc_event_descriptor  report,
                 librorcChannelStatus     *channel_status,
                 librorc::buffer          *event_buffer
             )
             {
-                return   report_buffer_entry[channel_status->index].calc_event_size
-                       > (event_buffer->getPhysicalSize() >> 2);
+                return report.calc_event_size > (event_buffer->getPhysicalSize() >> 2);
             }
 
             bool
             dumpCalculatedIsLargerThanPhysicalToLog
             (
-                librorc_event_descriptor *report_buffer_entry,
+                librorc_event_descriptor  report,
                 librorcChannelStatus     *channel_status,
                 librorc::buffer          *event_buffer
             )
@@ -203,7 +202,7 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "calc_event_size (0x%x DWs) is larger"
                     " than physical buffer size (0x%lx DWs) - not dumping event.\n",
-                    report_buffer_entry[channel_status->index].calc_event_size,
+                    report.calc_event_size,
                     (event_buffer->getPhysicalSize() >> 2)
                 );
 
@@ -410,28 +409,28 @@ void
 event_sanity_checker::check
 (
     librorc_event_descriptor *reports,
-    librorc_event_descriptor  report,
+    librorc_event_descriptor  report_in,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id
 )
 {
     uint64_t                  report_buffer_index =  channel_status->index;
-    librorc_event_descriptor *report_entry        = &reports[channel_status->index];
+    librorc_event_descriptor *report              =  &report_in;
     int64_t                   last_id             =  channel_status->last_id;
 
-    m_event               = rawEventPointer(report_entry);
-    m_reported_event_size = reportedEventSize(report_entry);
-    m_calc_event_size     = calculatedEventSize(report_entry);
+    m_event               = rawEventPointer(report);
+    m_reported_event_size = reportedEventSize(report);
+    m_calc_event_size     = calculatedEventSize(report);
     m_event_index         = 0;
 
     int      error_code   = 0;
     {
-        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_entry, report_buffer_index, last_id);
+        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report, report_buffer_index, last_id);
     }
 
     if(error_code != 0)
@@ -446,7 +445,7 @@ event_sanity_checker::check
            event_id,
            m_event_buffer,
            error_code,
-           report
+           report_in
         );
     }
 }
