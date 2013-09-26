@@ -39,14 +39,9 @@ namespace LIBRARY_NAME
     //TODO: add device number
         public:
 
-             file_dumper
-             (
-                 char                     *base_dir,
-                 librorc_event_descriptor *reports
-             )
+             file_dumper(char *base_dir)
              {
                  m_base_dir = base_dir;
-                 m_reports  = reports;
              };
 
             ~file_dumper(){ };
@@ -104,7 +99,6 @@ namespace LIBRARY_NAME
             char      m_log_file_name[4096];
             FILE     *m_fd_log;
             uint32_t *m_raw_event_buffer;
-            librorc_event_descriptor *m_reports;
 
             void
             openFiles
@@ -402,36 +396,35 @@ event_sanity_checker::~event_sanity_checker()
 void
 event_sanity_checker::check
 (
-    librorc_event_descriptor *reports,
-    librorc_event_descriptor  report_in,
+    librorc_event_descriptor  report,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id
 )
 {
     uint64_t                  report_buffer_index =  channel_status->index;
-    librorc_event_descriptor *report              =  &report_in;
+    librorc_event_descriptor *report_pointer      =  &report;
     int64_t                   last_id             =  channel_status->last_id;
 
-    m_event               = rawEventPointer(report);
-    m_reported_event_size = reportedEventSize(report);
-    m_calc_event_size     = calculatedEventSize(report);
+    m_event               = rawEventPointer(report_pointer);
+    m_reported_event_size = reportedEventSize(report_pointer);
+    m_calc_event_size     = calculatedEventSize(report_pointer);
     m_event_index         = 0;
 
     int      error_code   = 0;
     {
-        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report, report_buffer_index, last_id);
+        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
     }
 
     if(error_code != 0)
     {
         channel_status->error_count++;
 
-        file_dumper dumper(m_log_base_dir, reports);
+        file_dumper dumper(m_log_base_dir);
 
         dumper.dump
         (
@@ -439,7 +432,7 @@ event_sanity_checker::check
            event_id,
            m_event_buffer,
            error_code,
-           report_in
+           report
         );
     }
 }
@@ -455,7 +448,7 @@ event_sanity_checker::check
 {
     librorc_event_descriptor *report_entry = &reports[channel_status->index];
     uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
-    check(reports, reports[channel_status->index], channel_status, event_id);
+    check(reports[channel_status->index], channel_status, event_id);
     return event_id;
 }
 

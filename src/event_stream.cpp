@@ -335,7 +335,6 @@ uint64_t
 eventCallBack
 (
     void                     *userdata,
-    librorc_event_descriptor *reports,
     librorc_event_descriptor  report,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id
@@ -343,7 +342,7 @@ eventCallBack
 {
     event_sanity_checker *checker = (event_sanity_checker*)userdata;
 
-    try{ checker->check(reports, report, channel_status, event_id); }
+    try{ checker->check(report, channel_status, event_id); }
     catch(...){ abort(); }
     return 0;
 }
@@ -384,7 +383,7 @@ eventCallBack
                 // static uint32_t                 *event
                 //        librorcChannelStatus     *channel_status
                 //        uint64_t                  event_id
-                eventCallBack(user_data, reports, report_entry, m_channel_status, event_id);
+                eventCallBack(user_data, report_entry, m_channel_status, event_id);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;

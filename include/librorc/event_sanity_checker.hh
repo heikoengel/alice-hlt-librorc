@@ -85,7 +85,6 @@ class ddl_reference_file;
             void
             check
             (
-                librorc_event_descriptor *reports,
                 librorc_event_descriptor  report,
                 librorcChannelStatus     *channel_status,
                 uint64_t                  event_id
