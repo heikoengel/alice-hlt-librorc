@@ -81,12 +81,12 @@ namespace LIBRARY_NAME
                     bool
                     dump_event =
                           calculatedIsLargerThanPhysical(report, event_buffer)
-                        ? dumpCalculatedIsLargerThanPhysicalToLog(report, channel_status, event_buffer)
+                        ? dumpCalculatedIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
                     dump_event =
-                          offsetIsLargerThanPhysical(m_reports, channel_status, event_buffer)
-                        ? dumpOffsetIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
+                          offsetIsLargerThanPhysical(report, event_buffer)
+                        ? dumpOffsetIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
                     dump_event ? dumpEventToLog(error_bit_mask, m_reports, channel_status) : (void)0;
@@ -182,7 +182,7 @@ namespace LIBRARY_NAME
             calculatedIsLargerThanPhysical
             (
                 librorc_event_descriptor  report,
-                librorc::buffer          *event_buffer
+                buffer                   *event_buffer
             )
             {
                 return report.calc_event_size > (event_buffer->getPhysicalSize() >> 2);
@@ -192,8 +192,7 @@ namespace LIBRARY_NAME
             dumpCalculatedIsLargerThanPhysicalToLog
             (
                 librorc_event_descriptor  report,
-                librorcChannelStatus     *channel_status,
-                librorc::buffer          *event_buffer
+                buffer                   *event_buffer
             )
             {
                 fprintf
@@ -211,22 +210,19 @@ namespace LIBRARY_NAME
             bool
             offsetIsLargerThanPhysical
             (
-                librorc_event_descriptor *report_buffer_entry,
-                librorcChannelStatus     *channel_status,
-                librorc::buffer          * event_buffer
+                librorc_event_descriptor  report,
+                buffer                   *event_buffer
             )
             {
-                return   report_buffer_entry[channel_status->index].offset
-                       > event_buffer->getPhysicalSize();
+                return (report.offset > event_buffer->getPhysicalSize());
             }
 
 
             bool
             dumpOffsetIsLargerThanPhysicalToLog
             (
-                librorc_event_descriptor* report_buffer_entry,
-                librorcChannelStatus* channel_status,
-                librorc::buffer* event_buffer
+                librorc_event_descriptor  report,
+                buffer                   *event_buffer
             )
             {
                 fprintf
@@ -234,7 +230,7 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "offset (0x%lx) is larger than physical buffer"
                     " size (0x%lx) - not dumping event.\n",
-                    report_buffer_entry[channel_status->index].offset,
+                    report.offset,
                     event_buffer->getPhysicalSize()
                 );
 
