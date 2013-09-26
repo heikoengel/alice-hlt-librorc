@@ -336,13 +336,14 @@ eventCallBack
 (
     void                     *userdata,
     librorc_event_descriptor *reports,
+    librorc_event_descriptor  report,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id
 )
 {
-    event_sanity_checker *checker =  (event_sanity_checker*)userdata;
+    event_sanity_checker *checker = (event_sanity_checker*)userdata;
 
-    try{ checker->check(reports, channel_status, event_id); }
+    try{ checker->check(reports, report, channel_status, event_id); }
     catch(...){ abort(); }
     return 0;
 }
@@ -378,12 +379,12 @@ eventCallBack
                 uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
 
 //___THIS_IS_CALLBACK_CODE__//
-                //        void                     *userdata
-                // static librorc_event_descriptor *report_entry
+                //        void                     *user_data
+                // static librorc_event_descriptor  report_entry
                 // static uint32_t                 *event
                 //        librorcChannelStatus     *channel_status
                 //        uint64_t                  event_id
-                eventCallBack(user_data, reports, m_channel_status, event_id);
+                eventCallBack(user_data, reports, report_entry, m_channel_status, event_id);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;

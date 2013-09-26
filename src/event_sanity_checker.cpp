@@ -61,10 +61,11 @@ namespace LIBRARY_NAME
             void
             dump
             (
-                librorcChannelStatus *channel_status,
-                uint64_t              event_id,
-                librorc::buffer      *event_buffer,
-                uint32_t              error_bit_mask
+                librorcChannelStatus    *channel_status,
+                uint64_t                 event_id,
+                librorc::buffer         *event_buffer,
+                uint32_t                 error_bit_mask,
+                librorc_event_descriptor report
             )
             {
                 if (channel_status->error_count < MAX_FILES_TO_DISK)
@@ -73,7 +74,7 @@ namespace LIBRARY_NAME
                                               m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
 
                     openFiles(file_index, channel_status);
-                    dumpReportBufferEntryToLog(event_id, channel_status, m_reports);
+                    dumpReportBufferEntryToLog(event_id, channel_status, report);
                     dumpErrorTypeToLog(error_bit_mask);
 
                     //TODO : review this bool (dump event if something fails)?
@@ -144,7 +145,7 @@ namespace LIBRARY_NAME
             (
                 uint64_t                  event_id,
                 librorcChannelStatus     *channel_status,
-                librorc_event_descriptor *report_buffer_entry
+                librorc_event_descriptor  report
             )
             {
                 fprintf
@@ -154,9 +155,9 @@ namespace LIBRARY_NAME
                     "reported_size=%08x\noffset=%lx\nEventID=%lx\nLastID=%lx\n",
                     channel_status->channel,
                     channel_status->index,
-                    report_buffer_entry[channel_status->index].calc_event_size,
-                    report_buffer_entry[channel_status->index].reported_event_size,
-                    report_buffer_entry[channel_status->index].offset,
+                    report.calc_event_size,
+                    report.reported_event_size,
+                    report.offset,
                     event_id,
                     channel_status->last_id
                 );
@@ -409,6 +410,7 @@ void
 event_sanity_checker::check
 (
     librorc_event_descriptor *reports,
+    librorc_event_descriptor  report,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id
 )
@@ -443,7 +445,8 @@ event_sanity_checker::check
            channel_status,
            event_id,
            m_event_buffer,
-           error_code
+           error_code,
+           report
         );
     }
 }
@@ -459,7 +462,7 @@ event_sanity_checker::check
 {
     librorc_event_descriptor *report_entry = &reports[channel_status->index];
     uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
-    check(reports, channel_status, event_id);
+    check(reports, reports[channel_status->index], channel_status, event_id);
     return event_id;
 }
 
