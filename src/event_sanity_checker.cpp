@@ -80,7 +80,7 @@ namespace LIBRARY_NAME
                     //TODO : review this bool (dump event if something fails)?
                     bool
                     dump_event =
-                          calculatedIsLargerThanPhysical(report, channel_status, event_buffer)
+                          calculatedIsLargerThanPhysical(report, event_buffer)
                         ? dumpCalculatedIsLargerThanPhysicalToLog(report, channel_status, event_buffer)
                         : true;
 
@@ -182,7 +182,6 @@ namespace LIBRARY_NAME
             calculatedIsLargerThanPhysical
             (
                 librorc_event_descriptor  report,
-                librorcChannelStatus     *channel_status,
                 librorc::buffer          *event_buffer
             )
             {
@@ -212,9 +211,9 @@ namespace LIBRARY_NAME
             bool
             offsetIsLargerThanPhysical
             (
-                librorc_event_descriptor* report_buffer_entry,
-                librorcChannelStatus* channel_status,
-                librorc::buffer* event_buffer
+                librorc_event_descriptor *report_buffer_entry,
+                librorcChannelStatus     *channel_status,
+                librorc::buffer          * event_buffer
             )
             {
                 return   report_buffer_entry[channel_status->index].offset
