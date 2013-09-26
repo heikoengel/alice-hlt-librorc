@@ -376,12 +376,18 @@ eventCallBack
             {
                 // increment number of events processed in this interation
                 events_processed++;
+
                       librorc_event_descriptor  report   = reports[m_channel_status->index];
                       uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
                 const uint32_t                 *event    = getRawEvent(report);
 
 //___THIS_IS_CALLBACK_CODE__//
-                eventCallBack(user_data, event_id, report, event, m_channel_status);
+                //eventCallBack(user_data, event_id, report, event, m_channel_status);
+
+                uint64_t ret = (m_event_callback != NULL)
+                    ? m_event_callback(user_data, event_id, report, event, m_channel_status)
+                    : 0;
+
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
