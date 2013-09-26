@@ -89,7 +89,7 @@ namespace LIBRARY_NAME
                         ? dumpOffsetIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
-                    dump_event ? dumpEventToLog(error_bit_mask, m_reports, channel_status) : (void)0;
+                    dump_event ? dumpEventToLog(error_bit_mask, report) : (void)0;
 
                     closeFiles();
                 }
@@ -241,8 +241,7 @@ namespace LIBRARY_NAME
             dumpEventToLog
             (
                 uint32_t                  error_bit_mask,
-                librorc_event_descriptor *report_buffer_entry,
-                librorcChannelStatus     *channel_status
+                librorc_event_descriptor  report
             )
             {
                 uint32_t i;
@@ -250,14 +249,14 @@ namespace LIBRARY_NAME
                 for
                 (
                     i = 0;
-                    i < report_buffer_entry[channel_status->index].calc_event_size;
+                    i < report.calc_event_size;
                     i++
                 )
                 {
                     uint32_t ebword =
                         (uint32_t) *(
                                         m_raw_event_buffer +
-                                        (report_buffer_entry[channel_status->index].offset >> 2) + i
+                                        (report.offset >> 2) + i
                                     );
 
                     fprintf(m_fd_log, "%03d: %08x", i, ebword);
@@ -273,15 +272,15 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "%03d: EOE reported_event_size: %08x\n",
                     i,
-                    (uint32_t) *(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2) + i)
+                    (uint32_t) *(m_raw_event_buffer + (report.offset >> 2) + i)
                 );
 
                 size_t size_written =
                     fwrite
                     (
-                            m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2),
+                            m_raw_event_buffer + (report.offset >> 2),
                             4,
-                            report_buffer_entry[channel_status->index].calc_event_size,
+                            report.calc_event_size,
                             m_fd_ddl
                     );
 
