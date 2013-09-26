@@ -133,14 +133,16 @@ class event_sanity_checker;
                 LibrorcEsType esType
             );
 
-            void chooseDMAChannel(LibrorcEsType esType);
-            void prepareSharedMemory();
-            void deleteParts();
-
+            void     chooseDMAChannel(LibrorcEsType esType);
+            void     prepareSharedMemory();
+            void     deleteParts();
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
 
             uint64_t handleChannelData(void *user_data);
+
+            const
+            uint32_t* getRawEvent(librorc_event_descriptor report);
 
     };
 

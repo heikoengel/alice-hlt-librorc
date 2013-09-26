@@ -331,14 +331,17 @@ namespace LIBRARY_NAME
         return cur_event_id;
     }
 
+
+
+
 uint64_t
 eventCallBack
 (
     void                     *userdata,
+    uint64_t                  event_id,
     librorc_event_descriptor  report,
     const uint32_t           *event,
-    librorcChannelStatus     *channel_status,
-    uint64_t                  event_id
+    librorcChannelStatus     *channel_status
 )
 {
     event_sanity_checker *checker = (event_sanity_checker*)userdata;
@@ -375,15 +378,10 @@ eventCallBack
                 events_processed++;
                       librorc_event_descriptor  report   = reports[m_channel_status->index];
                       uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
-                const uint32_t                 *event    = NULL;
+                const uint32_t                 *event    = getRawEvent(report);
 
 //___THIS_IS_CALLBACK_CODE__//
-                //        void                     *user_data
-                //        librorc_event_descriptor  report
-                // static uint32_t                 *event
-                //        librorcChannelStatus     *channel_status
-                //        uint64_t                  event_id
-                eventCallBack(user_data, report, event, m_channel_status, event_id);
+                eventCallBack(user_data, event_id, report, event, m_channel_status);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
@@ -441,6 +439,12 @@ eventCallBack
         }
 
         return events_processed;
+    }
+
+    const uint32_t*
+    event_stream::getRawEvent(librorc_event_descriptor report)
+    {
+        return (const uint32_t*)&m_raw_event_buffer[report.offset/4];
     }
 
 }
