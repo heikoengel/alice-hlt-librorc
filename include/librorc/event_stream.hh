@@ -96,7 +96,7 @@ class event_sanity_checker;
             ~event_stream();
             void printDeviceStatus();
 
-            uint64_t eventLoop(event_sanity_checker *checker);
+            uint64_t eventLoop(void *user_data);
 
             /** Member Variables */
             device      *m_dev;
@@ -140,7 +140,7 @@ class event_sanity_checker;
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
 
-            uint64_t handleChannelData(event_sanity_checker *checker);
+            uint64_t handleChannelData(void *user_data);
 
     };
 

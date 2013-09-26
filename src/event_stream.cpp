@@ -266,7 +266,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::eventLoop
     (
-        event_sanity_checker *checker
+        void *user_data
     )
     {
         m_last_bytes_received  = 0;
@@ -282,7 +282,7 @@ namespace LIBRARY_NAME
         {
             m_bar1->gettime(&m_current_time, 0);
 
-            result = handleChannelData(checker);
+            result = handleChannelData(user_data);
 
             if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
             {
@@ -334,12 +334,14 @@ namespace LIBRARY_NAME
 uint64_t
 eventCallBack
 (
-    event_sanity_checker* checker,
-    librorc_event_descriptor* reports,
-    uint64_t& event_id,
+    void *userdata,
+    librorc_event_descriptor *reports,
+    uint64_t event_id,
     librorcChannelStatus *channel_status
 )
 {
+    event_sanity_checker *checker =  (event_sanity_checker*)userdata;
+
     try{ checker->check(reports, channel_status, event_id); }
     catch(...){ abort(); }
     return 0;
@@ -348,7 +350,7 @@ eventCallBack
     uint64_t
     event_stream::handleChannelData
     (
-        event_sanity_checker *checker
+        void *user_data
     )
     {
         librorc_event_descriptor *reports
@@ -376,7 +378,12 @@ eventCallBack
                 uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
 
 //___THIS_IS_CALLBACK_CODE__//
-                eventCallBack(checker, reports, event_id, m_channel_status);
+                //        void                     *userdata
+                // static librorc_event_descriptor *report_entry
+                // static uint32_t                 *event
+                //        librorcChannelStatus     *channel_status
+                //        uint64_t                  event_id
+                eventCallBack(user_data, reports, event_id, m_channel_status);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
