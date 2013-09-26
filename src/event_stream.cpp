@@ -336,6 +336,7 @@ eventCallBack
 (
     void                     *userdata,
     librorc_event_descriptor  report,
+    const uint32_t           *event,
     librorcChannelStatus     *channel_status,
     uint64_t                  event_id
 )
@@ -372,10 +373,9 @@ eventCallBack
             {
                 // increment number of events processed in this interation
                 events_processed++;
-
-                librorc_event_descriptor report = reports[m_channel_status->index];
-
-                uint64_t event_id = getEventIdFromCdh(dwordOffset(report));
+                      librorc_event_descriptor  report   = reports[m_channel_status->index];
+                      uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
+                const uint32_t                 *event    = NULL;
 
 //___THIS_IS_CALLBACK_CODE__//
                 //        void                     *user_data
@@ -383,7 +383,7 @@ eventCallBack
                 // static uint32_t                 *event
                 //        librorcChannelStatus     *channel_status
                 //        uint64_t                  event_id
-                eventCallBack(user_data, report, m_channel_status, event_id);
+                eventCallBack(user_data, report, event, m_channel_status, event_id);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
