@@ -334,10 +334,10 @@ namespace LIBRARY_NAME
 uint64_t
 eventCallBack
 (
-    void *userdata,
+    void                     *userdata,
     librorc_event_descriptor *reports,
-    uint64_t event_id,
-    librorcChannelStatus *channel_status
+    librorcChannelStatus     *channel_status,
+    uint64_t                  event_id
 )
 {
     event_sanity_checker *checker =  (event_sanity_checker*)userdata;
@@ -383,7 +383,7 @@ eventCallBack
                 // static uint32_t                 *event
                 //        librorcChannelStatus     *channel_status
                 //        uint64_t                  event_id
-                eventCallBack(user_data, reports, event_id, m_channel_status);
+                eventCallBack(user_data, reports, m_channel_status, event_id);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
