@@ -107,6 +107,12 @@ class event_sanity_checker;
 
             uint64_t eventLoop(void *user_data);
 
+            void
+            setEventCallback(librorc_event_callback event_callback)
+            {
+                m_event_callback = event_callback;
+            }
+
             /** Member Variables */
             device      *m_dev;
             bar         *m_bar1;
@@ -133,6 +139,8 @@ class event_sanity_checker;
             int32_t   m_channelId;
 
             volatile uint32_t *m_raw_event_buffer;
+
+            librorc_event_callback m_event_callback = NULL;
 
             void
             generateDMAChannel

@@ -74,6 +74,8 @@ int main(int argc, char *argv[])
     if( !(eventStream = prepareEventStream(opts)) )
     { exit(-1); }
 
+    eventStream->setEventCallback(event_callback);
+
     eventStream->printDeviceStatus();
 
     /** make clear what will be checked*/
