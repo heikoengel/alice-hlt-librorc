@@ -333,24 +333,6 @@ namespace LIBRARY_NAME
 
 
 
-
-uint64_t
-eventCallBack
-(
-    void                     *userdata,
-    uint64_t                  event_id,
-    librorc_event_descriptor  report,
-    const uint32_t           *event,
-    librorcChannelStatus     *channel_status
-)
-{
-    event_sanity_checker *checker = (event_sanity_checker*)userdata;
-
-    try{ checker->check(report, channel_status, event_id); }
-    catch(...){ abort(); }
-    return 0;
-}
-
     uint64_t
     event_stream::handleChannelData
     (
@@ -381,14 +363,9 @@ eventCallBack
                       uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
                 const uint32_t                 *event    = getRawEvent(report);
 
-//___THIS_IS_CALLBACK_CODE__//
-                //eventCallBack(user_data, event_id, report, event, m_channel_status);
-
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
                     : 0;
-
-//___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
 
