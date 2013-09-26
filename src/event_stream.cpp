@@ -286,6 +286,16 @@ namespace LIBRARY_NAME
 
             if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
             {
+                //here we need a callback
+                printStatusLine
+                (
+                    m_last_time,
+                    m_current_time,
+                    m_channel_status,
+                    m_last_events_received,
+                    m_last_bytes_received
+                );
+
                 m_last_bytes_received  = m_channel_status->bytes_received;
                 m_last_events_received = m_channel_status->n_events;
                 m_last_time = m_current_time;
@@ -321,7 +331,19 @@ namespace LIBRARY_NAME
         return cur_event_id;
     }
 
-
+uint64_t
+eventCallBack
+(
+    event_sanity_checker* checker,
+    librorc_event_descriptor* reports,
+    uint64_t& event_id,
+    librorcChannelStatus *channel_status
+)
+{
+    try{ checker->check(reports, channel_status, event_id); }
+    catch(...){ abort(); }
+    return 0;
+}
 
     uint64_t
     event_stream::handleChannelData
@@ -354,22 +376,7 @@ namespace LIBRARY_NAME
                 uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
 
 //___THIS_IS_CALLBACK_CODE__//
-                // perform selected validity tests on the received data
-                // dump stuff if errors happen
-
-                printStatusLine
-                (
-                    m_last_time,
-                    m_current_time,
-                    m_channel_status,
-                    m_last_events_received,
-                    m_last_bytes_received
-                );
-
-                try
-                { checker->check(reports, m_channel_status, event_id); }
-                catch(...){ abort(); }
-
+                eventCallBack(checker, reports, event_id, m_channel_status);
 //___THIS_IS_CALLBACK_CODE__//
 
                 m_channel_status->last_id = event_id;
