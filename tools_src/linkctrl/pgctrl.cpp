@@ -29,8 +29,11 @@ using namespace std;
 parameters: \n\
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
-        -e [0,1]      Enable Pattern Generator \n\
+        -e [0,1]      Enable/disable Pattern Generator \n\
+        -f [0,1]      Enable/disable Flow Control \n\
+        -s [size]     Set Pattern Generator Event Size in DWs \n\
         -m [0...3]    set PG mode \n\
+        -h            show this help \n\
 \n\
 "
 
@@ -44,13 +47,17 @@ int main
     int modeval = -1;
     int set_en = 0;
     int enval = -1;
+    int set_size = 0;
+    uint32_t sizeval = 0;
+    int set_fc = 0;
+    int fcval = -1;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:m:e:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:m:e:s:f:")) != -1 )
     {
         switch(arg)
         {
@@ -77,6 +84,20 @@ int main
             {
                 enval = strtol(optarg, NULL, 0);
                 set_en = 1;
+            }
+            break;
+
+            case 's':
+            {
+                sizeval = strtol(optarg, NULL, 0);
+                set_size = 1;
+            }
+            break;
+
+            case 'f':
+            {
+                fcval = strtol(optarg, NULL, 0);
+                set_fc = 1;
             }
             break;
 
@@ -189,12 +210,34 @@ int main
                 /** clear bits 10:8, set new value and write back */
                 pgctrl &= ~(7<<8);
                 pgctrl |= (enval<<8);
-                pgctrl |= (1<<9); //adaptive on
                 pgctrl |= (1<<10); //continuous on
+                pgctrl |= (1<<0); // ddlif enable
             }
         }
 
-        if ( set_mode || set_en )
+        if ( set_fc )
+        {
+            if ( fcval<0 || fcval>1 )
+            {
+                cout << "Invalid Flow Control value " << enval << endl;
+            }
+            else
+            {
+                /** clear adaptive and pg flow control bits: 9, 1 */
+                pgctrl &= ~( (1<<1)|(1<<9) );
+                pgctrl |= (fcval<<1); //ddlif flow control
+                pgctrl |= (fcval<<9); //pg adaptive
+            }
+        }
+
+
+
+        if ( set_size )
+        {
+            current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, sizeval);
+        }
+
+        if ( set_mode || set_en || set_fc )
         {
             current_link->setGTX(RORC_REG_DDL_CTRL, pgctrl);
         }
