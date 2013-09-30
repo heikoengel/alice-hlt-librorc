@@ -244,8 +244,8 @@ main
         }
 
         /** check FPGA VCCAUX*/
-        float vccaux = sm->VCCINT();
-        if ( vccaux < FPGA_VCCINT_MIN || vccaux > FPGA_VCCINT_MAX )
+        float vccaux = sm->VCCAUX();
+        if ( vccaux < FPGA_VCCAUX_MIN || vccaux > FPGA_VCCAUX_MAX )
         {
             cout << "ERROR: FPGA VCCINT out of bounds: "
                 << vccaux << endl;
