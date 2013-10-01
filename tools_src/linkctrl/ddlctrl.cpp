@@ -1,0 +1,323 @@
+/**
+ * @file ddlctrl.cpp
+ * @author Heiko Engel <hengel@cern.ch>
+ * @version 0.1
+ * @date 2013-10-01
+ *
+ * @section LICENSE
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * */
+#include <getopt.h>
+#include <pda.h>
+#include <librorc.h>
+
+using namespace std;
+
+#define HELP_TEXT "ddlctrl usage: \n\
+        ddlctrl [parameters] \n\
+        -n [0...255]  Target device ID \n\
+        -c [0...11]   Channel ID \n\
+        -e [0,1]      DDLIF Enable \n\
+        -p [0,1]      PG Enable \n\
+        -m [0..3]     PG Mode \n\
+        -C [cmd]      Send Command (DIU only) \n\
+        -s [size]     PG Event Size \n\
+        -f [0,1]      FlowControl Enable \n\
+        -N [num]      Number of events or 0 for continuous mode\n\
+        -x            Clear counters \n\
+"
+
+//TODO: add RORC_REG_DDL_PG_WAIT_TIME
+//TODO: add RORC_REG_DDL_PG_PATTERN
+
+
+int main
+(
+    int argc,
+    char *argv[]
+)
+{
+    int do_clear = 0;
+    int set_enable = 0;
+    int set_pgenable = 0;
+    int set_fc = 0;
+    int set_pgmode = 0;
+    int set_pgsize = 0;
+    int set_ddlcmd = 0;
+    int set_pgnevents = 0;
+
+    uint32_t enable = 0;
+    uint32_t pgenable = 0;
+    uint32_t pgsize = 0;
+    uint32_t fc = 0;
+    uint32_t pgmode = 0;
+    uint32_t ddlcmd = 0;
+    uint32_t pgnevents = 0;
+
+
+   /** parse command line arguments **/
+    int32_t DeviceId  = -1;
+    int32_t ChannelId = -1;
+    int arg;
+    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:")) != -1 )
+    {
+        switch(arg)
+        {
+            case 'n':
+            {
+                DeviceId = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'c':
+            {
+                ChannelId = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'x':
+            {
+                do_clear = 1;
+            }
+            break;
+
+            case 'e':
+            {
+                enable = strtol(optarg, NULL, 0);
+                set_enable = 1;
+            }
+            break;
+
+            case 'p':
+            {
+                pgenable = strtol(optarg, NULL, 0);
+                set_pgenable = 1;
+            }
+            break;
+
+            case 'f':
+            {
+                fc = strtol(optarg, NULL, 0);
+                set_fc = 1;
+            }
+            break;
+
+            case 'm':
+            {
+                pgmode = strtol(optarg, NULL, 0);
+                set_pgmode = 1;
+            }
+            break;
+
+            case 's':
+            {
+                pgsize = strtol(optarg, NULL, 0);
+                set_pgsize = 1;
+            }
+            break;
+
+            case 'C':
+            {
+                pgsize = strtol(optarg, NULL, 0);
+                set_pgsize = 1;
+            }
+            break;
+
+            case 'N':
+            {
+                pgnevents = strtol(optarg, NULL, 0);
+                set_pgnevents = 1;
+            }
+            break;
+
+            case 'h':
+            {
+                cout << HELP_TEXT;
+            }
+            break;
+
+
+            default:
+            {
+                cout << "Unknown parameter (" << arg << ")!" << endl;
+                cout << HELP_TEXT;
+                return -1;
+            }
+        }
+    }
+
+    /** sanity checks on command line arguments **/
+    if( DeviceId < 0 || DeviceId > 255 )
+    {
+        cout << "DeviceId invalid or not set: " << DeviceId << endl;
+        cout << HELP_TEXT;
+        abort();
+    }
+
+    /** Create new device instance */
+    librorc::device *dev = NULL;
+    try{ dev = new librorc::device(DeviceId); }
+    catch(...)
+    {
+        printf("ERROR: failed to initialize device.\n");
+        abort();
+    }
+
+    /** bind to BAR1 */
+    librorc::bar *bar = NULL;
+    try
+    {
+    #ifdef SIM
+        bar = new librorc::sim_bar(dev, 1);
+    #else
+        bar = new librorc::rorc_bar(dev, 1);
+    #endif
+    }
+    catch(...)
+    {
+        printf("ERROR: failed to initialize BAR1.\n");
+        abort();
+    }
+
+    /** get number channels implemented in firmware */
+    uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
+
+    uint32_t startChannel, endChannel;
+    if ( ChannelId==-1 )
+    {
+        /** no specific channel selected, iterate over all channels */
+        startChannel = 0;
+        endChannel = (type_channels & 0xffff) - 1;
+    }
+    else if( dev->DMAChannelIsImplemented(ChannelId) )
+    {
+        /** use only selected channel */
+        startChannel = ChannelId;
+        endChannel = ChannelId;
+    }
+    else
+    {
+        cout << "ERROR: Selected Channel " << ChannelId
+             << " is not implemented in Firmware." << endl;
+        abort();
+    }
+
+    /** iterate over selected channels */
+    for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
+    {
+        /** Create DMA channel and bind channel to BAR1 */
+        librorc::link *current_link
+            = new librorc::link(bar, chID);
+
+        /** check if link is up */
+        if ( !current_link->isGtxDomainReady() )
+        {
+            cout << "GTX Domain not ready for channel "
+                 << chID << " - skipping..." << endl;
+            continue;
+        }
+
+        if ( do_clear )
+        {
+            /** clear event count */
+            current_link->setGTX(RORC_REG_DDL_EC, 0);
+            /** clear deadtime counter */
+            current_link->setGTX(RORC_REG_DDL_DEADTIME, 0);
+            /** clear DDL status words */
+            current_link->setGTX(RORC_REG_DDL_CTSTW, 0);
+            current_link->setGTX(RORC_REG_DDL_FESTW, 0);
+            current_link->setGTX(RORC_REG_DDL_DTSTW, 0);
+            current_link->setGTX(RORC_REG_DDL_IFSTW, 0);
+            /** clear DDL event length counter */
+            current_link->setGTX(RORC_REG_DDL_CLR_EL, 0);
+        }
+
+        /** get current config */
+        uint32_t ddlctrl = current_link->GTX(RORC_REG_DDL_CTRL);
+
+        if ( set_enable )
+        {
+            ddlctrl &= ~(1<<0);
+            ddlctrl |= (enable&1);
+        }
+
+        if ( set_pgenable )
+        {
+            /** bit 8: PG Enable */
+            ddlctrl &= ~(1<<8);
+            ddlctrl |= ((pgenable&1)<<8);
+        }
+
+        if ( set_pgnevents )
+        {
+            if ( pgnevents )
+            {
+                ddlctrl &= ~(1<<10); //clear continuous-bit
+            } 
+            else
+            {
+                ddlctrl |= (1<<10); //set continuous-bit
+            }
+            current_link->setGTX(RORC_REG_DDL_PG_NUM_EVENTS, pgnevents);
+        }
+
+        if ( set_pgsize )
+        {
+            current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, pgsize);
+        }
+
+        if ( set_pgmode )
+        {
+            /** clear bits 12:11 and set new value */
+            ddlctrl &= ~(3<<11);
+            ddlctrl |= ((pgmode&3)<<11);
+        }
+
+
+        /** send DIU command */
+        if ( set_ddlcmd )
+        {
+            if ((type_channels>>16) == RORC_CFG_PROJECT_hlt_in )
+            {
+                current_link->setGTX(RORC_REG_DDL_CMD, ddlcmd);
+            }
+            else
+            {
+                cout << "Current FW is not HLT_IN, cannot send DIU command."
+                     << endl;
+            }
+        }
+
+        if ( set_fc )
+        {
+            ddlctrl &= ~(1<<1); // clear flow control bit
+            ddlctrl |= ((fc&1)<<1);
+            ddlctrl &= ~(1<<9); // clear PG adaptive
+            ddlctrl |= ((fc&1)<<9);
+        }
+
+        if ( set_fc || set_enable || set_pgmode 
+                || set_pgenable || set_pgnevents)
+        {
+            current_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        }
+
+        delete current_link;
+    }
+
+    delete bar;
+    delete dev;
+
+    return 0;
+}
+

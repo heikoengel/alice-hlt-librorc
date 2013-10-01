@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
 
     if
     (
-        !checkEventSize(opts.eventSize, argv[0]) &&
-        (opts.esType == LIBRORC_ES_PG)
+        (opts.esType == LIBRORC_ES_PG) &&
+        !checkEventSize(opts.eventSize, argv[0])
     )
     { exit(-1); }
 
@@ -88,9 +88,15 @@ int main(int argc, char *argv[])
 
     /** make clear what will be checked*/
     int     result        = 0;
-    int32_t sanity_checks = 0xff; /** all checks defaults */
-    if(opts.esType == LIBRORC_ES_DDL)
-    { sanity_checks = CHK_FILE | CHK_SIZES; }
+    int32_t sanity_checks = CHK_SIZES|CHK_SOE|CHK_EOE;
+    if(opts.useRefFile)
+    {
+        sanity_checks |= CHK_FILE;
+    }
+    else
+    {
+        sanity_checks |= CHK_PATTERN | CHK_ID;
+    }
 
     /** Event loop */
     while( !done )
@@ -102,7 +108,7 @@ int main(int argc, char *argv[])
             eventStream->m_channel,
             chstats,
             sanity_checks,
-            (opts.esType==LIBRORC_ES_DDL),
+            opts.useRefFile,
             opts.refname
         );
 
