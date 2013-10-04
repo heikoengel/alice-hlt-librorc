@@ -77,6 +77,7 @@ int main( int argc, char *argv[])
     unsigned long last_events_received;
     uint64_t ebuf_fill_state;
     uint64_t nevents;
+    uint64_t EventID;
 
     /** command line arguments */
     // TODO : this is bad because it fails if the struct changes
@@ -293,6 +294,8 @@ int main( int argc, char *argv[])
     // no event in EB now
     ebuf_fill_state = 0;
 
+    EventID = 0;
+
     sigaction(SIGINT, &sigIntHandler, NULL);
     // wait for RB entry
     while(!done)
@@ -302,6 +305,7 @@ int main( int argc, char *argv[])
                 ebuf, //event buffer instance
                 ch, //channel instance
                 &ebuf_fill_state, // event buffer fill state
+                &EventID,
                 EventSize // event size to be used for event generation
                 );
         if ( nevents > 0 )
@@ -315,7 +319,7 @@ int main( int argc, char *argv[])
                 ebuf,
                 ch, // channe struct
                 chstats, // stats struct
-                CHK_SIZES|CHK_PATTERN|CHK_SOE, // do sanity check
+                CHK_SIZES|CHK_PATTERN|CHK_SOE|CHK_ID, // do sanity check
                 NULL, // no DDL reference file
                 0); //DDL reference size
 
@@ -382,16 +386,21 @@ int main( int argc, char *argv[])
                 chstats->n_events/chstats->set_offset_count,
                 chstats->set_offset_count);
 
-
-    // disable DMA Engine
-    ch->disableEventBuffer();
+    // wait until EL_FIFO runs empty
+    // TODO: add timeout
+    while( ch->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
+        usleep(100);
 
     // wait for pending transfers to complete (dma_busy->0)
+    // TODO: add timeout
     while( ch->getDMABusy() )
         usleep(100);
 
+    // disable EBDM Engine
+    ch->disableEventBuffer();
+
     // disable RBDM
-    ch->enableReportBuffer();
+    ch->disableReportBuffer();
 
     // reset DFIFO, disable DMA PKT
     ch->setDMAConfig(0X00000002);

@@ -40,34 +40,43 @@ namespace LIBRARY_NAME
     void
     dma_channel_ddl::configureDDL()
     {
-        /** set ENABLE, activate flow control (DIU_IF:busy) */
+        /** set ENABLE, activate flow control (DIU_IF:busy), MUX=0 */
         setGTX(RORC_REG_DDL_CTRL, 0x00000003);
 
+        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
         /** wait for riLD_N='1' */
-        while( (GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20 )
-            {usleep(100);}
+        while( ((GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20) &&
+                (timeout!=0) )
+        {
+            timeout--;
+            usleep(100);
+        }
 
-        /** clear DIU_IF IFSTW, CTSTW */
-        setGTX(RORC_REG_DDL_IFSTW, 0);
-        setGTX(RORC_REG_DDL_CTSTW, 0);
+        if ( !timeout )
+        {
+            /** clear DIU_IF IFSTW, CTSTW */
+            setGTX(RORC_REG_DDL_IFSTW, 0);
+            setGTX(RORC_REG_DDL_CTSTW, 0);
 
-        /** send EOBTR to close any open transaction */
-        setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
+            /** send EOBTR to close any open transaction */
+            setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
-        waitForCommandTransmissionStatusWord();
+            waitForCommandTransmissionStatusWord();
 
-        /** clear DIU_IF IFSTW */
-        setGTX(RORC_REG_DDL_IFSTW, 0);
-        setGTX(RORC_REG_DDL_CTSTW, 0);
+            /** clear DIU_IF IFSTW */
+            setGTX(RORC_REG_DDL_IFSTW, 0);
+            setGTX(RORC_REG_DDL_CTSTW, 0);
 
-        /** send RdyRx to SIU */
-        setGTX(RORC_REG_DDL_CMD, 0x00000014);
+            /** send RdyRx to SIU */
+            setGTX(RORC_REG_DDL_CMD, 0x00000014);
 
-        waitForCommandTransmissionStatusWord();
-
-        /** clear DIU_IF IFSTW */
-        setGTX(RORC_REG_DDL_IFSTW, 0);
-        setGTX(RORC_REG_DDL_CTSTW, 0);
+            waitForCommandTransmissionStatusWord();
+        }
+        else
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for LD_N to deassert");
+        }
     }
 
 
@@ -81,9 +90,20 @@ namespace LIBRARY_NAME
             /** disable BUSY -> drop current data in chain */
             setGTX(RORC_REG_DDL_CTRL, 0x00000001);
 
+            uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
             /** wait for LF_N to go high */
-            while(!(GTX(RORC_REG_DDL_CTRL) & (1<<4)))
-            {usleep(100);}
+            while( (!(GTX(RORC_REG_DDL_CTRL) & (1<<4))) &&
+                (timeout!=0) )
+            {
+                usleep(100);
+                timeout--;
+            }
+
+            if ( !timeout )
+            {
+                DEBUG_PRINTF(PDADEBUG_ERROR,
+                        "Timeout waiting for LF_N to deassert\n");
+            }
 
             /** clear DIU_IF IFSTW */
             setGTX(RORC_REG_DDL_IFSTW, 0);
@@ -96,8 +116,19 @@ namespace LIBRARY_NAME
              * in response to the EOBTR:
              * STS[7:4]="0000"
              */
-            while(GTX(RORC_REG_DDL_CTSTW) & 0xf0)
-            {usleep(100);}
+            timeout = LIBRORC_LINK_DDL_TIMEOUT;
+            while( (GTX(RORC_REG_DDL_CTSTW) & 0xf0) &&
+                (timeout!=0) )
+            {
+                usleep(100);
+                timeout--;
+            }
+
+            if ( !timeout )
+            {
+                DEBUG_PRINTF(PDADEBUG_ERROR,
+                        "Timeout waiting for CTSTW\n");
+            }
 
             /** disable DIU_IF */
             setGTX(RORC_REG_DDL_CTRL, 0x00000000);

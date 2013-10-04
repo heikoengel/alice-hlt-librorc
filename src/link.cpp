@@ -466,8 +466,18 @@ namespace LIBRARY_NAME
     void
     link::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
     {
-        while( GTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
-        { usleep(100); }
+        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
+        while( (GTX(RORC_REG_DDL_CTSTW) == 0xffffffff) &&
+                (timeout!=0) )
+        {
+            usleep(100);
+            timeout--;
+        }
+        if ( !timeout )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for CommandTransmissionStatusWord\n");
+        }
     }
 
     void

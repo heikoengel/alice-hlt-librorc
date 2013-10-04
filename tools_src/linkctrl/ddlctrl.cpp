@@ -34,11 +34,44 @@ using namespace std;
         -s [size]     PG Event Size \n\
         -f [0,1]      FlowControl Enable \n\
         -N [num]      Number of events or 0 for continuous mode\n\
+        -M [0,1]      EventStream MUX: 0->DDL, 1->PG \n\
         -x            Clear counters \n\
 "
 
 //TODO: add RORC_REG_DDL_PG_WAIT_TIME
 //TODO: add RORC_REG_DDL_PG_PATTERN
+
+
+void
+dump_channel_status
+(
+    uint32_t chID,
+    uint32_t ddlctrl,
+    uint32_t fwtype
+)
+{
+    cout << "CH" << chID
+         << " EN:" << (ddlctrl&1)
+         << " FC:" << ((ddlctrl>>1)&1)
+         << " LF_N:" << ((ddlctrl>>4)&1);
+    if ( fwtype ==  RORC_CFG_PROJECT_hlt_out )
+    {
+        cout << " OPEN:";
+    }
+    else
+    {
+        cout << " LD_N:";
+    }
+    cout << ((ddlctrl>>5)&1)
+         << " XOFF:" << ((ddlctrl>>6)&1)
+         << " PG_EN:" << ((ddlctrl>>8)&1)
+         << " PG_ADAP:" << ((ddlctrl>>9)&1)
+         << " PG_CONT:" << ((ddlctrl>>10)&1)
+         << " roBSY_N:" << ((ddlctrl>>30)&1)
+         << endl;
+}
+
+
 
 
 int main
@@ -55,6 +88,7 @@ int main
     int set_pgsize = 0;
     int set_ddlcmd = 0;
     int set_pgnevents = 0;
+    int set_mux = 0;
 
     uint32_t enable = 0;
     uint32_t pgenable = 0;
@@ -63,13 +97,14 @@ int main
     uint32_t pgmode = 0;
     uint32_t ddlcmd = 0;
     uint32_t pgnevents = 0;
+    uint32_t mux = 0;
 
 
    /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:")) != -1 )
     {
         switch(arg)
         {
@@ -128,8 +163,8 @@ int main
 
             case 'C':
             {
-                pgsize = strtol(optarg, NULL, 0);
-                set_pgsize = 1;
+                ddlcmd = strtol(optarg, NULL, 0);
+                set_ddlcmd = 1;
             }
             break;
 
@@ -137,6 +172,13 @@ int main
             {
                 pgnevents = strtol(optarg, NULL, 0);
                 set_pgnevents = 1;
+            }
+            break;
+
+            case 'M':
+            {
+                mux = strtol(optarg, NULL, 0);
+                set_mux = 1;
             }
             break;
 
@@ -219,7 +261,7 @@ int main
         librorc::link *current_link
             = new librorc::link(bar, chID);
 
-        /** check if link is up */
+        /** check if GTX domain is up */
         if ( !current_link->isGtxDomainReady() )
         {
             cout << "GTX Domain not ready for channel "
@@ -298,6 +340,17 @@ int main
             }
         }
 
+        if ( set_mux )
+        {
+            /** set EventStream Multiplexer:
+             * Setting | HLT_IN   | HLT_OUT
+             * 0       | from DIU | from host
+             * 1       | from PG  | from PG
+             * */
+            ddlctrl &= ~(1<<3);
+            ddlctrl |= ((mux&1)<<3);
+        }
+
         if ( set_fc )
         {
             ddlctrl &= ~(1<<1); // clear flow control bit
@@ -311,6 +364,8 @@ int main
         {
             current_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
         }
+
+        dump_channel_status(chID, ddlctrl, type_channels>>16);
 
         delete current_link;
     }

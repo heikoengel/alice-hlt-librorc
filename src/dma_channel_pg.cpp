@@ -43,8 +43,14 @@ namespace LIBRARY_NAME
     {
         /** Configure Pattern Generator */
         setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-        setGTX(RORC_REG_DDL_CTRL, (GTX(RORC_REG_DDL_CTRL) | 0x600) );
-        setGTX(RORC_REG_DDL_CTRL, (GTX(RORC_REG_DDL_CTRL) | 0x100) );
+        uint32_t ddlctrl = (1<<0) | //enable DDLIF
+            (1<<1) | // enable flow control
+            (1<<3) | // set MUX to use PG as data source
+            (1<<9) | // enable PG adaptive
+            (1<<10) | // enable continuous mode
+            (1<<8) | // enable PG
+            (0<<11); // set mode to INCREMENT
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 

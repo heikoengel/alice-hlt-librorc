@@ -62,6 +62,7 @@ fill_eventbuffer
     librorc::buffer      *ebuf,
     librorc::dma_channel *channel,
     uint64_t             *event_generation_offset,
+    uint64_t             *EventID,
     uint32_t             EventSize
 )
 {
@@ -100,6 +101,14 @@ fill_eventbuffer
 
     uint64_t nevents = (uint64_t)(buf_space_avail / fragment_size);
 
+    // never use full buf_space_avail to avoid the situation where
+    // event_generation_offset==last_eb_offset because this will break
+    // buf_space_avail calculation above
+    if ( (buf_space_avail - EventSize) <= fragment_size )
+        nevents = 0;
+    else
+        nevents = (uint64_t)(buf_space_avail / fragment_size) - 1;
+
     // get current EL FIFO fill state consisting of:
     // el_fifo_state[31:16] = FIFO write limit
     // el_fifo_state[15:0]  = FIFO write count
@@ -137,18 +146,17 @@ fill_eventbuffer
         // write event data to buffer
         create_event(
                  eventbuffer + (offset>>2), // destination pointer
-                 i, // event ID
+                 *EventID, // event ID
                  EventSize ); // event size
-        /*DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x), "
-                "ego=%lx, fs=%x\n",
-                offset, i, EventSize, *event_generation_offset, 
-                fragment_size);*/
+        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x)\n",
+                offset, *EventID, EventSize);
 
         // push event size into EL FIFO
         channel->setPacketizer(RORC_REG_DMA_ELFIFO, EventSize);
 
         // adjust event buffer fill state
         *event_generation_offset += fragment_size;
+        *EventID += 1;
 
         // wrap fill state if neccessary
         if ( *event_generation_offset >= ebuf->getSize() )

@@ -23,6 +23,7 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 
+#define LIBRORC_LINK_DDL_TIMEOUT 10000
 
 typedef struct
 gtxpll_settings_struct

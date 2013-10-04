@@ -300,8 +300,8 @@ namespace LIBRARY_NAME
                 m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
                 m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
 
-                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, sizeof(librorc_event_descriptor));
-                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, sizeof(librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_reportBuffer, sizeof(librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_reportBuffer, sizeof(librorc_event_descriptor));
 
                 m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
@@ -346,6 +346,10 @@ namespace LIBRARY_NAME
                     &m_config,
                     sizeof(librorc_channel_config)
                 );
+                DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+                        "Setting ptrs: RBDM=%016lx EBDM=%016lx\n",
+                        (((uint64_t)m_config.swptrs.rbdm_software_read_pointer_high<<32)+m_config.swptrs.rbdm_software_read_pointer_low),
+                        (((uint64_t)m_config.swptrs.ebdm_software_read_pointer_high<<32)+m_config.swptrs.ebdm_software_read_pointer_low));
             }
     };
 
@@ -456,6 +460,10 @@ dma_channel::setBufferOffsetsOnDevice
 {
     m_channelConfigurator->setOffsets(eboffset, rboffset);
     m_last_ebdm_offset = eboffset;
+
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+            "Setting ptrs: RBDM=%016lx EBDM=%016lx\n",
+            rboffset, eboffset);
 }
 
 
