@@ -54,6 +54,11 @@ namespace LIBRARY_NAME
 
         if ( !timeout )
         {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for LD_N to deassert");
+        }
+        else
+        {
             /** clear DIU_IF IFSTW, CTSTW */
             setGTX(RORC_REG_DDL_IFSTW, 0);
             setGTX(RORC_REG_DDL_CTSTW, 0);
@@ -71,11 +76,6 @@ namespace LIBRARY_NAME
             setGTX(RORC_REG_DDL_CMD, 0x00000014);
 
             waitForCommandTransmissionStatusWord();
-        }
-        else
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for LD_N to deassert");
         }
     }
 
