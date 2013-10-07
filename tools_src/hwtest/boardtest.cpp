@@ -229,7 +229,7 @@ main
                 << fpgatemp << endl;
         } else if ( verbose )
         {
-            cout << "FPGA Temp: " << fpgatemp << " °C" << endl;
+            cout << "FPGA Temp: " << fpgatemp << " degC" << endl;
         }
 
         /** check FPGA VCCINT*/
@@ -282,7 +282,7 @@ main
             } else if ( verbose )
             {
                 cout << "QSFP " << i 
-                     << " Temperature: " << qsfptemp << " °C" << endl;
+                     << " Temperature: " << qsfptemp << " degC" << endl;
             }
 
             /** QSFP supply voltage */

@@ -3,11 +3,11 @@ add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test with Pattern Generator
-add_executable( dma_in_pg
+add_executable( dma_in_hwpg
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( dma_in_pg rorc pthread ${EXTRA_LIBS})
+target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test DDL backend
 add_executable( dma_in_ddl
@@ -15,6 +15,13 @@ add_executable( dma_in_ddl
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
+
+# Build DMA test pure backend
+add_executable( dma_in_generic
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_in_generic rorc pthread ${EXTRA_LIBS})
 
 #-----------------------------------------------------------
 

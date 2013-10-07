@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     if
     (
-        (opts.esType == LIBRORC_ES_PG) &&
+        (opts.esType == LIBRORC_ES_IN_HWPG) &&
         !checkEventSize(opts.eventSize, argv[0])
     )
     { exit(-1); }

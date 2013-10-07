@@ -30,12 +30,21 @@ using namespace std;
         -e [0,1]      DDLIF Enable \n\
         -p [0,1]      PG Enable \n\
         -m [0..3]     PG Mode \n\
+        -P [0,1]      PRBS EventSize mode enable \n\
         -C [cmd]      Send Command (DIU only) \n\
-        -s [size]     PG Event Size \n\
+        -s [size]     PG EventSize or PRBS masks (see below) \n\
         -f [0,1]      FlowControl Enable \n\
         -N [num]      Number of events or 0 for continuous mode\n\
         -M [0,1]      EventStream MUX: 0->DDL, 1->PG \n\
+        -w [waittime] Set WaitTime between events in #CC \n\
+        -W [pattern]  Set initial PG pattern word \n\
         -x            Clear counters \n\
+\n\
+In PRBS EventSize mode: \n\
+[size] parameter consists of {prbs_mask[31:16], prbs_min_size[15:0]}, where\n\
+* {prbs_mask, 0xffff} is applied with logical-AND, and \n\
+* {0x0000, prbs_min_size} with logical-OR \n\
+to a 32bit PRBS Event Size value.\n\
 "
 
 //TODO: add RORC_REG_DDL_PG_WAIT_TIME
@@ -67,6 +76,7 @@ dump_channel_status
          << " PG_EN:" << ((ddlctrl>>8)&1)
          << " PG_ADAP:" << ((ddlctrl>>9)&1)
          << " PG_CONT:" << ((ddlctrl>>10)&1)
+         << " PG_PRBS:" << ((ddlctrl>>13)&1)
          << " roBSY_N:" << ((ddlctrl>>30)&1)
          << endl;
 }
@@ -89,6 +99,9 @@ int main
     int set_ddlcmd = 0;
     int set_pgnevents = 0;
     int set_mux = 0;
+    int set_prbssize = 0;
+    int set_waittime = 0;
+    int set_pattern = 0;
 
     uint32_t enable = 0;
     uint32_t pgenable = 0;
@@ -98,13 +111,16 @@ int main
     uint32_t ddlcmd = 0;
     uint32_t pgnevents = 0;
     uint32_t mux = 0;
+    uint32_t prbssize = 0;
+    uint32_t waittime = 0;
+    uint32_t pattern = 0;
 
 
    /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:w:W:")) != -1 )
     {
         switch(arg)
         {
@@ -154,6 +170,13 @@ int main
             }
             break;
 
+            case 'P':
+            {
+                prbssize = strtol(optarg, NULL, 0);
+                set_prbssize = 1;
+            }
+            break;
+
             case 's':
             {
                 pgsize = strtol(optarg, NULL, 0);
@@ -179,6 +202,20 @@ int main
             {
                 mux = strtol(optarg, NULL, 0);
                 set_mux = 1;
+            }
+            break;
+
+            case 'w':
+            {
+                waittime = strtol(optarg, NULL, 0);
+                set_waittime = 1;
+            }
+            break;
+
+            case 'W':
+            {
+                pattern = strtol(optarg, NULL, 0);
+                set_pattern = 1;
             }
             break;
 
@@ -280,19 +317,19 @@ int main
             current_link->setGTX(RORC_REG_DDL_FESTW, 0);
             current_link->setGTX(RORC_REG_DDL_DTSTW, 0);
             current_link->setGTX(RORC_REG_DDL_IFSTW, 0);
-            /** clear DDL event length counter */
-            current_link->setGTX(RORC_REG_DDL_CLR_EL, 0);
         }
 
         /** get current config */
         uint32_t ddlctrl = current_link->GTX(RORC_REG_DDL_CTRL);
 
+        /** enable/disable DDL Interface */
         if ( set_enable )
         {
             ddlctrl &= ~(1<<0);
             ddlctrl |= (enable&1);
         }
 
+        /** enable/disable PatternGenerator */
         if ( set_pgenable )
         {
             /** bit 8: PG Enable */
@@ -300,6 +337,14 @@ int main
             ddlctrl |= ((pgenable&1)<<8);
         }
 
+        /** enable/disable PRBS Event Size */
+        if ( set_prbssize )
+        {
+            ddlctrl &= ~(1<<13);
+            ddlctrl |= ((prbssize&1)<<13);
+        }
+
+        /** set number of events - if non-zero set continuous-bit */
         if ( set_pgnevents )
         {
             if ( pgnevents )
@@ -313,11 +358,18 @@ int main
             current_link->setGTX(RORC_REG_DDL_PG_NUM_EVENTS, pgnevents);
         }
 
+        /** set PatternGenerator Event Size or PRBS Masks */
         if ( set_pgsize )
         {
             current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, pgsize);
         }
 
+        /** set PatternGenerator Mode:
+         * 0: increment
+         * 1: shift
+         * 2: decrement
+         * 3: toggle
+         * */
         if ( set_pgmode )
         {
             /** clear bits 12:11 and set new value */
@@ -340,6 +392,19 @@ int main
             }
         }
 
+        /** set PG waittime between events */
+        if ( set_waittime )
+        {
+            current_link->setGTX(RORC_REG_DDL_PG_WAIT_TIME, waittime);
+        }
+
+        /** set initial PG pattern */
+        if ( set_pattern )
+        {
+            current_link->setGTX(RORC_REG_DDL_PG_PATTERN, pattern);
+        }
+
+
         if ( set_mux )
         {
             /** set EventStream Multiplexer:
@@ -351,6 +416,7 @@ int main
             ddlctrl |= ((mux&1)<<3);
         }
 
+        /** set flow control */
         if ( set_fc )
         {
             ddlctrl &= ~(1<<1); // clear flow control bit
@@ -359,8 +425,8 @@ int main
             ddlctrl |= ((fc&1)<<9);
         }
 
-        if ( set_fc || set_enable || set_pgmode 
-                || set_pgenable || set_pgnevents)
+        if ( set_fc || set_enable || set_pgmode || set_pgenable ||
+                set_pgnevents || set_prbssize || set_mux )
         {
             current_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
         }

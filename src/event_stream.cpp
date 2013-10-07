@@ -41,7 +41,7 @@ namespace LIBRARY_NAME
         int32_t channelId
     )
     {
-        generateDMAChannel(deviceId, channelId, LIBRORC_ES_PURE);
+        generateDMAChannel(deviceId, channelId, LIBRORC_ES_IN_GENERIC);
     }
 
     event_stream::event_stream
@@ -112,15 +112,22 @@ namespace LIBRARY_NAME
     {
         switch ( esType )
         {
-            case LIBRORC_ES_PURE:
+            case LIBRORC_ES_IN_GENERIC:
             {
             m_channel =
                 new librorc::dma_channel
-                    (m_channelId, MAX_PAYLOAD, m_dev, m_bar1, m_eventBuffer, m_reportBuffer);
+                (
+                     m_channelId,
+                     MAX_PAYLOAD,
+                     m_dev,
+                     m_bar1,
+                     m_eventBuffer,
+                     m_reportBuffer
+                 );
             }
             break;
 
-            case LIBRORC_ES_DDL:
+            case LIBRORC_ES_IN_DDL:
             {
             m_channel =
                 new librorc::dma_channel_ddl
@@ -135,7 +142,7 @@ namespace LIBRARY_NAME
             }
             break;
 
-            case LIBRORC_ES_PG:
+            case LIBRORC_ES_IN_HWPG:
             {
             m_channel =
                 new librorc::dma_channel_pg

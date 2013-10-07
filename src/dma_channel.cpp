@@ -399,6 +399,7 @@ dma_channel::disable()
 {
     disableEventBuffer();
 
+    // TODO: add timeout
     while(getDMABusy())
     { usleep(100); }
 
