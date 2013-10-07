@@ -219,7 +219,7 @@ printStatusLine
     {
         printf
         (
-            "Events: %10ld, DataSize: %8.3f GB ",
+            "Events IN: %10ld, Size: %8.3f GB ",
             chstats->n_events,
             (double)chstats->bytes_received/(double)(1<<30)
         );
@@ -228,25 +228,25 @@ printStatusLine
         {
             printf
             (
-                " DataRate: %9.3f MB/s",
+                " Rate: %9.3f MB/s",
                 (double)(chstats->bytes_received - *last_bytes_received)/
                 gettimeofdayDiff(last_time, cur_time)/(double)(1<<20)
             );
         }
         else
-        { printf(" DataRate: -"); }
+        { printf(" Rate: -"); }
 
         if(chstats->n_events - *last_events_received)
         {
             printf
             (
-                " EventRate: %9.3f kHz/s",
+                " (%.3f kHz)",
                 (double)(chstats->n_events - *last_events_received)/
                 gettimeofdayDiff(last_time, cur_time)/1000.0
             );
         }
         else
-        { printf(" EventRate: -"); }
+        { printf(" ( - )"); }
 
         printf(" Errors: %ld\n", chstats->error_count);
         last_time = cur_time;
