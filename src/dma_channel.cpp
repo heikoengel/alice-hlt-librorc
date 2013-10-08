@@ -250,11 +250,12 @@ namespace LIBRARY_NAME
                 offsets.rbdm_software_read_pointer_low  = (uint32_t)(rboffset & 0xffffffff);
                 offsets.rbdm_software_read_pointer_high = (uint32_t)(rboffset>>32 & 0xffffffff);
 
-                offsets.dma_ctrl
-                    = (1<<31) | // sync pointers
-                      (1<<2)  | // enable EB
-                      (1<<3)  | // enable RB
-                      (1<<0);   // enable DMA engine
+                offsets.dma_ctrl =
+                    SYNC_SOFTWARE_READ_POINTERS | // sync pointers)
+                    SET_CHANNEL_AS_PCIE_TAG | // set channel ID as tag
+                    (1<<2)  | // enable EB
+                    (1<<3)  | // enable RB
+                    (1<<0);   // enable DMA engine
 
                 m_bar->memcopy
                 (
