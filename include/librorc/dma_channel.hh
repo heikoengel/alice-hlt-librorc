@@ -59,6 +59,7 @@ typedef struct
     uint64_t error_count;
     uint64_t last_id;
     uint32_t channel;
+    uint32_t device;
 }librorcChannelStatus;
 
 

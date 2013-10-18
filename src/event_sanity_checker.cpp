@@ -113,15 +113,16 @@ namespace LIBRARY_NAME
             )
             {
                 int lengthOfDestinationFilePath =
-                        snprintf(NULL, 0, "%s/ch%d_%d.ddl", m_base_dir, channel_status->channel, file_index);
+                        snprintf(NULL, 0, "%s/dev%d_ch%d_%d.ddl", 
+                                m_base_dir, channel_status->device, channel_status->channel, file_index);
 
                 if (lengthOfDestinationFilePath < 0)
                 { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
 
-                snprintf(m_ddl_file_name, lengthOfDestinationFilePath+1, "%s/ch%d_%d.ddl",
-                         m_base_dir, channel_status->channel, file_index);
-                snprintf(m_log_file_name, lengthOfDestinationFilePath+1, "%s/ch%d_%d.log",
-                         m_base_dir, channel_status->channel, file_index);
+                snprintf(m_ddl_file_name, lengthOfDestinationFilePath+1, "%s/dev%d_ch%d_%d.ddl",
+                         m_base_dir, channel_status->device, channel_status->channel, file_index);
+                snprintf(m_log_file_name, lengthOfDestinationFilePath+1, "%s/dev%d_ch%d_%d.log",
+                         m_base_dir, channel_status->device, channel_status->channel, file_index);
 
                 m_fd_ddl = fopen(m_ddl_file_name, "w");
                 if(m_fd_ddl < 0)
@@ -255,7 +256,7 @@ namespace LIBRARY_NAME
                 for
                 (
                     i = 0;
-                    i < report_buffer_entry[channel_status->index].calc_event_size;
+                    i < (report_buffer_entry[channel_status->index].calc_event_size & 0x3fffffff);
                     i++
                 )
                 {
@@ -286,7 +287,7 @@ namespace LIBRARY_NAME
                     (
                             m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2),
                             4,
-                            report_buffer_entry[channel_status->index].calc_event_size,
+                            (report_buffer_entry[channel_status->index].calc_event_size & 0x3fffffff),
                             m_fd_ddl
                     );
 

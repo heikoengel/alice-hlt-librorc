@@ -47,6 +47,11 @@ evaluateArguments(int argc, char *argv[])
         ret.esType = LIBRORC_ES_IN_DDL;
     }
 
+    if( 0 == strcmp(app_name, "hlt_out_writer") )
+    {
+        ret.esType = LIBRORC_ES_OUT_SWPG;
+    }
+
     /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
     {
         return ret;
@@ -178,6 +183,7 @@ prepareSharedMemory
     chstats->index = 0;
     chstats->last_id = 0xfffffffff;
     chstats->channel = (unsigned int)opts.channelId;
+    chstats->device = (unsigned int)opts.deviceId;
 
     return(chstats);
 }
