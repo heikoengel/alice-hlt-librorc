@@ -83,7 +83,7 @@ namespace LIBRARY_NAME
                         ? dumpCalculatedIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
                         : true;
 
-                    dump_event =
+                    dump_event &=
                           offsetIsLargerThanPhysical(m_reports, channel_status, event_buffer)
                         ? dumpOffsetIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
                         : true;
@@ -185,7 +185,7 @@ namespace LIBRARY_NAME
                 librorc::buffer          *event_buffer
             )
             {
-                return   report_buffer_entry[channel_status->index].calc_event_size
+                return   ((report_buffer_entry[channel_status->index].calc_event_size) & 0x3fffffff)
                        > (event_buffer->getPhysicalSize() >> 2);
             }
 
@@ -202,7 +202,7 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "calc_event_size (0x%x DWs) is larger"
                     " than physical buffer size (0x%lx DWs) - not dumping event.\n",
-                    report_buffer_entry[channel_status->index].calc_event_size,
+                    (report_buffer_entry[channel_status->index].calc_event_size & 0x3fffffff),
                     (event_buffer->getPhysicalSize() >> 2)
                 );
 

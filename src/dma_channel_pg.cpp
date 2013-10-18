@@ -49,7 +49,7 @@ namespace LIBRARY_NAME
             (1<<9) | // enable PG adaptive
             (1<<10) | // enable continuous mode
             (1<<8) | // enable PG
-            (1<<13) | // enable PRBS EventLength
+            //(1<<13) | // enable PRBS EventLength
             (0<<11); // set mode to INCREMENT
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
