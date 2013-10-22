@@ -74,14 +74,14 @@ namespace LIBRARY_NAME
 
                     //TODO : review this bool (dump event if something fails)?
                     bool
-                    dump_event =
+                    dump_event  =
                           calculatedIsLargerThanPhysical(report, event_buffer)
                         ? dumpCalculatedIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
                     dump_event &=
-                          offsetIsLargerThanPhysical(m_reports, channel_status, event_buffer)
-                        ? dumpOffsetIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
+                          offsetIsLargerThanPhysical(report, event_buffer)
+                        ? dumpOffsetIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
                     dump_event ? dumpEventToLog(error_bit_mask, report) : (void)0;

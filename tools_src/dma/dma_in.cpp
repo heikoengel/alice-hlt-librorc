@@ -80,11 +80,11 @@ int main(int argc, char *argv[])
 
     /** make clear what will be checked*/
     int32_t sanity_check_mask = 0xff; /** all checks defaults */
-    if(opts.esType == LIBRORC_ES_DDL)
+    if(opts.esType == LIBRORC_ES_IN_DDL)
     { sanity_check_mask = CHK_FILE | CHK_SIZES; }
 
     librorc::event_sanity_checker checker =
-        (opts.esType==LIBRORC_ES_DDL) /** is DDL reference file enabled? */
+        (opts.esType==LIBRORC_ES_IN_DDL) /** is DDL reference file enabled? */
         ?   librorc::event_sanity_checker
             (
                 eventStream->m_eventBuffer,

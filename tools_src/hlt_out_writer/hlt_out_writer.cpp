@@ -32,7 +32,7 @@
 #include <getopt.h>
 
 #include <librorc.h>
-#include "../dma/dma_handling.hh"
+#include "dma_handling.hh"
 #include "event_handling.h"
 #include "event_generation.h"
 
