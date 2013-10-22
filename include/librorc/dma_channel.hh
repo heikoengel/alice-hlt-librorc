@@ -45,7 +45,6 @@
 
 
 
-
 /**
  * @class dma_channel
  * @brief DMA channel management class

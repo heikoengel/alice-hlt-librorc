@@ -32,33 +32,14 @@
 #include <getopt.h>
 
 #include <librorc.h>
+#include "../dma/dma_handling.hh"
 #include "event_handling.h"
 #include "event_generation.h"
 
 using namespace std;
 
-#define HELP_TEXT "hlt_out_writer usage: \n\
-        hlt_out_writer [parameters] \n\
-parameters: \n\
-        --device [0..255] Destination device ID \n\
-        --channel [0..11] Destination DMA channel \n\
-        --size [value]    Event Size in DWs \n\
-        --help            Show this text \n"
 
-/** maximum channel number allowed **/
-#define MAX_CHANNEL 11
-
-int done = 0;
-
-
-void abort_handler( int s )
-{
-    printf("Caught signal %d\n", s);
-    if (done==1)
-        exit(-1);
-    else
-        done = 1;
-}
+DMA_ABORT_HANDLER
 
 
 
@@ -77,119 +58,45 @@ int main( int argc, char *argv[])
     unsigned long last_events_received;
     uint64_t ebuf_fill_state;
     uint64_t nevents;
+    uint64_t EventID;
 
-    /** command line arguments */
-    // TODO : this is bad because it fails if the struct changes
-    static struct option long_options[] =
+    DMAOptions opts = evaluateArguments(argc, argv);
+
+    if
+    (!(
+        checkDeviceID(opts.deviceId, argv[0])   &&
+        checkChannelID(opts.channelId, argv[0])
+    ) )
+    { exit(-1); }
+
+    struct stat ddlstat;
+    if ( opts.useRefFile )
     {
-        {"device", required_argument, 0, 'd'},
-        {"channel", required_argument, 0, 'c'},
-        {"size", required_argument, 0, 's'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-
-    /** parse command line arguments **/
-    int32_t  DeviceId  = -1;
-    int32_t  ChannelId = -1;
-    uint32_t EventSize = 0;
-    while(1)
-    {
-        int opt = getopt_long(argc, argv, "", long_options, NULL);
-        if ( opt == -1 )
-        { break; }
-
-        switch(opt)
+        if ( stat(opts.refname, &ddlstat) == -1 )
         {
-            case 'd':
-            {
-                DeviceId = strtol(optarg, NULL, 0);
-            }
-            break;
-
-            case 'c':
-            {
-                ChannelId = strtol(optarg, NULL, 0);
-            }
-            break;
-
-            case 's':
-            {
-                EventSize = strtol(optarg, NULL, 0);
-            }
-            break;
-
-            case 'h':
-            {
-                cout << HELP_TEXT;
-                exit(0);
-            }
-            break;
-
-            default:
-            {
-                break;
-            }
+            perror("stat ddlfile");
+            exit(-1);
         }
     }
-
-    /** sanity checks on command line arguments **/
-    if( DeviceId < 0 || DeviceId > 255 )
+    else
     {
-        cout << "DeviceId invalid or not set: " << DeviceId << endl;
-        cout << HELP_TEXT;
-        exit(-1);
+        if ( !checkEventSize(opts.eventSize, argv[0]) )
+        { exit(-1); }
     }
 
-    if( ChannelId < 0 || ChannelId > MAX_CHANNEL )
-    {
-        cout << "ChannelId invalid or not set: " << ChannelId << endl;
-        cout << HELP_TEXT;
-        exit(-1);
-    }
+    DMA_ABORT_HANDLER_REGISTER
 
-    if( EventSize == 0 )
-    {
-        cout << "EventSize invalid or not set: 0x" << hex
-             << EventSize << endl;
-        cout << HELP_TEXT;
-        exit(-1);
-    }
-
-
-    // catch CTRL+C for abort
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = abort_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-
-    //shared memory
-    int shID;
-    librorcChannelStatus *chstats = NULL;
-    char *shm = NULL;
-
-    //allocate shared mem
-    shID = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + ChannelId,
-            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
-    if(shID==-1) {
-        perror("shmget");
-        goto out;
-    }
-    //attach to shared memory
-    shm = (char*)shmat(shID, 0, 0);
-    if (shm==(char*)-1) {
-        perror("shmat");
-        goto out;
-    }
-    chstats = (librorcChannelStatus*)shm;
-
+    librorcChannelStatus *chstats
+        = prepareSharedMemory(opts);
+    if(chstats == NULL)
+    { exit(-1); }
 
     // create new device instance
-    try{ dev = new librorc::device(DeviceId); }
+    try{ dev = new librorc::device(opts.deviceId); }
     catch(...)
     {
         printf("ERROR: failed to initialize device.\n");
-        goto out;
+        abort();
     }
 
     /** Print some stats */
@@ -210,7 +117,7 @@ int main( int argc, char *argv[])
     catch(...)
     {
         printf("ERROR: failed to initialize BAR1.\n");
-        goto out;
+        abort();
     }
 
     bar1->simSetPacketSize(32);
@@ -227,51 +134,46 @@ int main( int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     /** Check if requested channel is implemented in firmware */
-    if( !dev->DMAChannelIsImplemented(ChannelId) )
+    if( !dev->DMAChannelIsImplemented(opts.channelId) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-               "firmware - exiting\n", ChannelId);
-        return(-1);
+               "firmware - exiting\n", opts.channelId);
+        abort();
     }
 
     // check if firmware is HLT_OUT
     if ( (bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
-        goto out;
+        abort();
     }
 
     /** create new DMA event buffer */
     try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*ChannelId, 1, LIBRORC_DMA_TO_DEVICE); }
+    { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*opts.channelId, 1, LIBRORC_DMA_TO_DEVICE); }
     catch(...)
     {
         perror("ERROR: ebuf->allocate");
-        goto out;
+        abort();
     }
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
 
     /** create new DMA report buffer */
     try
-    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*ChannelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
+    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
     {
         perror("ERROR: rbuf->allocate");
-        goto out;
+        abort();
     }
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
-
-    memset(chstats, 0, sizeof(librorcChannelStatus));
-    chstats->index = 0;
-    chstats->last_id = -1;
-    chstats->channel = (uint32_t)ChannelId;
 
 
     /** Create DMA channel */
     try
     {
-        ch = new librorc::dma_channel(ChannelId, 64, dev, bar1, ebuf, rbuf);
+        ch = new librorc::dma_channel(opts.channelId, 128, dev, bar1, ebuf, rbuf);
         ch->enable();
     }
     catch(...)
@@ -281,6 +183,12 @@ int main( int argc, char *argv[])
     }
 
     //TODO: all SIU interface handling
+
+    /** wait for GTX domain to be ready */
+    //ch->waitForGTXDomain();
+
+    /** set ENABLE, activate flow control (DIU_IF:busy), MUX=0 */
+    //ch->setGTX(RORC_REG_DDL_CTRL, 0x00000003);
 
     // capture starting time
     bar1->gettime(&start_time, 0);
@@ -293,7 +201,18 @@ int main( int argc, char *argv[])
     // no event in EB now
     ebuf_fill_state = 0;
 
-    sigaction(SIGINT, &sigIntHandler, NULL);
+    EventID = 0;
+
+    int32_t sanity_checks = CHK_SIZES|CHK_SOE;
+    if(opts.useRefFile)
+    {
+        sanity_checks |= CHK_FILE;
+    }
+    else
+    {
+        sanity_checks |= CHK_PATTERN | CHK_ID;
+    }
+
     // wait for RB entry
     while(!done)
     {
@@ -302,7 +221,8 @@ int main( int argc, char *argv[])
                 ebuf, //event buffer instance
                 ch, //channel instance
                 &ebuf_fill_state, // event buffer fill state
-                EventSize // event size to be used for event generation
+                &EventID,
+                opts.eventSize // event size to be used for event generation
                 );
         if ( nevents > 0 )
         {
@@ -315,14 +235,14 @@ int main( int argc, char *argv[])
                 ebuf,
                 ch, // channe struct
                 chstats, // stats struct
-                CHK_SIZES|CHK_PATTERN|CHK_SOE, // do sanity check
+                sanity_checks, // do sanity check
                 NULL, // no DDL reference file
                 0); //DDL reference size
 
         if (result<0)
         {
             printf("handle_channel_data failed for channel %d\n",
-                    ChannelId);
+                    opts.channelId);
         } else if (result==0)
         {
             usleep(100);
@@ -332,26 +252,26 @@ int main( int argc, char *argv[])
 
         // print status line each second
         if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
-            printf("Events: %10ld, DataSize: %8.3f GB",
+            printf("Events OUT: %10ld, Size: %8.3f GB",
                     chstats->n_events,
                     (double)chstats->bytes_received/(double)(1<<30));
 
             if ( chstats->bytes_received-last_bytes_received)
             {
-                printf(" DataRate: %9.3f MB/s",
+                printf(" Rate: %9.3f MB/s",
                         (double)(chstats->bytes_received-last_bytes_received)/
                         gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
             } else {
-                printf(" DataRate: -");
+                printf(" Rate: -");
             }
 
             if ( chstats->n_events - last_events_received)
             {
-                printf(" EventRate: %9.3f kHz/s",
+                printf(" (%.3f kHz)",
                         (double)(chstats->n_events-last_events_received)/
                         gettimeofday_diff(last_time, cur_time)/1000.0);
             } else {
-                printf(" EventRate: -");
+                printf(" ( - )");
             }
             printf(" Errors: %ld\n", chstats->error_count);
             last_time = cur_time;
@@ -373,25 +293,30 @@ int main( int argc, char *argv[])
              gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
 
     if(!chstats->set_offset_count) //avoid DivByZero Exception
-        printf("CH%d: No Events\n", ChannelId);
+        printf("CH%d: No Events\n", opts.channelId);
     else
         printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
-                "avg_epi=%ld, set_offset_count=%ld\n", ChannelId,
+                "avg_epi=%ld, set_offset_count=%ld\n", opts.channelId,
                 chstats->n_events, chstats->max_epi,
                 chstats->min_epi,
                 chstats->n_events/chstats->set_offset_count,
                 chstats->set_offset_count);
 
-
-    // disable DMA Engine
-    ch->disableEventBuffer();
+    // wait until EL_FIFO runs empty
+    // TODO: add timeout
+    while( ch->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
+        usleep(100);
 
     // wait for pending transfers to complete (dma_busy->0)
+    // TODO: add timeout
     while( ch->getDMABusy() )
         usleep(100);
 
+    // disable EBDM Engine
+    ch->disableEventBuffer();
+
     // disable RBDM
-    ch->enableReportBuffer();
+    ch->disableReportBuffer();
 
     // reset DFIFO, disable DMA PKT
     ch->setDMAConfig(0X00000002);
@@ -400,13 +325,8 @@ int main( int argc, char *argv[])
     memset(rbuf->getMem(), 0, rbuf->getMappingSize());
 
 
-out:
+    shmdt(chstats);
 
-    if (shm)
-    {
-        shmdt(shm);
-        shm = NULL;
-    }
     if (ch)
         delete ch;
     if (ebuf)

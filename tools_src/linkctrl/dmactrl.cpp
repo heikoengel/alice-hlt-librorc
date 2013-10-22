@@ -29,6 +29,7 @@ parameters: \n\
         -c [0...11]   Channel ID \n\
         -x            Clear error counters \n\
         -s            Show link status \n\
+        -r            Set DMA channel reset \n\
         -h            Show this text \n\
 \n"
 
@@ -42,13 +43,14 @@ int main
 {
     int do_clear = 0;
     int do_status = 0;
+    int do_reset = 0;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
 
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:xs")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:xsr")) != -1 )
     {
         switch(arg)
         {
@@ -67,6 +69,12 @@ int main
             case 's':
             {
                 do_status = 1;
+            }
+            break;
+
+            case 'r':
+            {
+                do_reset = 1;
             }
             break;
 
@@ -119,7 +127,7 @@ int main
         abort();
     }
 
-    /** get number channels implemented in firmware */ //TODO
+    /** get number channels implemented in firmware */
     uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
 
     uint32_t startChannel, endChannel;
@@ -162,6 +170,11 @@ int main
         {
             current_link->clearDmaStallCount();
             current_link->clearEventCount();
+        }
+
+        if ( do_reset )
+        {
+            current_link->setPacketizer(RORC_REG_DMA_CTRL, 0x00000002);
         }
 
         delete current_link;

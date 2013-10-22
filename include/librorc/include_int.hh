@@ -7,6 +7,8 @@
 #include "librorc/buffer.hh"
 #include "librorc/flash.hh"
 #include "librorc/sysmon.hh"
+#include "librorc/refclk.hh"
+#include "librorc/microcontroller.hh"
 #include "librorc/dma_channel.hh"
 #include "librorc/event_stream.hh"
 #include "librorc/event_sanity_checker.hh"

@@ -3,11 +3,11 @@ add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test with Pattern Generator
-add_executable( dma_in_pg
+add_executable( dma_in_hwpg
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( dma_in_pg rorc pthread ${EXTRA_LIBS})
+target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
 
 # Build DMA test DDL backend
 add_executable( dma_in_ddl
@@ -15,6 +15,13 @@ add_executable( dma_in_ddl
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
+
+# Build DMA test pure backend
+add_executable( dma_in_generic
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_in_generic rorc pthread ${EXTRA_LIBS})
 
 #-----------------------------------------------------------
 
@@ -50,7 +57,10 @@ target_link_libraries( dma_monitor rorc pthread ${EXTRA_LIBS})
 
 
 # Build DMA-out testbed
-add_executable( hlt_out_writer ${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer.cpp)
+add_executable( hlt_out_writer
+"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
 target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
 
 
@@ -58,9 +68,9 @@ target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
 add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
 target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
 
-# Build pgctrl
-add_executable( pgctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/pgctrl.cpp)
-target_link_libraries( pgctrl rorc pthread ${EXTRA_LIBS})
+# Build ddlctrl
+add_executable( ddlctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/ddlctrl.cpp)
+target_link_libraries( ddlctrl rorc pthread ${EXTRA_LIBS})
 
 
 # Build dmactrl
@@ -91,6 +101,9 @@ target_link_libraries( lvdsctrl rorc pthread ${EXTRA_LIBS})
 
 add_executable( fanctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/fanctrl.cpp)
 target_link_libraries( fanctrl rorc pthread ${EXTRA_LIBS})
+
+add_executable( boardtest ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest.cpp)
+target_link_libraries( boardtest rorc pthread ${EXTRA_LIBS})
 
 add_executable( ddr3_module_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_module_status.cpp)
 target_link_libraries( ddr3_module_status rorc pthread ${EXTRA_LIBS})

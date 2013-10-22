@@ -220,34 +220,34 @@ namespace LIBRARY_NAME
 
 //
     bool
-    link::isGtxClockRunning()
+    link::isGtxDomainReady()
     {
         uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
-        return( (gtxasynccfg & (1<<8)) != 0 );
+        return( (gtxasynccfg & (1<<8)) == 0 );
     }
 
     void
     link::clearDisparityErrorCount()
     {
-        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
+        !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
     }
 
     void
     link::clearRxNotInTableCount()
     {
-        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
+        !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
     }
 
     void
     link::clearRxLossOfSignalCount()
     {
-        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
+        !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
     }
 
     void
     link::clearRxByteRealignCount()
     {
-        !isGtxClockRunning() ? (void)0 : setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
+        !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
     }
 
     void
@@ -466,8 +466,18 @@ namespace LIBRARY_NAME
     void
     link::waitForCommandTransmissionStatusWord() /** (CTSTW) from DIU */
     {
-        while( GTX(RORC_REG_DDL_CTSTW) == 0xffffffff )
-        { usleep(100); }
+        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
+        while( (GTX(RORC_REG_DDL_CTSTW) == 0xffffffff) &&
+                (timeout!=0) )
+        {
+            usleep(100);
+            timeout--;
+        }
+        if ( !timeout )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for CommandTransmissionStatusWord\n");
+        }
     }
 
     void

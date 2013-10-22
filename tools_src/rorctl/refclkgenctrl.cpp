@@ -42,360 +42,22 @@ set new frequency to 125.00 MHz for device 0 \n\
         refclkgenctrl -n 0 -w 125.00 \n\
 "
 
-#define REFCLK_I2C_SLAVE 0x55
-#define REFCLK_CHAIN 4
-#define REFCLK_DEFAULT_FOUT 212.500
-
-/** Register 135 Pin Mapping */
-#define M_RECALL (1<<0)
-#define M_FREEZE (1<<5)
-#define M_NEWFREQ (1<<6)
-/** Register 137 Pin Mapping */
-#define FREEZE_DCO (1<<4)
-
-
-typedef struct
-{
-    uint32_t hs_div;
-    uint32_t n1;
-    uint64_t rfreq_int;
-    double rfreq_float;
-    double fdco;
-    double fxtal;
-}clkopts;
-
-
-double
-refclk_hex2float
-(
-    uint64_t value
-)
-{
-    return double( value/((double)(1<<28)) );
-}
-
-uint64_t
-refclk_float2hex
-(
-    double value
-)
-{
-    return uint64_t(trunc(value*(1<<28)));
-}
-
-int32_t
-refclk_hsdiv_reg2val
-(
-    uint32_t hs_reg
-)
-{
-    return hs_reg + 4;
-}
-
-
-int32_t
-refclk_hsdiv_val2reg
-(
-    uint32_t hs_val
-)
-{
-    return hs_val - 4;
-}
-
-int32_t
-refclk_n1_reg2val
-(
-    uint32_t n1_reg
-)
-{
-    return n1_reg + 1;
-}
-
-
-int32_t
-refclk_n1_val2reg
-(
-    uint32_t n1_val
-)
-{
-    return n1_val - 1;
-}
-
-
-uint8_t
-refclk_read
-(
-   librorc::sysmon *sm,
-   uint8_t addr
-)
-{
-    uint8_t value;
-    try
-    {
-        value = sm->i2c_read_mem(REFCLK_CHAIN,
-                REFCLK_I2C_SLAVE, addr);
-    }
-    catch (...)
-    {
-        cout << "Failed to read from refclk addr 0x"
-             << hex << (int)addr << dec << endl;
-        abort();
-    }
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_read(%02d)=%02x\n",
-            addr, value);
-    return value;
-}
-
-
-void refclk_write
-(
-   librorc::sysmon *sm,
-   uint8_t addr,
-   uint8_t value
-)
-{
-    try
-    {
-        sm->i2c_write_mem(REFCLK_CHAIN,
-                REFCLK_I2C_SLAVE, addr, value);
-    }
-    catch (...)
-    {
-        cout << "Failed to write 0x" << setw(2) << hex << (int)value
-             << " to refclk addr 0x" << (int)addr << dec << endl;
-        abort();
-    }
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_write(%02d, %02x)\n",
-            addr, value);
-}
-
-void
-refclk_releaseDCO
-(
-   librorc::sysmon *sm
-)
-{
-    /** get current FREEZE_DCO settings */
-    uint8_t freeze_val = refclk_read(sm, 137);
-
-    /** clear FREEZE_DCO bit */
-    freeze_val &= 0xef;
-
-    try
-    {
-        sm->i2c_write_mem_dual(REFCLK_CHAIN,
-                REFCLK_I2C_SLAVE, 137, freeze_val, 135, M_NEWFREQ);
-    }
-    catch (...)
-    {
-        cout << "i2c_write_mem_dual failed" << endl;
-        abort();
-    }
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-            "i2c_write_mem_dual(%02x->%02x, %02x->%02x)\n",
-            137, freeze_val, 135, M_NEWFREQ);
-}
-
-
-
-clkopts
-refclk_getCurrentOpts
-(
-        librorc::sysmon *sm,
-        double fout
-)
-{
-    /** get current RFREQ, HSDIV, N1 */
-    clkopts opts;
-    uint8_t value;
-
-    /** addr 7: HS_DIV[2:0], N1[6:2] */
-    value = refclk_read(sm, 13);
-    opts.hs_div = (value>>5) & 0x07;
-    opts.n1 = ((uint32_t)(value&0x1f))<<2;
-
-    value = refclk_read(sm, 14);
-    opts.n1 += (value>>6)&0x03;
-    opts.rfreq_int = (uint64_t(value & 0x3f)<<((uint64_t)32));
-
-    /** addr 15...18: RFREQ[31:0] */
-    for(uint8_t i=0; i<=3; i++)
-    {
-        value = refclk_read(sm, i+15);
-        opts.rfreq_int |= (uint64_t(value) << ((3-i)*8));
-    }
-
-    opts.rfreq_float = refclk_hex2float(opts.rfreq_int);
-
-    /** fOUT is known -> get accurate fDCO */
-    if ( fout!=0 )
-    {
-        opts.fdco = fout * refclk_n1_reg2val(opts.n1) *
-            refclk_hsdiv_reg2val(opts.hs_div);
-        opts.fxtal = opts.fdco/opts.rfreq_float;
-    }
-    else
-    /** fOUT is unknown -> use default fXTAL to get approximate fDCO */
-    {
-        opts.fdco = 114.285 * opts.rfreq_float;
-        opts.fxtal = 114.285;
-    }
-
-    return opts;
-}
-
-
-
-clkopts
-refclk_getNewOpts
-(
-    double new_freq,
-    double fxtal
-)
-{
-    // find the lowest value of N1 with the highest value of HS_DIV
-    // to get fDCO in the range of 4.85...5.67 GHz
-    int32_t vco_found = 0;
-    double fDCO_new;
-    double lastfDCO = 5670.0;
-    clkopts opts;
-
-    opts.fxtal = fxtal;
-
-    for ( int n=1; n<=128; n++ )
-    {
-        /** N1 can be 1 or any even number up to 128 */
-        if ( n!=1 && (n & 0x1) )
-        {
-            continue;
-        }
-
-        for ( int h=11; h>3; h-- )
-        {
-            /** valid values for HSDIV are 4, 5, 6, 7, 9 or 11 */
-            if ( h==8 || h==10 )
-            {
-                continue;
-            }
-            fDCO_new =  new_freq * h * n;
-            if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 )
-            {
-                vco_found = 1;
-                /** find lowest possible fDCO for this configuration */
-                if (fDCO_new<lastfDCO)
-                {
-                    opts.hs_div = refclk_hsdiv_val2reg(h);
-                    opts.n1 =  refclk_n1_val2reg(n);
-                    opts.fdco = fDCO_new;
-                    opts.rfreq_float = fDCO_new / fxtal;
-                    opts.rfreq_int = refclk_float2hex(opts.rfreq_float);
-                    lastfDCO = fDCO_new;
-                }
-            }
-
-        }
-    }
-
-    if ( vco_found==0 )
-    {
-        cout << "Could not get HSDIV/N1 for given frequency." << endl;
-        abort();
-    }
-
-    return opts;
-}
-
-
-
-void
-refclk_setRFMCtrl
-(
-    librorc::sysmon *sm,
-    uint8_t flag
-)
-{
-    refclk_write(sm, 135, flag);
-}
-
-
-
-void
-refclk_setFreezeDCO
-(
-    librorc::sysmon *sm
-)
-{
-    uint8_t val = refclk_read(sm, 137);
-    val |= FREEZE_DCO;
-    refclk_write(sm, 137, val);
-}
-
-
-
-void
-refclk_waitForClearance
-(
-    librorc::sysmon *sm,
-    uint8_t flag
-)
-{
-    /** wait for flag to be cleared by device */
-    uint8_t reg135 = flag;
-    while ( reg135 & flag )
-    {
-        reg135 = refclk_read(sm, 135);
-    }
-}
-
-
-
-void refclk_setOpts
-(
-    librorc::sysmon *sm,
-    clkopts opts
-)
-{
-    /** Freeze oscillator */
-    refclk_setFreezeDCO(sm);
-
-    /** write new osciallator values */
-    uint8_t value = (opts.hs_div<<5) | (opts.n1>>2);
-    refclk_write(sm, 13, value);
-
-    value = ((opts.n1&0x03)<<6)|(opts.rfreq_int>>32);
-    refclk_write(sm, 14, value);
-
-    /** addr 15...18: RFREQ[31:0] */
-    for(uint8_t i=0; i<=3; i++)
-    {
-        value = ((opts.rfreq_int>>((3-i)*8)) & 0xff);
-        refclk_write(sm, 15+i, value);
-    }
-
-    /** release DCO Freeze */
-    refclk_releaseDCO(sm);
-
-    /** wait for NewFreq to be deasserted */
-    refclk_waitForClearance(sm, M_NEWFREQ);
-}
-
-
 
 void
 print_refclk_settings
 (
-    clkopts opts
+    refclkopts opts
 )
 {
-    cout << "HS_DIV    : " << dec << refclk_hsdiv_reg2val(opts.hs_div) << endl;
-    cout << "N1        : " << dec << refclk_n1_reg2val(opts.n1) << endl;
+    cout << "HS_DIV    : " << dec << opts.hs_div << endl;
+    cout << "N1        : " << dec << opts.n1 << endl;
     cout << "RFREQ_INT : 0x" << hex << opts.rfreq_int << dec << endl;
     cout << "RFREQ     : " << opts.rfreq_float << " MHz" << endl;
     cout << "F_DCO     : " << opts.fdco << " MHz" << endl;
     cout << "F_XTAL    : " << opts.fxtal << " MHz" << endl;
 
     double cur_freq = opts.fxtal * opts.rfreq_float /
-        (refclk_hsdiv_reg2val(opts.hs_div) * refclk_n1_reg2val(opts.n1));
+        (opts.hs_div * opts.n1);
     cout << "cur FREQ  : " << cur_freq << " MHz" << endl;
 }
 
@@ -495,21 +157,35 @@ main
         abort();
     }
 
+    librorc::refclk *rc;
+    try
+    {
+        rc = new librorc::refclk(sm);
+    }
+    catch(...)
+    {
+        cout << "Refclk init failed!" << endl;
+        delete sm;
+        delete bar;
+        delete dev;
+        abort();
+    }
+
 
     if ( do_reset || do_write )
     {
         /** Recall initial conditions */
-        refclk_setRFMCtrl( sm, M_RECALL );
+        rc->setRFMCtrl( M_RECALL );
 
         /** Wait for RECALL to complete */
-        refclk_waitForClearance( sm, M_RECALL );
+        rc->waitForClearance( M_RECALL );
 
         /** fOUT is now the default freqency */
-        fout = REFCLK_DEFAULT_FOUT;
+        fout = LIBRORC_REFCLK_DEFAULT_FOUT;
     }
 
     /** get current configuration */
-    clkopts opts = refclk_getCurrentOpts( sm, fout );
+    refclkopts opts = rc->getCurrentOpts( fout );
 
     /** Print configuration */
     cout << endl << "Current Oscillator Values" << endl;
@@ -518,17 +194,18 @@ main
     if ( do_write )
     {
         /** get new values for desired frequency */
-        clkopts new_opts = refclk_getNewOpts(new_freq, opts.fxtal);
+        refclkopts new_opts = rc->getNewOpts(new_freq, opts.fxtal);
 
         /** Print new configuration */
         cout << endl << "New Oscillator Values" << endl;
         print_refclk_settings( new_opts );
 
         /** write new configuration to device */
-        refclk_setOpts(sm, new_opts);
+        rc->setOpts(new_opts);
     }
 
 
+    delete rc;
     delete sm;
     delete bar;
     delete dev;

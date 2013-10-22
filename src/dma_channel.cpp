@@ -250,11 +250,12 @@ namespace LIBRARY_NAME
                 offsets.rbdm_software_read_pointer_low  = (uint32_t)(rboffset & 0xffffffff);
                 offsets.rbdm_software_read_pointer_high = (uint32_t)(rboffset>>32 & 0xffffffff);
 
-                offsets.dma_ctrl
-                    = (1<<31) | // sync pointers
-                      (1<<2)  | // enable EB
-                      (1<<3)  | // enable RB
-                      (1<<0);   // enable DMA engine
+                offsets.dma_ctrl =
+                    SYNC_SOFTWARE_READ_POINTERS | // sync pointers)
+                    SET_CHANNEL_AS_PCIE_TAG | // set channel ID as tag
+                    (1<<2)  | // enable EB
+                    (1<<3)  | // enable RB
+                    (1<<0);   // enable DMA engine
 
                 m_bar->memcopy
                 (
@@ -300,8 +301,8 @@ namespace LIBRARY_NAME
                 m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
                 m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
 
-                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, sizeof(librorc_event_descriptor));
-                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, sizeof(librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_reportBuffer, sizeof(librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_reportBuffer, sizeof(librorc_event_descriptor));
 
                 m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
@@ -346,6 +347,10 @@ namespace LIBRARY_NAME
                     &m_config,
                     sizeof(librorc_channel_config)
                 );
+                DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+                        "Setting ptrs: RBDM=%016lx EBDM=%016lx\n",
+                        (((uint64_t)m_config.swptrs.rbdm_software_read_pointer_high<<32)+m_config.swptrs.rbdm_software_read_pointer_low),
+                        (((uint64_t)m_config.swptrs.ebdm_software_read_pointer_high<<32)+m_config.swptrs.ebdm_software_read_pointer_low));
             }
     };
 
@@ -395,6 +400,7 @@ dma_channel::disable()
 {
     disableEventBuffer();
 
+    // TODO: add timeout
     while(getDMABusy())
     { usleep(100); }
 
@@ -456,6 +462,10 @@ dma_channel::setBufferOffsetsOnDevice
 {
     m_channelConfigurator->setOffsets(eboffset, rboffset);
     m_last_ebdm_offset = eboffset;
+
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+            "Setting ptrs: RBDM=%016lx EBDM=%016lx\n",
+            rboffset, eboffset);
 }
 
 

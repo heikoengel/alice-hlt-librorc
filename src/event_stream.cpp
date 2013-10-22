@@ -88,7 +88,7 @@ namespace LIBRARY_NAME
         int32_t channelId
     )
     {
-        generateDMAChannel(deviceId, channelId, LIBRORC_ES_PURE);
+        generateDMAChannel(deviceId, channelId, LIBRORC_ES_IN_GENERIC);
         prepareSharedMemory();
     }
 
@@ -136,6 +136,24 @@ namespace LIBRARY_NAME
         m_deviceId  = deviceId;
         m_channelId = channelId;
 
+        /** set EventBuffer DMA direction according to EventStream type */
+        int32_t dma_direction;
+        switch (esType)
+        {
+            case LIBRORC_ES_IN_GENERIC:
+            case LIBRORC_ES_IN_DDL:
+            case LIBRORC_ES_IN_HWPG:
+                dma_direction = LIBRORC_DMA_FROM_DEVICE;
+                break;
+            case LIBRORC_ES_OUT_SWPG:
+            case LIBRORC_ES_OUT_FILE:
+                dma_direction = LIBRORC_DMA_TO_DEVICE;
+                break;
+            default:
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
+
+
         try
         {
             m_dev = new librorc::device(deviceId);
@@ -145,7 +163,7 @@ namespace LIBRARY_NAME
                 m_bar1 = new librorc::rorc_bar(m_dev, 1);
             #endif
             m_eventBuffer
-                = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, LIBRORC_DMA_FROM_DEVICE);
+                = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, dma_direction);
             m_reportBuffer
                 = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
@@ -167,22 +185,22 @@ namespace LIBRARY_NAME
     {
         switch ( esType )
         {
-            case LIBRORC_ES_PURE:
+            case LIBRORC_ES_IN_GENERIC:
             {
                 m_channel =
                 new librorc::dma_channel
                 (
-                    m_channelId,
-                    MAX_PAYLOAD,
-                    m_dev,
-                    m_bar1,
-                    m_eventBuffer,
-                    m_reportBuffer
-                );
+                     m_channelId,
+                     MAX_PAYLOAD,
+                     m_dev,
+                     m_bar1,
+                     m_eventBuffer,
+                     m_reportBuffer
+                 );
             }
             break;
 
-            case LIBRORC_ES_DDL:
+            case LIBRORC_ES_IN_DDL:
             {
                 m_channel =
                 new librorc::dma_channel_ddl
@@ -197,7 +215,7 @@ namespace LIBRARY_NAME
             }
             break;
 
-            case LIBRORC_ES_PG:
+            case LIBRORC_ES_IN_HWPG:
             {
                 m_channel =
                 new librorc::dma_channel_pg
