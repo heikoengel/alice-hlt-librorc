@@ -71,7 +71,7 @@ setEventSize
     }
     
     /** set new EventSize */
-    current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize);
+    current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize-1);
 
     delete current_link;
     return 0;
@@ -89,9 +89,15 @@ getSnapshot
 )
 {
     tChannelSnapshot chss;
+
     // capture current time
     gettimeofday(&(chss.time), 0);
-    memcpy(&(chss.chstats), chstats, sizeof(chss.chstats));
+
+    for ( int i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++ )
+    {
+        memcpy(&(chss.chstats[i]), chstats[i], 
+                sizeof(librorcChannelStatus));
+    }
     return chss;
 }
 
@@ -121,6 +127,26 @@ getSnapshotDiff
     return sd;
 }
 
+uint32_t
+nextEventSize
+(
+    uint32_t EventSize
+)
+{
+    for ( uint32_t i=0; i<32; i++ )
+    {
+        uint32_t es = (EventSize>>i);
+        if ( es==1 )
+        {
+            return EventSize + (EventSize>>1);
+        } else if ( es==3 )
+        {
+            return ( 1<<(i+2) );
+        }
+    }
+    //TODO
+    return 0;
+}
 
 int main( int argc, char *argv[])
 {
@@ -254,17 +280,16 @@ int main( int argc, char *argv[])
     uint32_t startChannel = 0;
     uint32_t endChannel = (type_channels & 0xffff) - 1;
 
-    for ( uint32_t EventSize=16; EventSize<0x10000; EventSize<<=1 )
+    for ( uint32_t EventSize=16; EventSize<0x10000; EventSize=nextEventSize(EventSize) )
     {
         /** set new EventSize for all channels */
-        for ( chID=startChannel; chID<endChannel; chID++ )
+        for ( chID=startChannel; chID<=endChannel; chID++ )
         {
-            if ( !setEventSize(bar, chID, EventSize) )
+            if ( setEventSize(bar, chID, EventSize) < 0 )
             {
                 cout << "ERROR: Failed to set EventSize for Channel"
                      << chID << endl;
             }
-
         }
 
         /** wait some time */
@@ -284,15 +309,21 @@ int main( int argc, char *argv[])
             /** get diff*/
             tSnapshotDiff diff = getSnapshotDiff(last_status, cur_status);
 
+            /** get rate to EB */
+            double ebrate = ((double)diff.bytes/1024.0/1024.0)/diff.time;
+            
+            /** get rate to RB */
+            double rbrate = ((double)diff.events*16.0/1024.0/1024.0)/diff.time;
+
+
             /** EventSize is in DWs, multiply by 216 links */
             uint32_t EventSizeTpc = 216 * (EventSize<<2);
 
             /** output */
-            double rate = (diff.bytes/1024.0/1024.0)/diff.time;
-            cout << EventSizeTpc << ", " << rate << endl;
+            cout << EventSizeTpc << ", " << ebrate  << ", " << rbrate << endl;
             if ( fname )
             {
-                fprintf(log_fd, "%d, %f\n", EventSizeTpc, rate);
+                fprintf(log_fd, "%d, %f, %f\n", EventSizeTpc, ebrate, rbrate);
             }
 
             last_status = cur_status;
