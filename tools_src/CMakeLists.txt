@@ -55,6 +55,10 @@ target_link_libraries( bufferstats rorc pthread ${EXTRA_LIBS})
 add_executable( dma_monitor ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/dma_monitor.cpp)
 target_link_libraries( dma_monitor rorc pthread ${EXTRA_LIBS})
 
+# Build PGDMA EventSize Sweeper
+add_executable( hwpgdma_es_sweep ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/hwpgdma_es_sweep.cpp)
+target_link_libraries( hwpgdma_es_sweep rorc pthread ${EXTRA_LIBS})
+
 
 # Build DMA-out testbed
 add_executable( hlt_out_writer
