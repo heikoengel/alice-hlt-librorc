@@ -70,7 +70,12 @@ setEventSize
         return -1;
     }
     
-    /** set new EventSize */
+    /** set new EventSize
+     *  '-1' because EOE is attached to each event. Without '-1' but 
+     *  EventSizes aligned to MAX_PAYLOAD boundaries a new full
+     *  packet is sent containing only the EOE word. -> would take
+     *  bandwidth but would not appear in number of bytes transferred
+     *  */
     current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize-1);
 
     delete current_link;
@@ -136,12 +141,18 @@ nextEventSize
     for ( uint32_t i=0; i<32; i++ )
     {
         uint32_t es = (EventSize>>i);
-        if ( es==1 )
+        switch (es)
         {
-            return EventSize + (EventSize>>1);
-        } else if ( es==3 )
-        {
-            return ( 1<<(i+2) );
+            case 2:
+            case 3:
+                return EventSize + (1<<(i-1));
+                return EventSize + (1<<(i-1));
+            case 5:
+                return EventSize + (1<<i);
+            case 7:
+                return ( 1<<(i+3) );
+            default:
+                break;
         }
     }
     //TODO
@@ -280,7 +291,9 @@ int main( int argc, char *argv[])
     uint32_t startChannel = 0;
     uint32_t endChannel = (type_channels & 0xffff) - 1;
 
-    for ( uint32_t EventSize=16; EventSize<0x10000; EventSize=nextEventSize(EventSize) )
+    for ( uint32_t EventSize=16; 
+            EventSize<0x10000; 
+            EventSize=nextEventSize(EventSize) )
     {
         /** set new EventSize for all channels */
         for ( chID=startChannel; chID<=endChannel; chID++ )
