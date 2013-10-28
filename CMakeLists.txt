@@ -37,8 +37,7 @@ find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 
-#find_library(KMOD kmod)
-#set(EXTRA_LIBS ${EXTRA_LIBS} ${KMOD})
+
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
@@ -81,5 +80,10 @@ ENDIF()
 
 # Build executables (tests and tools)
 add_subdirectory(tools_src)
+
+#--- install -----------------------------------------------------------------
+
+INSTALL_FILES(/ include/*)
+INSTALL_TARGETS(/lib rorc)
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
