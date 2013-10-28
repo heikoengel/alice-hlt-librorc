@@ -1,6 +1,9 @@
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 # Build rorctl
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS rorctl RUNTIME DESTINATION bin )
 
 # Build DMA test with Pattern Generator
 add_executable( dma_in_hwpg
