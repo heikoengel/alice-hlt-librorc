@@ -82,6 +82,22 @@ class device;
 
              event_stream
              (
+                librorc::device *dev,
+                librorc::bar *bar,
+                int32_t channelId
+             );
+
+             event_stream
+             (
+                librorc::device *dev,
+                librorc::bar *bar,
+                int32_t channelId,
+                uint32_t      eventSize,
+                LibrorcEsType esType
+             );
+
+             event_stream
+             (
                 int32_t       deviceId,
                 int32_t       channelId,
                 uint32_t      eventSize,
@@ -106,7 +122,6 @@ class device;
             void
             generateDMAChannel
             (
-                int32_t       deviceId,
                 int32_t       channelId,
                 LibrorcEsType esType
             );

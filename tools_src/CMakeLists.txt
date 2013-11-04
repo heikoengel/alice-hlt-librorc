@@ -9,6 +9,13 @@ add_executable( dma_in_hwpg
 )
 target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
 
+# Build DMA test with Pattern Generator
+add_executable( dma_in_hwpg_mc
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in_mc.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_in_hwpg_mc rorc pthread ${EXTRA_LIBS})
+
 # Build DMA test DDL backend
 add_executable( dma_in_ddl
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
@@ -66,6 +73,13 @@ add_executable( hlt_out_writer
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
+
+# Build DMA-out testbed
+add_executable( hlt_out_writer_mc
+"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer_mc.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( hlt_out_writer_mc rorc pthread ${EXTRA_LIBS})
 
 
 # Build gtxctrl

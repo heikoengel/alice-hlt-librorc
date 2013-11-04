@@ -41,7 +41,31 @@ namespace LIBRARY_NAME
         int32_t channelId
     )
     {
-        generateDMAChannel(deviceId, channelId, LIBRORC_ES_IN_GENERIC);
+        try
+        {
+            m_dev = new librorc::device(deviceId);
+            #ifdef SIM
+                m_bar1 = new librorc::sim_bar(m_dev, 1);
+            #else
+                m_bar1 = new librorc::rorc_bar(m_dev, 1);
+            #endif
+        } catch (...)
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+
+        generateDMAChannel(channelId, LIBRORC_ES_IN_GENERIC);
+    }
+
+    event_stream::event_stream
+    (
+        librorc::device *dev,
+        librorc::bar *bar,
+        int32_t channelId
+    )
+    {
+        m_dev = dev;
+        m_bar1 = bar;
+
+        generateDMAChannel(channelId, LIBRORC_ES_IN_GENERIC);
     }
 
     event_stream::event_stream
@@ -52,8 +76,34 @@ namespace LIBRARY_NAME
         LibrorcEsType esType
     )
     {
+        try
+        {
+            m_dev = new librorc::device(deviceId);
+            #ifdef SIM
+                m_bar1 = new librorc::sim_bar(m_dev, 1);
+            #else
+                m_bar1 = new librorc::rorc_bar(m_dev, 1);
+            #endif
+        } catch (...)
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+
         m_eventSize = eventSize;
-        generateDMAChannel(deviceId, channelId, esType);
+        generateDMAChannel(channelId, esType);
+    }
+
+    event_stream::event_stream
+    (
+        librorc::device *dev,
+        librorc::bar *bar,
+        int32_t channelId,
+        uint32_t      eventSize,
+        LibrorcEsType esType
+    )
+    {
+        m_dev = dev;
+        m_bar1 = bar;
+        m_eventSize = eventSize;
+        generateDMAChannel(channelId, esType);
     }
 
     event_stream::~event_stream()
@@ -69,8 +119,8 @@ namespace LIBRARY_NAME
         delete m_channel;
         delete m_eventBuffer;
         delete m_reportBuffer;
-        delete m_bar1;
-        delete m_dev;
+        //delete m_bar1;
+        //delete m_dev;
     }
 
 
@@ -78,7 +128,6 @@ namespace LIBRARY_NAME
     void
     event_stream::generateDMAChannel
     (
-        int32_t       deviceId,
         int32_t       channelId,
         LibrorcEsType esType
     )
@@ -102,15 +151,8 @@ namespace LIBRARY_NAME
                 throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-
         try
         {
-            m_dev = new librorc::device(deviceId);
-            #ifdef SIM
-                m_bar1 = new librorc::sim_bar(m_dev, 1);
-            #else
-                m_bar1 = new librorc::rorc_bar(m_dev, 1);
-            #endif
             m_eventBuffer
                 = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, dma_direction);
             m_reportBuffer

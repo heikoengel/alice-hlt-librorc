@@ -209,6 +209,27 @@ prepareEventStream
     return(eventStream);
 }
 
+librorc::event_stream *
+prepareEventStream
+(
+    librorc::device *dev,
+    librorc::bar *bar,
+    DMAOptions opts
+)
+{
+    librorc::event_stream *eventStream = NULL;
+
+    try
+    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.eventSize, opts.esType); }
+    catch( int error )
+    {
+        cout << "ERROR: failed to initialize event stream." << endl;
+        return(NULL);
+    }
+
+    return(eventStream);
+}
+
 
 
 timeval
@@ -225,8 +246,8 @@ printStatusLine
     {
         printf
         (
-            "Events IN: %10ld, Size: %8.3f GB ",
-            chstats->n_events,
+            "CH%d Events IN: %10ld, Size: %8.3f GB ",
+            chstats->channel, chstats->n_events,
             (double)chstats->bytes_received/(double)(1<<30)
         );
 

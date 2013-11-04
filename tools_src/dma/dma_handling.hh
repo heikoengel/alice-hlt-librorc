@@ -82,6 +82,7 @@ bool checkEventSize(uint32_t eventSize, char *argv);
 
 librorcChannelStatus *prepareSharedMemory(DMAOptions opts);
 librorc::event_stream *prepareEventStream(DMAOptions opts);
+librorc::event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
 
 
 
