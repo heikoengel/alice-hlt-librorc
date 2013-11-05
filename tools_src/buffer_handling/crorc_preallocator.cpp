@@ -36,6 +36,7 @@ int16_t
 alloc_channel
 (
     uint32_t         ChannelID,
+    librorc::bar    *Bar,
     librorc::device *Dev
 );
 
@@ -51,8 +52,25 @@ int main( int argc, char *argv[])
         try{ Dev = new librorc::device(i); }
         catch(...){ break; }
 
+        /** bind to BAR1 */
+        librorc::bar *Bar = NULL;
+        try
+        {
+        #ifdef SIM
+            Bar = new librorc::sim_bar(Dev, 1);
+        #else
+            Bar = new librorc::rorc_bar(Dev, 1);
+        #endif
+        }
+        catch(...)
+        {
+            printf("ERROR: failed to initialize BAR1.\n");
+            abort();
+        }
+
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-            { alloc_channel(ChannelId, Dev); }
+            { alloc_channel(ChannelId, Bar, Dev); }
+
     }
 
     return 0;
@@ -64,9 +82,18 @@ int16_t
 alloc_channel
 (
     uint32_t         ChannelID,
+    librorc::bar    *Bar,
     librorc::device *Dev
 )
 {
+    /** check if requested channel is implemented in firmware */
+    if( !(Dev->DMAChannelIsImplemented(ChannelID)) )
+    {
+        printf("ERROR: Requsted channel %d is not implemented in "
+            "firmware - exiting\n", ChannelID);
+        return -1;
+    }
+
     /** create a new DMA event buffer */
     librorc::buffer *ebuf;
     try
