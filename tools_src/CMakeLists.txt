@@ -70,51 +70,63 @@ add_executable( hlt_out_writer
 "${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/dma_handling.cpp"
 )
 target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS hlt_out_writer RUNTIME DESTINATION bin )
 
 # Build gtxctrl
 add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
 target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS gtxctrl RUNTIME DESTINATION bin )
 
 # Build ddlctrl
 add_executable( ddlctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/ddlctrl.cpp)
 target_link_libraries( ddlctrl rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS ddlctrl RUNTIME DESTINATION bin )
 
 # Build dmactrl
 add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
 target_link_libraries( dmactrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dmactrl RUNTIME DESTINATION bin )
 
 # Build channeldump
 add_executable( channeldump ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/channeldump.cpp)
 target_link_libraries( channeldump rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS channeldump RUNTIME DESTINATION bin )
 
 # Build ucctrl
 add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
 target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ucctrl RUNTIME DESTINATION bin )
 
 # Build reset_error_counters
 add_executable( reset_error_counters ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/reset_error_counters.cpp)
 target_link_libraries( reset_error_counters rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
 
 # Build hwtests
 add_executable( test_fmc ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/test_fmc.cpp)
 target_link_libraries( test_fmc rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS test_fmc RUNTIME DESTINATION bin )
 
 add_executable( ledctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ledctrl.cpp)
 target_link_libraries( ledctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ledctrl RUNTIME DESTINATION bin )
 
 add_executable( lvdsctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/lvdsctrl.cpp)
 target_link_libraries( lvdsctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS lvdsctrl RUNTIME DESTINATION bin )
 
 add_executable( fanctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/fanctrl.cpp)
 target_link_libraries( fanctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS fanctrl RUNTIME DESTINATION bin )
 
 add_executable( boardtest ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest.cpp)
 target_link_libraries( boardtest rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS boardtest RUNTIME DESTINATION bin )
 
 add_executable( ddr3_module_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_module_status.cpp)
 target_link_libraries( ddr3_module_status rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ddr3_module_status RUNTIME DESTINATION bin )
 
 add_executable( ddr3_tester_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_tester_status.cpp)
 target_link_libraries( ddr3_tester_status rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ddr3_tester_status RUNTIME DESTINATION bin )
