@@ -39,14 +39,9 @@ namespace LIBRARY_NAME
     //TODO: add device number
         public:
 
-             file_dumper
-             (
-                 char                     *base_dir,
-                 librorc_event_descriptor *reports
-             )
+             file_dumper(char *base_dir)
              {
                  m_base_dir = base_dir;
-                 m_reports  = reports;
              };
 
             ~file_dumper(){ };
@@ -61,10 +56,11 @@ namespace LIBRARY_NAME
             void
             dump
             (
-                librorcChannelStatus *channel_status,
-                uint64_t              event_id,
-                librorc::buffer      *event_buffer,
-                uint32_t              error_bit_mask
+                librorcChannelStatus    *channel_status,
+                uint64_t                 event_id,
+                librorc::buffer         *event_buffer,
+                uint32_t                 error_bit_mask,
+                librorc_event_descriptor report
             )
             {
                 if (channel_status->error_count < MAX_FILES_TO_DISK)
@@ -73,22 +69,22 @@ namespace LIBRARY_NAME
                                               m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
 
                     openFiles(file_index, channel_status);
-                    dumpReportBufferEntryToLog(event_id, channel_status, m_reports);
+                    dumpReportBufferEntryToLog(event_id, channel_status, report);
                     dumpErrorTypeToLog(error_bit_mask);
 
                     //TODO : review this bool (dump event if something fails)?
                     bool
-                    dump_event =
-                          calculatedIsLargerThanPhysical(m_reports, channel_status, event_buffer)
-                        ? dumpCalculatedIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
+                    dump_event  =
+                          calculatedIsLargerThanPhysical(report, event_buffer)
+                        ? dumpCalculatedIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
                     dump_event &=
-                          offsetIsLargerThanPhysical(m_reports, channel_status, event_buffer)
-                        ? dumpOffsetIsLargerThanPhysicalToLog(m_reports, channel_status, event_buffer)
+                          offsetIsLargerThanPhysical(report, event_buffer)
+                        ? dumpOffsetIsLargerThanPhysicalToLog(report, event_buffer)
                         : true;
 
-                    dump_event ? dumpEventToLog(error_bit_mask, m_reports, channel_status) : (void)0;
+                    dump_event ? dumpEventToLog(error_bit_mask, report) : (void)0;
 
                     closeFiles();
                 }
@@ -103,7 +99,6 @@ namespace LIBRARY_NAME
             char      m_log_file_name[4096];
             FILE     *m_fd_log;
             uint32_t *m_raw_event_buffer;
-            librorc_event_descriptor *m_reports;
 
             void
             openFiles
@@ -145,7 +140,7 @@ namespace LIBRARY_NAME
             (
                 uint64_t                  event_id,
                 librorcChannelStatus     *channel_status,
-                librorc_event_descriptor *report_buffer_entry
+                librorc_event_descriptor  report
             )
             {
                 fprintf
@@ -155,9 +150,9 @@ namespace LIBRARY_NAME
                     "reported_size=%08x\noffset=%lx\nEventID=%lx\nLastID=%lx\n",
                     channel_status->channel,
                     channel_status->index,
-                    report_buffer_entry[channel_status->index].calc_event_size,
-                    report_buffer_entry[channel_status->index].reported_event_size,
-                    report_buffer_entry[channel_status->index].offset,
+                    report.calc_event_size,
+                    report.reported_event_size,
+                    report.offset,
                     event_id,
                     channel_status->last_id
                 );
@@ -181,21 +176,18 @@ namespace LIBRARY_NAME
             bool
             calculatedIsLargerThanPhysical
             (
-                librorc_event_descriptor *report_buffer_entry,
-                librorcChannelStatus     *channel_status,
-                librorc::buffer          *event_buffer
+                librorc_event_descriptor  report,
+                buffer                   *event_buffer
             )
             {
-                return   ((report_buffer_entry[channel_status->index].calc_event_size) & 0x3fffffff)
-                       > (event_buffer->getPhysicalSize() >> 2);
+                return report.calc_event_size > (event_buffer->getPhysicalSize() >> 2);
             }
 
             bool
             dumpCalculatedIsLargerThanPhysicalToLog
             (
-                librorc_event_descriptor *report_buffer_entry,
-                librorcChannelStatus     *channel_status,
-                librorc::buffer          *event_buffer
+                librorc_event_descriptor  report,
+                buffer                   *event_buffer
             )
             {
                 fprintf
@@ -203,7 +195,7 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "calc_event_size (0x%x DWs) is larger"
                     " than physical buffer size (0x%lx DWs) - not dumping event.\n",
-                    (report_buffer_entry[channel_status->index].calc_event_size & 0x3fffffff),
+                    report.calc_event_size,
                     (event_buffer->getPhysicalSize() >> 2)
                 );
 
@@ -213,22 +205,19 @@ namespace LIBRARY_NAME
             bool
             offsetIsLargerThanPhysical
             (
-                librorc_event_descriptor* report_buffer_entry,
-                librorcChannelStatus* channel_status,
-                librorc::buffer* event_buffer
+                librorc_event_descriptor  report,
+                buffer                   *event_buffer
             )
             {
-                return   report_buffer_entry[channel_status->index].offset
-                       > event_buffer->getPhysicalSize();
+                return (report.offset > event_buffer->getPhysicalSize());
             }
 
 
             bool
             dumpOffsetIsLargerThanPhysicalToLog
             (
-                librorc_event_descriptor* report_buffer_entry,
-                librorcChannelStatus* channel_status,
-                librorc::buffer* event_buffer
+                librorc_event_descriptor  report,
+                buffer                   *event_buffer
             )
             {
                 fprintf
@@ -236,7 +225,7 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "offset (0x%lx) is larger than physical buffer"
                     " size (0x%lx) - not dumping event.\n",
-                    report_buffer_entry[channel_status->index].offset,
+                    report.offset,
                     event_buffer->getPhysicalSize()
                 );
 
@@ -247,8 +236,7 @@ namespace LIBRARY_NAME
             dumpEventToLog
             (
                 uint32_t                  error_bit_mask,
-                librorc_event_descriptor *report_buffer_entry,
-                librorcChannelStatus     *channel_status
+                librorc_event_descriptor  report
             )
             {
                 uint32_t i;
@@ -256,14 +244,14 @@ namespace LIBRARY_NAME
                 for
                 (
                     i = 0;
-                    i < (report_buffer_entry[channel_status->index].calc_event_size & 0x3fffffff);
+                    i < report.calc_event_size;
                     i++
                 )
                 {
                     uint32_t ebword =
                         (uint32_t) *(
                                         m_raw_event_buffer +
-                                        (report_buffer_entry[channel_status->index].offset >> 2) + i
+                                        (report.offset >> 2) + i
                                     );
 
                     fprintf(m_fd_log, "%03d: %08x", i, ebword);
@@ -279,15 +267,15 @@ namespace LIBRARY_NAME
                     m_fd_log,
                     "%03d: EOE reported_event_size: %08x\n",
                     i,
-                    (uint32_t) *(m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2) + i)
+                    (uint32_t) *(m_raw_event_buffer + (report.offset >> 2) + i)
                 );
 
                 size_t size_written =
                     fwrite
                     (
-                            m_raw_event_buffer + (report_buffer_entry[channel_status->index].offset >> 2),
+                            m_raw_event_buffer + (report.offset >> 2),
                             4,
-                            (report_buffer_entry[channel_status->index].calc_event_size & 0x3fffffff),
+                            report.calc_event_size,
                             m_fd_ddl
                     );
 
@@ -406,6 +394,52 @@ event_sanity_checker::~event_sanity_checker()
 
 
 
+void
+event_sanity_checker::check
+(
+    librorc_event_descriptor  report,
+    librorcChannelStatus     *channel_status,
+    uint64_t                  event_id
+)
+{
+    uint64_t                  report_buffer_index =  channel_status->index;
+    librorc_event_descriptor *report_pointer      =  &report;
+    int64_t                   last_id             =  channel_status->last_id;
+
+    m_event               = rawEventPointer(report_pointer);
+    m_reported_event_size = reportedEventSize(report_pointer);
+    m_calc_event_size     = calculatedEventSize(report_pointer);
+    m_event_index         = 0;
+
+    int      error_code   = 0;
+    {
+        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_pointer, report_buffer_index);
+        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
+    }
+
+    if(error_code != 0)
+    {
+        channel_status->error_count++;
+
+        file_dumper dumper(m_log_base_dir);
+
+        dumper.dump
+        (
+           channel_status,
+           event_id,
+           m_event_buffer,
+           error_code,
+           report
+        );
+    }
+}
+
+
+//TODO: legacy code
 uint64_t
 event_sanity_checker::check
 (
@@ -413,41 +447,9 @@ event_sanity_checker::check
     librorcChannelStatus     *channel_status
 )
 {
-    uint64_t                  report_buffer_index =  channel_status->index;
-    librorc_event_descriptor *report_entry        = &reports[channel_status->index];
-    int64_t                   last_id             =  channel_status->last_id;
-
-    m_event               = rawEventPointer(report_entry);
-    m_reported_event_size = reportedEventSize(report_entry);
-    m_calc_event_size     = calculatedEventSize(report_entry);
-    m_event_index         = 0;
-
-    uint64_t event_id     = getEventIdFromCdh(dwordOffset(report_entry));
-    int      error_code   = 0;
-    {
-        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_entry, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_entry, report_buffer_index, last_id);
-    }
-
-    if(error_code != 0)
-    {
-        channel_status->error_count++;
-
-        file_dumper dumper(m_log_base_dir, reports);
-
-        dumper.dump
-        (
-           channel_status,
-           event_id,
-           m_event_buffer,
-           error_code
-        );
-    }
-
+    librorc_event_descriptor *report_entry = &reports[channel_status->index];
+    uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
+    check(reports[channel_status->index], channel_status, event_id);
     return event_id;
 }
 

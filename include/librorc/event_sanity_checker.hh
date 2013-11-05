@@ -28,6 +28,7 @@
 #include <librorc/defines.hh>
 #include <librorc/buffer.hh>
 #include <librorc/dma_channel.hh>
+#include <librorc/event_stream.hh>
 
 /** limit the number of corrupted events to be written to disk **/
 #define MAX_FILES_TO_DISK 100
@@ -81,10 +82,18 @@ class ddl_reference_file;
 
             ~event_sanity_checker();
 
+            void
+            check
+            (
+                librorc_event_descriptor  report,
+                librorcChannelStatus     *channel_status,
+                uint64_t                  event_id
+            );
+
             uint64_t
             check
             (
-                librorc_event_descriptor *raw_report_buffer,
+                librorc_event_descriptor *reports,
                 librorcChannelStatus     *channel_status
             );
 

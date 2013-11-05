@@ -118,6 +118,13 @@ device::getFunc()
 }
 
 
+uint8_t
+device::getDeviveId()
+{
+    return m_number;
+}
+
+
 
 uint8_t*
 device::getBarMap

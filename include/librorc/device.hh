@@ -104,6 +104,8 @@ namespace LIBRARY_NAME
         int32_t channelId
     );
 
+    uint8_t getDeviceId();
+
     private:
 
         /**

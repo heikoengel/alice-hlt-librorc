@@ -29,8 +29,55 @@
 #include <librorc/dma_channel.hh>
 #include <librorc/dma_channel_ddl.hh>
 #include <librorc/dma_channel_pg.hh>
+#include <librorc/event_sanity_checker.hh>
 
 
+void
+printStatusLine
+(
+    timeval               last_time,
+    timeval               current_time,
+    librorcChannelStatus *channel_status,
+    uint64_t              last_events_received,
+    uint64_t              last_bytes_received
+)
+{
+    if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
+    {
+        printf
+        (
+            "Events: %10ld, DataSize: %8.3f GB ",
+            channel_status->n_events,
+            (double)channel_status->bytes_received/(double)(1<<30)
+        );
+
+        if(channel_status->bytes_received - last_bytes_received)
+        {
+            printf
+            (
+                " DataRate: %9.3f MB/s",
+                (double)(channel_status->bytes_received - last_bytes_received)/
+                gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
+            );
+        }
+        else
+        { printf(" DataRate: -"); }
+
+        if(channel_status->n_events - last_events_received)
+        {
+            printf
+            (
+                " EventRate: %9.3f kHz/s",
+                (double)(channel_status->n_events - last_events_received)/
+                gettimeofdayDiff(last_time, current_time)/1000.0
+            );
+        }
+        else
+        { printf(" EventRate: -"); }
+
+        printf(" Errors: %ld\n", channel_status->error_count);
+    }
+}
 
 namespace LIBRARY_NAME
 {
@@ -41,31 +88,25 @@ namespace LIBRARY_NAME
         int32_t channelId
     )
     {
-        try
-        {
-            m_dev = new librorc::device(deviceId);
-            #ifdef SIM
-                m_bar1 = new librorc::sim_bar(m_dev, 1);
-            #else
-                m_bar1 = new librorc::rorc_bar(m_dev, 1);
-            #endif
-        } catch (...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
-
-        generateDMAChannel(channelId, LIBRORC_ES_IN_GENERIC);
+        m_deviceId = deviceId;
+        m_called_with_bar = false;
+        generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
+        prepareSharedMemory();
     }
 
     event_stream::event_stream
     (
         librorc::device *dev,
-        librorc::bar *bar,
-        int32_t channelId
+        librorc::bar    *bar,
+        int32_t          channelId
     )
     {
         m_dev = dev;
         m_bar1 = bar;
-
-        generateDMAChannel(channelId, LIBRORC_ES_IN_GENERIC);
+        m_deviceId = dev->getDeviceId();
+        m_called_with_bar = true;
+        generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
+        prepareSharedMemory();
     }
 
     event_stream::event_stream
@@ -76,39 +117,36 @@ namespace LIBRARY_NAME
         LibrorcEsType esType
     )
     {
-        try
-        {
-            m_dev = new librorc::device(deviceId);
-            #ifdef SIM
-                m_bar1 = new librorc::sim_bar(m_dev, 1);
-            #else
-                m_bar1 = new librorc::rorc_bar(m_dev, 1);
-            #endif
-        } catch (...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
-
+        m_deviceId = deviceId;
         m_eventSize = eventSize;
-        generateDMAChannel(channelId, esType);
+        m_called_with_bar = false;
+        generateDMAChannel(m_deviceId, channelId, esType);
+        prepareSharedMemory();
     }
 
     event_stream::event_stream
     (
         librorc::device *dev,
-        librorc::bar *bar,
-        int32_t channelId,
-        uint32_t      eventSize,
-        LibrorcEsType esType
+        librorc::bar    *bar,
+        int32_t          channelId,
+        uint32_t         eventSize,
+        LibrorcEsType    esType
     )
     {
         m_dev = dev;
         m_bar1 = bar;
         m_eventSize = eventSize;
-        generateDMAChannel(channelId, esType);
+        m_deviceId = dev->getDeviceId();
+        m_called_with_bar = true;
+
+        generateDMAChannel(m_deviceId, channelId, esType);
+        prepareSharedMemory();
     }
 
     event_stream::~event_stream()
     {
         deleteParts();
+        shmdt(m_channel_status);
     }
 
 
@@ -119,8 +157,11 @@ namespace LIBRARY_NAME
         delete m_channel;
         delete m_eventBuffer;
         delete m_reportBuffer;
-        //delete m_bar1;
-        //delete m_dev;
+        if ( !m_called_with_bar )
+        {
+            delete m_bar1;
+            delete m_dev;
+        }
     }
 
 
@@ -128,6 +169,7 @@ namespace LIBRARY_NAME
     void
     event_stream::generateDMAChannel
     (
+        int32_t       deviceId,
         int32_t       channelId,
         LibrorcEsType esType
     )
@@ -153,12 +195,25 @@ namespace LIBRARY_NAME
 
         try
         {
+            if ( !m_called_with_bar )
+            {
+                m_dev = new librorc::device(deviceId);
+                #ifdef SIM
+                    m_bar1 = new librorc::sim_bar(m_dev, 1);
+                #else
+                    m_bar1 = new librorc::rorc_bar(m_dev, 1);
+                #endif
+            }
             m_eventBuffer
                 = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, dma_direction);
             m_reportBuffer
                 = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
             chooseDMAChannel(esType);
+
+            m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+            m_done = false;
+            m_event_callback = NULL;
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
@@ -174,7 +229,7 @@ namespace LIBRARY_NAME
         {
             case LIBRORC_ES_IN_GENERIC:
             {
-            m_channel =
+                m_channel =
                 new librorc::dma_channel
                 (
                      m_channelId,
@@ -189,7 +244,7 @@ namespace LIBRARY_NAME
 
             case LIBRORC_ES_IN_DDL:
             {
-            m_channel =
+                m_channel =
                 new librorc::dma_channel_ddl
                 (
                     m_channelId,
@@ -204,7 +259,7 @@ namespace LIBRARY_NAME
 
             case LIBRORC_ES_IN_HWPG:
             {
-            m_channel =
+                m_channel =
                 new librorc::dma_channel_pg
                 (
                     m_channelId,
@@ -221,6 +276,31 @@ namespace LIBRARY_NAME
         default:
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
+    }
+
+
+    void
+    event_stream::prepareSharedMemory()
+    {
+        m_channel_status = NULL;
+
+        int shID =
+            shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
+                sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+        if(shID==-1)
+        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+
+        /** attach to shared memory */
+        char *shm = (char*)shmat(shID, 0, 0);
+        if(shm==(char*)-1)
+        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+
+        m_channel_status = (librorcChannelStatus*)shm;
+
+        memset(m_channel_status, 0, sizeof(librorcChannelStatus));
+        m_channel_status->index = 0;
+        m_channel_status->last_id = 0xfffffffff;
+        m_channel_status->channel = (unsigned int)m_channelId;
     }
 
 
@@ -242,5 +322,173 @@ namespace LIBRARY_NAME
         { cout << "Firmware Rev. and Date not available!" << endl; }
     }
 
+
+
+    uint64_t
+    event_stream::eventLoop
+    (
+        void *user_data
+    )
+    {
+        m_last_bytes_received  = 0;
+        m_last_events_received = 0;
+
+        /** Capture starting time */
+        m_bar1->gettime(&m_start_time, 0);
+        m_last_time     = m_start_time;
+        m_current_time  = m_start_time;
+
+        uint64_t result = 0;
+        while( !m_done )
+        {
+            m_bar1->gettime(&m_current_time, 0);
+
+            result = handleChannelData(user_data);
+
+            if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
+            {
+                //here we need a callback
+                printStatusLine
+                (
+                    m_last_time,
+                    m_current_time,
+                    m_channel_status,
+                    m_last_events_received,
+                    m_last_bytes_received
+                );
+
+                m_last_bytes_received  = m_channel_status->bytes_received;
+                m_last_events_received = m_channel_status->n_events;
+                m_last_time = m_current_time;
+            }
+
+            if(result == 0)
+            { usleep(200); } /** no events available */
+
+        }
+
+        m_bar1->gettime(&m_end_time, 0);
+
+        return result;
+    }
+
+
+
+    uint64_t
+    event_stream::dwordOffset(librorc_event_descriptor report_entry)
+    {
+        return(report_entry.offset / 4);
+    }
+
+
+
+    uint64_t
+    event_stream::getEventIdFromCdh(uint64_t offset)
+    {
+
+        uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
+        cur_event_id <<= 12;
+        cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
+        return cur_event_id;
+    }
+
+
+
+    uint64_t
+    event_stream::handleChannelData
+    (
+        void *user_data
+    )
+    {
+        librorc_event_descriptor *reports
+            = (librorc_event_descriptor*)m_reportBuffer->getMem();
+
+        //TODO: make this global
+        uint64_t events_processed = 0;
+        /** new event received */
+        if( reports[m_channel_status->index].calc_event_size!=0 )
+        {
+            // capture index of the first found reportbuffer entry
+            uint64_t starting_index       = m_channel_status->index;
+            uint64_t events_per_iteration = 0;
+            uint64_t event_buffer_offset  = 0;
+            uint64_t report_buffer_offset = 0;
+
+            // handle all following entries
+            while( reports[m_channel_status->index].calc_event_size!=0 )
+            {
+                // increment number of events processed in this interation
+                events_processed++;
+
+                      librorc_event_descriptor  report   = reports[m_channel_status->index];
+                      uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
+                const uint32_t                 *event    = getRawEvent(report);
+
+                uint64_t ret = (m_event_callback != NULL)
+                    ? m_event_callback(user_data, event_id, report, event, m_channel_status)
+                    : 0;
+
+                m_channel_status->last_id = event_id;
+
+                // increment the number of bytes received
+                m_channel_status->bytes_received +=
+                    (reports[m_channel_status->index].calc_event_size<<2);
+
+                // save new EBOffset
+                event_buffer_offset = reports[m_channel_status->index].offset;
+
+                // increment report-buffer offset
+                report_buffer_offset
+                    = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
+                    % m_reportBuffer->getPhysicalSize();
+
+                // wrap RB index if necessary
+                m_channel_status->index
+                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                    ? (m_channel_status->index+1) : 0;
+
+                //increment total number of events received
+                m_channel_status->n_events++;
+
+                //increment number of events processed in this while-loop
+                events_per_iteration++;
+            }
+
+            // clear processed report-buffer entries
+            memset(&reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
+
+
+            // update min/max statistics on how many events have been received
+            // in the above while-loop
+            if(events_per_iteration > m_channel_status->max_epi)
+            { m_channel_status->max_epi = events_per_iteration; }
+
+            if(events_per_iteration < m_channel_status->min_epi)
+            { m_channel_status->min_epi = events_per_iteration; }
+
+            events_per_iteration = 0;
+            m_channel_status->set_offset_count++;
+
+            // actually update the offset pointers in the firmware
+            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+
+            DEBUG_PRINTF
+            (
+                PDADEBUG_CONTROL_FLOW,
+                "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
+                m_channel_status->channel,
+                report_buffer_offset,
+                event_buffer_offset
+            );
+        }
+
+        return events_processed;
+    }
+
+    const uint32_t*
+    event_stream::getRawEvent(librorc_event_descriptor report)
+    {
+        return (const uint32_t*)&m_raw_event_buffer[report.offset/4];
+    }
 
 }

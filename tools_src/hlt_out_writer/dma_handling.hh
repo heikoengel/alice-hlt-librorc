@@ -17,14 +17,14 @@ parameters:                                                  \n\
         --file [filename] DDL reference file                 \n\
         --help            Show this text                     \n"
 
-#define DMA_ABORT_HANDLER librorc::event_stream *eventStream = NULL; \
-void abort_handler( int s )                                          \
+#define DMA_ABORT_HANDLER bool done = 0; \
+void abort_handler( int s )              \
 {                                        \
     printf("Caught signal %d\n", s);     \
-    if( eventStream->m_done==true )      \
+    if( done==true )                     \
     { exit(-1); }                        \
     else                                 \
-    { eventStream->m_done = true; }                     \
+    { done = true; }                     \
 }
 
 #define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler; \
@@ -35,6 +35,32 @@ sigaction(SIGINT, &sigIntHandler, NULL);
 
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
+
+
+
+#ifndef EH_LEGACY
+#define EH_LEGACY
+
+    /** Shared memory parameters for the DMA monitor **/
+    #define SHM_KEY_OFFSET 2048
+    #define SHM_DEV_OFFSET 32
+
+    /** struct to store statistics on received data for a single channel **/
+    typedef struct
+    {
+        uint64_t n_events;
+        uint64_t bytes_received;
+        uint64_t min_epi;
+        uint64_t max_epi;
+        uint64_t index;
+        uint64_t set_offset_count;
+        uint64_t error_count;
+        uint64_t last_id;
+        uint32_t channel;
+    }channelStatus;
+
+#endif /** EH_LEGACY */
+
 
 /** Struct to store command line parameters */
 typedef struct
@@ -54,23 +80,26 @@ bool checkDeviceID(int32_t deviceID, char *argv);
 bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
+librorcChannelStatus *prepareSharedMemory(DMAOptions opts);
 librorc::event_stream *prepareEventStream(DMAOptions opts);
-librorc::event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
 
-void
+
+
+timeval
 printStatusLine
 (
     timeval               last_time,
     timeval               cur_time,
     librorcChannelStatus *chstats,
-    uint64_t              last_events_received,
-    uint64_t              last_bytes_received
+    uint64_t             *last_events_received,
+    uint64_t             *last_bytes_received
 );
 
 void
 printFinalStatusLine
 (
     librorcChannelStatus *chstats,
+    DMAOptions            opts,
     timeval               start_time,
     timeval               end_time
 );
