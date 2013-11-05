@@ -202,8 +202,8 @@ printStatusLine
         printf
         (
             "CH%d Events IN: %10ld, Size: %8.3f GB ",
-            chstats->channel, chstats->n_events,
-            (double)chstats->bytes_received/(double)(1<<30)
+            channel_status->channel, channel_status->n_events,
+            (double)channel_status->bytes_received/(double)(1<<30)
         );
 
         if(channel_status->bytes_received - last_bytes_received)

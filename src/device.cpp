@@ -119,7 +119,7 @@ device::getFunc()
 
 
 uint8_t
-device::getDeviveId()
+device::getDeviceId()
 {
     return m_number;
 }

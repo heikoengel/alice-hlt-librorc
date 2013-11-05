@@ -148,6 +148,8 @@ class event_sanity_checker;
                 m_event_callback = event_callback;
             }
 
+            uint64_t handleChannelData(void *user_data);
+
             /** Member Variables */
             device      *m_dev;
             bar         *m_bar1;
@@ -181,6 +183,7 @@ class event_sanity_checker;
             void
             generateDMAChannel
             (
+                int32_t       deviceId,
                 int32_t       channelId,
                 LibrorcEsType esType
             );
@@ -191,7 +194,6 @@ class event_sanity_checker;
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
 
-            uint64_t handleChannelData(void *user_data);
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);
