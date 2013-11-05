@@ -83,15 +83,12 @@ add_subdirectory(tools_src)
 
 #--- install -----------------------------------------------------------------
 
-#INSTALL_FILES(/ include/*)
 
 FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h*")
 INSTALL(FILES ${files} DESTINATION include)
 
 FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/librorc/*.h*")
 INSTALL(FILES ${files} DESTINATION include/librorc)
-
-#INSTALL_TARGETS(/lib rorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
 

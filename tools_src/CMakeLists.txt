@@ -12,6 +12,7 @@ add_executable( dma_in_hwpg
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_in_hwpg RUNTIME DESTINATION bin )
 
 # Build DMA test DDL backend
 add_executable( dma_in_ddl

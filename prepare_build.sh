@@ -15,7 +15,7 @@ mkdir -p $BASEDIR/build/sim_debug
 mkdir -p $BASEDIR/build/sim_release
 
 cd $BASEDIR/build/release
-cmake cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/debug
 cmake -DCMAKE_BUILD_TYPE=Debug -DLIBMODE=$MODE ../../
