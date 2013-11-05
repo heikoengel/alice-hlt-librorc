@@ -20,6 +20,7 @@ add_executable( dma_in_ddl
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_in_ddl RUNTIME DESTINATION bin )
 
 # Build DMA test pure backend
 add_executable( dma_in_generic
@@ -27,39 +28,41 @@ add_executable( dma_in_generic
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( dma_in_generic rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_in_generic RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------
 
 # Build i2c
 add_executable( i2c ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/i2c.cpp)
 target_link_libraries( i2c rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS i2c RUNTIME DESTINATION bin )
 
 # Build qsfpctrl
 add_executable( qsfpctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/qsfpctrl.cpp)
 target_link_libraries( qsfpctrl rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS qsfpctrl RUNTIME DESTINATION bin )
 
 # Build refclkgenctrl
 add_executable( refclkgenctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/refclkgenctrl.cpp)
 target_link_libraries( refclkgenctrl rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS refclkgenctrl RUNTIME DESTINATION bin )
 
 # Build DMA buffer allocator
 add_executable( crorc_preallocator
   ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/crorc_preallocator.cpp)
 target_link_libraries( crorc_preallocator rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS crorc_preallocator RUNTIME DESTINATION bin )
 
 # Build DMA buffer stat tool
 add_executable( bufferstats
   ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/bufferstats.cpp)
 target_link_libraries( bufferstats rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS bufferstats RUNTIME DESTINATION bin )
 
 # Build DMA monitor
 add_executable( dma_monitor ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/dma_monitor.cpp)
 target_link_libraries( dma_monitor rorc pthread ${EXTRA_LIBS})
-
+INSTALL(TARGETS dma_monitor RUNTIME DESTINATION bin )
 
 # Build DMA-out testbed
 add_executable( hlt_out_writer
