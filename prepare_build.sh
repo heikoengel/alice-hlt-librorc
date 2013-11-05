@@ -1,5 +1,7 @@
 #!/bin/bash
 
+INSTALL_PATH=/home/weiler/opt/librorc/
+
 MODE="SHARED"
 #MODE="STATIC"
 
@@ -13,7 +15,7 @@ mkdir -p $BASEDIR/build/sim_debug
 mkdir -p $BASEDIR/build/sim_release
 
 cd $BASEDIR/build/release
-cmake -V -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/debug
 cmake -DCMAKE_BUILD_TYPE=Debug -DLIBMODE=$MODE ../../

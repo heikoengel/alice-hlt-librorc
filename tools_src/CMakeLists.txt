@@ -1,6 +1,10 @@
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 # Build rorctl
 add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS rorctl RUNTIME DESTINATION bin )
 
 # Build DMA test with Pattern Generator
 add_executable( dma_in_hwpg
@@ -8,6 +12,7 @@ add_executable( dma_in_hwpg
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_in_hwpg RUNTIME DESTINATION bin )
 
 # Build DMA test DDL backend
 add_executable( dma_in_ddl
@@ -63,7 +68,7 @@ target_link_libraries( hwpgdma_es_sweep rorc pthread ${EXTRA_LIBS})
 # Build DMA-out testbed
 add_executable( hlt_out_writer
 "${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/dma_handling.cpp"
 )
 target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
 

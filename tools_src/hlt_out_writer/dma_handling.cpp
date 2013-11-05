@@ -37,15 +37,20 @@ evaluateArguments(int argc, char *argv[])
     argv[0] = app_name;
 
     ret.esType = LIBRORC_ES_IN_GENERIC;
-
     if( 0 == strcmp(app_name, "dma_in_hwpg") )
-    { ret.esType = LIBRORC_ES_IN_HWPG; }
+    {
+        ret.esType = LIBRORC_ES_IN_HWPG;
+    }
 
     if( 0 == strcmp(app_name, "dma_in_ddl") )
-    { ret.esType = LIBRORC_ES_IN_DDL; }
+    {
+        ret.esType = LIBRORC_ES_IN_DDL;
+    }
 
     if( 0 == strcmp(app_name, "hlt_out_writer") )
-    { ret.esType = LIBRORC_ES_OUT_SWPG; }
+    {
+        ret.esType = LIBRORC_ES_OUT_SWPG;
+    }
 
     /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
     {
@@ -144,6 +149,46 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 }
 
 
+//TODO: that should be a part of the dma channel class
+librorcChannelStatus*
+prepareSharedMemory
+(
+    DMAOptions opts
+)
+{
+    librorcChannelStatus *chstats = NULL;
+
+    /** allocate shared mem */
+    int shID =
+        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
+            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+    if(shID==-1)
+    {
+        perror("Shared memory getching failed!");
+        return(chstats);
+    }
+
+    /** attach to shared memory */
+    char *shm = (char*)shmat(shID, 0, 0);
+    if(shm==(char*)-1)
+    {
+        perror("Attaching of shared memory failed");
+        return(chstats);
+    }
+
+    chstats = (librorcChannelStatus*)shm;
+
+    /** Wipe SHM */
+    memset(chstats, 0, sizeof(librorcChannelStatus));
+    chstats->index = 0;
+    chstats->last_id = 0xfffffffff;
+    chstats->channel = (unsigned int)opts.channelId;
+    chstats->device = (unsigned int)opts.deviceId;
+
+    return(chstats);
+}
+
+
 
 librorc::event_stream *
 prepareEventStream
@@ -166,51 +211,56 @@ prepareEventStream
 
 
 
-void
+timeval
 printStatusLine
 (
     timeval               last_time,
-    timeval               current_time,
-    librorcChannelStatus *channel_status,
-    uint64_t              last_events_received,
-    uint64_t              last_bytes_received
+    timeval               cur_time,
+    librorcChannelStatus *chstats,
+    uint64_t             *last_events_received,
+    uint64_t             *last_bytes_received
 )
 {
-    if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
+    if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
     {
         printf
         (
-            "Events: %10ld, DataSize: %8.3f GB ",
-            channel_status->n_events,
-            (double)channel_status->bytes_received/(double)(1<<30)
+            "Events IN: %10ld, Size: %8.3f GB ",
+            chstats->n_events,
+            (double)chstats->bytes_received/(double)(1<<30)
         );
 
-        if(channel_status->bytes_received - last_bytes_received)
+        if(chstats->bytes_received - *last_bytes_received)
         {
             printf
             (
-                " DataRate: %9.3f MB/s",
-                (double)(channel_status->bytes_received - last_bytes_received)/
-                gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
+                " Rate: %9.3f MB/s",
+                (double)(chstats->bytes_received - *last_bytes_received)/
+                gettimeofdayDiff(last_time, cur_time)/(double)(1<<20)
             );
         }
         else
         { printf(" Rate: -"); }
 
-        if(channel_status->n_events - last_events_received)
+        if(chstats->n_events - *last_events_received)
         {
             printf
             (
-                " EventRate: %9.3f kHz/s",
-                (double)(channel_status->n_events - last_events_received)/
-                gettimeofdayDiff(last_time, current_time)/1000.0
+                " (%.3f kHz)",
+                (double)(chstats->n_events - *last_events_received)/
+                gettimeofdayDiff(last_time, cur_time)/1000.0
             );
         }
         else
         { printf(" ( - )"); }
 
-        printf(" Errors: %ld\n", channel_status->error_count);
+        printf(" Errors: %ld\n", chstats->error_count);
+        last_time = cur_time;
+        *last_bytes_received  = chstats->bytes_received;
+        *last_events_received = chstats->n_events;
     }
+
+    return last_time;
 }
 
 
@@ -219,6 +269,7 @@ void
 printFinalStatusLine
 (
     librorcChannelStatus *chstats,
+    DMAOptions            opts,
     timeval               start_time,
     timeval               end_time
 )
@@ -233,13 +284,13 @@ printFinalStatusLine
     );
 
     if(!chstats->set_offset_count)
-    { printf("CH%d: No Events\n", chstats->channel); }
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
     {
         printf
         (
             "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
-            chstats->channel,
+            opts.channelId,
             chstats->n_events,
             chstats->max_epi,
             chstats->min_epi,

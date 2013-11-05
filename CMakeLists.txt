@@ -37,8 +37,7 @@ find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
 set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
 
-#find_library(KMOD kmod)
-#set(EXTRA_LIBS ${EXTRA_LIBS} ${KMOD})
+
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
@@ -65,10 +64,12 @@ add_subdirectory(fli)
 
 #--- build libraries and tools ------------------------------------------------
 
-option(MyOption "LIBMODE" SHARED)
+OPTION(MyOption "LIBMODE" SHARED)
 
 # Build librorc
 add_library( rorc ${LIBMODE} $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
+
+SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION 0.0.0 SOVERSION 1)
 
 # Build flisock adapter (if SIM is configured)
 IF(${SIM})
@@ -79,5 +80,19 @@ ENDIF()
 
 # Build executables (tests and tools)
 add_subdirectory(tools_src)
+
+#--- install -----------------------------------------------------------------
+
+
+FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h*")
+INSTALL(FILES ${files} DESTINATION include)
+
+FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/librorc/*.h*")
+INSTALL(FILES ${files} DESTINATION include/librorc)
+
+INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
+
+
+
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
