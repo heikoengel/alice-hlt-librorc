@@ -49,6 +49,7 @@ int main( int argc, char *argv[])
     static struct option long_options[] = {
         {"device", required_argument, 0, 'd'},
         {"help", no_argument, 0, 'h'},
+        {"iterations", required_argument, 0, 'i'},
         {0, 0, 0, 0}
     };
 
@@ -72,7 +73,7 @@ int main( int argc, char *argv[])
                 exit(0);
             break;
 
-            case 'n':
+            case 'i':
                 Iterations = strtol(optarg, NULL, 0);
             break;
 
