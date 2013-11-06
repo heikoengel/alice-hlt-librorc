@@ -17,10 +17,12 @@
  *
  * */
 
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
+
 #include <sys/shm.h>
 #include <getopt.h>
 #include <librorc.h>
-
 
 using namespace std;
 
@@ -43,7 +45,7 @@ void abort_handler( int s )
 int main( int argc, char *argv[])
 {
     int32_t DeviceId   = -1;
-    int32_t Iterations =  0;
+    int32_t Iterations =  INT32_MAX;
 
     // command line arguments
     static struct option long_options[] = {
@@ -145,8 +147,9 @@ int main( int argc, char *argv[])
     gettimeofday(&cur_time, 0);
     timeval last_time = cur_time;
 
-    uint32_t i = 0;
-    while( (!done) && (i <= Iterations) )
+    int32_t iter = 0;
+    cout << iter << " " << Iterations << endl;
+    while( (!done) && (iter < Iterations) )
     {
         gettimeofday(&cur_time, 0);
 
@@ -222,7 +225,7 @@ int main( int argc, char *argv[])
 
         sleep(STAT_INTERVAL);
 
-        i = (Iterations!=0) ? i+1 : i;
+        iter = (Iterations!=INT32_MAX) ? iter+1 : iter;
     }
 
     /** Detach all the shared memory */
