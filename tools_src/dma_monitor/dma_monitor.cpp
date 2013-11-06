@@ -148,9 +148,17 @@ int main( int argc, char *argv[])
     timeval last_time = cur_time;
 
     int32_t iter = 0;
-    cout << iter << " " << Iterations << endl;
-    while( (!done) && (iter < Iterations) )
+    bool first = true;
+    while( (!done) && (iter <= Iterations) )
     {
+        if(first==true)
+        {
+            first = false;
+            sleep(STAT_INTERVAL);
+            iter = (Iterations!=INT32_MAX) ? iter+1 : iter;
+            continue;
+        }
+
         gettimeofday(&cur_time, 0);
 
         /** print status line each second */
