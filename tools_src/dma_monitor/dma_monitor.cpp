@@ -42,7 +42,8 @@ void abort_handler( int s )
 
 int main( int argc, char *argv[])
 {
-    int32_t DeviceId = -1;
+    int32_t DeviceId   = -1;
+    int32_t Iterations =  0;
 
     // command line arguments
     static struct option long_options[] = {
@@ -64,13 +65,19 @@ int main( int argc, char *argv[])
         {
             case 'd':
                 DeviceId = strtol(optarg, NULL, 0);
-                break;;
+            break;
+
             case 'h':
                 cout << HELP_TEXT;
                 exit(0);
-                break;
+            break;
+
+            case 'n':
+                Iterations = strtol(optarg, NULL, 0);
+            break;
+
             default:
-                break;
+            break;
         }
     }
 
@@ -136,7 +143,8 @@ int main( int argc, char *argv[])
     gettimeofday(&cur_time, 0);
     timeval last_time = cur_time;
 
-    while( !done )
+    uint32_t i = 0;
+    while( (!done) && (i <= Iterations) )
     {
         gettimeofday(&cur_time, 0);
 
@@ -211,6 +219,8 @@ int main( int argc, char *argv[])
         last_time = cur_time;
 
         sleep(STAT_INTERVAL);
+
+        i = (Iterations!=0) ? i+1 : i;
     }
 
     /** Detach all the shared memory */
