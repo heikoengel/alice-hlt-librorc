@@ -74,6 +74,7 @@ int main( int argc, char *argv[])
             break;
 
             case 'i':
+                cout << "Running for " << optarg << " iterations!" << endl;
                 Iterations = strtol(optarg, NULL, 0);
             break;
 
