@@ -251,7 +251,7 @@ namespace LIBRARY_NAME
         uint8_t index
     )
     {
-        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_LED_CTRL);
 
         if( ((~qsfp_ctrl)>>(8*index+2) & 0x01) == 1 )
         {
@@ -268,7 +268,7 @@ namespace LIBRARY_NAME
         uint8_t index
     )
     {
-        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_LED_CTRL);
 
         if( ((~qsfp_ctrl)>>(8*index+3) & 0x01) == 1 )
         {
@@ -286,7 +286,7 @@ namespace LIBRARY_NAME
         uint8_t reset
     )
     {
-        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_LED_CTRL);
 
         /** QSFP Reset Bit is active LOW */
         if ( reset==0 )
@@ -301,7 +301,7 @@ namespace LIBRARY_NAME
         }
 
         /** write new value back */
-        m_bar->set32(RORC_REG_QSFP_CTRL, qsfp_ctrl);
+        m_bar->set32(RORC_REG_QSFP_LED_CTRL, qsfp_ctrl);
     }
 
 
@@ -312,7 +312,7 @@ namespace LIBRARY_NAME
         uint8_t LED_index
     )
     {
-        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_CTRL);
+        uint32_t qsfp_ctrl = m_bar->get32(RORC_REG_QSFP_LED_CTRL);
 
         if( ((~qsfp_ctrl)>>(8*qsfp_index+LED_index) & 0x01) == 1 )
         {

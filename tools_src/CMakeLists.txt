@@ -21,6 +21,13 @@ add_executable( dma_in_hwpg_mc
 )
 target_link_libraries( dma_in_hwpg_mc rorc pthread ${EXTRA_LIBS})
 
+# Build DMA test with DDL and FCF
+add_executable( dma_in_ddl_fcf
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in_fcf.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_in_ddl_fcf rorc pthread ${EXTRA_LIBS})
+
 # Build DMA test DDL backend
 add_executable( dma_in_ddl
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"

@@ -176,7 +176,7 @@ main
      *  8: QSFP1_LED0
      *  1: QSFP0_LED1
      *  0: QSFP0_LED0*/
-    uint32_t qsfpctrl = bar->get32(RORC_REG_QSFP_CTRL);
+    uint32_t qsfpctrl = bar->get32(RORC_REG_QSFP_LED_CTRL);
     if ( set_qsfp )
     {
         /** clear current LED settings */
@@ -210,7 +210,7 @@ main
     if ( set_qsfp || set_gpio || set_bracket )
     {
         /** write back new values */
-        bar->set32(RORC_REG_QSFP_CTRL, qsfpctrl);
+        bar->set32(RORC_REG_QSFP_LED_CTRL, qsfpctrl);
     }
 
     if ( print_status )

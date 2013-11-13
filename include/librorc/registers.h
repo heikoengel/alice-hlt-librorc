@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: 385adc47e64fa1506a15682d85d76d611e834998
-// short hash: 385adc4
+// hash: 9cb67bd018cbf622d4f4e0c4deb05b7be88248ee
+// short hash: 9cb67bd
 //
 
-#define RORC_REVISION 0x385adc4
-#define RORC_BUILD_DATE 0x20130731
+#define RORC_REVISION 0x9cb67bd
+#define RORC_BUILD_DATE 0x20131112
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -18,7 +18,7 @@
 #define RORC_REG_FPGA_VCCINT 3
 #define RORC_REG_FPGA_VCCAUX 4
 #define RORC_REG_SC_REQ_CANCELED 5
-#define RORC_REG_QSFP_CTRL 6
+#define RORC_REG_QSFP_LED_CTRL 6
 #define RORC_REG_DMA_TX_TIMEOUT 10
 #define RORC_REG_I2C_CONFIG 11
 #define RORC_REG_I2C_OPERATION 12
@@ -91,9 +91,11 @@
 #define RORC_REG_DDL_FESTW 19
 #define RORC_REG_DDL_DTSTW 20
 #define RORC_REG_DDL_IFSTW 21
+#define RORC_REG_FCF_RAM_DATA 22
+#define RORC_REG_FCF_RAM_CTRL 23
 #define RORC_DMA_CMP_SEL 13
 #define RORC_CFG_PROJECT_hlt_in 0
 #define RORC_CFG_PROJECT_hlt_out 1
 #define RORC_CFG_PROJECT_pciedbg 2
-#define RORC_CFG_PROJECT_pgdma 3
+#define RORC_CFG_PROJECT_hlt_in_fcf 3
 #define RORC_CFG_PROJECT_hwtest 4
