@@ -98,6 +98,9 @@ int main(int argc, char *argv[])
         abort();
     }
 
+    uint64_t last_bytes_received[MAX_CHANNELS];
+    uint64_t last_events_received[MAX_CHANNELS];
+
     librorc::event_stream *eventStream[MAX_CHANNELS];
     for ( i=0; i<nChannels; i++ )
     {
@@ -105,6 +108,9 @@ int main(int argc, char *argv[])
         if( !(eventStream[i] = prepareEventStream(dev, bar, opts[i])) )
         { exit(-1); }
         eventStream[i]->setEventCallback(event_callback);
+
+        last_bytes_received[i] = 0;
+        last_events_received[i] = 0;
     }
 
 
@@ -150,8 +156,6 @@ int main(int argc, char *argv[])
 
 
     /** Create event stream */
-    uint64_t last_bytes_received = 0;
-    uint64_t last_events_received = 0;
     uint64_t result = 0;
 
     /** Capture starting time */
@@ -174,18 +178,21 @@ int main(int argc, char *argv[])
 
         if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
         {
-            //here we need a callback
-            printStatusLine
-                (
-                 last_time,
-                 current_time,
-                 eventStream[0]->m_channel_status,
-                 last_events_received,
-                 last_bytes_received
-                );
+            for ( i=0; i<nChannels; i++ )
+            {
+                //here we need a callback
+                printStatusLine
+                    (
+                     last_time,
+                     current_time,
+                     eventStream[i]->m_channel_status,
+                     last_events_received[i],
+                     last_bytes_received[i]
+                    );
 
-            last_bytes_received  = eventStream[0]->m_channel_status->bytes_received;
-            last_events_received = eventStream[0]->m_channel_status->n_events;
+                last_bytes_received[i]  = eventStream[i]->m_channel_status->bytes_received;
+                last_events_received[i] = eventStream[i]->m_channel_status->n_events;
+            }
             last_time = current_time;
         }
     }
@@ -196,8 +203,8 @@ int main(int argc, char *argv[])
     for ( i=0; i<nChannels; i++ )
     {
         printFinalStatusLine(
-                eventStream[i]->m_channel_status, 
-                eventStream[i]->m_start_time, 
+                eventStream[i]->m_channel_status,
+                eventStream[i]->m_start_time,
                 eventStream[i]->m_end_time);
 
         /** Cleanup */
