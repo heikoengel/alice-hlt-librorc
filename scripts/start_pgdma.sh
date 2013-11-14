@@ -3,7 +3,7 @@
 # Start 12 PatterGenerator DMA Channels in background
 
 DEV=$1
-SIZE=0x1000
+SIZE=$2
 SCRIPTPATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
 LOGPATH=$SCRIPTPATH/log
 BINPATH=$SCRIPTPATH/../build/release/tools_src
@@ -12,6 +12,12 @@ if [ -z $DEV ]; then
   echo "Please provide device number as argument - aborting."
   exit
 fi
+
+if [ -z $2 ]; then
+  SIZE=0x1000
+fi
+
+echo $SIZE
 
 mkdir -p $LOGPATH
 

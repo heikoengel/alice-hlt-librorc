@@ -50,7 +50,7 @@ buffer::buffer
         (
             PDA_SUCCESS !=
                 PciDevice_allocDMABuffer
-                    (m_device, size, PDABUFFER_DIRECTION_BI, &m_buffer)
+                    (m_device, id, size, PDABUFFER_DIRECTION_BI, &m_buffer)
         )
         {
             cout << "DMA Buffer allocation failed!" << endl;

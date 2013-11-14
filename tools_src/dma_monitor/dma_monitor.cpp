@@ -17,10 +17,12 @@
  *
  * */
 
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
+
 #include <sys/shm.h>
 #include <getopt.h>
 #include <librorc.h>
-
 
 using namespace std;
 
@@ -42,12 +44,14 @@ void abort_handler( int s )
 
 int main( int argc, char *argv[])
 {
-    int32_t DeviceId = -1;
+    int32_t DeviceId   = -1;
+    int32_t Iterations =  INT32_MAX;
 
     // command line arguments
     static struct option long_options[] = {
         {"device", required_argument, 0, 'd'},
         {"help", no_argument, 0, 'h'},
+        {"iterations", required_argument, 0, 'i'},
         {0, 0, 0, 0}
     };
 
@@ -64,13 +68,20 @@ int main( int argc, char *argv[])
         {
             case 'd':
                 DeviceId = strtol(optarg, NULL, 0);
-                break;;
+            break;
+
             case 'h':
                 cout << HELP_TEXT;
                 exit(0);
-                break;
+            break;
+
+            case 'i':
+                cout << "Running for " << optarg << " iterations!" << endl;
+                Iterations = strtol(optarg, NULL, 0);
+            break;
+
             default:
-                break;
+            break;
         }
     }
 
@@ -136,7 +147,8 @@ int main( int argc, char *argv[])
     gettimeofday(&cur_time, 0);
     timeval last_time = cur_time;
 
-    while( !done )
+    int32_t iter = 0;
+    while( (!done) && (iter < Iterations) )
     {
         gettimeofday(&cur_time, 0);
 
@@ -211,6 +223,8 @@ int main( int argc, char *argv[])
         last_time = cur_time;
 
         sleep(STAT_INTERVAL);
+
+        iter = (Iterations!=INT32_MAX) ? iter+1 : iter;
     }
 
     /** Detach all the shared memory */
