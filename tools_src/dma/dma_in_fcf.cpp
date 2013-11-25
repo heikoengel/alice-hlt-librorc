@@ -20,6 +20,8 @@
  *
  **/
 
+#define LIBRORC_INTERNAL
+
 #include <librorc.h>
 #include <iostream>
 #include <fstream>

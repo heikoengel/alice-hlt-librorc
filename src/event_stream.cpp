@@ -17,6 +17,7 @@
  *
  */
 
+#define LIBRORC_INTERNAL
 #include <librorc/event_stream.hh>
 
 #include <librorc/device.hh>
@@ -94,20 +95,6 @@ namespace LIBRARY_NAME
         prepareSharedMemory();
     }
 
-    event_stream::event_stream
-    (
-        librorc::device *dev,
-        librorc::bar    *bar,
-        int32_t          channelId
-    )
-    {
-        m_dev = dev;
-        m_bar1 = bar;
-        m_deviceId = dev->getDeviceId();
-        m_called_with_bar = true;
-        generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
-        prepareSharedMemory();
-    }
 
     event_stream::event_stream
     (
@@ -121,6 +108,23 @@ namespace LIBRARY_NAME
         m_eventSize = eventSize;
         m_called_with_bar = false;
         generateDMAChannel(m_deviceId, channelId, esType);
+        prepareSharedMemory();
+    }
+
+
+#ifdef LIBRORC_INTERNAL
+    event_stream::event_stream
+    (
+        librorc::device *dev,
+        librorc::bar    *bar,
+        int32_t          channelId
+    )
+    {
+        m_dev = dev;
+        m_bar1 = bar;
+        m_deviceId = dev->getDeviceId();
+        m_called_with_bar = true;
+        generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
         prepareSharedMemory();
     }
 
@@ -142,6 +146,7 @@ namespace LIBRARY_NAME
         generateDMAChannel(m_deviceId, channelId, esType);
         prepareSharedMemory();
     }
+#endif
 
     event_stream::~event_stream()
     {

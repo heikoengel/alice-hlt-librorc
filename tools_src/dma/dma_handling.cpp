@@ -1,3 +1,4 @@
+#define LIBRORC_INTERNAL
 #include "dma_handling.hh"
 
 using namespace std;
@@ -164,6 +165,7 @@ prepareEventStream
     return(eventStream);
 }
 
+#ifdef LIBRORC_INTERNAL
 librorc::event_stream *
 prepareEventStream
 (
@@ -184,6 +186,7 @@ prepareEventStream
 
     return(eventStream);
 }
+#endif
 
 
 

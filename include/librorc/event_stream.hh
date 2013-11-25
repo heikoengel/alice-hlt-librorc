@@ -115,6 +115,15 @@ class event_sanity_checker;
 
              event_stream
              (
+                int32_t       deviceId,
+                int32_t       channelId,
+                uint32_t      eventSize,
+                LibrorcEsType esType
+             );
+
+#ifdef LIBRORC_INTERNAL
+             event_stream
+             (
                 librorc::device *dev,
                 librorc::bar *bar,
                 int32_t channelId
@@ -128,14 +137,7 @@ class event_sanity_checker;
                 uint32_t      eventSize,
                 LibrorcEsType esType
              );
-
-             event_stream
-             (
-                int32_t       deviceId,
-                int32_t       channelId,
-                uint32_t      eventSize,
-                LibrorcEsType esType
-             );
+#endif
 
             ~event_stream();
             void printDeviceStatus();

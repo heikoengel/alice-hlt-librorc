@@ -18,6 +18,8 @@
  *
  * */
 
+#define LIBRORC_INTERNAL
+
 #include <librorc.h>
 
 #include "../dma/dma_handling.hh"

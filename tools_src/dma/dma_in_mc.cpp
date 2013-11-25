@@ -20,8 +20,9 @@
  *
  **/
 
-#include <librorc.h>
+#define LIBRORC_INTERNAL
 
+#include <librorc.h>
 #include "dma_handling.hh"
 
 using namespace std;

@@ -55,7 +55,9 @@ bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
 librorc::event_stream *prepareEventStream(DMAOptions opts);
+#ifdef LIBRORC_INTERNAL
 librorc::event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
+#endif
 
 void
 printStatusLine
