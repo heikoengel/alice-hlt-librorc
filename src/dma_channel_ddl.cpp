@@ -66,7 +66,7 @@ namespace LIBRARY_NAME
             /** send EOBTR to close any open transaction */
             setGTX(RORC_REG_DDL_CMD, 0x000000b4); //EOBTR
 
-            waitForCommandTransmissionStatusWord();
+            waitForDiuCommandTransmissionStatusWord();
 
             /** clear DIU_IF IFSTW */
             setGTX(RORC_REG_DDL_IFSTW, 0);
@@ -75,7 +75,7 @@ namespace LIBRARY_NAME
             /** send RdyRx to SIU */
             setGTX(RORC_REG_DDL_CMD, 0x00000014);
 
-            waitForCommandTransmissionStatusWord();
+            waitForDiuCommandTransmissionStatusWord();
         }
     }
 

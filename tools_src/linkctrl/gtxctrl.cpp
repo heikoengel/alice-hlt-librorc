@@ -278,7 +278,7 @@ int main
             gtxpll_settings pll = current_link->drpGetPllConfig();
             cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
-                 << " CLK25DIV=" << (int)pll.clk25_div 
+                 << " CLK25DIV=" << (int)pll.clk25_div
                  << " TX_TDCC_CFG=" << (int)pll.tx_tdcc_cfg << endl;
 
             /** TODO: also provide error counter values here */
@@ -294,7 +294,7 @@ int main
                      << endl;
             }
 
-            current_link->clearAllErrorCounter();
+            current_link->clearAllGtxErrorCounters();
 
             /** also clear GTX error counter for HWTest firmwares */
             if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
