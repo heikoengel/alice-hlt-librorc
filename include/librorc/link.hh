@@ -103,7 +103,7 @@ class device;
 
             bool isGtxDomainReady();
 
-            void clearDisparityErrorCount();
+            void clearGtxDisparityErrorCount();
             void clearRxNotInTableCount();
             void clearRxLossOfSignalCount();
             void clearRxByteRealignCount();

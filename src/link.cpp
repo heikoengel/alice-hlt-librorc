@@ -197,7 +197,7 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::clearDisparityErrorCount()
+    link::clearGtxDisparityErrorCount()
     {
         !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
     }
@@ -223,7 +223,7 @@ namespace LIBRARY_NAME
     void
     link::clearAllErrorCounter()
     {
-        clearDisparityErrorCount();
+        clearGtxDisparityErrorCount();
         clearRxNotInTableCount();
         clearRxLossOfSignalCount();
         clearRxByteRealignCount();
