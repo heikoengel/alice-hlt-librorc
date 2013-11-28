@@ -367,6 +367,21 @@ namespace LIBRARY_NAME
         drpRead(0x0);
     }
 
+    void
+    link::drpSetPllConfigClkDivider
+    (
+        uint8_t value,
+        uint8_t bit,
+        uint8_t clkdiv
+    )
+    {
+        uint16_t
+        drp_data = drpRead(value);
+        drp_data = read_modify_write(drp_data, clkdiv, bit, 5);
+        drpWrite(value, drp_data);
+        drpRead(0x0);
+    }
+
     /**
      * set new PLL configuration
      * @param ch pointer to dma_channel instance
@@ -381,8 +396,6 @@ namespace LIBRARY_NAME
         uint8_t  m_reg    = divselref_val2reg(pll.m);
         uint8_t  clkdiv   = clk25div_val2reg(pll.clk25_div);
 
-        uint16_t drp_data = 0;
-
         /********************* TXPLL *********************/
 
         drpSetPllConfigA(0x1f, n1_reg, n2_reg, d_reg);
@@ -391,10 +404,7 @@ namespace LIBRARY_NAME
         drpSetPllConfigMRegister(0x20, m_reg);
 
         /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
-        drp_data = drpRead(0x23);
-        drp_data = read_modify_write(drp_data, clkdiv, 10, 5);
-        drpWrite(0x23, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigClkDivider(0x23, 10, clkdiv);
 
         /********************* RXPLL *********************/
 
@@ -404,15 +414,12 @@ namespace LIBRARY_NAME
         drpSetPllConfigMRegister(0x1c, m_reg);
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
-        drp_data = drpRead(0x17);
-        drp_data = read_modify_write(drp_data, clkdiv, 5, 5);
-        drpWrite(0x17, drp_data);
-        drpRead(0x0);
-
+        drpSetPllConfigClkDivider(0x17, 5, clkdiv);
 
         /********************* Common *********************/
 
         /** TX_TDCC_CFG: addr 0x39, bits [15:14] */
+        uint16_t
         drp_data = drpRead(0x39);
         drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
         drpWrite(0x39, drp_data);

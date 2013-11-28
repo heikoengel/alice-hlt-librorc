@@ -204,6 +204,14 @@ class device;
                 uint8_t  value,
                 uint8_t  m_reg
             );
+
+            void
+            drpSetPllConfigClkDivider
+            (
+                uint8_t value,
+                uint8_t bit,
+                uint8_t clkdiv
+            );
 };
 
 }
