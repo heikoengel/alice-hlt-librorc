@@ -160,7 +160,7 @@ int main
         if(do_status)
         {
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
-                 << hex << current_link->stallCount()
+                 << hex << current_link->dmaStallCount()
                  << "; #Events processed: 0x"
                  << current_link->numberOfEventsProcessed()
                  << endl;

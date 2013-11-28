@@ -230,7 +230,7 @@ namespace LIBRARY_NAME
     }
 
     uint32_t
-    link::stallCount()
+    link::dmaStallCount()
     {
         return packetizer(RORC_REG_DMA_STALL_CNT);
     }

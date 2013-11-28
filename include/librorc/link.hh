@@ -109,7 +109,7 @@ class device;
             void clearGtxRxByteRealignCount();
             void clearAllGtxErrorCounter();
 
-            uint32_t stallCount();
+            uint32_t dmaStallCount();
 
             uint32_t numberOfEventsProcessed();
 
