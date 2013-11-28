@@ -172,17 +172,7 @@ class device;
              * */
             void printDiuState();
 
-            /**
-             * get number of Scatter Gather entries for the Event buffer
-             * @return number of entries
-             **/
-            uint32_t getEBDMnSGEntries();
 
-            /**
-             * get number of Scatter Gather entries for the Report buffer
-             * @return number of entries
-             **/
-            uint32_t getRBDMnSGEntries();
 
             /**
              * get buffer size set in EBDM. This returns the size of the

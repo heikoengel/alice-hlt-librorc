@@ -402,21 +402,6 @@ namespace LIBRARY_NAME
     }
 
 
-
-    uint32_t
-    link::getEBDMnSGEntries()
-    {
-        return packetizer(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff;
-    }
-
-
-
-    uint32_t
-    link::getRBDMnSGEntries()
-    {
-        return packetizer(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
-    }
-
     uint64_t
     link::getEBSize()
     {

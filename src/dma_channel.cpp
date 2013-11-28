@@ -682,6 +682,21 @@ dma_channel::getDMABusy()
     }
 
 
+    uint32_t
+    dma_channel::getEBDMnSGEntries()
+    {
+        return packetizer(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff;
+    }
+
+
+
+    uint32_t
+    dma_channel::getRBDMnSGEntries()
+    {
+        return packetizer(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
+    }
+
+
 
     void
     dma_channel::printDMAState()

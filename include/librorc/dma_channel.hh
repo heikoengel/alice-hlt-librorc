@@ -336,6 +336,19 @@ class dma_channel_configurator;
              **/
             int32_t programSglistForReportBuffer(buffer *buf);
 
+            /**
+             * get number of Scatter Gather entries for the Event buffer
+             * @return number of entries
+             **/
+            uint32_t getEBDMnSGEntries();
+
+            /**
+             * get number of Scatter Gather entries for the Report buffer
+             * @return number of entries
+             **/
+            uint32_t getRBDMnSGEntries();
+
+
             /****** ATOMICS **************************************************************/
 
             /**
