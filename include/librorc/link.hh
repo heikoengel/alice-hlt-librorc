@@ -189,7 +189,16 @@ class device;
 
             uint32_t waitForDrpDenToDeassert();
 
-    };
+            void
+            drpSetPllConfigA
+            (
+                uint8_t  value,
+                uint8_t& n1_reg,
+                uint8_t& n2_reg,
+                uint8_t& d_reg
+            );
+
+};
 
 }
 
