@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
+
+set( REQUIRED_PDA_VERSION "7:0:1" )
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
@@ -21,7 +23,7 @@ IF( PDA_RETURN )
   MESSAGE( STATUS "Try \"module load pda\" ...")
   MESSAGE( FATAL_ERROR "ABORT!!!")
 ENDIF()
-MESSAGE( STATUS "pda include = ${PDA_INCLUDE_DIR}")
+MESSAGE(STATUS "pda include         = ${PDA_INCLUDE_DIR}")
 
 include_directories ( ${PDA_INCLUDE_DIR}  )
 
@@ -32,6 +34,21 @@ EXECUTE_PROCESS(
   )
 
 MESSAGE(STATUS "pda LD_LIBRARY_PATH = ${PDA_LD_LIBRARY_PATH}")
+
+EXECUTE_PROCESS(
+  COMMAND pda-config --version
+  RESULT_VARIABLE ret
+  OUTPUT_VARIABLE PDA_VERSION
+  )
+
+MESSAGE(STATUS "pda VERSION         = ${PDA_VERSION}")
+
+IF( NOT(${REQUIRED_PDA_VERSION} STREQUAL ${PDA_VERSION}) )
+  MESSAGE( STATUS "The wrong version of PDA found.")
+  MESSAGE( STATUS "Found version ${PDA_VERSION} but require version ${REQUIRED_PDA_VERSION}.")
+  MESSAGE( STATUS "Try \"module load pda/${REQUIRED_PDA_VERSION}\" ...")
+  MESSAGE( FATAL_ERROR "ABORT!!!")
+ENDIF()
 
 find_library(PDA pda
     PATHS ${PDA_LD_LIBRARY_PATH})
@@ -47,7 +64,7 @@ if(${SIM})
 endif(${SIM})
 
 
-#--- add target for Doxygen ---------------------------------------------------
+#--- Add target for Doxygen ---------------------------------------------------
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
