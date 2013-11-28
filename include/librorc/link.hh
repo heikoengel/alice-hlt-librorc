@@ -111,7 +111,7 @@ class device;
 
             uint32_t dmaStallCount();
 
-            uint32_t numberOfEventsProcessed();
+            uint32_t dmaNumberOfEventsProcessed();
 
 
             //TODO DRP = Dynamic Reconfiguratin Port -> transcieiver#

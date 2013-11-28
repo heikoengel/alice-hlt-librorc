@@ -238,7 +238,7 @@ namespace LIBRARY_NAME
 
 
     uint32_t
-    link::numberOfEventsProcessed()
+    link::dmaNumberOfEventsProcessed()
     {
         return packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED);
     }

@@ -162,7 +162,7 @@ int main
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
                  << hex << current_link->dmaStallCount()
                  << "; #Events processed: 0x"
-                 << current_link->numberOfEventsProcessed()
+                 << current_link->dmaNumberOfEventsProcessed()
                  << endl;
         }
 
