@@ -382,6 +382,19 @@ namespace LIBRARY_NAME
         drpRead(0x0);
     }
 
+    void
+    link::drpSetPllConfigCommon
+    (
+        gtxpll_settings pll
+    )
+    {
+        uint16_t
+        drp_data = drpRead(0x39);
+        drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
+        drpWrite(0x39, drp_data);
+        drpRead(0x0);
+    }
+
     /**
      * set new PLL configuration
      * @param ch pointer to dma_channel instance
@@ -419,11 +432,7 @@ namespace LIBRARY_NAME
         /********************* Common *********************/
 
         /** TX_TDCC_CFG: addr 0x39, bits [15:14] */
-        uint16_t
-        drp_data = drpRead(0x39);
-        drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
-        drpWrite(0x39, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigCommon(pll);
     }
 
 

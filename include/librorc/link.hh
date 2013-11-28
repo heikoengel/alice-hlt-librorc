@@ -212,6 +212,8 @@ class device;
                 uint8_t bit,
                 uint8_t clkdiv
             );
+
+            void drpSetPllConfigCommon(gtxpll_settings pll);
 };
 
 }
