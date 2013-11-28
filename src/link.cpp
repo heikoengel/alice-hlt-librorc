@@ -209,13 +209,13 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::clearRxLossOfSignalCount()
+    link::clearGtxRxLossOfSignalCount()
     {
         !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
     }
 
     void
-    link::clearRxByteRealignCount()
+    link::clearGtxRxByteRealignCount()
     {
         !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
     }
@@ -225,8 +225,8 @@ namespace LIBRARY_NAME
     {
         clearGtxDisparityErrorCount();
         clearGtxRxNotInTableCount();
-        clearRxLossOfSignalCount();
-        clearRxByteRealignCount();
+        clearGtxRxLossOfSignalCount();
+        clearGtxRxByteRealignCount();
     }
 
     uint32_t

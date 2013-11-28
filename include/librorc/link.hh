@@ -105,8 +105,8 @@ class device;
 
             void clearGtxDisparityErrorCount();
             void clearGtxRxNotInTableCount();
-            void clearRxLossOfSignalCount();
-            void clearRxByteRealignCount();
+            void clearGtxRxLossOfSignalCount();
+            void clearGtxRxByteRealignCount();
             void clearAllErrorCounter();
 
             uint32_t stallCount();
