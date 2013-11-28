@@ -221,7 +221,7 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::clearAllErrorCounter()
+    link::clearAllGtxErrorCounter()
     {
         clearGtxDisparityErrorCount();
         clearGtxRxNotInTableCount();

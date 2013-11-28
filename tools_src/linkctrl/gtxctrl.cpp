@@ -294,7 +294,7 @@ int main
                      << endl;
             }
 
-            current_link->clearAllErrorCounter();
+            current_link->clearAllGtxErrorCounter();
 
             /** also clear GTX error counter for HWTest firmwares */
             if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
