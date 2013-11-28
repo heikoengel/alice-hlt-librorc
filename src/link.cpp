@@ -340,7 +340,8 @@ namespace LIBRARY_NAME
         uint8_t& d_reg
     )
     {
-        uint16_t drp_data = 0;
+        uint16_t
+        drp_data = 0;
         drp_data = drpRead(value);
         /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
             drp_data = read_modify_write(drp_data, n1_reg, 6, 1);
@@ -348,6 +349,20 @@ namespace LIBRARY_NAME
             drp_data = read_modify_write(drp_data, n2_reg, 1, 5);
         /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
             drp_data = read_modify_write(drp_data, d_reg, 14, 2);
+        drpWrite(value, drp_data);
+        drpRead(0x0);
+    }
+
+    void
+    link::drpSetPllConfigMRegister
+    (
+        uint8_t  value,
+        uint8_t  m_reg
+    )
+    {
+        uint16_t
+        drp_data = drpRead(value);
+        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
         drpWrite(value, drp_data);
         drpRead(0x0);
     }
@@ -373,10 +388,7 @@ namespace LIBRARY_NAME
         drpSetPllConfigA(0x1f, n1_reg, n2_reg, d_reg);
 
         /** set TXPLL_DIVSEL_REF/M: addr 0x20, bits [5:1] */
-        drp_data = drpRead(0x20);
-        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
-        drpWrite(0x20, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigMRegister(0x20, m_reg);
 
         /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
         drp_data = drpRead(0x23);
@@ -389,10 +401,7 @@ namespace LIBRARY_NAME
         drpSetPllConfigA(0x1b, n1_reg, n2_reg, d_reg);
 
         /** set RXPLL_DIVSEL_REF/M: addr 0x1c, bits [5:1] */
-        drp_data = drpRead(0x1c);
-        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
-        drpWrite(0x1c, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigMRegister(0x1c, m_reg);
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
         drp_data = drpRead(0x17);

@@ -198,6 +198,12 @@ class device;
                 uint8_t& d_reg
             );
 
+            void
+            drpSetPllConfigMRegister
+            (
+                uint8_t  value,
+                uint8_t  m_reg
+            );
 };
 
 }
