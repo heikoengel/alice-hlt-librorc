@@ -294,6 +294,11 @@ class dma_channel_configurator;
              **/
             void setDMAConfig(uint32_t config);
 
+            /**
+             * Printout the state of the DMA engine to the console
+             * */
+            void printDMAState();
+
         protected:
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;

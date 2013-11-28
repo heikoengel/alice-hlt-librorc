@@ -113,11 +113,10 @@ class device;
 
             uint32_t dmaNumberOfEventsProcessed();
 
-
-            //TODO DRP = Dynamic Reconfiguratin Port -> transcieiver#
             //TODO Phase Locked Loop
             /**
              * Read from GTX DRP port
+             * DRP = Dynamic Reconfiguratin Port (transciever)
              * @param drp_addr DRP address to read from
              * @return DRP value
              * */
@@ -172,11 +171,6 @@ class device;
              * Printout the DIU-state to the console
              * */
             void printDiuState();
-
-            /**
-             * Printout the state of the DMA engine to the console
-             * */
-            void printDMAState();
 
             /**
              * get number of Scatter Gather entries for the Event buffer
