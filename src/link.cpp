@@ -203,7 +203,7 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::clearRxNotInTableCount()
+    link::clearGtxRxNotInTableCount()
     {
         !isGtxDomainReady() ? (void)0 : setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
     }
@@ -224,7 +224,7 @@ namespace LIBRARY_NAME
     link::clearAllErrorCounter()
     {
         clearGtxDisparityErrorCount();
-        clearRxNotInTableCount();
+        clearGtxRxNotInTableCount();
         clearRxLossOfSignalCount();
         clearRxByteRealignCount();
     }
