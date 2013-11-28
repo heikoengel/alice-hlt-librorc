@@ -689,7 +689,6 @@ dma_channel::getDMABusy()
     }
 
 
-
     uint32_t
     dma_channel::getRBDMnSGEntries()
     {
@@ -697,6 +696,20 @@ dma_channel::getDMABusy()
     }
 
 
+    uint64_t
+    dma_channel::getEBSize()
+    {
+        return ((uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
+    }
+
+
+    uint64_t
+    dma_channel::getRBSize()
+    {
+        return ((uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
+    }
 
     void
     dma_channel::printDMAState()

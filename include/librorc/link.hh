@@ -173,22 +173,6 @@ class device;
             void printDiuState();
 
 
-
-            /**
-             * get buffer size set in EBDM. This returns the size of the
-             * DMA buffer set in the DMA enginge and has to be the physical
-             * size of the associated DMA buffer.
-             * @return buffer size in bytes
-             **/
-            uint64_t getEBSize();
-
-            /**
-             * get buffer size set in RBDM. As the RB is not overmapped this size
-             * should be equal to the sysfs file size and buf->getRBSize()
-             * @return buffer size in bytes
-             **/
-            uint64_t getRBSize();
-
         protected:
             bar      *m_bar;
             uint32_t  m_base;
