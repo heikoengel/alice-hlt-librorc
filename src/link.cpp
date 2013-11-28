@@ -35,10 +35,6 @@ uint8_t divselout_reg2val( uint8_t reg )
     ret = (reg==0) ? 1 : 4;
     ret = (reg==1) ? 2 : ret;
     return ret;
-
-//    if (reg==0) return 1;
-//    else if (reg==1) return 2;
-//    else return 4;
 }
 
 static inline
@@ -48,10 +44,6 @@ uint8_t divselout_val2reg( uint8_t val )
     ret = (val==1) ? 0 : 2;
     ret = (val==2) ? 1 : ret;
     return ret;
-
-//    if (val==1) return 0;
-//    else if (val==2) return 1;
-//    else return 2;
 }
 
 static inline
@@ -61,10 +53,6 @@ uint8_t divselfb_reg2val( uint8_t reg )
     ret = (reg==0) ? 2 : 5;
     ret = (reg==2) ? 4 : ret;
     return ret;
-
-//    if (reg==0) return 2;
-//    else if (reg==2) return 4;
-//    else return 5;
 }
 
 static inline
@@ -74,27 +62,18 @@ uint8_t divselfb_val2reg( uint8_t val )
     ret = (val==2) ? 0 : 3;
     ret = (val==4) ? 2 : ret;
     return ret;
-
-//    if (val==2) return 0;
-//    else if (val==4) return 2;
-//    else return 3;
 }
 
 static inline
 uint8_t divselfb45_reg2val( uint8_t reg )
 {
     return (reg==1) ? 5 : 4 ;
-
-//    if (reg==1) return 5;
-//    else return 4;
 }
 
 static inline
 uint8_t divselfb45_val2reg( uint8_t val )
 {
     return (val==5) ? 1 : 0 ;
-//    if (val==5) return 1;
-//    else return 0;
 }
 
 static inline
@@ -113,18 +92,12 @@ static inline
 uint8_t divselref_reg2val( uint8_t reg )
 {
     return (reg==16) ? 1 : 2 ;
-
-//    if (reg==16) return 1;
-//    else return 2;
 }
 
 static inline
 uint8_t divselref_val2reg( uint8_t val )
 {
     return (val==1) ? 16 : 0 ;
-
-//    if (val==1) return 16;
-//    else return 0;
 }
 
 static inline
@@ -138,9 +111,9 @@ read_modify_write
 )
 {
     /** Replace rdval[bit+width-1:bit] with data[width-1:0] */
-    uint16_t mask = ((uint32_t)1<<width) - 1;
-    uint16_t wval = rdval & ~(mask<<bit);     /** clear current value */
-    wval |= ((data & mask)<<bit);             /** set new value */
+    uint16_t mask  = ((uint32_t)1<<width) - 1;
+    uint16_t wval  = rdval & ~(mask<<bit);     /** clear current value */
+    wval          |= ((data & mask)<<bit);     /** set new value */
     return wval;
 }
 
@@ -210,15 +183,12 @@ namespace LIBRARY_NAME
         setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
     }
 
-
-
     void
     link::clearEventCount()
     {
         setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
     }
 
-//
     bool
     link::isGtxDomainReady()
     {
@@ -259,7 +229,6 @@ namespace LIBRARY_NAME
         clearRxByteRealignCount();
     }
 
-//
     uint32_t
     link::stallCount()
     {
@@ -274,24 +243,29 @@ namespace LIBRARY_NAME
         return packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED);
     }
 
-
+    uint32_t
+    link::waitForDrpDenToDeassert()
+    {
+        uint32_t drp_status;
+        do
+        {
+            usleep(100);
+            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
+        } while (drp_status & (1 << 31));
+        return drp_status;
+    }
 
     uint16_t
     link::drpRead(uint8_t drp_addr)
     {
-        uint32_t drp_status;
         uint32_t drp_cmd = (0<<24)        | //read
                            (drp_addr<<16) | //DRP addr
                            (0x00);          //data
 
         setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-        /** wait for drp_den to deassert */
-        do
-        {
-            usleep(100);
-            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
-        } while(drp_status & (1<<31));
+        uint32_t drp_status
+            = waitForDrpDenToDeassert();
 
         DEBUG_PRINTF
         (
@@ -313,19 +287,14 @@ namespace LIBRARY_NAME
         uint16_t drp_data
     )
     {
-        uint32_t drp_status;
         uint32_t drp_cmd = (1<<24)        | //write
                            (drp_addr<<16) | //DRP addr
                            (drp_data);      //data
 
         setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-        /** wait for drp_den to deassert */
-        do
-        {
-            usleep(100);
-            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
-        } while(drp_status & (1<<31));
+        uint32_t drp_status
+            = waitForDrpDenToDeassert();
 
         DEBUG_PRINTF
         (

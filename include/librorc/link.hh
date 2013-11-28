@@ -56,15 +56,6 @@ class device;
             virtual ~link(){};
 
             /**
-             * get base
-             * @return channel base address
-             **/
-            uint64_t getBase()
-            {
-                return m_base;
-            }
-
-            /**
              * get BAR
              * @return bound librorc::bar
              **/
@@ -218,6 +209,17 @@ class device;
             bar      *m_bar;
             uint32_t  m_base;
             uint32_t  m_link_number;
+
+            /**
+             * get base
+             * @return channel base address
+             **/
+            uint64_t getBase()
+            {
+                return m_base;
+            }
+
+            uint32_t waitForDrpDenToDeassert();
 
     };
 
