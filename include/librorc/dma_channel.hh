@@ -66,7 +66,7 @@ class device;
 class link;
 class dma_channel_configurator;
 
-    class dma_channel : public link
+    class dma_channel
     {
         friend class dma_channel_configurator;
 
@@ -254,6 +254,7 @@ class dma_channel_configurator;
              **/
             uint32_t getRBDRAM(uint32_t addr);
 
+            //TODO: make this protected and mark using classes as friend
             link* getLink();
 
 
@@ -310,6 +311,8 @@ class dma_channel_configurator;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
             link     *m_link;
+            bar      *m_bar;
+            uint32_t  m_channel_number;
 
             dma_channel_configurator *m_channelConfigurator;
 

@@ -172,6 +172,11 @@ class device;
              * */
             void printDiuState();
 
+            uint32_t base()
+            {
+                return m_base;
+            }
+
 
         protected:
             bar      *m_bar;

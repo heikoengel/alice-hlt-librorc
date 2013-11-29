@@ -42,7 +42,7 @@ namespace LIBRARY_NAME
     dma_channel_pg::configurePatternGenerator(uint32_t eventSize)
     {
         /** Configure Pattern Generator */
-        setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+        m_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
         uint32_t ddlctrl = (1<<0) | //enable DDLIF
             (1<<1) | // enable flow control
             (1<<3) | // set MUX to use PG as data source
@@ -51,7 +51,7 @@ namespace LIBRARY_NAME
             (1<<8) | // enable PG
             //(1<<13) | // enable PRBS EventLength
             (0<<11); // set mode to INCREMENT
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -59,7 +59,7 @@ namespace LIBRARY_NAME
     void
     dma_channel_pg::closePatternGenerator()
     {
-        setGTX(RORC_REG_DDL_CTRL, 0x0);
+        m_link->setGTX(RORC_REG_DDL_CTRL, 0x0);
     }
 
 }
