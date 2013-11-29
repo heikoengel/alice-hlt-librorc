@@ -63,6 +63,7 @@ namespace LIBRARY_NAME
 class bar;
 class buffer;
 class device;
+class link;
 class dma_channel_configurator;
 
     class dma_channel : public link
@@ -306,6 +307,7 @@ class dma_channel_configurator;
             device   *m_dev;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
+            link     *m_link;
 
             dma_channel_configurator *m_channelConfigurator;
 
@@ -314,6 +316,8 @@ class dma_channel_configurator;
             (
                 uint32_t  pcie_packet_size,
                 device   *dev,
+                bar      *bar,
+                uint32_t  channel_number,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer
             );

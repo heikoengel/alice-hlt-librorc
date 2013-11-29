@@ -369,7 +369,7 @@ dma_channel::dma_channel
 )
 : link(bar, channel_number)
 {
-    initMembers(pcie_packet_size, dev, eventBuffer, reportBuffer);
+    initMembers(pcie_packet_size, dev, bar, channel_number, eventBuffer, reportBuffer);
     prepareBuffers();
 }
 
@@ -377,8 +377,12 @@ dma_channel::~dma_channel()
 {
     disable();
     delete(m_channelConfigurator);
+
     if(m_reportBuffer != NULL)
     { m_reportBuffer->clear(); }
+
+    if(m_link != NULL)
+    { delete m_link; }
 }
 
 
@@ -610,6 +614,8 @@ dma_channel::getDMABusy()
     (
         uint32_t  pcie_packet_size,
         device   *dev,
+        bar      *bar,
+        uint32_t  channel_number,
         buffer   *eventBuffer,
         buffer   *reportBuffer
     )
@@ -617,6 +623,7 @@ dma_channel::getDMABusy()
         m_dev          = dev;
         m_eventBuffer  = eventBuffer;
         m_reportBuffer = reportBuffer;
+        m_link         = new link(bar, channel_number);
 
         if(m_reportBuffer != NULL)
         {
