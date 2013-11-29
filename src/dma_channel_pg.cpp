@@ -27,7 +27,7 @@ namespace LIBRARY_NAME
     : dma_channel(channel_number, pcie_packet_size, dev, bar, eventBuffer, reportBuffer)
     {
         enable();
-        waitForGTXDomain();
+        m_link->waitForGTXDomain();
         configurePatternGenerator(eventSize);
     }
 

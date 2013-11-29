@@ -63,7 +63,7 @@ namespace LIBRARY_NAME
                 m_bar            = bar;
                 m_base           = base;
                 m_flag           = flag;
-                m_bdcfg          = dmaChannel->packetizer(flag);
+                m_bdcfg          = dmaChannel->getLink()->packetizer(flag);
                 m_pda_dma_buffer = m_buffer->getPDABuffer();
                 m_sglist         = NULL;
                 m_control_flag   = 0;
@@ -662,6 +662,12 @@ dma_channel::getDMABusy()
             if( m_channelConfigurator->configure() < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
+    }
+
+    link*
+    dma_channel::getLink()
+    {
+        return m_link;
     }
 
 
