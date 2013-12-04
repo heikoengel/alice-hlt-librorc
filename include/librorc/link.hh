@@ -248,8 +248,8 @@ class device;
 
 
             /**
-             * get last FrontEndStatusWord received on DIU
-             * reads as 0x00000000 on SIU.
+             * HLT_IN: get last FrontEndStatusWord received on DIU
+             * This is equivalent to lastSiuFronEndCommand on HLT_OUT
              * @return FESTW:
              * [31]    Error
              * [30:12] Front-End Status
@@ -261,19 +261,34 @@ class device;
             uint32_t
             lastDiuFrontEndStatusWord();
 
+            /**
+             * HLT_OUT: get last FronEndCommand received from SIU.
+             * This is equivalent to lastDiuFrontEndStatusWord on HLT_IN
+             * */
+            uint32_t
+            lastSiuFrontEndCommandWord();
+
 
             /**
-             * clear last CommandTransmissionStatusWord.
-             * after this call the CTSW register holds 0xffffffff
+             * HLT_IN: clear last CommandTransmissionStatusWord.
+             * after this call the register holds 0xffffffff
              * */
             void
             clearLastDiuFrontEndStatusWord();
 
 
+            /**
+             * HLT_OUT: clear last Front-End Command received on SIU
+             * after this call the register holds 0xffffffff
+             * */
+            void
+            clearLastSiuFrontEndCommandWord();
+
+
 
             /**
-             * get last CommandTransmissionStatusWord (CTSTW) from DIU
-             * reads as 0x00000000 on SIU.
+             * HLT_IN: get last CommandTransmissionStatusWord from DIU
+             * HLT_OUT: reads as 0x00000000
              * @return CTSTW:
              * [31]    Error
              * [30:12] Command Parameter
@@ -291,7 +306,7 @@ class device;
 
 
             /**
-             * clear last CommandTransmissionStatusWord.
+             * HLT_IN: clear last CommandTransmissionStatusWord.
              * after this call the CTSW register holds 0xffffffff
              * */
             void
@@ -299,8 +314,8 @@ class device;
 
 
             /**
-             * get last DataTransmissionStatusWord from DIU
-             * reads as 0x00000000 on SIU.
+             * HLT_IN: get last DataTransmissionStatusWord from DIU
+             * HLT_OUT: reads as 0x00000000 on SIU.
              * @return DTSTW
              * [31]    Error
              * [30:12] Block Length
@@ -312,7 +327,7 @@ class device;
 
 
             /**
-             * clear last DataTransmissionStatusWord.
+             * HLT_IN: clear last DataTransmissionStatusWord.
              * after this call the DTSTW register holds 0xffffffff
              * */
             void
@@ -320,7 +335,7 @@ class device;
 
 
             /**
-             * get last InterfaceStatusWord from DIU,
+             * HLT_IN: get last InterfaceStatusWord from DIU,
              * reads as 0x00000000 on SIU.
              * @return IFSTW
              * [31]    Error
@@ -335,7 +350,7 @@ class device;
 
 
             /**
-             * clear last InterfaceStatusWord.
+             * HLT_IN: clear last InterfaceStatusWord.
              * after this call the IFSTW register holds 0xffffffff
              * */
             void
@@ -343,14 +358,14 @@ class device;
 
 
             /**
-             * clear all last DIU status words
+             * HLT_IN: clear all last DIU status words
              * */
             void
             clearAllLastDiuStatusWords();
 
 
             /**
-             * wait for DIU StatusWord.
+             * HLT_IN: wait for DIU StatusWord.
              * @param status value register address
              * @return 0xffffffff on timeout, else status value
              * */
@@ -362,7 +377,7 @@ class device;
 
 
             /**
-             * wait for CommandTransmissionStatusWord.
+             * HLT_IN: wait for CommandTransmissionStatusWord.
              * important: clear CTSW before calling this this function!
              * @return 0 on sucess, -1 on timeout
              * */
@@ -371,7 +386,7 @@ class device;
 
 
             /**
-             * wait for InterfaceStatusWord.
+             * HLT_IN: wait for InterfaceStatusWord.
              * important: clear CTSW before calling this this function!
              * @return 0 on sucess, -1 on timeout
              * */
@@ -382,7 +397,7 @@ class device;
             /**
              * get DDL Event Count: number of Events received from DIU
              * or sent via SIU.
-             * This counter is implemented for both DIU and SIU interface
+             * This counter is implemented for both HLT_IN and HLT_OUT.
              * */
             uint32_t
             ddlEventCount();
@@ -410,7 +425,7 @@ class device;
 
 
             /**
-             * send command via DIU interface
+             * HLT_IN: send command via DIU interface
              * @param command
              * */
             void
@@ -431,7 +446,7 @@ class device;
              * *******************************************************/
 
             /**
-             * send ReadyToReceive command to FEE
+             * HLT_IN: send ReadyToReceive command to FEE
              * @return 0 on sucess, -1 on error
              * */
             int
@@ -439,7 +454,7 @@ class device;
 
 
             /**
-             * send EndOfBlockTransfer command to FEE
+             * HLT_IN: send EndOfBlockTransfer command to FEE
              * @return 0 on sucess, -1 on error
              * */
             int
@@ -447,7 +462,7 @@ class device;
 
 
             /**
-             * read and clear DIU InterfaceStatusWord
+             * HLT_IN: read and clear DIU InterfaceStatusWord
              * @return IFSTW from DIU, see INT-1996-43, p.17/18
              * for bit encodings
              * */
@@ -456,7 +471,7 @@ class device;
 
 
             /**
-             * read and clear SIU InterfaceStatusWord
+             * HLT_IN: read and clear SIU InterfaceStatusWord
              * @return IFSTW from SIU, see INT-1996-43, p.17/18
              * for bit encodings
              * */
@@ -465,7 +480,7 @@ class device;
 
 
             /**
-             * send Link Reset Command to DIU.
+             * HLT_IN: send Link Reset Command to DIU.
              * The DIU shall go to off-line state when it receives
              * a LRST command from the RORC. The DIU shall activate
              * the riLD_N interface line, when it is staying in the
@@ -476,7 +491,7 @@ class device;
 
 
             /**
-             * send Reset Command to SIU.
+             * HLT_IN: send Reset Command to SIU.
              * Start the reset cycle of the SIU. The SIU shall
              * automatically enter into the off-line state at the
              * end of the initialisation
@@ -486,7 +501,7 @@ class device;
 
 
             /**
-             * send Link Initialization Command to DIU.
+             * HLT_IN: send Link Initialization Command to DIU.
              * The DIU shall start the link initialisation protocol
              * when it receives a LINIT command from the RORC.
              * */

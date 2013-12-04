@@ -671,10 +671,22 @@ namespace LIBRARY_NAME
         return GTX(RORC_REG_DDL_FESTW);
     }
 
+    uint32_t
+    link::lastSiuFrontEndCommandWord()
+    {
+        return lastDiuFrontEndStatusWord();
+    }
+
     void
     link::clearLastDiuFrontEndStatusWord()
     {
         setGTX(RORC_REG_DDL_FESTW, 0);
+    }
+
+    void
+    link::clearLastSiuFrontEndCommandWord()
+    {
+        clearLastDiuFrontEndStatusWord();
     }
 
 

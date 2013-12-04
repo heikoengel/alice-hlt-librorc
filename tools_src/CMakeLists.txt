@@ -133,9 +133,10 @@ target_link_libraries( reset_error_counters rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
 
 # Build hwtests
-add_executable( test_fmc ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/test_fmc.cpp)
-target_link_libraries( test_fmc rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS test_fmc RUNTIME DESTINATION bin )
+add_executable( fmc_loopback_tester
+  ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/fmc_loopback_tester.cpp)
+target_link_libraries( fmc_loopback_tester rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS fmc_loopback_tester RUNTIME DESTINATION bin )
 
 add_executable( ledctrl ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ledctrl.cpp)
 target_link_libraries( ledctrl rorc pthread ${EXTRA_LIBS})
