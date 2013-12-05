@@ -63,9 +63,10 @@ namespace LIBRARY_NAME
 class bar;
 class buffer;
 class device;
+class link;
 class dma_channel_configurator;
 
-    class dma_channel : public link
+    class dma_channel
     {
         friend class dma_channel_configurator;
 
@@ -253,6 +254,9 @@ class dma_channel_configurator;
              **/
             uint32_t getRBDRAM(uint32_t addr);
 
+            //TODO: make this protected and mark using classes as friend
+            link* getLink();
+
 
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
 
@@ -294,6 +298,11 @@ class dma_channel_configurator;
              **/
             void setDMAConfig(uint32_t config);
 
+            /**
+             * Printout the state of the DMA engine to the console
+             * */
+            void printDMAState();
+
         protected:
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
@@ -301,6 +310,9 @@ class dma_channel_configurator;
             device   *m_dev;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
+            link     *m_link;
+            bar      *m_bar;
+            uint32_t  m_channel_number;
 
             dma_channel_configurator *m_channelConfigurator;
 
@@ -309,6 +321,8 @@ class dma_channel_configurator;
             (
                 uint32_t  pcie_packet_size,
                 device   *dev,
+                bar      *bar,
+                uint32_t  channel_number,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer
             );
@@ -330,6 +344,33 @@ class dma_channel_configurator;
              * @return 0 on sucess, -1 on errors
              **/
             int32_t programSglistForReportBuffer(buffer *buf);
+
+            /**
+             * get number of Scatter Gather entries for the Event buffer
+             * @return number of entries
+             **/
+            uint32_t getEBDMnSGEntries();
+
+            /**
+             * get number of Scatter Gather entries for the Report buffer
+             * @return number of entries
+             **/
+            uint32_t getRBDMnSGEntries();
+
+            /**
+             * get buffer size set in EBDM. This returns the size of the
+             * DMA buffer set in the DMA enginge and has to be the physical
+             * size of the associated DMA buffer.
+             * @return buffer size in bytes
+             **/
+            uint64_t getEBSize();
+
+            /**
+             * get buffer size set in RBDM. As the RB is not overmapped this size
+             * should be equal to the sysfs file size and buf->getRBSize()
+             * @return buffer size in bytes
+             **/
+            uint64_t getRBSize();
 
             /****** ATOMICS **************************************************************/
 

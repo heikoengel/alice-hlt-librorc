@@ -73,6 +73,10 @@ class device;
                 return m_bar;
             }
 
+            uint32_t base()
+            {
+                return m_base;
+            }
 
 
             /**********************************************************
@@ -142,9 +146,9 @@ class device;
             /** clear Event Count */
             void clearEventCount();
 
-            uint32_t stallCount();
+            uint32_t dmaStallCount();
 
-            uint32_t numberOfEventsProcessed();
+            uint32_t dmaNumberOfEventsProcessed();
 
             /**
              * Printout the state of the DMA engine to the console
@@ -196,6 +200,7 @@ class device;
 
             /**
              * Read from GTX DRP port
+             * DRP = Dynamic Reconfiguratin Port (transciever)
              * @param drp_addr DRP address to read from
              * @return DRP value
              * */
@@ -519,12 +524,42 @@ class device;
              * */
             void printDiuState();
 
+
+
         protected:
             bar      *m_bar;
             uint32_t  m_base;
             uint32_t  m_link_number;
 
-    };
+
+            uint32_t waitForDrpDenToDeassert();
+
+            void
+            drpSetPllConfigA
+            (
+                uint8_t  value,
+                uint8_t& n1_reg,
+                uint8_t& n2_reg,
+                uint8_t& d_reg
+            );
+
+            void
+            drpSetPllConfigMRegister
+            (
+                uint8_t  value,
+                uint8_t  m_reg
+            );
+
+            void
+            drpSetPllConfigClkDivider
+            (
+                uint8_t value,
+                uint8_t bit,
+                uint8_t clkdiv
+            );
+
+            void drpSetPllConfigCommon(gtxpll_settings pll);
+};
 
 }
 

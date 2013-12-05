@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
+
+set( REQUIRED_PDA_VERSION "7:0:1" )
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
@@ -9,35 +11,8 @@ MESSAGE( STATUS "---------------------------------------------------------------
 
 
 #--- Find and check PDA -------------------------------------------------------
-EXECUTE_PROCESS(
-  COMMAND pda-config --include
-  RESULT_VARIABLE PDA_RETURN
-  OUTPUT_VARIABLE PDA_INCLUDE_DIR
-  )
 
-IF( PDA_RETURN )
-  MESSAGE( STATUS "Failed to run pda-config because it is not in the path. ")
-  MESSAGE( STATUS "Maybe the related module is not loaded? ")
-  MESSAGE( STATUS "Try \"module load pda\" ...")
-  MESSAGE( FATAL_ERROR "ABORT!!!")
-ENDIF()
-MESSAGE( STATUS "pda include = ${PDA_INCLUDE_DIR}")
-
-include_directories ( ${PDA_INCLUDE_DIR}  )
-
-EXECUTE_PROCESS(
-  COMMAND pda-config --ldlibrarypath
-  RESULT_VARIABLE ret
-  OUTPUT_VARIABLE PDA_LD_LIBRARY_PATH
-  )
-
-MESSAGE(STATUS "pda LD_LIBRARY_PATH = ${PDA_LD_LIBRARY_PATH}")
-
-find_library(PDA pda
-    PATHS ${PDA_LD_LIBRARY_PATH})
-set(EXTRA_LIBS ${EXTRA_LIBS} ${PDA})
-
-
+include(CMakePda.txt)
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
@@ -47,7 +22,7 @@ if(${SIM})
 endif(${SIM})
 
 
-#--- add target for Doxygen ---------------------------------------------------
+#--- Add target for Doxygen ---------------------------------------------------
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)

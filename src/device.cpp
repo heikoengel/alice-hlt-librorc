@@ -34,6 +34,9 @@ device::device
 {
     PDAInit();
 
+    if(PDACheckVersion(7, 0,1) != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+
     /** A list of PCI ID to which PDA has to attach. */
     const char *pci_ids[] =
     {

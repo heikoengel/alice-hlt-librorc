@@ -304,7 +304,7 @@ int main( int argc, char *argv[])
 
     // wait until EL_FIFO runs empty
     // TODO: add timeout
-    while( ch->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
+    while( ch->getLink()->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
         usleep(100);
 
     // wait for pending transfers to complete (dma_busy->0)

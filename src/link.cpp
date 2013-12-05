@@ -35,10 +35,6 @@ uint8_t divselout_reg2val( uint8_t reg )
     ret = (reg==0) ? 1 : 4;
     ret = (reg==1) ? 2 : ret;
     return ret;
-
-//    if (reg==0) return 1;
-//    else if (reg==1) return 2;
-//    else return 4;
 }
 
 static inline
@@ -48,10 +44,6 @@ uint8_t divselout_val2reg( uint8_t val )
     ret = (val==1) ? 0 : 2;
     ret = (val==2) ? 1 : ret;
     return ret;
-
-//    if (val==1) return 0;
-//    else if (val==2) return 1;
-//    else return 2;
 }
 
 static inline
@@ -61,10 +53,6 @@ uint8_t divselfb_reg2val( uint8_t reg )
     ret = (reg==0) ? 2 : 5;
     ret = (reg==2) ? 4 : ret;
     return ret;
-
-//    if (reg==0) return 2;
-//    else if (reg==2) return 4;
-//    else return 5;
 }
 
 static inline
@@ -74,27 +62,18 @@ uint8_t divselfb_val2reg( uint8_t val )
     ret = (val==2) ? 0 : 3;
     ret = (val==4) ? 2 : ret;
     return ret;
-
-//    if (val==2) return 0;
-//    else if (val==4) return 2;
-//    else return 3;
 }
 
 static inline
 uint8_t divselfb45_reg2val( uint8_t reg )
 {
     return (reg==1) ? 5 : 4 ;
-
-//    if (reg==1) return 5;
-//    else return 4;
 }
 
 static inline
 uint8_t divselfb45_val2reg( uint8_t val )
 {
     return (val==5) ? 1 : 0 ;
-//    if (val==5) return 1;
-//    else return 0;
 }
 
 static inline
@@ -113,18 +92,12 @@ static inline
 uint8_t divselref_reg2val( uint8_t reg )
 {
     return (reg==16) ? 1 : 2 ;
-
-//    if (reg==16) return 1;
-//    else return 2;
 }
 
 static inline
 uint8_t divselref_val2reg( uint8_t val )
 {
     return (val==1) ? 16 : 0 ;
-
-//    if (val==1) return 16;
-//    else return 0;
 }
 
 static inline
@@ -138,9 +111,9 @@ read_modify_write
 )
 {
     /** Replace rdval[bit+width-1:bit] with data[width-1:0] */
-    uint16_t mask = ((uint32_t)1<<width) - 1;
-    uint16_t wval = rdval & ~(mask<<bit);     /** clear current value */
-    wval |= ((data & mask)<<bit);             /** set new value */
+    uint16_t mask  = ((uint32_t)1<<width) - 1;
+    uint16_t wval  = rdval & ~(mask<<bit);     /** clear current value */
+    wval          |= ((data & mask)<<bit);     /** set new value */
     return wval;
 }
 
@@ -210,14 +183,11 @@ namespace LIBRARY_NAME
         setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
     }
 
-
-
     void
     link::clearEventCount()
     {
         setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
     }
-
 
     bool
     link::isGtxDomainReady()
@@ -259,37 +229,42 @@ namespace LIBRARY_NAME
         clearGtxRxByteRealignCount();
     }
 
-
     uint32_t
-    link::stallCount()
+    link::dmaStallCount()
     {
         return packetizer(RORC_REG_DMA_STALL_CNT);
     }
 
 
     uint32_t
-    link::numberOfEventsProcessed()
+    link::dmaNumberOfEventsProcessed()
     {
         return packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED);
     }
 
+    uint32_t
+    link::waitForDrpDenToDeassert()
+    {
+        uint32_t drp_status;
+        do
+        {
+            usleep(100);
+            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
+        } while (drp_status & (1 << 31));
+        return drp_status;
+    }
 
     uint16_t
     link::drpRead(uint8_t drp_addr)
     {
-        uint32_t drp_status;
         uint32_t drp_cmd = (0<<24)        | //read
                            (drp_addr<<16) | //DRP addr
                            (0x00);          //data
 
         setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-        /** wait for drp_den to deassert */
-        do
-        {
-            usleep(100);
-            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
-        } while(drp_status & (1<<31));
+        uint32_t drp_status
+            = waitForDrpDenToDeassert();
 
         DEBUG_PRINTF
         (
@@ -311,20 +286,14 @@ namespace LIBRARY_NAME
         uint16_t drp_data
     )
     {
-        uint32_t drp_status;
         uint32_t drp_cmd = (1<<24)        | //write
                            (drp_addr<<16) | //DRP addr
                            (drp_data);      //data
 
         setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-        /** wait for drp_den to deassert */
-        /** TODO: timeout! */
-        do
-        {
-            usleep(100);
-            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
-        } while(drp_status & (1<<31));
+        uint32_t drp_status
+            = waitForDrpDenToDeassert();
 
         DEBUG_PRINTF
         (
@@ -361,7 +330,69 @@ namespace LIBRARY_NAME
         return pll;
     }
 
+    void
+    link::drpSetPllConfigA
+    (
+        uint8_t  value,
+        uint8_t& n1_reg,
+        uint8_t& n2_reg,
+        uint8_t& d_reg
+    )
+    {
+        uint16_t
+        drp_data = 0;
+        drp_data = drpRead(value);
+        /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
+        drp_data = read_modify_write(drp_data, n1_reg, 6, 1);
+        /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
+        drp_data = read_modify_write(drp_data, n2_reg, 1, 5);
+        /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
+        drp_data = read_modify_write(drp_data, d_reg, 14, 2);
+        drpWrite(value, drp_data);
+        drpRead(0x0);
+    }
 
+    void
+    link::drpSetPllConfigMRegister
+    (
+        uint8_t  value,
+        uint8_t  m_reg
+    )
+    {
+        uint16_t
+        drp_data = drpRead(value);
+        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
+        drpWrite(value, drp_data);
+        drpRead(0x0);
+    }
+
+    void
+    link::drpSetPllConfigClkDivider
+    (
+        uint8_t value,
+        uint8_t bit,
+        uint8_t clkdiv
+    )
+    {
+        uint16_t
+        drp_data = drpRead(value);
+        drp_data = read_modify_write(drp_data, clkdiv, bit, 5);
+        drpWrite(value, drp_data);
+        drpRead(0x0);
+    }
+
+    void
+    link::drpSetPllConfigCommon
+    (
+        gtxpll_settings pll
+    )
+    {
+        uint16_t
+        drp_data = drpRead(0x39);
+        drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
+        drpWrite(0x39, drp_data);
+        drpRead(0x0);
+    }
 
     /**
      * set new PLL configuration
@@ -377,66 +408,30 @@ namespace LIBRARY_NAME
         uint8_t  m_reg    = divselref_val2reg(pll.m);
         uint8_t  clkdiv   = clk25div_val2reg(pll.clk25_div);
 
-        uint16_t drp_data = 0;
-
         /********************* TXPLL *********************/
 
-        drp_data = drpRead(0x1f);
-        drp_data = read_modify_write(drp_data, n1_reg, 6, 1); /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
-        drp_data = read_modify_write(drp_data, n2_reg, 1, 5); /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
-        drp_data = read_modify_write(drp_data, d_reg, 14, 2); /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
-        drpWrite(0x1f, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigA(0x1f, n1_reg, n2_reg, d_reg);
 
         /** set TXPLL_DIVSEL_REF/M: addr 0x20, bits [5:1] */
-        drp_data = drpRead(0x20);
-        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
-        drpWrite(0x20, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigMRegister(0x20, m_reg);
 
         /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
-        drp_data = drpRead(0x23);
-        drp_data = read_modify_write(drp_data, clkdiv, 10, 5);
-        drpWrite(0x23, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigClkDivider(0x23, 10, clkdiv);
 
         /********************* RXPLL *********************/
 
-        drp_data = drpRead(0x1b);
-        drp_data = read_modify_write(drp_data, n1_reg, 6, 1); /** set RXPLL_DIVSEL_FB45/N1: addr 0x1b bit [6] */
-        drp_data = read_modify_write(drp_data, n2_reg, 1, 5); /** set RXPLL_DIVSEL_FB/N2: addr 0x1b bits [5:1] */
-        drp_data = read_modify_write(drp_data, d_reg, 14, 2); /** set RXPLL_DIVSEL_OUT/D: addr 0x1b bits [15:14] */
-        drpWrite(0x1b, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigA(0x1b, n1_reg, n2_reg, d_reg);
 
         /** set RXPLL_DIVSEL_REF/M: addr 0x1c, bits [5:1] */
-        drp_data = drpRead(0x1c);
-        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
-        drpWrite(0x1c, drp_data);
-        drpRead(0x0);
+        drpSetPllConfigMRegister(0x1c, m_reg);
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
-        drp_data = drpRead(0x17);
-        drp_data = read_modify_write(drp_data, clkdiv, 5, 5);
-        drpWrite(0x17, drp_data);
-        drpRead(0x0);
-
+        drpSetPllConfigClkDivider(0x17, 5, clkdiv);
 
         /********************* Common *********************/
 
         /** TX_TDCC_CFG: addr 0x39, bits [15:14] */
-        drp_data = drpRead(0x39);
-        drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
-        drpWrite(0x39, drp_data);
-        drpRead(0x0);
-    }
-
-
-
-    uint32_t
-    link::getEBDMnSGEntries()
-    {
-        return packetizer(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff;
+        drpSetPllConfigCommon(pll);
     }
 
 
@@ -570,7 +565,6 @@ namespace LIBRARY_NAME
         ((status>>8) & 1)  ? 0                 : printf("DEADTIME: %08x ", GTX(RORC_REG_DDL_DEADTIME));
         ((status>>8) & 1)  ? 0                 : printf("EC: %08x ", GTX(RORC_REG_DDL_EC));
     }
-
 
 
     void
@@ -826,7 +820,5 @@ namespace LIBRARY_NAME
     {
         diuSendCommand(LIBRORC_LINK_CMD_DIU_LINK_INIT);
     }
-
-
 
 }
