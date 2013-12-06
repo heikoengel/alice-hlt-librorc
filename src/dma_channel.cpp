@@ -114,7 +114,7 @@ namespace LIBRARY_NAME
 
             void CheckSglistFitsIntoDRAM()
             {
-                if(m_buffer->getnSGEntries() > (m_bdcfg >> 16) )
+                if(m_buffer->getnSGEntries() >= (m_bdcfg >> 16) )
                 { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
             }
 
@@ -137,7 +137,7 @@ namespace LIBRARY_NAME
 
                     sg_entry.ctrl = (1 << 31) | (m_control_flag << 30) | ((uint32_t)i);
 
-                    /** Write librorc_dma_desc to RORC EBDM */
+                    /** Write librorc_dma_desc to RORC BufferDescriptorManager */
                     m_bar->memcopy
                         ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
                     i++;
@@ -148,6 +148,8 @@ namespace LIBRARY_NAME
             {
                 librorc_sg_entry_config sg_entry;
                 memset(&sg_entry, 0, sizeof(sg_entry) );
+                sg_entry.ctrl = (1 << 31) | (m_control_flag << 30) | m_buffer->getnSGEntries();
+
                 m_bar->memcopy
                     ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
             }
