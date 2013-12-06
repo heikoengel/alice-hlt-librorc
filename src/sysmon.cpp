@@ -68,9 +68,7 @@ namespace LIBRARY_NAME
             = m_bar->get32(RORC_REG_FIRMWARE_REVISION);
 
         if(firmware_revision == 0xffffffff)
-        {
-            throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
-        }
+        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
 
         return firmware_revision;
     }
@@ -84,13 +82,22 @@ namespace LIBRARY_NAME
             = m_bar->get32(RORC_REG_FIRMWARE_DATE);
 
         if(date == 0xffffffff)
-        {
-            throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
-        }
+        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
 
         return date;
     }
 
+    bool
+    sysmon::FwIsHltIn()
+    {
+        return (m_bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) == RORC_CFG_PROJECT_hlt_in;
+    }
+
+    bool
+    sysmon::FwIsHltOut()
+    {
+        return (m_bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) == RORC_CFG_PROJECT_hlt_out;
+    }
 
 
     /** PCI ***********************************************************/

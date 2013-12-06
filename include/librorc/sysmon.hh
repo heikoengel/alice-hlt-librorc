@@ -90,6 +90,9 @@ class bar;
             **/
             uint32_t FwBuildDate();
 
+            bool FwIsHltIn();
+            bool FwIsHltOut();
+
             uint32_t pcieNumberOfLanes();
             uint32_t pcieGeneration();
 

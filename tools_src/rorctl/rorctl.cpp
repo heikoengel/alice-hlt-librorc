@@ -395,7 +395,7 @@ init_flash
             new librorc::flash
                 (bar, options.chip_select, options.verbose);
     }
-    catch (int e)
+    catch(int e)
     {
         switch (e)
         {
@@ -413,7 +413,7 @@ init_flash
 
             default:
             {
-                cout << "Unknown Exceptoin Nr. " << e << endl;
+                cout << "Unknown Exception Nr. " << e << endl;
             }
             break;
         }
