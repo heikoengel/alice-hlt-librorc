@@ -345,7 +345,7 @@ print_device
 
     cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
          << ", revision: "      << hex << setw(8) << sm->FwRevision()
-         << "["  << type << "])" << endl;
+         << " ["  << type << "])" << endl;
 
     delete sm;
     delete bar;
