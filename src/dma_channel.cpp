@@ -66,18 +66,18 @@ namespace LIBRARY_NAME
                 m_bdcfg          = dmaChannel->getLink()->packetizer(flag);
                 m_pda_dma_buffer = m_buffer->getPDABuffer();
                 m_sglist         = NULL;
-                m_control_flag   = 0;
+                m_target_ram     = 0;
             }
 
             int32_t program()
             {
                 try
                 {
-                    convertControlFlag();
-                    CheckSglistFitsIntoDRAM();
+                    selectTargetDescriptorRAM();
+                    CheckSglistFitsIntoDescriptorRAM();
                     getSglistFromPDA();
-                    programSglistIntoDRAM();
-                    clearTrailingDRAM();
+                    programSglistIntoDescriptorRAM();
+                    clearTrailingDescriptorRAMEntry();
                 }
                 catch(...){ return -1; }
 
@@ -86,7 +86,7 @@ namespace LIBRARY_NAME
 
 
         protected:
-            uint32_t                 m_control_flag;
+            uint32_t                 m_target_ram;
             buffer                  *m_buffer;
             uint32_t                 m_bdcfg;
             DMABuffer               *m_pda_dma_buffer;
@@ -95,16 +95,16 @@ namespace LIBRARY_NAME
             bar                     *m_bar;
             uint32_t                 m_base;
 
-            void convertControlFlag()
+            void selectTargetDescriptorRAM()
             {
                 switch(m_flag)
                 {
                     case RORC_REG_RBDM_N_SG_CONFIG:
-                    { m_control_flag = 1; }
+                    { m_target_ram = 1; }
                     break;
 
                     case RORC_REG_EBDM_N_SG_CONFIG:
-                    { m_control_flag = 0; }
+                    { m_target_ram = 0; }
                     break;
 
                     default:
@@ -112,9 +112,9 @@ namespace LIBRARY_NAME
                 }
             }
 
-            void CheckSglistFitsIntoDRAM()
+            void CheckSglistFitsIntoDescriptorRAM()
             {
-                if(m_buffer->getnSGEntries() > (m_bdcfg >> 16) )
+                if(m_buffer->getnSGEntries() >= (m_bdcfg >> 16) )
                 { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
             }
 
@@ -124,7 +124,7 @@ namespace LIBRARY_NAME
                 { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
             }
 
-            void programSglistIntoDRAM()
+            void programSglistIntoDescriptorRAM()
             {
                 uint64_t i = 0;
                 librorc_sg_entry_config sg_entry;
@@ -135,19 +135,21 @@ namespace LIBRARY_NAME
                     sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
                     sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
 
-                    sg_entry.ctrl = (1 << 31) | (m_control_flag << 30) | ((uint32_t)i);
+                    sg_entry.ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
 
-                    /** Write librorc_dma_desc to RORC EBDM */
+                    /** Write librorc_dma_desc to RORC BufferDescriptorManager */
                     m_bar->memcopy
                         ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
                     i++;
                 }
             }
 
-            void clearTrailingDRAM()
+            void clearTrailingDescriptorRAMEntry()
             {
                 librorc_sg_entry_config sg_entry;
                 memset(&sg_entry, 0, sizeof(sg_entry) );
+                sg_entry.ctrl = (1 << 31) | (m_target_ram << 30) | m_buffer->getnSGEntries();
+
                 m_bar->memcopy
                     ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
             }
