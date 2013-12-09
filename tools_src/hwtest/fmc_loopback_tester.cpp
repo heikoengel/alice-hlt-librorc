@@ -40,12 +40,21 @@ reset_fmc_tester
     librorc::bar *bar
 )
 {
-    bar->set32(RORC_REG_FMC_CTRL_HIGH, 0);
+    /** high:
+     * [31]: data_t - 1->input, 0->output
+     * [1:0]: data_out[33:32]
+     * mid:
+     * [31:0]: data_out[31:0]
+     * */
+    bar->set32(RORC_REG_FMC_CTRL_HIGH, (1<<31));
     bar->set32(RORC_REG_FMC_CTRL_MID, 0);
     //RORC_REG_FMC_CTRL_LOW is read-only
 }
 
 
+/**
+ * drive fmc_cfg.data_out[bit] to 'level', all other bits to 'not level'
+ * */
 void
 drive_bit
 (
@@ -57,6 +66,7 @@ drive_bit
     uint32_t midval;
     uint32_t highval;
 
+    /** initialize register values to 'not level' */
     if ( level )
     {
         midval = 0;
@@ -66,7 +76,7 @@ drive_bit
         highval = 0x00000003;
     }
 
-    /** set output bit */
+    /** set output bit to 'level' */
     if ( bit<32 )
     {
         if (level)
@@ -113,7 +123,7 @@ check_bit
     {
         exp_val = ((uint64_t)1<<bit);
     } else {
-        exp_val = ( ~((uint64_t)1<<bit) ) & 0x3ffffffff;
+        exp_val = ( ~((uint64_t)1<<bit) ) & (uint64_t)0x3ffffffff;
     }
 
     int error = 0;
