@@ -14,6 +14,12 @@ MESSAGE( STATUS "---------------------------------------------------------------
 
 include(CMakePda.txt)
 
+
+#--- Setup CPack --------------------------------------------------------------
+SET(CPACK_GENERATOR "RPM")
+INCLUDE(CPack)
+
+
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
 if(${SIM})
