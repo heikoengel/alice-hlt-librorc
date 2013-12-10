@@ -409,13 +409,20 @@ checkFpgaFan
     int verbose
 )
 {
-    double fanspeed = sm->systemFanSpeed();
-    if ( fanspeed < FPGA_FANSPEED_MIN || fanspeed > FPGA_FANSPEED_MAX )
+    if ( !sm->systemFanIsRunning() )
     {
-        cout << "ERROR: FPGA fan speed out of bounds: "
-            << fanspeed << " RPM" << endl;
-    } else if ( verbose )
+        cout << "ERROR: FPGA fan seems to be stopped " << endl;
+    }
+    else
     {
-        cout << "Fan: " << fanspeed << " RPM" << endl;
+        double fanspeed = sm->systemFanSpeed();
+        if ( fanspeed < FPGA_FANSPEED_MIN || fanspeed > FPGA_FANSPEED_MAX )
+        {
+            cout << "ERROR: FPGA fan speed out of bounds: "
+                << fanspeed << " RPM" << endl;
+        } else if ( verbose )
+        {
+            cout << "Fan: " << fanspeed << " RPM" << endl;
+        }
     }
 }

@@ -90,7 +90,7 @@ drive_bit
     {
         if (level)
         {
-            highval = (1<<bit);
+            highval = (1<<(bit-32));
         } else {
             highval = ~(1<<(bit-32));
         }
@@ -242,9 +242,17 @@ main
     uint32_t fmc_high = bar->get32(RORC_REG_FMC_CTRL_HIGH);
     if ( fmc_low != 0xffffffff || ((fmc_high>>8)&0x3) != 0x03)
     {
-        cout << "WARNING: unexpected reset state "
-             << hex << ((fmc_high>>8)&0x3) << fmc_low
+        cout << "WARNING: unexpected reset state 0x"
+             << hex << ((fmc_high>>8)&0x3) << "_" << fmc_low
              << " - expected 0x3_ffffffff" << dec << endl;
+    }
+
+    /** check if a FMC addon board is detected:
+     * fmc_high[30] = fmc_prsnt_n -> 0 when present
+     **/
+    if ( fmc_high & (1<<30) )
+    {
+        cout << "WARNING: no FMC addon board detected!" << endl;
     }
 
     int result = 0;

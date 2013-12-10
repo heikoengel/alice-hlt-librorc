@@ -164,7 +164,7 @@ main
     checkFpgaFan( sm, verbose );
 
 
-    /** check QSFP present and i2c status */ 
+    /** check QSFP module slow eletrical interfaces */
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
         if ( !sm->qsfpIsPresent(i) )
