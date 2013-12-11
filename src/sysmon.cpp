@@ -105,9 +105,30 @@ namespace LIBRARY_NAME
         return(firmwareType()==RORC_CFG_PROJECT_hlt_out);
     }
 
+    bool
+    sysmon::firmwareIsHltPciDebug()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_pciedbg);
+    }
+
+    bool
+    sysmon::firmwareIsHltInFcf()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_hlt_in_fcf);
+    }
+
+    bool
+    sysmon::firmwareIsHltHardwareTest()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_hwtest);
+    }
+
     const char*
     sysmon::firmwareDescription()
     {
+        if(firmwareType() >= LIBRORC_NUMBER_OF_FIRMWARE_MODES)
+        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
+
         return librorc_firmware_mode_descriptions[firmwareType()];
     }
 

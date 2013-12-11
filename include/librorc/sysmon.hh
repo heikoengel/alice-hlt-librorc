@@ -106,6 +106,9 @@ class bar;
             uint16_t    firmwareType();
             bool        firmwareIsHltIn();
             bool        firmwareIsHltOut();
+            bool        firmwareIsHltPciDebug();
+            bool        firmwareIsHltInFcf();
+            bool        firmwareIsHltHardwareTest();
             const char *firmwareDescription();
 
             uint32_t pcieNumberOfLanes();
