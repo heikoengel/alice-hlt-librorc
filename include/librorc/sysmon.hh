@@ -90,6 +90,7 @@ class bar;
             **/
             uint32_t FwBuildDate();
 
+            uint16_t firmwareType();
             bool FwIsHltIn();
             bool FwIsHltOut();
 

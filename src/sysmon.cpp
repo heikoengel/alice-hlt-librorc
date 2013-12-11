@@ -87,16 +87,22 @@ namespace LIBRARY_NAME
         return date;
     }
 
+    uint16_t
+    sysmon::firmwareType()
+    {
+        return ((m_bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff);
+    }
+
     bool
     sysmon::FwIsHltIn()
     {
-        return (m_bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) == RORC_CFG_PROJECT_hlt_in;
+        return (firmwareType()==RORC_CFG_PROJECT_hlt_in);
     }
 
     bool
     sysmon::FwIsHltOut()
     {
-        return (m_bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) == RORC_CFG_PROJECT_hlt_out;
+        return (firmwareType()==RORC_CFG_PROJECT_hlt_out);
     }
 
 
