@@ -90,19 +90,25 @@ namespace LIBRARY_NAME
     uint16_t
     sysmon::firmwareType()
     {
-        return ((m_bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff);
+        return((m_bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff);
     }
 
     bool
     sysmon::FwIsHltIn()
     {
-        return (firmwareType()==RORC_CFG_PROJECT_hlt_in);
+        return(firmwareType()==RORC_CFG_PROJECT_hlt_in);
     }
 
     bool
     sysmon::FwIsHltOut()
     {
-        return (firmwareType()==RORC_CFG_PROJECT_hlt_out);
+        return(firmwareType()==RORC_CFG_PROJECT_hlt_out);
+    }
+
+    const char*
+    sysmon::firmwareDescription()
+    {
+        return librorc_firmware_mode_descriptions[firmwareType()];
     }
 
 

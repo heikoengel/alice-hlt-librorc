@@ -41,6 +41,19 @@
 #define LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION 2
 
 
+#define LIBRORC_NUMBER_OF_FIRMWARE_MODES 5
+const char
+librorc_firmware_mode_descriptions[LIBRORC_NUMBER_OF_FIRMWARE_MODES][1024]
+= {
+"HLT-in",
+"HLT-out",
+"PCI Debug",
+"HLT-in (fcf)",
+"hwtest"
+};
+
+//const char librorc_firmware_mode_descriptions[] = "in";
+
 
 /**
  * @class librorc_sysmon
@@ -90,9 +103,10 @@ class bar;
             **/
             uint32_t FwBuildDate();
 
-            uint16_t firmwareType();
-            bool FwIsHltIn();
-            bool FwIsHltOut();
+            uint16_t    firmwareType();
+            bool        FwIsHltIn();
+            bool        FwIsHltOut();
+            const char *firmwareDescription();
 
             uint32_t pcieNumberOfLanes();
             uint32_t pcieGeneration();
