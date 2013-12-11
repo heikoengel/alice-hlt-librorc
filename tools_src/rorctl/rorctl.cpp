@@ -341,7 +341,7 @@ print_device
     cout << resetiosflags(std::ios::showbase);
     cout << " : " << dev->deviceDescription();
 
-    const char *type = sm->FwIsHltIn() ? "in" : "out";
+    const char *type = sm->firmwareIsHltIn() ? "in" : "out";
 
     cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
          << ", revision: "      << hex << setw(8) << sm->FwRevision()

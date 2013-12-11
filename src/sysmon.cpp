@@ -94,13 +94,13 @@ namespace LIBRARY_NAME
     }
 
     bool
-    sysmon::FwIsHltIn()
+    sysmon::firmwareIsHltIn()
     {
         return(firmwareType()==RORC_CFG_PROJECT_hlt_in);
     }
 
     bool
-    sysmon::FwIsHltOut()
+    sysmon::firmwareIsHltOut()
     {
         return(firmwareType()==RORC_CFG_PROJECT_hlt_out);
     }

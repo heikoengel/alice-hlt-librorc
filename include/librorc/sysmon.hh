@@ -104,8 +104,8 @@ class bar;
             uint32_t FwBuildDate();
 
             uint16_t    firmwareType();
-            bool        FwIsHltIn();
-            bool        FwIsHltOut();
+            bool        firmwareIsHltIn();
+            bool        firmwareIsHltOut();
             const char *firmwareDescription();
 
             uint32_t pcieNumberOfLanes();
