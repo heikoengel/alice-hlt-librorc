@@ -46,7 +46,6 @@ main
 )
 {
     int32_t device_number = -1;
-    int sysclk_avail = 1;
     int verbose = 0;
 
     /** parse command line arguments */
@@ -148,7 +147,7 @@ main
     checkPcieState( sm );
 
     /** check sysclk is running */
-    int sysclk_avail = checkSysClkAvailable( sysmon );
+    int sysclk_avail = checkSysClkAvailable( sm );
 
     /** check GTX clk is running */
     int gtxclk_avail = checkGtxClkAvailable( bar, verbose );
