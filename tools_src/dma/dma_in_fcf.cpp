@@ -33,8 +33,8 @@
 using namespace std;
 
 #define MAX_CHANNELS 12
-#define MAPPING_FILE "/mnt/data/svn/CRORC/software/FCF/common/FCF_Mapping/FCF_Mapping_Patch0.data"
-#define INPUT_FILE "/mnt/data/projects/fcf/FCF_Verification/data/raw28/TPC_768.ddl"
+#define MAPPING_FILE "/build/ddl_data/FCF_Mapping/FCF_Mapping_Patch0.data"
+#define INPUT_FILE "/build/ddl_data/raw28/TPC_768.ddl"
 
 bool done = false;
 void abort_handler( int s )                                          \
@@ -150,12 +150,19 @@ int main(int argc, char *argv[])
 
     uint32_t ch_start_addr = 0x00000000;
     cout << "Writing event to DDR3..." << endl;
+    try {
     sm->data_replay_write_event(
             event,
             (fd_in_stat.st_size>>2), // num_dws
             ch_start_addr, // ddr3 start address
             0, // channel
             true); // last event
+    }
+    catch( int e )
+    {
+        cout << "Exception while writing event: " << e << endl;
+        abort();
+    }
 
     /** configure data replay channel */
     uint32_t ch_cfg = ch_start_addr | //start addr
