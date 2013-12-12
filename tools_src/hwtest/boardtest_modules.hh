@@ -21,6 +21,7 @@
 #ifndef BOARDTEST_MODULES_HH
 #define BOARDTEST_MODULES_HH
 
+#define LIBRORC_INTERNAL
 
 #include <librorc.h>
 #include "../dma/dma_handling.hh"
@@ -49,6 +50,7 @@
 
 #define UC_DEVICE_SIGNATURE 0x15951e
 
+
 #define HEXSTR(x, width) "0x" << setw(width) << setfill('0') << hex << x << setfill(' ')
 
 void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
@@ -74,5 +76,5 @@ int checkSysClkAvailable(librorc::sysmon *sm);
 
 void checkLinkState( librorc::link *link, uint32_t channel_id );
 
-void testDmaChannel(uint32_t device_number, int timeout);
+void testDmaChannel(librorc::device *dev, librorc::bar *bar, int timeout);
 #endif

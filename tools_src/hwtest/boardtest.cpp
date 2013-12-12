@@ -30,6 +30,7 @@ using namespace std;
 
 #define DMA_TIMEOUT 10.0
 
+#define LIBRORC_INTERNAL
 #define BOARDTEST_HELP_TEXT "boardtest usage: \n\
     ucctrl [parameters] \n\
 Parameters: \n\
@@ -215,7 +216,7 @@ main
     if ( do_long_test )
     {
 
-        testDmaChannel( device_number, DMA_TIMEOUT );
+        testDmaChannel( dev, bar, DMA_TIMEOUT );
     }
 
     /** check DDR3 Traffic generator status */

@@ -20,6 +20,7 @@
 #include "boardtest_modules.hh"
 #include "../dma/dma_handling.hh"
 
+
 void
 checkDdr3ModuleSpd
 (
@@ -560,6 +561,8 @@ checkLinkState
     if (link->isGtxDomainReady())
     {
         uint32_t ddlctrl = link->GTX(RORC_REG_DDL_CTRL);
+        cout << HEXSTR(ddlctrl, 8) << endl;
+        /** TODO: change to GTX_ASYNC_STS::READY */
         if ( !((ddlctrl>>5)&1) )
         {
             cout << "ERROR: Link channel " << channel_id
@@ -586,15 +589,34 @@ checkLinkState
 }
 
 
+
+uint64_t
+eventCallBack
+(
+    void                     *userdata,
+    uint64_t                  event_id,
+    librorc_event_descriptor  report,
+    const uint32_t           *event,
+    librorcChannelStatus     *channel_status
+)
+{
+    librorc::event_sanity_checker *checker = (librorc::event_sanity_checker*)userdata;
+
+    try{ checker->check(report, channel_status, event_id); }
+    catch(...){ abort(); }
+    return 0;
+}
+
 void
 testDmaChannel
 (
-    uint32_t device_number,
+    librorc::device *dev,
+    librorc::bar *bar,
     int timeout
 )
 {
     DMAOptions opts;
-    opts.deviceId  = device_number;
+    opts.deviceId  = dev->getDeviceId();
     opts.channelId = 0;
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
@@ -602,29 +624,31 @@ testDmaChannel
 
     char logdirectory[] = "/tmp";
     
-    librorc::event_stream *eventStream = NULL;
+    librorc_event_callback event_callback = eventCallBack;
+    librorc::link *link = new librorc::link(bar, opts.channelId);
 
-    try
-    { 
-        eventStream = new librorc::event_stream(opts.deviceId, 
-            opts.channelId, opts.eventSize, opts.esType); 
-    }
-    catch( int error )
-    {
-        cout << "ERROR: failed to initialize event stream." << endl;
-        abort();
-    }
+    librorc::event_stream *eventStream;
+    cout << "Prepare ES" << endl;
+    if( !(eventStream = prepareEventStream(dev, bar, opts)) )
+    { exit(-1); }
+    eventStream->setEventCallback(event_callback);
+
+    /** enable EBDM + RBDM + PKT */
+    link->setPacketizer(RORC_REG_DMA_CTRL, 
+            (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE|CHK_PATTERN|CHK_ID;
-    librorc::event_sanity_checker checker = librorc::event_sanity_checker
-            (
-                eventStream->m_eventBuffer,
-                opts.channelId,
-                PG_PATTERN_INC,
-                sanity_check_mask,
-                logdirectory,
-                opts.refname
-            );
 
+    librorc::event_sanity_checker checker = 
+        librorc::event_sanity_checker
+        (
+         eventStream->m_eventBuffer,
+         opts.channelId,
+         PG_PATTERN_INC,
+         sanity_check_mask,
+         logdirectory
+        );
+    
     /** Capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
@@ -642,8 +666,8 @@ testDmaChannel
 
     printFinalStatusLine(
             eventStream->m_channel_status,
-            eventStream->m_start_time,
-            eventStream->m_end_time);
+            start_time,
+            end_time);
 
     /** Cleanup */
     delete eventStream;
