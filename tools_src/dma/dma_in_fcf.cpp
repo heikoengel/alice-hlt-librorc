@@ -34,6 +34,7 @@ using namespace std;
 
 #define MAX_CHANNELS 12
 #define MAPPING_FILE "/mnt/data/svn/CRORC/software/FCF/common/FCF_Mapping/FCF_Mapping_Patch0.data"
+#define INPUT_FILE "/mnt/data/projects/fcf/FCF_Verification/data/raw28/TPC_768.ddl"
 
 bool done = false;
 void abort_handler( int s )                                          \
@@ -60,53 +61,6 @@ eventCallBack
     try{ checker->check(report, channel_status, event_id); }
     catch(...){ abort(); }
     return 0;
-}
-
-
-
-void
-loadFcfRam
-(
-    librorc::link *link,
-    const char *fname
-)
-{
-    ifstream memfile(fname);
-    if ( !memfile.is_open() )
-    {
-        cout << "Failed to open mapping file" << endl;
-        abort();
-    }
-
-    string line;
-    uint32_t i = 0;
-
-    while ( getline(memfile, line) )
-    {
-        uint32_t hexval;
-        stringstream ss;
-        ss << hex << line;
-        ss >> hexval;
-        cout << dec << i << ": " << hex << hexval << endl;
-
-        if ( i>4095 )
-        {
-            cout << "Mapping file has more than 4096 entries - skipping remaining lines" << endl;
-            break;
-        }
-
-        link->setGTX(RORC_REG_FCF_RAM_DATA, hexval);
-        link->setGTX(RORC_REG_FCF_RAM_CTRL, i);
-
-        i++;
-    }
-
-    if ( i<4096 )
-    {
-        cout << "WARNING: only wrote " << dec << i 
-             << " entries from mapping file." << endl;
-    }
-
 }
 
 
@@ -144,26 +98,75 @@ int main(int argc, char *argv[])
 
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
-    /** wait until GTX domain is up */
-    cout << "Waiting for GTX domain..." << endl;
-    while ( !link->isGtxDomainReady() )
+    int fd_in = open(INPUT_FILE, O_RDONLY);
+    if ( fd_in==-1 )
     {
-        usleep(100);
+        cout << "ERROR: Failed to open input file" << endl;
+        abort();
+    }
+    struct stat fd_in_stat;
+    fstat(fd_in, &fd_in_stat);
+
+    uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size, PROT_READ, MAP_SHARED, fd_in, 0);
+    if ( event == MAP_FAILED )
+    {
+        cout << "ERROR: failed to mmap input file" << endl;
+        abort();
     }
 
-    loadFcfRam(link, MAPPING_FILE);
+    /** wait until GTX domain is up */
+    cout << "Waiting for GTX domain..." << endl;
+    link->waitForGTXDomain();
+
+#ifndef SIM
+    /** in simulation FCF RAM is loaded by Modelsim */
+    cout << "Writing mapping file to FCF_RAM..." << endl;
+    link->fcfLoadMappingRam(MAPPING_FILE);
+#endif
 
     /** wait until DDL is up */
-    cout << "Waiting for DIU riLD_N..." << endl;
+    /*cout << "Waiting for DIU riLD_N..." << endl;
     while( (link->GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20)
     {
         usleep(100);
+    }*/
+
+
+    librorc::sysmon *sm = NULL;
+    try
+    {
+        sm = new librorc::sysmon(bar);
+    }
+    catch(...)
+    {
+        cout << "ERROR: failed to initialize sysmon" << endl;
+        abort();
     }
 
-    /** set ENABLE */
+    /** wait for phy_init_done */
+    cout << "Waiting for phy_init_done..." << endl;
+    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
+    { usleep(100); }
+
+    uint32_t ch_start_addr = 0x00000000;
+    cout << "Writing event to DDR3..." << endl;
+    sm->data_replay_write_event(
+            event,
+            (fd_in_stat.st_size>>2), // num_dws
+            ch_start_addr, // ddr3 start address
+            0, // channel
+            true); // last event
+
+    /** configure data replay channel */
+    uint32_t ch_cfg = ch_start_addr | //start addr
+        (1<<1) | // continuous
+        (1<<0); //enable
+    link->setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+
+    /** configure DDL datastream */
     uint32_t ddlctrl = (1<<0) | //enable DDLIF
         (1<<1) | // enable flow control
-        (0<<3) | // set MUX to use DDL as data source
+        (1<<3) | // set MUX to use DDR3 as data source
         (1<<9) | // enable PG adaptive
         (1<<10) | // enable continuous mode
         (1<<8) | // enable PG
@@ -171,8 +174,11 @@ int main(int argc, char *argv[])
         (0<<11); // set mode to INCREMENT
     link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
 
+    /** enable data replay */
+    bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x80000000);
+
     /** send RdyRx to SIU */
-    link->setGTX(RORC_REG_DDL_CMD, 0x00000014);
+    //link->setGTX(RORC_REG_DDL_CMD, 0x00000014);
 
 
     uint64_t last_bytes_received;
@@ -263,6 +269,7 @@ int main(int argc, char *argv[])
             eventStream->m_end_time);
 
     /** Cleanup */
+    delete sm;
     delete link;
     delete eventStream;
     delete bar;

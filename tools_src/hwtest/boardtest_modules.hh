@@ -56,6 +56,7 @@ void checkLvdsTester (librorc::bar *bar);
 void checkFlash(librorc::device *dev, int chip_select, int verbose);
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
 
+void checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpTemperature(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpVcc(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpOpticalLevels(librorc::sysmon *sm, int module_id, int verbose);
@@ -65,5 +66,8 @@ void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 void checkPcieState(librorc::sysmon *sm);
 
 void checkFpgaFan(librorc::sysmon *sm, int verbose);
+
+int checkGtxClkAvailable(librorc::bar *bar, int verbose);
+int checkSysClkAvailable(librorc::sysmon *sm);
 
 #endif

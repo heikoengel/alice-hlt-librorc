@@ -250,6 +250,35 @@ checkRefClkGen
 
 
 void
+checkQsfp
+(
+    librorc::sysmon *sm,
+    int module_id,
+    int verbose
+)
+{
+    if ( !sm->qsfpIsPresent(module_id) )
+    {
+        cout << "WARNING: No QSFP detected in slot "
+            << module_id << " - skipping some tests..." << endl;
+    }
+    else if ( sm->qsfpGetReset(module_id) )
+    {
+        cout << "WARNING: QSFP " << module_id
+            << " seems to be in RESET state - "
+            << " skipping some tests" << endl;
+    }
+    else
+    {
+        checkQsfpTemperature( sm, module_id, verbose );
+        checkQsfpVcc( sm, module_id, verbose );
+        checkQsfpOpticalLevels( sm, module_id, verbose );
+    }
+}
+
+
+
+void
 checkQsfpTemperature
 (
     librorc::sysmon *sm,
@@ -260,12 +289,12 @@ checkQsfpTemperature
     float qsfptemp = sm->qsfpTemperature(module_id);
     if ( qsfptemp < QSFP_TEMP_MIN || qsfptemp > QSFP_TEMP_MAX )
     {
-        cout << "ERROR: QSFP " << module_id 
+        cout << "ERROR: QSFP " << module_id
             << " Temperature out of bounds: "
             << qsfptemp << endl;
     } else if ( verbose )
     {
-        cout << "QSFP " << module_id 
+        cout << "QSFP " << module_id
             << " Temperature: " << qsfptemp << " degC" << endl;
     }
 }
@@ -286,7 +315,7 @@ checkQsfpVcc
             << " VCC out of bounds: " << qsfpvcc << endl;
     } else if ( verbose )
     {
-        cout << "QSFP " << module_id 
+        cout << "QSFP " << module_id
             << " VCC: " << qsfpvcc << " V" << endl;
     }
 }
@@ -307,13 +336,13 @@ checkQsfpOpticalLevels
         if ( rxpower < QSFP_RXPOWER_MIN || rxpower > QSFP_RXPOWER_MAX )
         {
             cout << "WARNING: QSFP " << module_id << " Channel " << j
-                << " (Link " << setw(2) << 4*module_id+j 
+                << " (Link " << setw(2) << 4*module_id+j
                 << ") RX Power out of bounds: "
                 << rxpower << " mW" << endl;
         } else if ( verbose )
         {
             cout << "QSFP " << module_id  << " Channel " << j
-                << " (Link " << setw(2) << 4*module_id+j << ") RX Power: " 
+                << " (Link " << setw(2) << 4*module_id+j << ") RX Power: "
                 << rxpower << " mW" << endl;
         }
     }
@@ -325,13 +354,13 @@ checkQsfpOpticalLevels
         if ( txbias < QSFP_TXBIAS_MIN || txbias > QSFP_TXBIAS_MAX )
         {
             cout << "WARNING: QSFP " << module_id << " Channel " << j
-                << " (Link " << setw(2) << 4*module_id+j 
+                << " (Link " << setw(2) << 4*module_id+j
                 << ") TX Bias out of bounds: "
                 << txbias << " mA" << endl;
         } else if ( verbose )
         {
             cout << "QSFP " << module_id  << " Channel " << j
-                << " (Link " << setw(2) << 4*module_id+j << ") TX bias: " 
+                << " (Link " << setw(2) << 4*module_id+j << ") TX bias: "
                 << txbias << " mA" << endl;
         }
     }
@@ -425,4 +454,52 @@ checkFpgaFan
             cout << "Fan: " << fanspeed << " RPM" << endl;
         }
     }
+}
+
+
+int
+checkGtxClkAvailable
+(
+    librorc::bar *bar,
+    int verbose
+)
+{
+    uint32_t nchannels = (bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff);
+
+    if (nchannels!=12)
+    {
+        cout << "WARNING: FW reports " << nchannels
+             << " channels - expected 12." << endl;
+    }
+
+    int clk_avail = 1;
+    for ( uint32_t i=0; i<nchannels; i++ )
+    {
+        librorc::link *link = new librorc::link(bar, i);
+        if ( !link->isGtxDomainReady() )
+        {
+            cout << "ERROR: No clock on link " << i
+                 << " - Skipping ALL link related checks!" << endl;
+            clk_avail = 0;
+        }
+        delete link;
+    }
+    return clk_avail;
+}
+
+
+int
+checkSysClkAvailable
+(
+    librorc::sysmon *sm
+)
+{
+    int clk_avail = 1;
+    if ( !sm->systemClockIsRunning() )
+    {
+        cout << "ERROR: 200 MHz system clock not detected "
+             << "- have to skip some test now..." << endl;
+        clk_avail = 0;
+    }
+    return clk_avail;
 }

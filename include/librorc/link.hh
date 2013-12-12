@@ -22,6 +22,8 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
+#include <sstream>
+#include <fstream>
 
 #define LIBRORC_LINK_DDL_TIMEOUT 10000
 
@@ -516,6 +518,24 @@ class device;
 
 
             /**********************************************************
+             *             Fast Cluster Finder Interfacing
+             *********************************************************/
+
+            /**
+             * load mapping file into FCF mapping RAM
+             * @param fname path to mapping file. The mapping file
+             *        is a plain-text file with one 32bit hex string
+             *        per line, e.g.
+             *        "0x1000801f"
+             **/
+            void
+            fcfLoadMappingRam
+            (
+                 const char *fname
+            );
+
+
+            /**********************************************************
              *             Debug Output
              * *******************************************************/
 
@@ -559,6 +579,34 @@ class device;
             );
 
             void drpSetPllConfigCommon(gtxpll_settings pll);
+
+
+
+            /**********************************************************
+             *             Fast Cluster Finder Interfacing
+             *********************************************************/
+
+            /** write entry into FCF mapping RAM
+             * @param addr mapping RAM addr
+             * @param data data to be written
+             **/
+            void
+            fcfWriteMappingRamEntry
+            (
+                 uint32_t addr,
+                 uint32_t data
+            );
+
+            /**
+             * convert hex string to uint32_t
+             * @param line input string
+             * @return line as uint32_t
+             **/
+            uint32_t
+            fcfHexstringToUint32
+            (
+                 string line
+            );
 };
 
 }

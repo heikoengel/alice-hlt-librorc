@@ -30,6 +30,8 @@
 #define LIBRORC_SYSMON_ERROR_I2C_RESET_FAILED   30
 #define LIBRORC_SYSMON_ERROR_I2C_READ_FAILED    40
 #define LIBRORC_SYSMON_ERROR_I2C_INVALID_PARAM  50
+#define LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT 60
+#define LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID 61
 
 #define QSFP_I2C_SLVADDR        0x50
 #define LIBRORC_MAX_QSFP        3
@@ -40,6 +42,10 @@
 #define LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION 1
 #define LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION 2
 
+#define LIBRORC_SYSMON_DR_TIMEOUT 10000
+#define LIBRORC_DATA_REPLAY_WRITE_DONE (1<<0)
+#define DATA_REPLAY_EOE (1<<8)
+#define DATA_REPLAY_END (1<<9)
 
 
 /**
@@ -331,7 +337,52 @@ class bar;
             i2c_get_mode();
 
 
+            /**
+             * write event to DDR3 memory
+             * @param event_data pointer to data
+             * @param num_dws number of DWs to be written
+             * @param ddr3_start_addr DDR3 memory start address
+             * @param channel channel number, allowed range: 0-7
+             * @param last_event mark event as last event in DDR3
+             *        memory for current channel
+             * @return returns ddr3_address for next event
+             * */
+            uint32_t
+            data_replay_write_event
+            (
+                uint32_t *event_data,
+                uint32_t num_dws,
+                uint32_t ddr3_start_addr,
+                uint8_t channel,
+                bool last_event
+            );
+
+
         protected:
+
+
+            /**
+             * write data block into DDR3 memory
+             * @param start_addr start address of current block in DDR3
+             * @param data pointer to data
+             * @param mask bitmask of active DWs in dataset:
+             *        0x0000: no DW active
+             *        0x0001: lowest DW active
+             *        0x7fff: all 15 DWs active
+             * @param channel channel number, allowed range: 0-7
+             * @param flags flags for current block. Allowed flags are
+             *        DATA_REPLAY_END: last block for current channel
+             *        DATA_REPLAY_EOE: add EOE-Word after current dataset
+             * */
+            void
+            data_replay_write_block
+            (
+                 uint32_t start_addr,
+                 uint32_t *data,
+                 uint16_t mask,
+                 uint8_t channel,
+                 uint32_t flags
+            );
 
             /**
              * i2c_set_config

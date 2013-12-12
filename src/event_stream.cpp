@@ -457,6 +457,14 @@ namespace LIBRARY_NAME
 
                 //increment number of events processed in this while-loop
                 events_per_iteration++;
+
+                DEBUG_PRINTF
+                (
+                     PDADEBUG_CONTROL_FLOW,
+                     "CH %d - Event, %d DWs\n",
+                     m_channel_status->channel,
+                     report.calc_event_size
+                );
             }
 
             // clear processed report-buffer entries

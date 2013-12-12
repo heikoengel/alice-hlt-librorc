@@ -648,7 +648,94 @@ namespace LIBRARY_NAME
 
 
 
+    uint32_t
+    sysmon::data_replay_write_event
+    (
+         uint32_t *event_data,
+         uint32_t num_dws,
+         uint32_t ddr3_start_addr,
+         uint8_t channel,
+         bool last_event
+    )
+    {
+        uint32_t *dataptr = event_data;
+        uint32_t addr = ddr3_start_addr;
+        uint16_t mask = 0x7fff;
+        uint32_t flags = 0;
+
+        while ( num_dws>0 )
+        {
+            if ( num_dws<=15 )
+            {
+                mask = (1<<num_dws)-1;
+                flags |= DATA_REPLAY_EOE;
+                if (last_event)
+                {
+                    flags |= DATA_REPLAY_END;
+                }
+            }
+
+            data_replay_write_block( addr, dataptr, mask, channel, flags);
+            addr += 0x40;
+            dataptr += 15;
+            num_dws = (num_dws<15) ? 0 : (num_dws-15);
+        }
+        return addr;
+    }
+
+
+
+
     /** Protected ***** ***********************************************/
+
+    void
+    sysmon::data_replay_write_block
+    (
+        uint32_t start_addr,
+        uint32_t *data,
+        uint16_t mask,
+        uint8_t channel,
+        uint32_t flags
+    )
+    {
+        if ( channel>7 )
+        {
+            throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID;
+        }
+
+        /** set start address */
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, start_addr);
+
+        /** copy valid data to block bufffer */
+        uint32_t block_buffer[16];
+        for ( int i=0; i<15; i++)
+        {
+            if ( mask & (1<<i) )
+            {
+                block_buffer[i+1]=data[i];
+            }
+        }
+        /** set block header */
+        block_buffer[0] = ((uint32_t)mask<<16) | flags | (1<<channel);
+
+        /** copy data to onboard buffer */
+        m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
+                block_buffer, 16*sizeof(uint32_t));
+
+        /** wait for write_done */
+        uint32_t timeout = LIBRORC_SYSMON_DR_TIMEOUT;
+        while( !(m_bar->get32(RORC_REG_DATA_REPLAY_CTRL) &
+                LIBRORC_DATA_REPLAY_WRITE_DONE) )
+        {
+            if (timeout==0)
+            {
+                throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT;
+            }
+            timeout--;
+            usleep(100);
+        }
+    }
+
 
 
     uint32_t

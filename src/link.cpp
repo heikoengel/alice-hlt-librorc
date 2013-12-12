@@ -292,8 +292,7 @@ namespace LIBRARY_NAME
 
         setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-        uint32_t drp_status
-            = waitForDrpDenToDeassert();
+        waitForDrpDenToDeassert();
 
         DEBUG_PRINTF
         (
@@ -821,4 +820,80 @@ namespace LIBRARY_NAME
         diuSendCommand(LIBRORC_LINK_CMD_DIU_LINK_INIT);
     }
 
+
+
+    /**********************************************************
+     *             Fast Cluster Finder Interfacing
+     * *******************************************************/
+
+    // protected
+    void
+    link::fcfWriteMappingRamEntry
+    (
+        uint32_t addr,
+        uint32_t data
+    )
+    {
+        setGTX(RORC_REG_FCF_RAM_DATA, data);
+        setGTX(RORC_REG_FCF_RAM_CTRL, addr);
+    }
+
+
+    // protected
+    uint32_t
+    link::fcfHexstringToUint32
+    (
+        string line
+    )
+    {
+        uint32_t hexval;
+        stringstream ss;
+        ss << hex << line;
+        ss >> hexval;
+        return hexval;
+    }
+
+
+
+    void
+    link::fcfLoadMappingRam
+    (
+        const char *fname
+    )
+    {
+        ifstream memfile(fname);
+        if ( !memfile.is_open() )
+        {
+            cout << "Failed to open mapping file" << endl;
+            abort();
+        }
+
+        string line;
+        uint32_t i = 0;
+
+        while ( getline(memfile, line) )
+        {
+            if ( i>4095 )
+            {
+                DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has more " \
+                        "than 4096 entries - skipping remaining lines");
+                break;
+            }
+
+            uint32_t hexval = fcfHexstringToUint32(line);
+            fcfWriteMappingRamEntry(i, hexval);
+            i++;
+        }
+
+        if ( i<4096 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has less " \
+                    "than 4096 entries - filling remaining lines");
+            while( i<4096 )
+            {
+                fcfWriteMappingRamEntry(i, 0);
+                i++;
+            }
+        }
+    }
 }

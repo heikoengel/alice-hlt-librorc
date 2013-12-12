@@ -35,11 +35,6 @@ Parameters: \n\
 -v              Verbose mode \n\
 "
 
-/** define value ranges */
-#define FPGA_FANSPEED_MIN 8000.0
-#define FPGA_FANSPEED_MAX 10000.0
-
-
 /**
  * MAIN
  * */
@@ -153,12 +148,10 @@ main
     checkPcieState( sm );
 
     /** check sysclk is running */
-    if ( !sm->systemClockIsRunning() )
-    {
-        cout << "ERROR: 200 MHz system clock not detected " 
-             << "- have to skipp some test now..." << endl;
-        sysclk_avail = 0;
-    }
+    int sysclk_avail = checkSysClkAvailable( sysmon );
+
+    /** check GTX clk is running */
+    int gtxclk_avail = checkGtxClkAvailable( bar, verbose );
 
     /** check fan is running */
     checkFpgaFan( sm, verbose );
@@ -167,31 +160,11 @@ main
     /** check QSFP module slow eletrical interfaces */
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
     {
-        if ( !sm->qsfpIsPresent(i) )
-        {
-            cout << "WARNING: No QSFP detected in slot "
-                 << i << " - skipping some tests..." << endl;
-        }
-        else if ( sm->qsfpGetReset(i) )
-        {
-            cout << "WARNING: QSFP " << i 
-                 << " seems to be in RESET state - " 
-                 << " skipping some tests" << endl;
-        }
-        else
-        {
-            checkQsfpTemperature( sm, i, verbose );
-            checkQsfpVcc( sm, i, verbose );
-            checkQsfpOpticalLevels( sm, i, verbose );
-        }
+        checkQsfp( sm, i, verbose );
     }
-
     
     /** check current Si570 refclk setings */
     checkRefClkGen( sm, verbose );
-
-    //TODO
-    /** check GTX clk is running */
 
     if ( sysclk_avail )
     {
