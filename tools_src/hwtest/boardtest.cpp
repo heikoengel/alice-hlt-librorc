@@ -24,10 +24,13 @@
 
 #include "librorc.h"
 #include "boardtest_modules.hh"
+#include "../dma/dma_handling.hh"
 
 using namespace std;
 
-#define HELP_TEXT "ucctrl usage: \n\
+#define DMA_TIMEOUT 10.0
+
+#define BOARDTEST_HELP_TEXT "boardtest usage: \n\
     ucctrl [parameters] \n\
 Parameters: \n\
 -h              Print this help \n\
@@ -47,6 +50,7 @@ main
 {
     int32_t device_number = -1;
     int verbose = 0;
+    bool do_long_test = true;
 
     /** parse command line arguments */
     int arg;
@@ -56,7 +60,7 @@ main
         {
             case 'h':
                 {
-                    cout << HELP_TEXT;
+                    cout << BOARDTEST_HELP_TEXT;
                     return 0;
                 }
                 break;
@@ -73,10 +77,16 @@ main
                 }
                 break;
 
+            case 'q':
+                {
+                    do_long_test = false;
+                }
+                break;
+
             default:
                 {
                     cout << "Unknown parameter (" << arg << ")!" << endl;
-                    cout << HELP_TEXT;
+                    cout << BOARDTEST_HELP_TEXT;
                     return -1;
                 }
                 break;
@@ -86,7 +96,7 @@ main
     if ( device_number < 0 || device_number > 255 )
     {
         cout << "No or invalid device selected: " << device_number << endl;
-        cout << HELP_TEXT;
+        cout << BOARDTEST_HELP_TEXT;
         abort();
     }
 
@@ -143,14 +153,29 @@ main
         delete dev;
         abort();
     }
+    uint32_t nchannels = (fwtype & 0xffff);
 
     checkPcieState( sm );
 
     /** check sysclk is running */
     int sysclk_avail = checkSysClkAvailable( sm );
 
-    /** check GTX clk is running */
-    int gtxclk_avail = checkGtxClkAvailable( bar, verbose );
+
+    librorc::link *link[nchannels];
+    for  ( uint32_t i=0; i<nchannels; i++ )
+    {
+        link[i] = new librorc::link(bar, i);
+        if (link[i]->isGtxDomainReady())
+        {
+            link[i]->clearAllGtxErrorCounters();
+            link[i]->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+        }
+        else
+        {
+            cout << "ERROR: No clock on link " << i
+                 << " - Skipping some checks!" << endl;
+        }
+    }
 
     /** check fan is running */
     checkFpgaFan( sm, verbose );
@@ -170,9 +195,11 @@ main
         /** check FPGA temp & VCCs */
         checkFpgaSystemMonitor( sm, verbose );
 
-        /** check DDR3 module types in C0/C1 */
-        checkDdr3Module( sm, 0, verbose);
-        checkDdr3Module( sm, 1, verbose);
+        /** check DDR3 modules in C0/C1 */
+        checkDdr3ModuleSpd( sm, 0, verbose);
+        checkDdr3ModuleCalib( bar, 0);
+        checkDdr3ModuleSpd( sm, 1, verbose);
+        checkDdr3ModuleCalib( bar, 1);
     }
 
     /* check LVDS tester status */
@@ -181,13 +208,32 @@ main
     /** read uc signature */
     checkMicrocontroller ( bar, verbose );
 
-    delete sm;
-    delete bar;
-
     /** check flashes */
     checkFlash( dev, 0, verbose );
     checkFlash( dev, 1, verbose );
 
+    if ( do_long_test )
+    {
+
+        testDmaChannel( device_number, DMA_TIMEOUT );
+    }
+
+    /** check DDR3 Traffic generator status */
+    checkDdr3ModuleTg( bar, 0 );
+    checkDdr3ModuleTg( bar, 1 );
+
+    /** check link status */
+    for  ( uint32_t i=0; i<nchannels; i++ )
+    {
+        checkLinkState( link[i], i );
+    }
+
+    for  ( uint32_t i=0; i<nchannels; i++ )
+    {
+        delete link[i];
+    }
+    delete sm;
+    delete bar;
     delete dev;
 
     return 0;

@@ -23,6 +23,7 @@
 
 
 #include <librorc.h>
+#include "../dma/dma_handling.hh"
 
 #define FPGA_TEMP_MIN 35.0
 #define FPGA_TEMP_MAX 65.0
@@ -50,7 +51,10 @@
 
 #define HEXSTR(x, width) "0x" << setw(width) << setfill('0') << hex << x << setfill(' ')
 
-void checkDdr3Module(librorc::sysmon *sm, int module_id, int verbose);
+void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
+void checkDdr3ModuleCalib(librorc::bar *bar, int module_id);
+void checkDdr3ModuleTg(librorc::bar *bar, int module_id);
+
 void checkMicrocontroller(librorc::bar *bar, int verbose);
 void checkLvdsTester (librorc::bar *bar);
 void checkFlash(librorc::device *dev, int chip_select, int verbose);
@@ -66,8 +70,9 @@ void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 void checkPcieState(librorc::sysmon *sm);
 
 void checkFpgaFan(librorc::sysmon *sm, int verbose);
-
-int checkGtxClkAvailable(librorc::bar *bar, int verbose);
 int checkSysClkAvailable(librorc::sysmon *sm);
 
+void checkLinkState( librorc::link *link, uint32_t channel_id );
+
+void testDmaChannel(uint32_t device_number, int timeout);
 #endif

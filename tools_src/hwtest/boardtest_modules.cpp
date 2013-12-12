@@ -18,9 +18,10 @@
  *
  * */
 #include "boardtest_modules.hh"
+#include "../dma/dma_handling.hh"
 
 void
-checkDdr3Module
+checkDdr3ModuleSpd
 (
     librorc::sysmon *sm,
     int module_id,
@@ -47,6 +48,63 @@ checkDdr3Module
     }
 }
 
+
+void
+checkDdr3ModuleCalib
+(
+    librorc::bar *bar,
+    int module_id
+)
+{
+    /** check read/write levelling status */
+    uint32_t ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
+    if ((ddrctrl>>(16*module_id))&1) 
+    { 
+        cout << "WARNING: DDR3 module "
+             << module_id << " in reset!" << endl;
+    }
+    if ( !((ddrctrl>>(16*module_id+2))&1) )
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << "Phy initialization not done!" << endl;
+    }
+    if ( ((ddrctrl>>(16*module_id+6))&3) != 3 )
+    {
+        cout << "WARNING: DDR3 module "
+             << module_id << "read levelling not done!" << endl;
+    }
+    if ( ((ddrctrl>>(16*module_id+8))&3) != 0 )
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << "read levelling failed!" << endl;
+    }
+    if ( ((ddrctrl>>(16*module_id+11))&1) != 1 )
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << "write levelling not done!" << endl;
+    }
+    if ( ((ddrctrl>>(16*module_id+12))&1) != 0 )
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << "write levelling failed!" << endl;
+    }
+}
+
+
+void
+checkDdr3ModuleTg
+(
+    librorc::bar *bar,
+    int module_id
+)
+{
+    uint32_t ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
+    if ( ((ddrctrl>>(16*module_id+13))&3) != 0 )
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << "Traffic Generator Error!" << endl;
+    }
+}
 
 
 
@@ -458,37 +516,6 @@ checkFpgaFan
 
 
 int
-checkGtxClkAvailable
-(
-    librorc::bar *bar,
-    int verbose
-)
-{
-    uint32_t nchannels = (bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff);
-
-    if (nchannels!=12)
-    {
-        cout << "WARNING: FW reports " << nchannels
-             << " channels - expected 12." << endl;
-    }
-
-    int clk_avail = 1;
-    for ( uint32_t i=0; i<nchannels; i++ )
-    {
-        librorc::link *link = new librorc::link(bar, i);
-        if ( !link->isGtxDomainReady() )
-        {
-            cout << "ERROR: No clock on link " << i
-                 << " - Skipping ALL link related checks!" << endl;
-            clk_avail = 0;
-        }
-        delete link;
-    }
-    return clk_avail;
-}
-
-
-int
 checkSysClkAvailable
 (
     librorc::sysmon *sm
@@ -503,3 +530,122 @@ checkSysClkAvailable
     }
     return clk_avail;
 }
+
+
+void
+    checkCount
+(
+ uint32_t channel_id,
+ uint32_t count,
+ const char *name
+ )
+{
+    if ( count != 0 )
+    {
+        cout << "ERROR: Link channel " << channel_id
+             << " " << name << " count was "
+             << HEXSTR(count, 8) << endl;
+    }
+}
+
+
+
+void
+checkLinkState
+( 
+    librorc::link *link,
+    uint32_t channel_id
+)
+{
+    if (link->isGtxDomainReady())
+    {
+        uint32_t ddlctrl = link->GTX(RORC_REG_DDL_CTRL);
+        if ( !((ddlctrl>>5)&1) )
+        {
+            cout << "ERROR: Link channel " << channel_id
+                 << " is down!" << endl;
+        }
+        else
+        {
+            checkCount(channel_id, link->GTX(RORC_REG_GTX_DISPERR_CNT),
+                    "Disperity Error");
+            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXNIT_CNT),
+                    "RX-Not-In-Table Error");
+            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXLOS_CNT),
+                    "RX-Not-Loss-Of-Signal");
+            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
+                    "RX-Byte-Realign");
+            checkCount(channel_id, link->GTX(RORC_REG_GTX_ERROR_CNT),
+                    "LinkTester Error");
+        }
+    }
+    else
+    {
+        cout << "ERROR: No clock on channel " << channel_id << "!" << endl;
+    }
+}
+
+
+void
+testDmaChannel
+(
+    uint32_t device_number,
+    int timeout
+)
+{
+    DMAOptions opts;
+    opts.deviceId  = device_number;
+    opts.channelId = 0;
+    opts.eventSize = 0x1000;
+    opts.useRefFile = false;
+    opts.esType = LIBRORC_ES_IN_HWPG;
+
+    char logdirectory[] = "/tmp";
+    
+    librorc::event_stream *eventStream = NULL;
+
+    try
+    { 
+        eventStream = new librorc::event_stream(opts.deviceId, 
+            opts.channelId, opts.eventSize, opts.esType); 
+    }
+    catch( int error )
+    {
+        cout << "ERROR: failed to initialize event stream." << endl;
+        abort();
+    }
+    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE|CHK_PATTERN|CHK_ID;
+    librorc::event_sanity_checker checker = librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                opts.channelId,
+                PG_PATTERN_INC,
+                sanity_check_mask,
+                logdirectory,
+                opts.refname
+            );
+
+    /** Capture starting time */
+    timeval start_time;
+    eventStream->m_bar1->gettime(&start_time, 0);
+    timeval last_time = start_time;
+    timeval current_time = start_time;
+    
+    while( gettimeofdayDiff(last_time, current_time) < timeout )
+    {
+        eventStream->handleChannelData( (void*)&(checker) );
+        eventStream->m_bar1->gettime(&current_time, 0);
+    }
+
+    timeval end_time;
+    eventStream->m_bar1->gettime(&end_time, 0);
+
+    printFinalStatusLine(
+            eventStream->m_channel_status,
+            eventStream->m_start_time,
+            eventStream->m_end_time);
+
+    /** Cleanup */
+    delete eventStream;
+}
+

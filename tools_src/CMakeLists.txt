@@ -152,6 +152,7 @@ INSTALL(TARGETS fanctrl RUNTIME DESTINATION bin )
 
 add_executable( boardtest
   ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest_modules.cpp 
+  ${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp
   ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest.cpp)
 target_link_libraries( boardtest rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS boardtest RUNTIME DESTINATION bin )
