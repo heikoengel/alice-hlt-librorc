@@ -165,6 +165,6 @@ add_executable( ddr3_tester_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_t
 target_link_libraries( ddr3_tester_status rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS ddr3_tester_status RUNTIME DESTINATION bin )
 
-add_executable( ddr3_writer ${LIBRORC_SOURCE_DIR}/tools_src/sim_tests/ddr3_writer.cpp)
-target_link_libraries( ddr3_writer rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS ddr3_writer RUNTIME DESTINATION bin )
+#add_executable( ddr3_writer ${LIBRORC_SOURCE_DIR}/tools_src/sim_tests/ddr3_writer.cpp)
+#target_link_libraries( ddr3_writer rorc pthread ${EXTRA_LIBS})
+#INSTALL(TARGETS ddr3_writer RUNTIME DESTINATION bin )
