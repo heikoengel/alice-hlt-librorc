@@ -96,7 +96,8 @@ void
 checkDdr3ModuleTg
 (
     librorc::bar *bar,
-    int module_id
+    int module_id,
+    int verbose
 )
 {
     uint32_t ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
@@ -104,6 +105,11 @@ checkDdr3ModuleTg
     {
         cout << "ERROR: DDR3 module "
              << module_id << "Traffic Generator Error!" << endl;
+    }
+    else
+    {
+        cout << "INFO: DDR3 module "
+             << module_id << "Traffic Generator OK." << endl;
     }
 }
 
@@ -146,7 +152,7 @@ checkMicrocontroller
                      << HEXSTR(UC_DEVICE_SIGNATURE, 6) << endl;
             } else if ( verbose )
             {
-                cout << "Microcontroller signature: "
+                cout << "INFO: Microcontroller signature: "
                      << HEXSTR(sig, 6) << endl;
             }
 
@@ -158,16 +164,16 @@ checkMicrocontroller
             switch(e)
             {
                 case LIBRORC_UC_SPI_NOT_IMPLEMENTED:
-                    cout << "SPI not implemented";
+                    cout << "ERROR: uC SPI not implemented";
                     break;
                 case LIBRORC_UC_SEND_CMD_TIMEOUT:
-                    cout << "Timeout sending command";
+                    cout << "ERROR: uC Timeout sending command";
                     break;
                 case LIBRORC_UC_PROG_MODE_FAILED:
-                    cout << "Failed to enter programming mode";
+                    cout << "ERROR: Failed to enter uC programming mode";
                     break;
                 default:
-                    cout << "Unknown error " << e;
+                    cout << "ERROR: Unknown uC error " << e;
                     break;
             }
             cout << endl;
@@ -180,28 +186,30 @@ checkMicrocontroller
 void
 checkLvdsTester
 (
-    librorc::bar *bar
+    librorc::bar *bar,
+    int verbose
 )
 {
     uint32_t lvdsctrl = bar->get32(RORC_REG_LVDS_CTRL);
     if ( lvdsctrl&(1<<31) || !(lvdsctrl&1) )
     {
         cout << "WARNING: LVDS Tester disabled or in reset state" << endl;
-    } else
+    } else if ( !(lvdsctrl & (1<<1)) )
     {
-        if ( !(lvdsctrl & (1<<1)) )
-        {
-            cout << "ERROR: LVDS via RJ45 Link0 DOWN" << endl;
-        }
-        if ( !(lvdsctrl & (1<<2)) )
-        {
-            cout << "ERROR: LVDS via RJ45 Link1 DOWN" << endl;
-        }
+        cout << "ERROR: LVDS via RJ45 Link0 DOWN" << endl;
+    }
+    else if ( !(lvdsctrl & (1<<2)) )
+    {
+        cout << "ERROR: LVDS via RJ45 Link1 DOWN" << endl;
+    }
+    else if ( verbose )
+    {
+        cout << "INFO: LVDS links up and running!" << endl;
     }
 }
 
 
-void
+uint64_t
 checkFlash
 (
     librorc::device *dev,
@@ -220,7 +228,7 @@ checkFlash
     }
     catch(...)
     {
-        cout << "ERROR: failed to initialize BAR0" << endl;
+        cout << "FATAL: failed to initialize BAR0" << endl;
         abort();
     }
 
@@ -232,7 +240,7 @@ checkFlash
     }
     catch(...)
     {
-        cout << "Flash " << chip_select << " init failed" << endl;
+        cout << "ERROR: Flash " << chip_select << " init failed" << endl;
     }
 
     /** set asynchronous read mode */
@@ -241,23 +249,48 @@ checkFlash
     uint16_t status = flash->resetChip();
     if ( status )
     {
-        cout << "resetChip failed: " << HEXSTR(status, 4) << endl;
-        //optional: decode status value to specific error
+        cout << "ERROR Flash " << chip_select
+             << "resetChip failed: " << HEXSTR(status, 4) << endl;
     }
 
     uint16_t mcode = flash->getManufacturerCode();
     if ( mcode != 0x0049 )
     {
-        cout << "ERROR: invalid Manufacturer Code "
-            << HEXSTR(mcode, 4) << " for flash " << chip_select << endl;
+        cout << "ERROR: Flash " << chip_select
+             << "invalid Manufacturer Code "
+             << HEXSTR(mcode, 4) << endl;
     } else if ( verbose )
     {
-        cout << "Flash " << chip_select << " Status: "
+        cout << "INFO: Flash " << chip_select << " Status: "
             << HEXSTR(mcode, 4) << endl;
     }
 
+    uint64_t devnr = flash->getUniqueDeviceNumber();
+
     delete flash;
     delete bar;
+
+    return devnr;
+}
+
+
+void
+checkFlashDeviceNumbers
+(
+    uint64_t devnr0,
+    uint64_t devnr1
+)
+{
+    if ( devnr0==devnr1 )
+    {
+        cout << "ERROR: both flashed reported the same "
+             << "'unique' device number: " << devnr0
+             << endl;
+    }
+    cout << "INFO: Flash 0 unique device number: "
+         << HEXSTR(devnr0, 16) << endl;
+    cout << "INFO: Flash 1 unique device number: "
+         << HEXSTR(devnr1, 16) << endl;
 }
 
 
@@ -276,7 +309,7 @@ checkRefClkGen
     }
     catch(...)
     {
-        cout << "Refclk init failed!" << endl;
+        cout << "FATAL: Refclk init failed!" << endl;
         delete sm;
         abort();
     }
@@ -294,7 +327,7 @@ checkRefClkGen
                 << cur_freq << " MHz" << endl;
         } else if ( verbose )
         {
-            cout << "Reference Clock Frequency: "
+            cout << "INFO: Reference Clock Frequency: "
                  << cur_freq << " MHz" << endl;
         }
     }
@@ -348,12 +381,12 @@ checkQsfpTemperature
     float qsfptemp = sm->qsfpTemperature(module_id);
     if ( qsfptemp < QSFP_TEMP_MIN || qsfptemp > QSFP_TEMP_MAX )
     {
-        cout << "ERROR: QSFP " << module_id
+        cout << "ERROR: QSFP" << module_id
             << " Temperature out of bounds: "
             << qsfptemp << endl;
     } else if ( verbose )
     {
-        cout << "QSFP " << module_id
+        cout << "INFO: QSFP" << module_id
             << " Temperature: " << qsfptemp << " degC" << endl;
     }
 }
@@ -370,11 +403,11 @@ checkQsfpVcc
     float qsfpvcc = sm->qsfpVoltage(module_id);
     if ( qsfpvcc < QSFP_VCC_MIN || qsfpvcc > QSFP_VCC_MAX )
     {
-        cout << "ERROR: QSFP " << module_id
+        cout << "ERROR: QSFP" << module_id
             << " VCC out of bounds: " << qsfpvcc << endl;
     } else if ( verbose )
     {
-        cout << "QSFP " << module_id
+        cout << "INFO QSFP" << module_id
             << " VCC: " << qsfpvcc << " V" << endl;
     }
 }
@@ -394,13 +427,13 @@ checkQsfpOpticalLevels
         float rxpower = sm->qsfpRxPower(module_id, j);
         if ( rxpower < QSFP_RXPOWER_MIN || rxpower > QSFP_RXPOWER_MAX )
         {
-            cout << "WARNING: QSFP " << module_id << " Channel " << j
+            cout << "WARNING: QSFP" << module_id << " Channel " << j
                 << " (Link " << setw(2) << 4*module_id+j
                 << ") RX Power out of bounds: "
                 << rxpower << " mW" << endl;
         } else if ( verbose )
         {
-            cout << "QSFP " << module_id  << " Channel " << j
+            cout << "INFO: QSFP" << module_id  << " Channel " << j
                 << " (Link " << setw(2) << 4*module_id+j << ") RX Power: "
                 << rxpower << " mW" << endl;
         }
@@ -412,13 +445,13 @@ checkQsfpOpticalLevels
         float txbias = sm->qsfpTxBias(module_id, j);
         if ( txbias < QSFP_TXBIAS_MIN || txbias > QSFP_TXBIAS_MAX )
         {
-            cout << "WARNING: QSFP " << module_id << " Channel " << j
+            cout << "WARNING: QSFP" << module_id << " Channel " << j
                 << " (Link " << setw(2) << 4*module_id+j
                 << ") TX Bias out of bounds: "
                 << txbias << " mA" << endl;
         } else if ( verbose )
         {
-            cout << "QSFP " << module_id  << " Channel " << j
+            cout << "INFO: QSFP" << module_id  << " Channel " << j
                 << " (Link " << setw(2) << 4*module_id+j << ") TX bias: "
                 << txbias << " mA" << endl;
         }
@@ -441,7 +474,7 @@ checkFpgaSystemMonitor
             << fpgatemp << endl;
     } else if ( verbose )
     {
-        cout << "FPGA Temp: " << fpgatemp << " degC" << endl;
+        cout << "INFO: FPGA Temp: " << fpgatemp << " degC" << endl;
     }
 
     /** check FPGA VCCINT*/
@@ -452,7 +485,7 @@ checkFpgaSystemMonitor
             << vccint << endl;
     } else if ( verbose )
     {
-        cout << "FPGA VCCINT: " << vccint << "V" << endl;
+        cout << "INFO: FPGA VCCINT: " << vccint << "V" << endl;
     }
 
     /** check FPGA VCCAUX*/
@@ -463,7 +496,7 @@ checkFpgaSystemMonitor
             << vccaux << endl;
     } else if ( verbose )
     {
-        cout << "FPGA VCCAUX: " << vccaux << "V" << endl;
+        cout << "INFO: FPGA VCCAUX: " << vccaux << "V" << endl;
     }
 }
 
@@ -471,7 +504,8 @@ checkFpgaSystemMonitor
 void
 checkPcieState
 (
-    librorc::sysmon *sm
+    librorc::sysmon *sm,
+    int verbose
 )
 {
     uint32_t pcie_gen = sm->pcieGeneration();
@@ -479,6 +513,9 @@ checkPcieState
     {
         cout << "WARNING: Detected as PCIe Gen" << pcie_gen
              << ", expexted Gen2" << endl;
+    } else if ( verbose )
+    {
+        cout << "INFO: Detected as PCIe Gen2" << endl;
     }
 
     uint32_t pcie_nlanes = sm->pcieNumberOfLanes();
@@ -486,6 +523,9 @@ checkPcieState
     {
         cout << "WARNING: Expected 8 lanes PCIe, got "
              << pcie_nlanes << endl;
+    } else if ( verbose )
+    {
+        cout << "INFO: 8 PCIe lanes detected " << endl;
     }
 }
 
@@ -510,7 +550,7 @@ checkFpgaFan
                 << fanspeed << " RPM" << endl;
         } else if ( verbose )
         {
-            cout << "Fan: " << fanspeed << " RPM" << endl;
+            cout << "INFO: Fan: " << fanspeed << " RPM" << endl;
         }
     }
 }
@@ -608,6 +648,49 @@ eventCallBack
 }
 
 void
+checkDmaTestResults
+(
+    librorcChannelStatus *chstats,
+    timeval               start_time,
+    timeval               end_time,
+    int                   verbose
+)
+{
+    if ( chstats->bytes_received == 0 )
+    {
+        cout << "ERROR: DMA test failed, no data received!" << endl;
+    } 
+    else if  ( chstats->n_events == 0 )
+    {
+        cout << "ERROR: DMA test failed, no events received!" << endl;
+    }
+    else
+    {
+        float timediff = gettimeofdayDiff(start_time, end_time);
+        float mbytes = (float)chstats->bytes_received / (float)(1<<20);
+        float dma_rate = mbytes / timediff;
+        if ( dma_rate < DMA_RATE_MIN || dma_rate > DMA_RATE_MAX )
+        {
+            cout << "WARNING: unexpected DMA rate: " << dma_rate
+                 << " MB/s." << endl;
+        }
+        if (verbose)
+        {
+            cout << "INFO: DMA Test Result: " << mbytes << "MBytes in"
+                 << timediff << " sec. -> " << dma_rate << "MB/s."
+                 << endl;
+            cout << "INFO: EPI - max: " << chstats->max_epi
+                 << ", min: " << chstats->min_epi
+                 << ", avg: " << chstats->n_events/chstats->set_offset_count
+                 << ", setOffsetCount: " << chstats->set_offset_count
+                 << endl;
+        }
+    }
+}
+
+
+
+void
 testDmaChannel
 (
     librorc::device *dev,
@@ -628,7 +711,6 @@ testDmaChannel
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
     librorc::event_stream *eventStream;
-    cout << "Prepare ES" << endl;
     if( !(eventStream = prepareEventStream(dev, bar, opts)) )
     { exit(-1); }
     eventStream->setEventCallback(event_callback);

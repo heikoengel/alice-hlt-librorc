@@ -37,6 +37,7 @@ Parameters: \n\
 -h              Print this help \n\
 -n [0...255]    Target device \n\
 -v              Verbose mode \n\
+-q              Quick run, skip DMA test \n\
 "
 
 /**
@@ -156,7 +157,7 @@ main
     }
     uint32_t nchannels = (fwtype & 0xffff);
 
-    checkPcieState( sm );
+    checkPcieState( sm, verbose );
 
     /** check sysclk is running */
     int sysclk_avail = checkSysClkAvailable( sm );
@@ -204,14 +205,16 @@ main
     }
 
     /* check LVDS tester status */
-    checkLvdsTester( bar );
+    checkLvdsTester( bar, verbose );
 
     /** read uc signature */
     checkMicrocontroller ( bar, verbose );
 
     /** check flashes */
-    checkFlash( dev, 0, verbose );
-    checkFlash( dev, 1, verbose );
+    uint64_t flash0_devnr = checkFlash( dev, 0, verbose );
+    uint64_t flash1_devnr = checkFlash( dev, 1, verbose );
+    checkFlashDeviceNumbers(flash0_devnr, flash1_devnr);
+
 
     if ( do_long_test )
     {
@@ -220,8 +223,8 @@ main
     }
 
     /** check DDR3 Traffic generator status */
-    checkDdr3ModuleTg( bar, 0 );
-    checkDdr3ModuleTg( bar, 1 );
+    checkDdr3ModuleTg( bar, 0, verbose );
+    checkDdr3ModuleTg( bar, 1, verbose );
 
     /** check link status */
     for  ( uint32_t i=0; i<nchannels; i++ )

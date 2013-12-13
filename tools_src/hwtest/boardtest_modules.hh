@@ -48,6 +48,9 @@
 #define QSFP_TXBIAS_MIN 1.0
 #define QSFP_TXBIAS_MAX 10.0
 
+#define DMA_RATE_MIN 300.0
+#define DMA_RATE_MAX 450.0
+
 #define UC_DEVICE_SIGNATURE 0x15951e
 
 
@@ -55,11 +58,12 @@
 
 void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
 void checkDdr3ModuleCalib(librorc::bar *bar, int module_id);
-void checkDdr3ModuleTg(librorc::bar *bar, int module_id);
+void checkDdr3ModuleTg(librorc::bar *bar, int module_id, int verbose);
 
 void checkMicrocontroller(librorc::bar *bar, int verbose);
-void checkLvdsTester (librorc::bar *bar);
-void checkFlash(librorc::device *dev, int chip_select, int verbose);
+void checkLvdsTester (librorc::bar *bar, int verbose);
+uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
+void checkFlashDeviceNumbers( uint64_t devnr0, uint64_t devnr1 );
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
 
 void checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
@@ -69,7 +73,7 @@ void checkQsfpOpticalLevels(librorc::sysmon *sm, int module_id, int verbose);
 
 void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 
-void checkPcieState(librorc::sysmon *sm);
+void checkPcieState(librorc::sysmon *sm, int verbose);
 
 void checkFpgaFan(librorc::sysmon *sm, int verbose);
 int checkSysClkAvailable(librorc::sysmon *sm);
