@@ -154,7 +154,7 @@ add_executable( boardtest
   ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest_modules.cpp 
   ${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp
   ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest.cpp)
-target_link_libraries( boardtest rorc pthread ${EXTRA_LIBS})
+target_link_libraries( boardtest rorc pthread pci ${EXTRA_LIBS})
 INSTALL(TARGETS boardtest RUNTIME DESTINATION bin )
 
 add_executable( ddr3_module_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_module_status.cpp)
@@ -164,3 +164,7 @@ INSTALL(TARGETS ddr3_module_status RUNTIME DESTINATION bin )
 add_executable( ddr3_tester_status ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/ddr3_tester_status.cpp)
 target_link_libraries( ddr3_tester_status rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS ddr3_tester_status RUNTIME DESTINATION bin )
+
+add_executable( ddr3_writer ${LIBRORC_SOURCE_DIR}/tools_src/sim_tests/ddr3_writer.cpp)
+target_link_libraries( ddr3_writer rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ddr3_writer RUNTIME DESTINATION bin )

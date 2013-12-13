@@ -56,7 +56,7 @@ main
 
     /** parse command line arguments */
     int arg;
-    while ( (arg = getopt(argc, argv, "hn:v")) != -1 )
+    while ( (arg = getopt(argc, argv, "hn:vq")) != -1 )
     {
         switch (arg)
         {
@@ -97,10 +97,11 @@ main
 
     if ( device_number < 0 || device_number > 255 )
     {
-        cout << "No or invalid device selected: " << device_number << endl;
+        cout << "FATAL: No or invalid device selected: " << device_number << endl;
         cout << BOARDTEST_HELP_TEXT;
         abort();
     }
+
 
     /** Instantiate device **/
     librorc::device *dev = NULL;
@@ -109,7 +110,21 @@ main
     }
     catch(...)
     {
-        cout << "Failed to intialize device " << device_number << endl;
+        cout << "FATAL: Failed to intialize device " << device_number << endl;
+        abort();
+    }
+
+    printHeader("PCIe");
+
+    struct pci_dev *pdev = initLibPciDev(dev);
+    cout << "INFO: FPGA Unique Device ID: "
+        << HEXSTR(getPcieDSN(pdev), 16) << endl;
+
+    if( !checkForValidBarConfig(pdev) )
+    {
+        cout << "FATAL: invalid BAR configuration - "
+             << "did you rescan the bus after programming?"
+             << endl;
         abort();
     }
 
@@ -125,7 +140,7 @@ main
     }
     catch(...)
     {
-        cout << "ERROR: failed to initialize BAR." << endl;
+        cout << "FATAL: failed to initialize BAR." << endl;
         delete dev;
         abort();
     }
@@ -135,22 +150,19 @@ main
     { sm = new librorc::sysmon(bar); }
     catch(...)
     {
-        cout << "Sysmon init failed!" << endl;
+        cout << "FATAL:Sysmon init failed!" << endl;
         delete bar;
         delete dev;
         abort();
     }
 
-    cout << "Device [" <<  device_number << "] ";
-    cout << " - Firmware date: " << hex << setw(8) << sm->FwBuildDate()
-         << ", Revision: "      << hex << setw(8) << sm->FwRevision()
-         << dec << endl;
+    printPcieInfos(dev, sm);
 
     /** check FW type */
     uint32_t fwtype = bar->get32(RORC_REG_TYPE_CHANNELS);
     if ( (fwtype>>16) != RORC_CFG_PROJECT_hwtest )
     {
-        cout << "ERROR: No suitable FW detected - aborting." << endl;
+        cout << "FATAL: No suitable FW detected - aborting." << endl;
         delete bar;
         delete dev;
         abort();
@@ -159,9 +171,15 @@ main
 
     checkPcieState( sm, verbose );
 
+    /** check fan is running */
+    checkFpgaFan( sm, verbose );
+
+
+
+    printHeader("Clocking/Monitoring");
+
     /** check sysclk is running */
     int sysclk_avail = checkSysClkAvailable( sm );
-
 
     librorc::link *link[nchannels];
     for  ( uint32_t i=0; i<nchannels; i++ )
@@ -179,37 +197,45 @@ main
         }
     }
 
-    /** check fan is running */
-    checkFpgaFan( sm, verbose );
-
-
-    /** check QSFP module slow eletrical interfaces */
-    for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
-    {
-        checkQsfp( sm, i, verbose );
-    }
-    
     /** check current Si570 refclk setings */
     checkRefClkGen( sm, verbose );
-
+        
     if ( sysclk_avail )
     {
         /** check FPGA temp & VCCs */
         checkFpgaSystemMonitor( sm, verbose );
-
-        /** check DDR3 modules in C0/C1 */
-        checkDdr3ModuleSpd( sm, 0, verbose);
-        checkDdr3ModuleCalib( bar, 0);
-        checkDdr3ModuleSpd( sm, 1, verbose);
-        checkDdr3ModuleCalib( bar, 1);
     }
 
+
+    printHeader("QSFPs");
+
+    /** check QSFP module slow eletrical interfaces */
+    bool qsfpReady[LIBRORC_MAX_QSFP];
+    for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)
+    {
+        qsfpReady[i] = checkQsfp( sm, i, verbose );
+    }
+    
+
+    if ( sysclk_avail )
+    {
+        printHeader("DDR3");
+        /** check DDR3 modules in C0/C1 */
+        checkDdr3ModuleSpd( sm, 0, verbose);
+        checkDdr3ModuleCalib( bar, 0, verbose);
+        checkDdr3ModuleSpd( sm, 1, verbose);
+        checkDdr3ModuleCalib( bar, 1, verbose);
+    }
+
+    printHeader("LVDS");
     /* check LVDS tester status */
     checkLvdsTester( bar, verbose );
 
+    printHeader("Microcontroller");
     /** read uc signature */
     checkMicrocontroller ( bar, verbose );
 
+    printHeader("Flash Chips");
     /** check flashes */
     uint64_t flash0_devnr = checkFlash( dev, 0, verbose );
     uint64_t flash1_devnr = checkFlash( dev, 1, verbose );
@@ -218,18 +244,25 @@ main
 
     if ( do_long_test )
     {
-
-        testDmaChannel( dev, bar, DMA_TIMEOUT );
+        printHeader("DMA to Host");
+        testDmaChannel( dev, bar, DMA_TIMEOUT, verbose );
     }
 
+
+    printHeader("DDR3 Pattern Generator");
     /** check DDR3 Traffic generator status */
     checkDdr3ModuleTg( bar, 0, verbose );
     checkDdr3ModuleTg( bar, 1, verbose );
 
+
+    printHeader("Optical Link Tester");
     /** check link status */
     for  ( uint32_t i=0; i<nchannels; i++ )
     {
-        checkLinkState( link[i], i );
+        if (qsfpReady[i>>2])
+        {
+            checkLinkState( link[i], i );
+        }
     }
 
     for  ( uint32_t i=0; i<nchannels; i++ )

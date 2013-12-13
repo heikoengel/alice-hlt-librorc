@@ -719,8 +719,14 @@ namespace LIBRARY_NAME
         block_buffer[0] = ((uint32_t)mask<<16) | flags | (1<<channel);
 
         /** copy data to onboard buffer */
-        m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
-                block_buffer, 16*sizeof(uint32_t));
+        /*m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
+                block_buffer, 16*sizeof(uint32_t));*/
+        for (int i=0; i<16; i++)
+        {
+            m_bar->set32(RORC_REG_DATA_REPLAY_PAYLOAD_BASE+i,
+                    block_buffer[i]);
+        }
+
 
         /** wait for write_done */
         uint32_t timeout = LIBRORC_SYSMON_DR_TIMEOUT;

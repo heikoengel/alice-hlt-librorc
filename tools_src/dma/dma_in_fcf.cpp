@@ -37,13 +37,13 @@ using namespace std;
 #define INPUT_FILE "/build/ddl_data/raw28/TPC_768.ddl"
 
 bool done = false;
-void abort_handler( int s )                                          \
-{                                        \
-    printf("Caught signal %d\n", s);     \
-    if( done==true )      \
-    { exit(-1); }                        \
-    else                                 \
-    { done = true; }                     \
+void abort_handler( int s )
+{
+    printf("Caught signal %d\n", s);
+    if( done==true )
+    { exit(-1); }
+    else
+    { done = true; }
 }
 
 uint64_t

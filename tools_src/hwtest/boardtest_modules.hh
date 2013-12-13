@@ -24,6 +24,9 @@
 #define LIBRORC_INTERNAL
 
 #include <librorc.h>
+extern "C"{
+#include <pci/pci.h>
+}
 #include "../dma/dma_handling.hh"
 
 #define FPGA_TEMP_MIN 35.0
@@ -54,10 +57,12 @@
 #define UC_DEVICE_SIGNATURE 0x15951e
 
 
-#define HEXSTR(x, width) "0x" << setw(width) << setfill('0') << hex << x << setfill(' ')
+#define HEXSTR(x, width) "0x" << setw(width) << setfill('0') << hex << x << setfill(' ') << dec
+
+void printHeader(const char *title);
 
 void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
-void checkDdr3ModuleCalib(librorc::bar *bar, int module_id);
+void checkDdr3ModuleCalib(librorc::bar *bar, int module_id, int verbose);
 void checkDdr3ModuleTg(librorc::bar *bar, int module_id, int verbose);
 
 void checkMicrocontroller(librorc::bar *bar, int verbose);
@@ -66,19 +71,25 @@ uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
 void checkFlashDeviceNumbers( uint64_t devnr0, uint64_t devnr1 );
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
 
-void checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
+bool checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpTemperature(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpVcc(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpOpticalLevels(librorc::sysmon *sm, int module_id, int verbose);
 
 void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 
+struct pci_dev *initLibPciDev(librorc::device *dev);
+
 void checkPcieState(librorc::sysmon *sm, int verbose);
+uint64_t getPcieDSN(struct pci_dev *pdev);
+bool checkForValidBarConfig(struct pci_dev *pdev);
 
 void checkFpgaFan(librorc::sysmon *sm, int verbose);
 int checkSysClkAvailable(librorc::sysmon *sm);
 
 void checkLinkState( librorc::link *link, uint32_t channel_id );
 
-void testDmaChannel(librorc::device *dev, librorc::bar *bar, int timeout);
+void testDmaChannel(librorc::device *dev, librorc::bar *bar, int timeout, int verbose);
+
+void printPcieInfos(librorc::device *dev, librorc::sysmon *sm);
 #endif

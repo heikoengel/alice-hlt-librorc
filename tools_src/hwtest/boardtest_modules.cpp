@@ -22,6 +22,16 @@
 
 
 void
+printHeader
+(
+    const char *title
+)
+{
+    cout << endl << "--===== " << title << " =====--" << endl;
+}
+
+
+void
 checkDdr3ModuleSpd
 (
     librorc::sysmon *sm,
@@ -38,8 +48,8 @@ checkDdr3ModuleSpd
                 << module_id << ": " << HEXSTR((int)module_type, 1) << endl;
         } else if ( verbose )
         {
-            cout << "DDR3 module type in socket"
-                << module_id << ": " << HEXSTR((int)module_type, 1) << endl;
+            cout << "INFO: Found DDR3 SO-DIMM in Socket "
+                << module_id << endl;
         }
     }
     catch(...)
@@ -54,40 +64,57 @@ void
 checkDdr3ModuleCalib
 (
     librorc::bar *bar,
-    int module_id
+    int module_id,
+    int verbose
 )
 {
-    /** check read/write levelling status */
+    /** check read/write leveling status */
     uint32_t ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
-    if ((ddrctrl>>(16*module_id))&1) 
+    bool mod_reset = ((ddrctrl>>(16*module_id))&1);
+    bool phy_init_done = ((ddrctrl>>(16*module_id+2))&1);
+    bool rd_lvl_done = (((ddrctrl>>(16*module_id+6))&3)==3);
+    bool rd_lvl_failed = (((ddrctrl>>(16*module_id+8))&3) != 0);
+    bool wr_lvl_done = ((ddrctrl>>(16*module_id+11))&1);
+    bool wr_lvl_failed = (((ddrctrl>>(16*module_id+12))&1) != 0);
+
+    if (mod_reset) 
     { 
         cout << "WARNING: DDR3 module "
              << module_id << " in reset!" << endl;
     }
-    if ( !((ddrctrl>>(16*module_id+2))&1) )
+    if ( !phy_init_done )
     {
         cout << "ERROR: DDR3 module "
-             << module_id << "Phy initialization not done!" << endl;
+             << module_id << " Phy initialization not done!" << endl;
     }
-    if ( ((ddrctrl>>(16*module_id+6))&3) != 3 )
-    {
-        cout << "WARNING: DDR3 module "
-             << module_id << "read levelling not done!" << endl;
-    }
-    if ( ((ddrctrl>>(16*module_id+8))&3) != 0 )
+    if ( !rd_lvl_done )
     {
         cout << "ERROR: DDR3 module "
-             << module_id << "read levelling failed!" << endl;
+             << module_id << " read leveling not done!" << endl;
     }
-    if ( ((ddrctrl>>(16*module_id+11))&1) != 1 )
+    if ( rd_lvl_failed )
     {
         cout << "ERROR: DDR3 module "
-             << module_id << "write levelling not done!" << endl;
+             << module_id << " read leveling failed!" << endl;
     }
-    if ( ((ddrctrl>>(16*module_id+12))&1) != 0 )
+    if ( !wr_lvl_done )
     {
         cout << "ERROR: DDR3 module "
-             << module_id << "write levelling failed!" << endl;
+             << module_id << " write leveling not done!" << endl;
+    }
+    if ( wr_lvl_failed )
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << " write leveling failed!" << endl;
+    }
+
+    if ( verbose )
+    {
+        if ( !mod_reset && phy_init_done && rd_lvl_done && wr_lvl_done )
+        {
+            cout << "INFO: DDR3 module "
+             << module_id << " Calibration successful!" << endl;
+        }
     }
 }
 
@@ -101,15 +128,22 @@ checkDdr3ModuleTg
 )
 {
     uint32_t ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
-    if ( ((ddrctrl>>(16*module_id+13))&3) != 0 )
+    bool tg_error = ( ((ddrctrl>>(16*module_id+13))&3) != 0 );
+    bool tg_running = ((ddrctrl>>(16*module_id+2))&1)==1; // phy_init_done
+
+    if ( tg_error and tg_running )
     {
         cout << "ERROR: DDR3 module "
-             << module_id << "Traffic Generator Error!" << endl;
+             << module_id << " Traffic Generator Error!" << endl;
+    } else if (!tg_running)
+    {
+        cout << "ERROR: DDR3 module "
+             << module_id << " Traffic Generator not running!" << endl;
     }
-    else
+    else if (verbose)
     {
         cout << "INFO: DDR3 module "
-             << module_id << "Traffic Generator OK." << endl;
+             << module_id << " Traffic Generator OK." << endl;
     }
 }
 
@@ -123,6 +157,21 @@ checkMicrocontroller
 )
 {
     int uc_avail = 1;
+
+    /** get DIP switch setting */
+    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
+    if (dipswitch==0 || dipswitch>0x7f)
+    {
+        cout << "ERROR: invalid dip switch setting "
+             << HEXSTR(dipswitch, 1)
+             << " - SMBus access is likely to fail!"
+             << endl;
+    }
+    else
+    {
+        cout << "INFO: uC using slave address "
+             << HEXSTR(dipswitch, 1) << endl;
+    }
 
     /** read uc signature */
     librorc::microcontroller *uc;
@@ -194,17 +243,25 @@ checkLvdsTester
     if ( lvdsctrl&(1<<31) || !(lvdsctrl&1) )
     {
         cout << "WARNING: LVDS Tester disabled or in reset state" << endl;
-    } else if ( !(lvdsctrl & (1<<1)) )
+    } else
     {
-        cout << "ERROR: LVDS via RJ45 Link0 DOWN" << endl;
-    }
-    else if ( !(lvdsctrl & (1<<2)) )
-    {
-        cout << "ERROR: LVDS via RJ45 Link1 DOWN" << endl;
-    }
-    else if ( verbose )
-    {
-        cout << "INFO: LVDS links up and running!" << endl;
+        if ( !(lvdsctrl & (1<<1)) )
+        {
+            cout << "ERROR: LVDS via RJ45 Link0 DOWN" << endl;
+        }
+        else if ( verbose )
+        {
+            cout << "INFO: LVDS Link0 up and running!" << endl;
+        }
+
+        if ( !(lvdsctrl & (1<<2)) )
+        {
+            cout << "ERROR: LVDS via RJ45 Link1 DOWN" << endl;
+        }
+        else if ( verbose )
+        {
+            cout << "INFO: LVDS Link1 up and running!" << endl;
+        }
     }
 }
 
@@ -341,7 +398,7 @@ checkRefClkGen
 }
 
 
-void
+bool
 checkQsfp
 (
     librorc::sysmon *sm,
@@ -349,6 +406,7 @@ checkQsfp
     int verbose
 )
 {
+    bool qsfp_ready = false;
     if ( !sm->qsfpIsPresent(module_id) )
     {
         cout << "WARNING: No QSFP detected in slot "
@@ -365,7 +423,9 @@ checkQsfp
         checkQsfpTemperature( sm, module_id, verbose );
         checkQsfpVcc( sm, module_id, verbose );
         checkQsfpOpticalLevels( sm, module_id, verbose );
+        qsfp_ready = true;
     }
+    return qsfp_ready;
 }
 
 
@@ -600,10 +660,8 @@ checkLinkState
 {
     if (link->isGtxDomainReady())
     {
-        uint32_t ddlctrl = link->GTX(RORC_REG_DDL_CTRL);
-        cout << HEXSTR(ddlctrl, 8) << endl;
-        /** TODO: change to GTX_ASYNC_STS::READY */
-        if ( !((ddlctrl>>5)&1) )
+        uint32_t gtxctrl = link->GTX(RORC_REG_GTX_CTRL);
+        if ( !(gtxctrl&1) )
         {
             cout << "ERROR: Link channel " << channel_id
                  << " is down!" << endl;
@@ -674,11 +732,11 @@ checkDmaTestResults
             cout << "WARNING: unexpected DMA rate: " << dma_rate
                  << " MB/s." << endl;
         }
+        cout << "INFO: DMA Test Result: " << mbytes << " MBytes in "
+             << timediff << " sec. -> " << dma_rate << " MB/s."
+             << endl;
         if (verbose)
         {
-            cout << "INFO: DMA Test Result: " << mbytes << "MBytes in"
-                 << timediff << " sec. -> " << dma_rate << "MB/s."
-                 << endl;
             cout << "INFO: EPI - max: " << chstats->max_epi
                  << ", min: " << chstats->min_epi
                  << ", avg: " << chstats->n_events/chstats->set_offset_count
@@ -695,7 +753,8 @@ testDmaChannel
 (
     librorc::device *dev,
     librorc::bar *bar,
-    int timeout
+    int timeout,
+    int verbose
 )
 {
     DMAOptions opts;
@@ -746,12 +805,81 @@ testDmaChannel
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
-    printFinalStatusLine(
-            eventStream->m_channel_status,
-            start_time,
-            end_time);
+    checkDmaTestResults( eventStream->m_channel_status, start_time, end_time, verbose );
 
     /** Cleanup */
     delete eventStream;
 }
 
+
+struct pci_dev
+*initLibPciDev
+(
+    librorc::device *dev
+)
+{
+    struct pci_access *pacc = NULL;
+    struct pci_dev *pdev = NULL;
+
+    // get PCI device serial number from libpci
+    pacc = pci_alloc();		/* Get the pci_access structure */
+    pci_init(pacc);		/* Initialize the PCI library */
+    pci_scan_bus(pacc);		/* We want to get the list of devices */
+    pdev = pci_get_dev(pacc, 0, dev->getBus(), 
+            dev->getSlot(), dev->getFunc());
+    return pdev;
+}
+
+
+
+
+
+uint64_t
+getPcieDSN
+(
+    struct pci_dev *pdev
+)
+{
+    uint64_t device_serial = 0;
+    uint8_t *devserptr = (uint8_t *)&device_serial;
+    pci_read_block(pdev, 0x104, devserptr, 8);
+
+    return device_serial;
+}
+
+bool
+checkForValidBarConfig
+(
+    struct pci_dev *pdev
+)
+{
+    uint32_t bar0 = 0;
+    uint32_t bar1 = 0;
+    uint8_t *ptr = (uint8_t *)&bar0;
+    pci_read_block(pdev, 0x10, ptr, 4);
+    ptr = (uint8_t *)&bar1;
+    pci_read_block(pdev, 0x14, ptr, 4);
+
+    return (bar0!=0 and bar1!=0);
+}
+
+
+
+void
+printPcieInfos
+(
+    librorc::device *dev,
+    librorc::sysmon *sm
+)
+{
+    cout << "INFO: Device " << (unsigned int)dev->getDeviceId() << " at PCI ";
+    cout << setfill('0')
+        << hex << setw(4) << (unsigned int)dev->getDomain() << ":"
+         << hex << setw(2) << (unsigned int)dev->getBus() << ":"
+         << hex << setw(2) << (unsigned int)dev->getSlot() << "."
+         << hex << setw(1) << (unsigned int)dev->getFunc();
+
+    cout << " [FW date: " << hex << setw(8) << sm->FwBuildDate()
+         << ", FW revision: "      << hex << setw(8) << sm->FwRevision()
+         << "]" << endl;
+}
