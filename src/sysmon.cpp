@@ -106,12 +106,6 @@ namespace LIBRARY_NAME
     }
 
     bool
-    sysmon::firmwareIsHltPciDebug()
-    {
-        return(firmwareType()==RORC_CFG_PROJECT_pciedbg);
-    }
-
-    bool
     sysmon::firmwareIsHltInFcf()
     {
         return(firmwareType()==RORC_CFG_PROJECT_hlt_in_fcf);
