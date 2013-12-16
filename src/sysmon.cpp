@@ -68,9 +68,7 @@ namespace LIBRARY_NAME
             = m_bar->get32(RORC_REG_FIRMWARE_REVISION);
 
         if(firmware_revision == 0xffffffff)
-        {
-            throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
-        }
+        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
 
         return firmware_revision;
     }
@@ -84,13 +82,55 @@ namespace LIBRARY_NAME
             = m_bar->get32(RORC_REG_FIRMWARE_DATE);
 
         if(date == 0xffffffff)
-        {
-            throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM;
-        }
+        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
 
         return date;
     }
 
+    uint16_t
+    sysmon::firmwareType()
+    {
+        return((m_bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff);
+    }
+
+    bool
+    sysmon::firmwareIsHltIn()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_hlt_in);
+    }
+
+    bool
+    sysmon::firmwareIsHltOut()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_hlt_out);
+    }
+
+    bool
+    sysmon::firmwareIsHltPciDebug()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_pciedbg);
+    }
+
+    bool
+    sysmon::firmwareIsHltInFcf()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_hlt_in_fcf);
+    }
+
+    bool
+    sysmon::firmwareIsHltHardwareTest()
+    {
+        return(firmwareType()==RORC_CFG_PROJECT_hwtest);
+    }
+
+    const char*
+    sysmon::firmwareDescription()
+    {
+        if(firmwareType() >= LIBRORC_NUMBER_OF_FIRMWARE_MODES)
+        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
+
+        return librorc_firmware_mode_descriptions[firmwareType()];
+    }
 
 
     /** PCI ***********************************************************/

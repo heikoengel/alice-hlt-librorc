@@ -47,6 +47,19 @@
 #define DATA_REPLAY_EOE (1<<8)
 #define DATA_REPLAY_END (1<<9)
 
+#define LIBRORC_NUMBER_OF_FIRMWARE_MODES 5
+const char
+librorc_firmware_mode_descriptions[LIBRORC_NUMBER_OF_FIRMWARE_MODES][1024]
+= {
+"HLT-in",
+"HLT-out",
+"PCI Debug",
+"HLT-in (fcf)",
+"hwtest"
+};
+
+//const char librorc_firmware_mode_descriptions[] = "in";
+
 
 /**
  * @class librorc_sysmon
@@ -95,6 +108,14 @@ class bar;
              * day (bits[7:0]).
             **/
             uint32_t FwBuildDate();
+
+            uint16_t    firmwareType();
+            bool        firmwareIsHltIn();
+            bool        firmwareIsHltOut();
+            bool        firmwareIsHltPciDebug();
+            bool        firmwareIsHltInFcf();
+            bool        firmwareIsHltHardwareTest();
+            const char *firmwareDescription();
 
             uint32_t pcieNumberOfLanes();
             uint32_t pcieGeneration();
