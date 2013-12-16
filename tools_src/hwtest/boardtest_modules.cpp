@@ -187,9 +187,10 @@ checkMicrocontroller
 
     if ( uc_avail )
     {
+        uc->configure_spi();
+
         try
         {
-            uc->configure_spi();
             uc->set_reset(1);
             uc->enter_prog_mode();
 
@@ -199,10 +200,13 @@ checkMicrocontroller
                 cout << "ERROR: unexpected microcontroller signature "
                      << HEXSTR(sig, 6) << " - expected "
                      << HEXSTR(UC_DEVICE_SIGNATURE, 6) << endl;
-            } else if ( verbose )
+            } else 
             {
-                cout << "INFO: Microcontroller signature: "
-                     << HEXSTR(sig, 6) << endl;
+                if ( verbose )
+                {
+                    cout << "INFO: Microcontroller signature: "
+                        << HEXSTR(sig, 6) << endl;
+                }
             }
 
             uc->set_reset(0);
@@ -212,21 +216,28 @@ checkMicrocontroller
             cout << "ERROR: failed to access microcontroller via SPI: ";
             switch(e)
             {
+                case LIBRORC_UC_FILE_ERROR:
+                    cout << "ERROR: loading file failed" << endl;
+                    break;
                 case LIBRORC_UC_SPI_NOT_IMPLEMENTED:
-                    cout << "ERROR: uC SPI not implemented";
+                    cout << "ERROR: uC SPI not implemented" << endl;
                     break;
                 case LIBRORC_UC_SEND_CMD_TIMEOUT:
-                    cout << "ERROR: uC Timeout sending command";
+                    cout << "ERROR: uC Timeout sending command" << endl;
                     break;
                 case LIBRORC_UC_PROG_MODE_FAILED:
-                    cout << "ERROR: Failed to enter uC programming mode";
+                    cout << "ERROR: Failed to enter uC programming mode"
+                         << endl;
                     break;
                 default:
-                    cout << "ERROR: Unknown uC error " << e;
+                    cout << "ERROR: Unknown uC error " << e << endl;
                     break;
             }
             cout << endl;
         }
+            
+        uc->unconfigure_spi();
+        
         delete uc;
     }
 }
