@@ -173,7 +173,6 @@ checkMicrocontroller
              << HEXSTR(dipswitch, 1) << endl;
     }
 
-    /** read uc signature */
     librorc::microcontroller *uc;
     try
     {
@@ -208,34 +207,47 @@ checkMicrocontroller
                         << HEXSTR(sig, 6) << endl;
                 }
             }
-
             uc->set_reset(0);
+
+            char *fwpath = getenv("LIBRORC_FIRMWARE_PATH");
+            if (!fwpath)
+            {
+                cout << "WARNING: Environment variable "
+                     << "LIBRORC_FIRMWARE_PATH is not set - "
+                     << "will not program microcontroller!" << endl;
+            } else {
+
+                char *fwfile = (char *)malloc(strlen(fwpath) +
+                        strlen("/crorc_ucfw_latest.bin") + 1);
+                sprintf(fwfile, "%s/crorc_ucfw_latest.bin", fwpath);
+
+                uc->programFromFile(fwfile);
+            }
+
         }
         catch (int e)
         {
-            cout << "ERROR: failed to access microcontroller via SPI: ";
             switch(e)
             {
                 case LIBRORC_UC_FILE_ERROR:
-                    cout << "ERROR: loading file failed" << endl;
+                    cout << "ERROR: loading file failed";
                     break;
                 case LIBRORC_UC_SPI_NOT_IMPLEMENTED:
-                    cout << "ERROR: uC SPI not implemented" << endl;
+                    cout << "ERROR: uC SPI not implemented";
                     break;
                 case LIBRORC_UC_SEND_CMD_TIMEOUT:
-                    cout << "ERROR: uC Timeout sending command" << endl;
+                    cout << "ERROR: uC Timeout sending command";
                     break;
                 case LIBRORC_UC_PROG_MODE_FAILED:
-                    cout << "ERROR: Failed to enter uC programming mode"
-                         << endl;
+                    cout << "ERROR: Failed to enter uC programming mode";
                     break;
                 default:
-                    cout << "ERROR: Unknown uC error " << e << endl;
+                    cout << "ERROR: Unknown uC error " << e;
                     break;
             }
             cout << endl;
         }
-            
+
         uc->unconfigure_spi();
         
         delete uc;
