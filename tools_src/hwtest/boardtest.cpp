@@ -37,6 +37,7 @@ Parameters: \n\
 -h              Print this help \n\
 -n [0...255]    Target device \n\
 -v              Verbose mode \n\
+-f              First run mode - configure uC and flashes \n\
 -q              Quick run, skip DMA test \n\
 "
 
@@ -52,11 +53,12 @@ main
 {
     int32_t device_number = -1;
     int verbose = 0;
+    int firstrun = 0;
     bool do_long_test = true;
 
     /** parse command line arguments */
     int arg;
-    while ( (arg = getopt(argc, argv, "hn:vq")) != -1 )
+    while ( (arg = getopt(argc, argv, "hn:vqf")) != -1 )
     {
         switch (arg)
         {
@@ -76,6 +78,12 @@ main
             case 'v':
                 {
                     verbose = 1;
+                }
+                break;
+
+            case 'f':
+                {
+                    firstrun = 1;
                 }
                 break;
 
@@ -232,15 +240,18 @@ main
     checkLvdsTester( bar, verbose );
 
     printHeader("Microcontroller");
-    /** read uc signature */
-    checkMicrocontroller ( bar, verbose );
+    checkMicrocontroller ( bar, firstrun, verbose );
 
     printHeader("Flash Chips");
     /** check flashes */
     uint64_t flash0_devnr = checkFlash( dev, 0, verbose );
     uint64_t flash1_devnr = checkFlash( dev, 1, verbose );
-    checkFlashDeviceNumbers(flash0_devnr, flash1_devnr);
-
+    if ( firstrun && 
+            flashDeviceNumbersAreValid(flash0_devnr, flash1_devnr) )
+    {
+        /** program crorc_fpgafw_flash0_latest.bin to Flash0 */
+        /** program crorc_fpgafw_flash1_latest.bin to Flash1 */
+    }
 
     if ( do_long_test )
     {

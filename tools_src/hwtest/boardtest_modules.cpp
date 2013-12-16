@@ -153,6 +153,7 @@ void
 checkMicrocontroller
 (
     librorc::bar *bar,
+    int firstrun,
     int verbose
 )
 {
@@ -209,19 +210,28 @@ checkMicrocontroller
             }
             uc->set_reset(0);
 
-            char *fwpath = getenv("LIBRORC_FIRMWARE_PATH");
-            if (!fwpath)
+            if ( firstrun )
             {
-                cout << "WARNING: Environment variable "
-                     << "LIBRORC_FIRMWARE_PATH is not set - "
-                     << "will not program microcontroller!" << endl;
-            } else {
 
-                char *fwfile = (char *)malloc(strlen(fwpath) +
-                        strlen("/crorc_ucfw_latest.bin") + 1);
-                sprintf(fwfile, "%s/crorc_ucfw_latest.bin", fwpath);
+                char *fwpath = getenv("LIBRORC_FIRMWARE_PATH");
+                if (!fwpath)
+                {
+                    cout << "WARNING: Environment variable "
+                        << "LIBRORC_FIRMWARE_PATH is not set - "
+                        << "will not program microcontroller!" << endl;
+                } else {
 
-                uc->programFromFile(fwfile);
+                    char *fwfile = (char *)malloc(strlen(fwpath) +
+                            strlen("/crorc_ucfw_latest.bin") + 1);
+                    sprintf(fwfile, "%s/crorc_ucfw_latest.bin", fwpath);
+
+                    if ( verbose )
+                    {
+                        cout << "INFO: trying to program uC with " << fwfile
+                            << endl;
+                    }
+                    uc->programFromFile(fwfile);
+                }
             }
 
         }
@@ -289,6 +299,30 @@ checkLvdsTester
 }
 
 
+bool
+checkFlashManufacturerCode
+(
+    librorc::flash *flash,
+    int verbose
+)
+{
+    uint16_t mcode = flash->getManufacturerCode();
+    if ( mcode != 0x0049 )
+    {
+        cout << "ERROR: Flash " << flash->getChipSelect()
+             << "invalid Manufacturer Code "
+             << HEXSTR(mcode, 4) << endl;
+    } else if ( verbose )
+    {
+        cout << "INFO: Flash " << flash->getChipSelect() << " Status: "
+            << HEXSTR(mcode, 4) << endl;
+    }
+    return (mcode==0x0049);
+}
+
+
+
+
 uint64_t
 checkFlash
 (
@@ -320,7 +354,8 @@ checkFlash
     }
     catch(...)
     {
-        cout << "ERROR: Flash " << chip_select << " init failed" << endl;
+        cout << "FATAL: Flash " << chip_select << " init failed" << endl;
+        abort();
     }
 
     /** set asynchronous read mode */
@@ -333,19 +368,11 @@ checkFlash
              << "resetChip failed: " << HEXSTR(status, 4) << endl;
     }
 
-    uint16_t mcode = flash->getManufacturerCode();
-    if ( mcode != 0x0049 )
+    uint64_t devnr = 0;
+    if ( checkFlashManufacturerCode(flash, verbose) )
     {
-        cout << "ERROR: Flash " << chip_select
-             << "invalid Manufacturer Code "
-             << HEXSTR(mcode, 4) << endl;
-    } else if ( verbose )
-    {
-        cout << "INFO: Flash " << chip_select << " Status: "
-            << HEXSTR(mcode, 4) << endl;
+        devnr = flash->getUniqueDeviceNumber();
     }
-
-    uint64_t devnr = flash->getUniqueDeviceNumber();
 
     delete flash;
     delete bar;
@@ -354,23 +381,41 @@ checkFlash
 }
 
 
-void
-checkFlashDeviceNumbers
+bool
+flashDeviceNumbersAreValid
 (
     uint64_t devnr0,
     uint64_t devnr1
 )
 {
-    if ( devnr0==devnr1 )
+    bool valid = false;
+    if ( devnr0 == 0 || devnr0 == 0xfffffffff )
+    {
+        cout << "ERROR: invalid unique device number for Flash0: "
+             << HEXSTR(devnr0, 16) << endl;
+    }
+    else if ( devnr1 == 0 || devnr1 == 0xfffffffff )
+    {
+        cout << "ERROR: invalid unique device number for Flash1: "
+             << HEXSTR(devnr1, 16) << endl;
+    }
+    else if ( devnr0==devnr1 )
     {
         cout << "ERROR: both flashed reported the same "
              << "'unique' device number: " << devnr0
              << endl;
     }
+    else
+    {
+        valid = true;
+    }
+
     cout << "INFO: Flash 0 unique device number: "
          << HEXSTR(devnr0, 16) << endl;
     cout << "INFO: Flash 1 unique device number: "
          << HEXSTR(devnr1, 16) << endl;
+
+    return valid;
 }
 
 

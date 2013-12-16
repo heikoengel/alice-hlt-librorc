@@ -65,18 +65,19 @@ void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
 void checkDdr3ModuleCalib(librorc::bar *bar, int module_id, int verbose);
 void checkDdr3ModuleTg(librorc::bar *bar, int module_id, int verbose);
 
-void checkMicrocontroller(librorc::bar *bar, int verbose);
+void checkMicrocontroller(librorc::bar *bar, int firstrun, int verbose);
 void checkLvdsTester (librorc::bar *bar, int verbose);
-uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
-void checkFlashDeviceNumbers( uint64_t devnr0, uint64_t devnr1 );
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
+void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
+
+bool checkFlashManufacturerCode( librorc::flash *flash, int verbose );
+uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
+bool flashDeviceNumbersAreValid( uint64_t devnr0, uint64_t devnr1 );
 
 bool checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpTemperature(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpVcc(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpOpticalLevels(librorc::sysmon *sm, int module_id, int verbose);
-
-void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 
 struct pci_dev *initLibPciDev(librorc::device *dev);
 
