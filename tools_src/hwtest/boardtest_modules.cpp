@@ -764,13 +764,14 @@ testDmaChannel
 (
     librorc::device *dev,
     librorc::bar *bar,
+    uint32_t channel_id,
     int timeout,
     int verbose
 )
 {
     DMAOptions opts;
     opts.deviceId  = dev->getDeviceId();
-    opts.channelId = 0;
+    opts.channelId = channel_id;
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
     opts.esType = LIBRORC_ES_IN_HWPG;
@@ -804,10 +805,9 @@ testDmaChannel
     /** Capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
-    timeval last_time = start_time;
     timeval current_time = start_time;
     
-    while( gettimeofdayDiff(last_time, current_time) < timeout )
+    while( gettimeofdayDiff(start_time, current_time) < timeout )
     {
         eventStream->handleChannelData( (void*)&(checker) );
         eventStream->m_bar1->gettime(&current_time, 0);

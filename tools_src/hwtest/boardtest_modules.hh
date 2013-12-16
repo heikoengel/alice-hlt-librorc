@@ -89,7 +89,7 @@ int checkSysClkAvailable(librorc::sysmon *sm);
 
 void checkLinkState( librorc::link *link, uint32_t channel_id );
 
-void testDmaChannel(librorc::device *dev, librorc::bar *bar, int timeout, int verbose);
+void testDmaChannel(librorc::device *dev, librorc::bar *bar, uint32_t channel_id, int timeout, int verbose);
 
 void printPcieInfos(librorc::device *dev, librorc::sysmon *sm);
 #endif

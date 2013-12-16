@@ -245,7 +245,7 @@ main
     if ( do_long_test )
     {
         printHeader("DMA to Host");
-        testDmaChannel( dev, bar, DMA_TIMEOUT, verbose );
+        testDmaChannel( dev, bar, 0, DMA_TIMEOUT, verbose );
     }
 
 
