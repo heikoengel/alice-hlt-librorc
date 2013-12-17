@@ -28,7 +28,7 @@ namespace LIBRARY_NAME
 flash::flash
 (
     bar                    *flashbar,
-    uint64_t                chip_select,
+    uint32_t                chip_select,
     librorc_verbosity_enum  verbose
 )
 {
@@ -40,6 +40,7 @@ flash::flash
 
     m_bar           = flashbar;
     m_base_addr     = chip_select << FLASH_CHIP_SELECT_BIT;
+    m_chip_select   = chip_select;
 }
 
 
@@ -703,6 +704,12 @@ flash::flashWrite
     close(fd);
 
     return 0;
+}
+
+uint32_t
+flash::getChipSelect()
+{
+    return m_chip_select;
 }
 
 }
