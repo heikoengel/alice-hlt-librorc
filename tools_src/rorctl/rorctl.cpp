@@ -343,7 +343,7 @@ print_device
 
     cout << " (firmware date: " << hex << setw(8) << sm->FwBuildDate()
          << ", revision: "      << hex << setw(8) << sm->FwRevision()
-         << ")" << endl;
+         << " ["  << sm->firmwareDescription() << "])" << endl;
 
     delete sm;
     delete bar;
@@ -395,7 +395,7 @@ init_flash
             new librorc::flash
                 (bar, options.chip_select, options.verbose);
     }
-    catch (int e)
+    catch(int e)
     {
         switch (e)
         {
@@ -413,7 +413,7 @@ init_flash
 
             default:
             {
-                cout << "Unknown Exceptoin Nr. " << e << endl;
+                cout << "Unknown Exception Nr. " << e << endl;
             }
             break;
         }
