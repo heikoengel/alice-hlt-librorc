@@ -25,7 +25,7 @@ mkdir -p $LOGPATH
 #$BINPATH/crorc_preallocator
 #sleep 1
 
-for CH in {0..11}
+for CH in {0..6}
 do
   PID=/var/run/pgdma_${DEV}_${CH}.pid
   LOG=$LOGPATH/dev${DEV}_ch${CH}
