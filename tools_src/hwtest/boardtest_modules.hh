@@ -70,7 +70,7 @@ void checkLvdsTester (librorc::bar *bar, int verbose);
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
 void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 
-bool checkFlashManufacturerCode( librorc::flash *flash, int verbose );
+bool flashManufacturerCodeIsValid( librorc::flash *flash, int verbose );
 uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
 bool flashDeviceNumbersAreValid( uint64_t devnr0, uint64_t devnr1 );
 

@@ -210,17 +210,18 @@ checkMicrocontroller
             }
             uc->set_reset(0);
 
+            /** program microcontroller */
             if ( firstrun )
             {
-
                 char *fwpath = getenv("LIBRORC_FIRMWARE_PATH");
                 if (!fwpath)
                 {
                     cout << "WARNING: Environment variable "
                         << "LIBRORC_FIRMWARE_PATH is not set - "
                         << "will not program microcontroller!" << endl;
-                } else {
-
+                }
+                else
+                {
                     char *fwfile = (char *)malloc(strlen(fwpath) +
                             strlen("/crorc_ucfw_latest.bin") + 1);
                     sprintf(fwfile, "%s/crorc_ucfw_latest.bin", fwpath);
@@ -259,7 +260,6 @@ checkMicrocontroller
         }
 
         uc->unconfigure_spi();
-        
         delete uc;
     }
 }
@@ -300,7 +300,7 @@ checkLvdsTester
 
 
 bool
-checkFlashManufacturerCode
+flashManufacturerCodeIsValid
 (
     librorc::flash *flash,
     int verbose
@@ -369,7 +369,7 @@ checkFlash
     }
 
     uint64_t devnr = 0;
-    if ( checkFlashManufacturerCode(flash, verbose) )
+    if ( flashManufacturerCodeIsValid(flash, verbose) )
     {
         devnr = flash->getUniqueDeviceNumber();
     }
@@ -399,11 +399,11 @@ flashDeviceNumbersAreValid
         cout << "ERROR: invalid unique device number for Flash1: "
              << HEXSTR(devnr1, 16) << endl;
     }
-    else if ( devnr0==devnr1 )
+    else if ( devnr0 == devnr1 )
     {
-        cout << "ERROR: both flashed reported the same "
+        cout << "ERROR: both flash memories reported the same "
              << "'unique' device number: " << devnr0
-             << endl;
+             << " - check U18!" << endl;
     }
     else
     {
@@ -461,7 +461,6 @@ checkRefClkGen
         cout << "ERROR: failed to read Si570 Reference Clock configuration"
              << endl;
     }
-
     delete rc;
 }
 
@@ -702,7 +701,7 @@ checkSysClkAvailable
 
 
 void
-    checkCount
+checkCount
 (
  uint32_t channel_id,
  uint32_t count,
@@ -899,9 +898,6 @@ struct pci_dev
 }
 
 
-
-
-
 uint64_t
 getPcieDSN
 (
@@ -914,6 +910,7 @@ getPcieDSN
 
     return device_serial;
 }
+
 
 bool
 checkForValidBarConfig
@@ -928,9 +925,9 @@ checkForValidBarConfig
     ptr = (uint8_t *)&bar1;
     pci_read_block(pdev, 0x14, ptr, 4);
 
-    return (bar0!=0 and bar1!=0);
+    return (bar0!=0 && bar0!=0xffffffff &&
+            bar1!=0 && bar1!=0xffffffff);
 }
-
 
 
 void
@@ -942,7 +939,7 @@ printPcieInfos
 {
     cout << "INFO: Device " << (unsigned int)dev->getDeviceId() << " at PCI ";
     cout << setfill('0')
-        << hex << setw(4) << (unsigned int)dev->getDomain() << ":"
+         << hex << setw(4) << (unsigned int)dev->getDomain() << ":"
          << hex << setw(2) << (unsigned int)dev->getBus() << ":"
          << hex << setw(2) << (unsigned int)dev->getSlot() << "."
          << hex << setw(1) << (unsigned int)dev->getFunc();
