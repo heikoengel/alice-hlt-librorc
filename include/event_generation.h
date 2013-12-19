@@ -84,6 +84,7 @@ class event_generator
 		 * @param event_id Event ID
 		 * @param length event length
 		 **/
+		//TODO: since this needs to be extended it should better refactored into a class!
 		void
 		createEvent
 		(
@@ -143,6 +144,7 @@ class event_generator
 		}
 
 
+
 		uint64_t
 		numberOfEvents
 		(
@@ -167,7 +169,6 @@ class event_generator
 
 			return number_of_events;
 		}
-
 
 		bool
 		isSufficientFifoSpaceAvailable()
@@ -216,6 +217,7 @@ class event_generator
 		}
 
 
+
 		void
 		packEventsIntoMemory
 		(
@@ -238,19 +240,30 @@ class event_generator
 					event_size
 				);
 
-				// push event size into EL FIFO
-				m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
-
-				// adjust event buffer fill state
-				m_event_generation_offset += fragment_size;
-				m_event_id += 1;
-
-				// wrap fill state if neccessary
-				if(m_event_generation_offset >= m_event_buffer->getSize()) {
-					m_event_generation_offset -= m_event_buffer->getSize();
-				}
-
+				pushEventSizeIntoELFifo(event_size);
+				iterateEventBufferFillState(fragment_size);
+				wrapFillStateIfNecessary();
 			}
+		}
+
+		void
+		pushEventSizeIntoELFifo(uint32_t event_size)
+		{
+			m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+		}
+
+		void
+		iterateEventBufferFillState(uint32_t fragment_size)
+		{
+			m_event_generation_offset += fragment_size;
+			m_event_id += 1;
+		}
+
+		void
+		wrapFillStateIfNecessary()
+		{
+			if(m_event_generation_offset >= m_event_buffer->getSize())
+			{ m_event_generation_offset -= m_event_buffer->getSize();}
 		}
 };
 
