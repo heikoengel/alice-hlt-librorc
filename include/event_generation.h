@@ -63,39 +63,13 @@ class event_generator
 			uint32_t fragment_size
 				= fragmentSize(event_size, max_read_req);
 
-			// never use full buf_space_avail to avoid the situation where
-			// event_generation_offset==last_eb_offset because this will break
-			// buf_space_avail calculation above
-			uint64_t nevents
-			    = (uint64_t)(available_buffer_space / fragment_size);
-			if ( (available_buffer_space - event_size) <= fragment_size )
-			{ nevents = 0; }
-			else
-			{ nevents = (uint64_t)(available_buffer_space / fragment_size) - 1;}
+			uint64_t number_of_events
+				= numberOfEvents(available_buffer_space, event_size, fragment_size);
 
-			// get current EL FIFO fill state consisting of:
-			// el_fifo_state[31:16] = FIFO write limit
-			// el_fifo_state[15:0]  = FIFO write count
-			uint32_t el_fifo_state   = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
-			uint32_t el_fifo_wrlimit = ((el_fifo_state>>16) & 0x0000ffff);
-			uint32_t el_fifo_wrcount = (el_fifo_state & 0x0000ffff);
-
-			// break if no sufficient FIFO space available
-			// margin of 10 is chosen arbitrarily here
-			if ( el_fifo_wrcount + 10 >= el_fifo_wrlimit )
-			{ return 0; }
-
-			// reduce nevents to the maximum the EL_FIFO can handle a.t.m.
-			if ( el_fifo_wrlimit - el_fifo_wrcount < nevents )
-			{ nevents = el_fifo_wrlimit - el_fifo_wrcount; }
-
-			// reduce nevents to a custom maximum
-			if( MAX_EVENTS_PER_ITERATION && nevents > MAX_EVENTS_PER_ITERATION )
-			{ nevents = MAX_EVENTS_PER_ITERATION; }
 
 			volatile uint32_t *eventbuffer = m_event_buffer->getMem();
 
-			for( uint64_t i=0; i < nevents; i++ )
+			for( uint64_t i=0; i < number_of_events; i++ )
 			{
 				// byte offset of next event
 				uint64_t offset = *event_generation_offset;
@@ -119,7 +93,7 @@ class event_generator
 
 			}
 
-			return nevents;
+			return number_of_events;
 		};
 
 	protected:
@@ -191,6 +165,64 @@ class event_generator
 		return   ((event_size << 2) % max_read_req)
 			   ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
 			   : (event_size << 2);
+		}
+
+
+		uint64_t
+		numberOfEvents
+		(
+		    uint64_t available_buffer_space,
+			uint32_t event_size,
+			uint32_t fragment_size)
+		{
+
+			breakIfNoSufficientFifoSpaceAvailable();
+
+			// never use full buf_space_avail to avoid the situation where
+			// event_generation_offset==last_eb_offset because this will break
+			// buf_space_avail calculation above
+			uint64_t number_of_events
+			    = ((available_buffer_space - event_size) <= fragment_size)
+			    ? 0
+			    : (uint64_t)(available_buffer_space / fragment_size) - 1;
+
+			number_of_events
+				= maximumElfifoCanHandle(number_of_events);
+
+			// reduce nevents to a custom maximum
+			if ( MAX_EVENTS_PER_ITERATION
+					&& number_of_events > MAX_EVENTS_PER_ITERATION) {
+				number_of_events = MAX_EVENTS_PER_ITERATION;
+			}
+			return number_of_events;
+		}
+
+
+		void
+		breakIfNoSufficientFifoSpaceAvailable()
+		{
+			uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+			uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+			uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+			if(el_fifo_write_count + 10 >= el_fifo_write_limit)
+			{ throw 0; }
+		}
+
+		/**
+		 * reduce the number of events to the maximum the
+		 * EL_FIFO can handle a.t.m.
+		 */
+		uint64_t
+		maximumElfifoCanHandle(uint64_t number_of_events)
+		{
+		    uint32_t el_fifo_state = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+		    uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+		    uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+
+		    if (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+		    { number_of_events = el_fifo_write_limit - el_fifo_write_count; }
+
+		    return number_of_events;
 		}
 };
 
