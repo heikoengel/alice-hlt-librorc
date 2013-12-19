@@ -193,8 +193,6 @@ int main(int argc, char *argv[])
                     eventStream[i]->m_reportBuffer, //report buffer instance
                     eventStream[i]->m_eventBuffer, //event buffer instance
                     eventStream[i]->m_channel, //channel instance
-                    &ebuf_fill_state[i], // event buffer fill state
-                    &EventID[i],
                     opts[i].eventSize // event size to be used for event generation
                     );
             if ( nevents > 0 )

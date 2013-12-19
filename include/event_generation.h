@@ -33,9 +33,11 @@ class event_generator
 			 librorc::dma_channel *channel
 		 )
 		 {
-			 m_report_buffer = report_buffer;
-			 m_event_buffer  = event_buffer;
-			 m_channel       = channel;
+			 m_report_buffer           = report_buffer;
+			 m_event_buffer            = event_buffer;
+			 m_channel                 = channel;
+			 m_event_generation_offset = 0;
+			 m_event_id                = 0;
 		 };
 
 		~event_generator()
@@ -44,12 +46,7 @@ class event_generator
 		 };
 
 		uint64_t
-		fillEventBuffer
-		(
-			uint64_t *event_generation_offset,
-			uint64_t *event_id,
-			uint32_t  event_size
-		)
+		fillEventBuffer(uint32_t event_size)
 		{
 			m_last_event_buffer_offset
 			    = m_channel->getLastEBOffset();
@@ -58,7 +55,7 @@ class event_generator
 				= m_channel->pciePacketSize();
 
 			uint64_t available_buffer_space
-			    = availableBufferSpace(event_generation_offset);
+			    = availableBufferSpace(m_event_generation_offset);
 
 			uint32_t fragment_size
 				= fragmentSize(event_size, max_read_req);
@@ -72,24 +69,24 @@ class event_generator
 			for( uint64_t i=0; i < number_of_events; i++ )
 			{
 				// byte offset of next event
-				uint64_t offset = *event_generation_offset;
+				uint64_t offset = m_event_generation_offset;
 
 				volatile uint32_t *destination = eventbuffer + (offset>>2);
-				createEvent(destination, *event_id, event_size );
+				createEvent(destination, m_event_id, event_size );
 
 				DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x)\n",
-						offset, *event_id, event_size);
+						offset, m_event_id, event_size);
 
 				// push event size into EL FIFO
 				m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
 
 				// adjust event buffer fill state
-				*event_generation_offset += fragment_size;
-				*event_id += 1;
+				m_event_generation_offset += fragment_size;
+				m_event_id += 1;
 
 				// wrap fill state if neccessary
-				if( *event_generation_offset >= m_event_buffer->getSize() )
-				{ *event_generation_offset -= m_event_buffer->getSize(); }
+				if( m_event_generation_offset >= m_event_buffer->getSize() )
+				{ m_event_generation_offset -= m_event_buffer->getSize(); }
 
 			}
 
@@ -99,9 +96,12 @@ class event_generator
 	protected:
 
 		uint64_t              m_last_event_buffer_offset;
+		uint64_t              m_event_generation_offset;
+		uint64_t              m_event_id;
 		librorc::buffer      *m_report_buffer;
 		librorc::buffer      *m_event_buffer;
 		librorc::dma_channel *m_channel;
+
 
 		/**
 		 * Create event
@@ -142,12 +142,12 @@ class event_generator
          * generation offset and the last offset written to the channel
          **/
 		uint64_t
-		availableBufferSpace(uint64_t *event_generation_offset)
+		availableBufferSpace(uint64_t event_generation_offset)
 		{
-			return   (*event_generation_offset < m_last_event_buffer_offset)
-				   ? m_last_event_buffer_offset - *event_generation_offset
+			return   (event_generation_offset < m_last_event_buffer_offset)
+				   ? m_last_event_buffer_offset - event_generation_offset
 				   : m_last_event_buffer_offset + m_event_buffer->getSize()
-					  - *event_generation_offset; /** wrap in between */
+					  - event_generation_offset; /** wrap in between */
 		};
 
 		/**
@@ -249,12 +249,9 @@ fill_eventbuffer
     librorc::buffer      *rbuf,
     librorc::buffer      *ebuf,
     librorc::dma_channel *channel,
-    uint64_t             *event_generation_offset,
-    uint64_t             *EventID,
-    uint32_t             EventSize
+    uint32_t              EventSize
 )
 {
 	event_generator eventGen(rbuf, ebuf, channel);
-    return eventGen.fillEventBuffer
-        (event_generation_offset, EventID, EventSize);
+    return eventGen.fillEventBuffer(EventSize);
 }

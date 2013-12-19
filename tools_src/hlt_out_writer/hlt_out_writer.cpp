@@ -56,7 +56,6 @@ int main( int argc, char *argv[])
     timeval last_time, cur_time;
     unsigned long last_bytes_received;
     unsigned long last_events_received;
-    uint64_t ebuf_fill_state;
     uint64_t nevents;
     uint64_t EventID;
 
@@ -198,11 +197,6 @@ int main( int argc, char *argv[])
     last_bytes_received = 0;
     last_events_received = 0;
 
-    // no event in EB now
-    ebuf_fill_state = 0;
-
-    EventID = 0;
-
     int32_t sanity_checks = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
     {
@@ -213,22 +207,15 @@ int main( int argc, char *argv[])
         sanity_checks |= CHK_PATTERN | CHK_ID;
     }
 
+
+    event_generator eventGen(rbuf, ebuf, ch);
     // wait for RB entry
     while(!done)
     {
-        nevents = fill_eventbuffer(
-                rbuf, //report buffer instance
-                ebuf, //event buffer instance
-                ch, //channel instance
-                &ebuf_fill_state, // event buffer fill state
-                &EventID,
-                opts.eventSize // event size to be used for event generation
-                );
-        if ( nevents > 0 )
-        {
-            DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-                    "Pushed %ld events into EB\n", nevents);
-        }
+        nevents = eventGen.fillEventBuffer(opts.eventSize);
+
+        if( nevents > 0 )
+        { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents); }
 
         result = handle_channel_data(
                 rbuf,
@@ -243,10 +230,9 @@ int main( int argc, char *argv[])
         {
             printf("handle_channel_data failed for channel %d\n",
                     opts.channelId);
-        } else if (result==0)
-        {
-            usleep(100);
         }
+        else if(result==0)
+        { usleep(100); }
 
         bar1->gettime(&cur_time, 0);
 
