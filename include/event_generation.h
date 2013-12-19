@@ -37,9 +37,10 @@ create_event
 {
     uint32_t i;
 
-    //TODO: make sure length is >=8
+    if(length <= 8)
+    { throw 0; }
 
-    // first 8 DWs are CDH
+    /** First 8 DWs are CDH */
     dest[0] = 0xffffffff;
     dest[1] = event_id & 0xfff;
     dest[2] = ((event_id>>12) & 0x00ffffff);
@@ -49,9 +50,8 @@ create_event
     dest[6] = 0x00000000; // trigger classes high, MBZ, ROI
     dest[7] = 0xdeadbeaf; // ROI high
 
-    for (i=0; i<length-8; i++) {
-        dest[8+i] = i;
-    }
+    for(i=0; i<length-8; i++)
+    { dest[8+i] = i; }
 }
 
 
@@ -94,10 +94,9 @@ fill_eventbuffer
         // EventSize is not a multiple of max_read_req
         fragment_size = (trunc((EventSize<<2) / max_read_req) + 1) * 
             max_read_req;
-    } else
-    {
-        fragment_size = (EventSize<<2);
     }
+    else
+    { fragment_size = (EventSize<<2); }
 
     uint64_t nevents = (uint64_t)(buf_space_avail / fragment_size);
 
@@ -105,36 +104,29 @@ fill_eventbuffer
     // event_generation_offset==last_eb_offset because this will break
     // buf_space_avail calculation above
     if ( (buf_space_avail - EventSize) <= fragment_size )
-        nevents = 0;
+    { nevents = 0; }
     else
-        nevents = (uint64_t)(buf_space_avail / fragment_size) - 1;
+    { nevents = (uint64_t)(buf_space_avail / fragment_size) - 1;}
 
     // get current EL FIFO fill state consisting of:
     // el_fifo_state[31:16] = FIFO write limit
     // el_fifo_state[15:0]  = FIFO write count
-    uint32_t el_fifo_state = channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+    uint32_t el_fifo_state   = channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
     uint32_t el_fifo_wrlimit = ((el_fifo_state>>16) & 0x0000ffff);
     uint32_t el_fifo_wrcount = (el_fifo_state & 0x0000ffff);
 
     // break if no sufficient FIFO space available
     // margin of 10 is chosen arbitrarily here
     if ( el_fifo_wrcount + 10 >= el_fifo_wrlimit )
-    {
-        return 0;
-    }
+    { return 0; }
 
     // reduce nevents to the maximum the EL_FIFO can handle a.t.m.
     if ( el_fifo_wrlimit - el_fifo_wrcount < nevents )
-    {
-        nevents = el_fifo_wrlimit - el_fifo_wrcount;
-    }
+    { nevents = el_fifo_wrlimit - el_fifo_wrcount; }
 
     // reduce nevents to a custom maximum
-    if ( MAX_EVENTS_PER_ITERATION &&
-            nevents > MAX_EVENTS_PER_ITERATION )
-    {
-        nevents = MAX_EVENTS_PER_ITERATION;
-    }
+    if( MAX_EVENTS_PER_ITERATION && nevents > MAX_EVENTS_PER_ITERATION )
+    { nevents = MAX_EVENTS_PER_ITERATION; }
     
     volatile uint32_t *eventbuffer = ebuf->getMem();
 
@@ -143,11 +135,9 @@ fill_eventbuffer
         // byte offset of next event
         uint64_t offset = *event_generation_offset;
 
-        // write event data to buffer
-        create_event(
-                 eventbuffer + (offset>>2), // destination pointer
-                 *EventID, // event ID
-                 EventSize ); // event size
+        volatile uint32_t *destination = eventbuffer + (offset>>2);
+        create_event(destination, *EventID, EventSize );
+
         DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x)\n",
                 offset, *EventID, EventSize);
 
@@ -159,10 +149,8 @@ fill_eventbuffer
         *EventID += 1;
 
         // wrap fill state if neccessary
-        if ( *event_generation_offset >= ebuf->getSize() )
-        {
-            *event_generation_offset -= ebuf->getSize();
-        }
+        if( *event_generation_offset >= ebuf->getSize() )
+        { *event_generation_offset -= ebuf->getSize(); }
 
     }
 
