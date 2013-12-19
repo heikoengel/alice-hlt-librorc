@@ -39,38 +39,30 @@ class event_generator
 		uint64_t
 		fillEventBuffer
 		(
-			librorc::buffer      *rbuf,
-			librorc::buffer      *ebuf,
+			librorc::buffer      *report_buffer,
+			librorc::buffer      *event_buffer,
 			librorc::dma_channel *channel,
 			uint64_t             *event_generation_offset,
 			uint64_t             *EventID,
 			uint32_t             EventSize
 		)
 		{
-			// get last EB Offset written to channel
-			uint64_t last_eb_offset = channel->getLastEBOffset();
-			uint64_t buf_space_avail;
-			uint32_t fragment_size;
+			m_last_event_buffer_offset = channel->getLastEBOffset();
 
-			// get the available event buffer space in bytes between the current
-			// generation offset and the last offset written to the channel
-			if ( *event_generation_offset < last_eb_offset )
-			{
-				// generation offset is smaller than last offset -> no wrap
-				buf_space_avail = last_eb_offset - *event_generation_offset;
-			} else
-			{
-				// generation offset is larger than last offset -> wrap in between
-				buf_space_avail = last_eb_offset + ebuf->getSize() -
-					*event_generation_offset;
-			}
+			uint64_t available_buffer_space =
+				availableBufferSpace
+				(
+				  event_generation_offset,
+				  event_buffer
+				);
 
 			// check how many events can be put into the available space
 			// note: EventSize is in DWs and events have to be aligned to
 			// MaxReadReq boundaries
 			// fragment_size is in bytes
+			uint32_t fragment_size;
 			uint32_t max_read_req = channel->pciePacketSize();
-			if ( (EventSize<<2) % max_read_req )
+			if( (EventSize<<2) % max_read_req )
 			{
 				// EventSize is not a multiple of max_read_req
 				fragment_size = (trunc((EventSize<<2) / max_read_req) + 1) *
@@ -79,15 +71,15 @@ class event_generator
 			else
 			{ fragment_size = (EventSize<<2); }
 
-			uint64_t nevents = (uint64_t)(buf_space_avail / fragment_size);
+			uint64_t nevents = (uint64_t)(available_buffer_space / fragment_size);
 
 			// never use full buf_space_avail to avoid the situation where
 			// event_generation_offset==last_eb_offset because this will break
 			// buf_space_avail calculation above
-			if ( (buf_space_avail - EventSize) <= fragment_size )
+			if ( (available_buffer_space - EventSize) <= fragment_size )
 			{ nevents = 0; }
 			else
-			{ nevents = (uint64_t)(buf_space_avail / fragment_size) - 1;}
+			{ nevents = (uint64_t)(available_buffer_space / fragment_size) - 1;}
 
 			// get current EL FIFO fill state consisting of:
 			// el_fifo_state[31:16] = FIFO write limit
@@ -109,7 +101,7 @@ class event_generator
 			if( MAX_EVENTS_PER_ITERATION && nevents > MAX_EVENTS_PER_ITERATION )
 			{ nevents = MAX_EVENTS_PER_ITERATION; }
 
-			volatile uint32_t *eventbuffer = ebuf->getMem();
+			volatile uint32_t *eventbuffer = event_buffer->getMem();
 
 			for( uint64_t i=0; i < nevents; i++ )
 			{
@@ -130,8 +122,8 @@ class event_generator
 				*EventID += 1;
 
 				// wrap fill state if neccessary
-				if( *event_generation_offset >= ebuf->getSize() )
-				{ *event_generation_offset -= ebuf->getSize(); }
+				if( *event_generation_offset >= event_buffer->getSize() )
+				{ *event_generation_offset -= event_buffer->getSize(); }
 
 			}
 
@@ -140,12 +132,14 @@ class event_generator
 
 	protected:
 
+		uint64_t m_last_event_buffer_offset;
+
 		/**
-		 * create event
+		 * Create event
 		 * @param dest uint32_t* pointer to destination memory
 		 * @param event_id Event ID
 		 * @param length event length
-		 * */
+		 **/
 		void
 		createEvent
 		(
@@ -174,6 +168,23 @@ class event_generator
 		};
 
 
+        /**
+         * Get the available event buffer space in bytes between the current
+         * generation offset and the last offset written to the channel
+         **/
+
+		uint64_t
+		availableBufferSpace
+		(
+			uint64_t        *event_generation_offset,
+			librorc::buffer *event_buffer
+		)
+		{
+		return    (*event_generation_offset < m_last_event_buffer_offset)
+		        ? m_last_event_buffer_offset - *event_generation_offset
+		        : m_last_event_buffer_offset + event_buffer->getSize()
+		          - *event_generation_offset; /** wrap in between */
+		};
 };
 
 
