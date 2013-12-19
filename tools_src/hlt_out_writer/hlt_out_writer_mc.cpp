@@ -189,6 +189,9 @@ int main(int argc, char *argv[])
 
         for ( i=0; i<nChannels; i++ )
         {
+        	//TODO: this needs to be reworked, bookkeeping is now done inside
+        	//      of the event genertor class, but the object is poped of the
+        	//      stack after using this functions.
             uint32_t nevents = fill_eventbuffer(
                     eventStream[i]->m_reportBuffer, //report buffer instance
                     eventStream[i]->m_eventBuffer, //event buffer instance

@@ -199,13 +199,9 @@ int main( int argc, char *argv[])
 
     int32_t sanity_checks = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
-    {
-        sanity_checks |= CHK_FILE;
-    }
+    { sanity_checks |= CHK_FILE; }
     else
-    {
-        sanity_checks |= CHK_PATTERN | CHK_ID;
-    }
+    { sanity_checks |= CHK_PATTERN | CHK_ID; }
 
 
     event_generator eventGen(rbuf, ebuf, ch);
