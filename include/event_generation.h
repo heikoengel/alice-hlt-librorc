@@ -200,10 +200,7 @@ class event_generator
 			uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
 			uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
 			uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
-			if(el_fifo_write_count + 10 >= el_fifo_write_limit)
-			{ return false; }
-
-			return true;
+			return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
 		}
 
 		/**
