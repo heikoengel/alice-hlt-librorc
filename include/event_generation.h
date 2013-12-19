@@ -144,10 +144,10 @@ class event_generator
 		uint64_t
 		availableBufferSpace(uint64_t *event_generation_offset)
 		{
-		return   (*event_generation_offset < m_last_event_buffer_offset)
-		       ? m_last_event_buffer_offset - *event_generation_offset
-		       : m_last_event_buffer_offset + m_event_buffer->getSize()
-		          - *event_generation_offset; /** wrap in between */
+			return   (*event_generation_offset < m_last_event_buffer_offset)
+				   ? m_last_event_buffer_offset - *event_generation_offset
+				   : m_last_event_buffer_offset + m_event_buffer->getSize()
+					  - *event_generation_offset; /** wrap in between */
 		};
 
 		/**
@@ -162,9 +162,9 @@ class event_generator
 	        uint32_t max_read_req
 	    )
 		{
-		return   ((event_size << 2) % max_read_req)
-			   ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
-			   : (event_size << 2);
+			return   ((event_size << 2) % max_read_req)
+				   ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
+				   : (event_size << 2);
 		}
 
 
@@ -176,7 +176,8 @@ class event_generator
 			uint32_t fragment_size)
 		{
 
-			breakIfNoSufficientFifoSpaceAvailable();
+			if(!isSufficientFifoSpaceAvailable())
+			{return 0;}
 
 			uint64_t
 			number_of_events
@@ -193,14 +194,16 @@ class event_generator
 		}
 
 
-		void
-		breakIfNoSufficientFifoSpaceAvailable()
+		bool
+		isSufficientFifoSpaceAvailable()
 		{
 			uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
 			uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
 			uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 			if(el_fifo_write_count + 10 >= el_fifo_write_limit)
-			{ throw 0; }
+			{ return false; }
+
+			return true;
 		}
 
 		/**
