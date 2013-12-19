@@ -46,13 +46,16 @@ class event_generator
 		uint64_t
 		fillEventBuffer
 		(
-			uint64_t             *event_generation_offset,
-			uint64_t             *EventID,
-			uint32_t             EventSize
+			uint64_t *event_generation_offset,
+			uint64_t *EventID,
+			uint32_t  EventSize
 		)
 		{
 			m_last_event_buffer_offset
 			    = m_channel->getLastEBOffset();
+
+			uint32_t max_read_req
+				= m_channel->pciePacketSize();
 
 			uint64_t available_buffer_space
 			    = availableBufferSpace(event_generation_offset);
@@ -61,22 +64,14 @@ class event_generator
 			// note: EventSize is in DWs and events have to be aligned to
 			// MaxReadReq boundaries
 			// fragment_size is in bytes
-			uint32_t max_read_req = m_channel->pciePacketSize();
-			uint32_t fragment_size;
-			if( (EventSize<<2) % max_read_req )
-			{
-				// EventSize is not a multiple of max_read_req
-				fragment_size = (trunc((EventSize<<2) / max_read_req) + 1) *
-					max_read_req;
-			}
-			else
-			{ fragment_size = (EventSize<<2); }
-
-			uint64_t nevents = (uint64_t)(available_buffer_space / fragment_size);
+			uint32_t fragment_size
+				= fragmentSize(EventSize, max_read_req);
 
 			// never use full buf_space_avail to avoid the situation where
 			// event_generation_offset==last_eb_offset because this will break
 			// buf_space_avail calculation above
+			uint64_t nevents
+			    = (uint64_t)(available_buffer_space / fragment_size);
 			if ( (available_buffer_space - EventSize) <= fragment_size )
 			{ nevents = 0; }
 			else
@@ -176,15 +171,26 @@ class event_generator
          * Get the available event buffer space in bytes between the current
          * generation offset and the last offset written to the channel
          **/
-
 		uint64_t
 		availableBufferSpace(uint64_t *event_generation_offset)
 		{
-		return    (*event_generation_offset < m_last_event_buffer_offset)
-		        ? m_last_event_buffer_offset - *event_generation_offset
-		        : m_last_event_buffer_offset + m_event_buffer->getSize()
+		return   (*event_generation_offset < m_last_event_buffer_offset)
+		       ? m_last_event_buffer_offset - *event_generation_offset
+		       : m_last_event_buffer_offset + m_event_buffer->getSize()
 		          - *event_generation_offset; /** wrap in between */
 		};
+
+		uint32_t
+		fragmentSize
+		(
+	        uint32_t EventSize,
+	        uint32_t max_read_req
+	    )
+		{
+		return   ((EventSize << 2) % max_read_req)
+			   ? (trunc((EventSize << 2) / max_read_req) + 1) * max_read_req
+			   : (EventSize << 2);
+		}
 };
 
 
