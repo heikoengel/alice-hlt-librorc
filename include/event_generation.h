@@ -26,9 +26,16 @@ class event_generator
 {
 	public:
 
-		 event_generator()
+		 event_generator
+		 (
+		     librorc::buffer      *report_buffer,
+			 librorc::buffer      *event_buffer,
+			 librorc::dma_channel *channel
+		 )
 		 {
-
+			 m_report_buffer = report_buffer;
+			 m_event_buffer  = event_buffer;
+			 m_channel       = channel;
 		 };
 
 		~event_generator()
@@ -39,29 +46,23 @@ class event_generator
 		uint64_t
 		fillEventBuffer
 		(
-			librorc::buffer      *report_buffer,
-			librorc::buffer      *event_buffer,
-			librorc::dma_channel *channel,
 			uint64_t             *event_generation_offset,
 			uint64_t             *EventID,
 			uint32_t             EventSize
 		)
 		{
-			m_last_event_buffer_offset = channel->getLastEBOffset();
+			m_last_event_buffer_offset
+			    = m_channel->getLastEBOffset();
 
-			uint64_t available_buffer_space =
-				availableBufferSpace
-				(
-				  event_generation_offset,
-				  event_buffer
-				);
+			uint64_t available_buffer_space
+			    = availableBufferSpace(event_generation_offset);
 
 			// check how many events can be put into the available space
 			// note: EventSize is in DWs and events have to be aligned to
 			// MaxReadReq boundaries
 			// fragment_size is in bytes
+			uint32_t max_read_req = m_channel->pciePacketSize();
 			uint32_t fragment_size;
-			uint32_t max_read_req = channel->pciePacketSize();
 			if( (EventSize<<2) % max_read_req )
 			{
 				// EventSize is not a multiple of max_read_req
@@ -84,7 +85,7 @@ class event_generator
 			// get current EL FIFO fill state consisting of:
 			// el_fifo_state[31:16] = FIFO write limit
 			// el_fifo_state[15:0]  = FIFO write count
-			uint32_t el_fifo_state   = channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+			uint32_t el_fifo_state   = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
 			uint32_t el_fifo_wrlimit = ((el_fifo_state>>16) & 0x0000ffff);
 			uint32_t el_fifo_wrcount = (el_fifo_state & 0x0000ffff);
 
@@ -101,7 +102,7 @@ class event_generator
 			if( MAX_EVENTS_PER_ITERATION && nevents > MAX_EVENTS_PER_ITERATION )
 			{ nevents = MAX_EVENTS_PER_ITERATION; }
 
-			volatile uint32_t *eventbuffer = event_buffer->getMem();
+			volatile uint32_t *eventbuffer = m_event_buffer->getMem();
 
 			for( uint64_t i=0; i < nevents; i++ )
 			{
@@ -115,15 +116,15 @@ class event_generator
 						offset, *EventID, EventSize);
 
 				// push event size into EL FIFO
-				channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, EventSize);
+				m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, EventSize);
 
 				// adjust event buffer fill state
 				*event_generation_offset += fragment_size;
 				*EventID += 1;
 
 				// wrap fill state if neccessary
-				if( *event_generation_offset >= event_buffer->getSize() )
-				{ *event_generation_offset -= event_buffer->getSize(); }
+				if( *event_generation_offset >= m_event_buffer->getSize() )
+				{ *event_generation_offset -= m_event_buffer->getSize(); }
 
 			}
 
@@ -132,7 +133,10 @@ class event_generator
 
 	protected:
 
-		uint64_t m_last_event_buffer_offset;
+		uint64_t              m_last_event_buffer_offset;
+		librorc::buffer      *m_report_buffer;
+		librorc::buffer      *m_event_buffer;
+		librorc::dma_channel *m_channel;
 
 		/**
 		 * Create event
@@ -174,15 +178,11 @@ class event_generator
          **/
 
 		uint64_t
-		availableBufferSpace
-		(
-			uint64_t        *event_generation_offset,
-			librorc::buffer *event_buffer
-		)
+		availableBufferSpace(uint64_t *event_generation_offset)
 		{
 		return    (*event_generation_offset < m_last_event_buffer_offset)
 		        ? m_last_event_buffer_offset - *event_generation_offset
-		        : m_last_event_buffer_offset + event_buffer->getSize()
+		        : m_last_event_buffer_offset + m_event_buffer->getSize()
 		          - *event_generation_offset; /** wrap in between */
 		};
 };
@@ -200,7 +200,7 @@ fill_eventbuffer
     uint32_t             EventSize
 )
 {
-	event_generator eventGen;
+	event_generator eventGen(rbuf, ebuf, channel);
     return eventGen.fillEventBuffer
-        (rbuf, ebuf, channel, event_generation_offset, EventID, EventSize);
+        (event_generation_offset, EventID, EventSize);
 }
