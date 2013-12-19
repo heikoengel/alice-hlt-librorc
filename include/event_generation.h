@@ -214,10 +214,9 @@ class event_generator
 		    uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
 		    uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 
-		    if(el_fifo_write_limit - el_fifo_write_count < number_of_events)
-		    { number_of_events = el_fifo_write_limit - el_fifo_write_count; }
-
-		    return number_of_events;
+		    return
+		    (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+		    ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
 		}
 
 		uint64_t
@@ -237,8 +236,8 @@ class event_generator
 		)
 		{
 			return
-			((available_buffer_space - event_size) <= fragment_size) ?
-			0 : (uint64_t)(available_buffer_space / fragment_size) - 1;
+			((available_buffer_space - event_size) <= fragment_size)
+			? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
 		}
 };
 
