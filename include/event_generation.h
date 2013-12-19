@@ -178,22 +178,17 @@ class event_generator
 
 			breakIfNoSufficientFifoSpaceAvailable();
 
-			// never use full buf_space_avail to avoid the situation where
-			// event_generation_offset==last_eb_offset because this will break
-			// buf_space_avail calculation above
-			uint64_t number_of_events
-			    = ((available_buffer_space - event_size) <= fragment_size)
-			    ? 0
-			    : (uint64_t)(available_buffer_space / fragment_size) - 1;
+			uint64_t
+			number_of_events
+				= numberOfEventsThatFitIntoBuffer
+					(available_buffer_space, event_size, fragment_size);
 
 			number_of_events
 				= maximumElfifoCanHandle(number_of_events);
 
-			// reduce nevents to a custom maximum
-			if ( MAX_EVENTS_PER_ITERATION
-					&& number_of_events > MAX_EVENTS_PER_ITERATION) {
-				number_of_events = MAX_EVENTS_PER_ITERATION;
-			}
+			number_of_events
+				= reduceNumberOfEventsToCustomMaximum(number_of_events);
+
 			return number_of_events;
 		}
 
@@ -215,14 +210,35 @@ class event_generator
 		uint64_t
 		maximumElfifoCanHandle(uint64_t number_of_events)
 		{
-		    uint32_t el_fifo_state = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+		    uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
 		    uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
 		    uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 
-		    if (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+		    if(el_fifo_write_limit - el_fifo_write_count < number_of_events)
 		    { number_of_events = el_fifo_write_limit - el_fifo_write_count; }
 
 		    return number_of_events;
+		}
+
+		uint64_t
+		reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events)
+		{
+		    return
+		    (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
+			? MAX_EVENTS_PER_ITERATION : number_of_events;
+		}
+
+		uint64_t
+		numberOfEventsThatFitIntoBuffer
+		(
+		    uint64_t available_buffer_space,
+			uint32_t event_size,
+			uint32_t fragment_size
+		)
+		{
+			return
+			((available_buffer_space - event_size) <= fragment_size) ?
+			0 : (uint64_t)(available_buffer_space / fragment_size) - 1;
 		}
 };
 
