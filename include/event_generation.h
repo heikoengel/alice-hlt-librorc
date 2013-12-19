@@ -262,8 +262,10 @@ class event_generator
 		void
 		wrapFillStateIfNecessary()
 		{
-			if(m_event_generation_offset >= m_event_buffer->getSize())
-			{ m_event_generation_offset -= m_event_buffer->getSize();}
+			m_event_generation_offset
+				= (m_event_generation_offset >= m_event_buffer->getSize())
+				? (m_event_generation_offset - m_event_buffer->getSize())
+				: m_event_generation_offset;
 		}
 };
 
