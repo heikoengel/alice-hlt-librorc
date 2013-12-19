@@ -24,6 +24,7 @@
 
 #include "librorc.h"
 #include "boardtest_modules.hh"
+#include "fmc_tester.hh"
 #include "../dma/dma_handling.hh"
 
 using namespace std;
@@ -233,6 +234,16 @@ main
         checkDdr3ModuleCalib( bar, 0, verbose);
         checkDdr3ModuleSpd( sm, 1, verbose);
         checkDdr3ModuleCalib( bar, 1, verbose);
+
+
+        printHeader("FMC Loopback Adapter");
+        if ( checkFmc(bar, sm, verbose) != 0 )
+        {
+            cout << "ERROR: FMC Loopback Adapter Test failed." << endl;
+        } else if (verbose)
+        {
+            cout << "INFO: FMC Loopback Test passed." << endl;
+        }
     }
 
     printHeader("LVDS");
