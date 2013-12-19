@@ -47,8 +47,8 @@ class event_generator
 		fillEventBuffer
 		(
 			uint64_t *event_generation_offset,
-			uint64_t *EventID,
-			uint32_t  EventSize
+			uint64_t *event_id,
+			uint32_t  event_size
 		)
 		{
 			m_last_event_buffer_offset
@@ -60,19 +60,15 @@ class event_generator
 			uint64_t available_buffer_space
 			    = availableBufferSpace(event_generation_offset);
 
-			// check how many events can be put into the available space
-			// note: EventSize is in DWs and events have to be aligned to
-			// MaxReadReq boundaries
-			// fragment_size is in bytes
 			uint32_t fragment_size
-				= fragmentSize(EventSize, max_read_req);
+				= fragmentSize(event_size, max_read_req);
 
 			// never use full buf_space_avail to avoid the situation where
 			// event_generation_offset==last_eb_offset because this will break
 			// buf_space_avail calculation above
 			uint64_t nevents
 			    = (uint64_t)(available_buffer_space / fragment_size);
-			if ( (available_buffer_space - EventSize) <= fragment_size )
+			if ( (available_buffer_space - event_size) <= fragment_size )
 			{ nevents = 0; }
 			else
 			{ nevents = (uint64_t)(available_buffer_space / fragment_size) - 1;}
@@ -105,17 +101,17 @@ class event_generator
 				uint64_t offset = *event_generation_offset;
 
 				volatile uint32_t *destination = eventbuffer + (offset>>2);
-				createEvent(destination, *EventID, EventSize );
+				createEvent(destination, *event_id, event_size );
 
 				DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x)\n",
-						offset, *EventID, EventSize);
+						offset, *event_id, event_size);
 
 				// push event size into EL FIFO
-				m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, EventSize);
+				m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
 
 				// adjust event buffer fill state
 				*event_generation_offset += fragment_size;
-				*EventID += 1;
+				*event_id += 1;
 
 				// wrap fill state if neccessary
 				if( *event_generation_offset >= m_event_buffer->getSize() )
@@ -180,16 +176,21 @@ class event_generator
 		          - *event_generation_offset; /** wrap in between */
 		};
 
+		/**
+		 * check how many events can be put into the available space
+		 * note: EventSize is in DWs and events have to be aligned to
+		 * MaxReadReq boundaries fragment_size is in bytes
+		 **/
 		uint32_t
 		fragmentSize
 		(
-	        uint32_t EventSize,
+	        uint32_t event_size,
 	        uint32_t max_read_req
 	    )
 		{
-		return   ((EventSize << 2) % max_read_req)
-			   ? (trunc((EventSize << 2) / max_read_req) + 1) * max_read_req
-			   : (EventSize << 2);
+		return   ((event_size << 2) % max_read_req)
+			   ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
+			   : (event_size << 2);
 		}
 };
 
