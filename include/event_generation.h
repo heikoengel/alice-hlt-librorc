@@ -227,14 +227,16 @@ class event_generator
 			volatile uint32_t* eventbuffer = m_event_buffer->getMem();
 			for(uint64_t i = 0; i < number_of_events; i++)
 			{
-				uint64_t offset_for_next_event = m_event_generation_offset;
+				createEvent((eventbuffer + (m_event_generation_offset >> 2)), m_event_id, event_size);
 
-				volatile uint32_t *destination = eventbuffer + (offset_for_next_event >> 2);
-
-				createEvent(destination, m_event_id, event_size);
-
-				DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x)\n",
-						offset_for_next_event, m_event_id, event_size);
+				DEBUG_PRINTF
+				(
+				    PDADEBUG_CONTROL_FLOW,
+				    "create_event(%lx, %lx, %x)\n",
+					m_event_generation_offset,
+					m_event_id,
+					event_size
+				);
 
 				// push event size into EL FIFO
 				m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
@@ -244,7 +246,7 @@ class event_generator
 				m_event_id += 1;
 
 				// wrap fill state if neccessary
-				if (m_event_generation_offset >= m_event_buffer->getSize()) {
+				if(m_event_generation_offset >= m_event_buffer->getSize()) {
 					m_event_generation_offset -= m_event_buffer->getSize();
 				}
 
