@@ -193,12 +193,12 @@ checkFmc
     if ( temp < FMC_I2C_TEMP_MIN || temp > FMC_I2C_TEMP_MAX )
     {
         cout << "ERROR: FMC temperature sensor reading out of bounds:  "
-             << temp << " degC." << endl;
+             << dec << temp << " degC." << endl;
         result = 1;
     }
     else if (verbose)
     {
-        cout << "INFO: FMC temperature sensor reports " << temp
+        cout << "INFO: FMC temperature sensor reports " << dec << temp
              << " degC." << endl;
     }
 
