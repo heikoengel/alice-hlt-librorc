@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     bar->simSetPacketSize(32);
 
     // check if firmware is HLT_OUT
-    if ( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
+    if( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         abort();
@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
         cout << "Prepare ES " << i << endl;
         if( !(eventStream[i] = prepareEventStream(dev, bar, opts[i])) )
         { exit(-1); }
+
         eventStream[i]->setEventCallback(event_callback);
 
         // no event in EB now
@@ -130,28 +131,30 @@ int main(int argc, char *argv[])
     }
 
     eventStream[0]->printDeviceStatus();
-    //TODO: all SIU interface handling
-
-    /** wait for GTX domain to be ready */
-    //ch->waitForGTXDomain();
-
-    /** set ENABLE, activate flow control (DIU_IF:busy), MUX=0 */
-    //ch->setGTX(RORC_REG_DDL_CTRL, 0x00000003);
-
 
     /** make clear what will be checked*/
     int32_t sanity_check_mask = CHK_SIZES;
     if(opts[0].useRefFile)
-    {
-        sanity_check_mask |= CHK_FILE;
-    }
+    { sanity_check_mask |= CHK_FILE; }
 
     cout << "Event Loop Start" << endl;
 
-    librorc::event_sanity_checker checker[MAX_CHANNELS];
-    for ( i=0; i<nChannels; i++ )
+    event_generator generators[MAX_CHANNELS];
+    for(i=0; i<nChannels; i++)
     {
-        checker[i] =
+        generators[i] =
+            event_generator
+            (
+                eventStream[i]->m_reportBuffer,
+                eventStream[i]->m_eventBuffer,
+                eventStream[i]->m_channel
+            );
+    }
+
+    librorc::event_sanity_checker checkers[MAX_CHANNELS];
+    for(i=0; i<nChannels; i++)
+    {
+        checkers[i] =
             (opts[i].esType==LIBRORC_ES_IN_DDL) /** is DDL reference file enabled? */
             ?   librorc::event_sanity_checker
             (
@@ -189,22 +192,13 @@ int main(int argc, char *argv[])
 
         for ( i=0; i<nChannels; i++ )
         {
-        	//TODO: this needs to be reworked, bookkeeping is now done inside
-        	//      of the event genertor class, but the object is poped of the
-        	//      stack after using this functions.
-            uint32_t nevents = fill_eventbuffer(
-                    eventStream[i]->m_reportBuffer, //report buffer instance
-                    eventStream[i]->m_eventBuffer, //event buffer instance
-                    eventStream[i]->m_channel, //channel instance
-                    opts[i].eventSize // event size to be used for event generation
-                    );
-            if ( nevents > 0 )
-            {
-                DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-                        "Pushed %ld events into EB\n", nevents);
-            }
+            uint32_t nevents =
+                generators[i].fillEventBuffer(opts[i].eventSize);
 
-            result = eventStream[i]->handleChannelData( (void*)&(checker[i]) );
+            if(nevents > 0)
+            { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents);}
+
+            result = eventStream[i]->handleChannelData( (void*)&(checkers[i]) );
         }
 
         eventStream[0]->m_bar1->gettime(&current_time, 0);

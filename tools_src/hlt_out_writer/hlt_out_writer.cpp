@@ -69,7 +69,7 @@ int main( int argc, char *argv[])
     { exit(-1); }
 
     struct stat ddlstat;
-    if ( opts.useRefFile )
+    if( opts.useRefFile )
     {
         if ( stat(opts.refname, &ddlstat) == -1 )
         {

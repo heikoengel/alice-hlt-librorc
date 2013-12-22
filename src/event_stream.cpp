@@ -181,6 +181,7 @@ namespace LIBRARY_NAME
     {
         m_channelId = channelId;
 
+/** TODO : remove this */
         /** set EventBuffer DMA direction according to EventStream type */
         int32_t dma_direction;
         switch (esType)

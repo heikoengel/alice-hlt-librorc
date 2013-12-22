@@ -26,6 +26,11 @@ class event_generator
 {
 	public:
 
+         event_generator()
+         {
+
+         };
+
 		 event_generator
 		 (
 		     librorc::buffer      *report_buffer,
