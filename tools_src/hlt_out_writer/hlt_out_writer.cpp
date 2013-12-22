@@ -57,7 +57,6 @@ int main( int argc, char *argv[])
     unsigned long last_bytes_received;
     unsigned long last_events_received;
     uint64_t nevents;
-    uint64_t EventID;
 
     DMAOptions opts = evaluateArguments(argc, argv);
 

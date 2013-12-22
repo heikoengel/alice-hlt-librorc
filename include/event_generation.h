@@ -273,18 +273,3 @@ class event_generator
 				: m_event_generation_offset;
 		}
 };
-
-
-
-uint64_t
-fill_eventbuffer
-(
-    librorc::buffer      *rbuf,
-    librorc::buffer      *ebuf,
-    librorc::dma_channel *channel,
-    uint32_t              EventSize
-)
-{
-	event_generator eventGen(rbuf, ebuf, channel);
-    return eventGen.fillEventBuffer(EventSize);
-}

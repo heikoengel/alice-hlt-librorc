@@ -111,21 +111,16 @@ int main(int argc, char *argv[])
 
     uint64_t last_bytes_received[MAX_CHANNELS];
     uint64_t last_events_received[MAX_CHANNELS];
-    uint64_t EventID[MAX_CHANNELS];
-    uint64_t ebuf_fill_state[MAX_CHANNELS];
 
     librorc::event_stream *eventStream[MAX_CHANNELS];
-    for ( i=0; i<nChannels; i++ )
+    for(i=0; i<nChannels; i++ )
     {
-        cout << "Prepare ES " << i << endl;
+        cout << "Prepare Event Stream " << i << endl;
         if( !(eventStream[i] = prepareEventStream(dev, bar, opts[i])) )
         { exit(-1); }
 
         eventStream[i]->setEventCallback(event_callback);
 
-        // no event in EB now
-        ebuf_fill_state[i] = 0;
-        EventID[i] = 0;
         last_bytes_received[i] = 0;
         last_events_received[i] = 0;
     }
