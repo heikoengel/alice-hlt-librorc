@@ -109,35 +109,60 @@ main
 
     for ( int i=0; i<2; i++ )
     {
-        initLibrorcInstances( dev[i], devnr[i], bar[i], sm[i]);
+        initLibrorcInstances( &dev[i], devnr[i], &bar[i], &sm[i]);
     }
+
 
     int32_t nconfigs = sizeof(available_configs) /
                        sizeof(gtxpll_settings);
+    if ( verbose )
+    {
+        cout << "Testing " << nconfigs << " Link configurations."
+             << endl;
+    }
 
     for ( int i=0; i<nconfigs; i++ )
     {
-        /** put all GTX transceivers in reset */
-        resetAllGtx( bar[0], 1 );
-        resetAllGtx( bar[1], 1 );
 
+        cout << "Configuring for Link Rate "
+             << LinkRateFromPllSettings( available_configs[i])
+             << " Gbps, RefClk "
+             << available_configs[i].refclk
+             << " MHz" << endl;
+
+        if ( verbose )
+        { cout << "Resetting GTX" << endl; }
+        /** put all GTX transceivers in reset */
+        resetAllGtx( bar[0], 0xa );
+        resetAllGtx( bar[1], 0xa );
+
+        if ( verbose )
+        { cout << "Resetting QSFPs" << endl; }
         /** put all installed QSFPs in reset */
         resetAllQsfps( sm[0], 1 );
         resetAllQsfps( sm[1], 1 );
 
         /** configure reference clock for target clock frequency */
+        if ( verbose )
+        { cout << "Configuring RefClks" << endl; }
         configureRefclk( sm[0], available_configs[i].refclk );
         configureRefclk( sm[1], available_configs[i].refclk );
 
         /** configure all GTX instances for new link rate */
+        if ( verbose )
+        { cout << "Configuring GTX via DRP" << endl; }
         configureAllGtx( bar[0], available_configs[i] );
         configureAllGtx( bar[1], available_configs[i] );
 
         /** release QSFP resets */
+        if ( verbose )
+        { cout << "Releasing QSFP resets" << endl; }
         resetAllQsfps( sm[0], 0 );
         resetAllQsfps( sm[1], 0 );
 
         /** release GTX resets */
+        if ( verbose )
+        { cout << "Releasing GTX resets" << endl; }
         resetAllGtx( bar[0], 0 );
         resetAllGtx( bar[1], 0 );
 

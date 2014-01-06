@@ -267,7 +267,15 @@ main
     if ( do_long_test )
     {
         printHeader("DMA to Host");
+        if ( link[0]->isGtxDomainReady() )
+        {
         testDmaChannel( dev, bar, 0, DMA_TIMEOUT, verbose );
+        }
+        else
+        {
+            cout << "ERROR: Link 0 Clock is down - skipping DMA test"
+                 << endl;
+        }
     }
 
 

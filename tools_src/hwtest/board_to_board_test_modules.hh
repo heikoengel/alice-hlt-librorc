@@ -36,13 +36,24 @@ const gtxpll_settings available_configs[] =
 
 
 
+/**
+ * get link rate from PLL settings struct
+ * @param cfg struct gtxpll_settings
+ * @return link rate
+ **/
+double
+LinkRateFromPllSettings
+(
+    gtxpll_settings cfg
+);
+
 void
 initLibrorcInstances
 (
-    librorc::device *dev,
+    librorc::device **dev,
     uint32_t devnr,
-    librorc::bar *bar,
-    librorc::sysmon *sm
+    librorc::bar **bar,
+    librorc::sysmon **sm
 );
 
 void

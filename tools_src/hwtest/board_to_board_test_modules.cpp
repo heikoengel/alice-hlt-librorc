@@ -23,15 +23,15 @@
 void
 initLibrorcInstances
 (
-    librorc::device *dev,
+    librorc::device **dev,
     uint32_t devnr,
-    librorc::bar *bar,
-    librorc::sysmon *sm
+    librorc::bar **bar,
+    librorc::sysmon **sm
 )
 {
     /** Instantiate Device */
     try{
-        dev = new librorc::device(devnr);
+        *dev = new librorc::device(devnr);
     }
     catch(...)
     {
@@ -42,7 +42,7 @@ initLibrorcInstances
     /** Instantiate a new bar */
     try
     {
-        bar = new librorc::rorc_bar(dev, 1);
+        *bar = new librorc::rorc_bar(*dev, 1);
     }
     catch(...)
     {
@@ -54,7 +54,7 @@ initLibrorcInstances
     /** Instantiate SystemManager */
     try
     {
-        sm = new librorc::sysmon(bar);
+        *sm = new librorc::sysmon(*bar);
     }
     catch(...)
     {
@@ -64,12 +64,22 @@ initLibrorcInstances
     }
 
     /** Check Firmware Type */
-    if ( !sm->firmwareIsHltHardwareTest() )
+    if ( !(*sm)->firmwareIsHltHardwareTest() )
     {
         cout << "FATAL: Device " << devnr
             << " Firmware is not for HW test!" << endl;
         abort();
     }
+}
+
+
+double
+LinkRateFromPllSettings
+(
+    gtxpll_settings cfg
+)
+{
+    return cfg.refclk * cfg.n1 * cfg.n2 / cfg.m * 2.0 / cfg.d / 1000.0;
 }
 
 
@@ -81,12 +91,12 @@ resetAllGtx
 )
 {
     /** get number of links */
-    uint32_t nchannels = (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff;
+    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
         uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
-        link->setPacketizer( RORC_REG_GTX_ASYNC_CFG, gtxctrl | (reset & 1) );
+        link->setPacketizer( RORC_REG_GTX_ASYNC_CFG, gtxctrl | (reset & 0xb) );
         delete link;
     }
 }
@@ -118,7 +128,7 @@ configureAllGtx
 )
 {
     /** get number of links */
-    uint32_t nchannels = (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff;
+    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
@@ -179,7 +189,7 @@ waitForLinkUp
         for ( uint32_t i=0; i<nchannels; i++ )
         {
             librorc::link *link = new librorc::link(bar, i);
-            if ( ((link->packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x174) == 0x074) &&
+            if ( ((link->packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x134) == 0x034) &&
                     (link->GTX(RORC_REG_GTX_CTRL) & 1) )
             {
                 lnkup |= (1<<i);
