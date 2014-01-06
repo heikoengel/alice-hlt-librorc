@@ -144,46 +144,6 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 }
 
 
-//TODO: that should be a part of the dma channel class
-librorcChannelStatus*
-prepareSharedMemory
-(
-    DMAOptions opts
-)
-{
-    librorcChannelStatus *chstats = NULL;
-
-    /** allocate shared mem */
-    int shID =
-        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
-    if(shID==-1)
-    {
-        perror("Shared memory getching failed!");
-        return(chstats);
-    }
-
-    /** attach to shared memory */
-    char *shm = (char*)shmat(shID, 0, 0);
-    if(shm==(char*)-1)
-    {
-        perror("Attaching of shared memory failed");
-        return(chstats);
-    }
-
-    chstats = (librorcChannelStatus*)shm;
-
-    /** Wipe SHM */
-    memset(chstats, 0, sizeof(librorcChannelStatus));
-    chstats->index = 0;
-    chstats->last_id = 0xfffffffff;
-    chstats->channel = (unsigned int)opts.channelId;
-    chstats->device = (unsigned int)opts.deviceId;
-
-    return(chstats);
-}
-
-
 
 librorc::event_stream *
 prepareEventStream
@@ -294,4 +254,45 @@ printFinalStatusLine
         );
     }
 
+}
+
+
+
+//TODO: LEGACY CODE!
+librorcChannelStatus*
+prepareSharedMemory
+(
+    DMAOptions opts
+)
+{
+    librorcChannelStatus *chstats = NULL;
+
+    /** allocate shared mem */
+    int shID =
+        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
+            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+    if(shID==-1)
+    {
+        perror("Shared memory getching failed!");
+        return(chstats);
+    }
+
+    /** attach to shared memory */
+    char *shm = (char*)shmat(shID, 0, 0);
+    if(shm==(char*)-1)
+    {
+        perror("Attaching of shared memory failed");
+        return(chstats);
+    }
+
+    chstats = (librorcChannelStatus*)shm;
+
+    /** Wipe SHM */
+    memset(chstats, 0, sizeof(librorcChannelStatus));
+    chstats->index = 0;
+    chstats->last_id = 0xfffffffff;
+    chstats->channel = (unsigned int)opts.channelId;
+    chstats->device = (unsigned int)opts.deviceId;
+
+    return(chstats);
 }
