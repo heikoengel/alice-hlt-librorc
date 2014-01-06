@@ -3,7 +3,50 @@
 
 #include <librorc.h>
 #include <pda.h>
-#include "helper_functions.h"
+//#include "helper_functions.h"
+
+/**
+ * Dump reportbuffer entry
+ * @param reportbuffer pointer to reportbuffer
+ * @param i index of current librorc_event_descriptor within
+ * reportbuffer
+ * @param ch DMA channel number
+ * */
+void
+dump_rb
+(
+    librorc_event_descriptor *reportbuffer,
+    uint64_t i,
+    uint32_t ch
+)
+{
+    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+            "CH%2d - RB[%3ld]: calc_size=%08x\t"
+            "reported_size=%08x\t"
+            "offset=%lx\n",
+            ch, i, reportbuffer->calc_event_size,
+            reportbuffer->reported_event_size,
+            reportbuffer->offset);
+}
+
+/**
+ * gettimeofday_diff
+ * @param time1 earlier timestamp
+ * @param time2 later timestamp
+ * @return time difference in seconds as double
+ * */
+double gettimeofday_diff(timeval time1, timeval time2) {
+  timeval diff;
+  diff.tv_sec = time2.tv_sec - time1.tv_sec;
+  diff.tv_usec = time2.tv_usec - time1.tv_usec;
+  while(diff.tv_usec < 0) {
+    diff.tv_usec += 1000000;
+    diff.tv_sec -= 1;
+  }
+
+  return (double)((double)diff.tv_sec +
+      (double)((double)diff.tv_usec / 1000000));
+}
 
 /**
  * Sanity checks on received data
