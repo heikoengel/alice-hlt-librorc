@@ -1,3 +1,4 @@
+#define LIBRORC_INTERNAL
 #include "dma_handling.hh"
 
 using namespace std;
@@ -38,19 +39,13 @@ evaluateArguments(int argc, char *argv[])
 
     ret.esType = LIBRORC_ES_IN_GENERIC;
     if( 0 == strcmp(app_name, "dma_in_hwpg") )
-    {
-        ret.esType = LIBRORC_ES_IN_HWPG;
-    }
+    { ret.esType = LIBRORC_ES_IN_HWPG; }
 
     if( 0 == strcmp(app_name, "dma_in_ddl") )
-    {
-        ret.esType = LIBRORC_ES_IN_DDL;
-    }
+    { ret.esType = LIBRORC_ES_IN_DDL; }
 
     if( 0 == strcmp(app_name, "hlt_out_writer") )
-    {
-        ret.esType = LIBRORC_ES_OUT_SWPG;
-    }
+    { ret.esType = LIBRORC_ES_OUT_SWPG; }
 
     /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
     {

@@ -38,7 +38,6 @@ evaluateArguments(int argc, char *argv[])
     argv[0] = app_name;
 
     ret.esType = LIBRORC_ES_IN_GENERIC;
-
     if( 0 == strcmp(app_name, "dma_in_hwpg") )
     { ret.esType = LIBRORC_ES_IN_HWPG; }
 
@@ -165,7 +164,8 @@ prepareEventStream
     return(eventStream);
 }
 
-#ifdef LIBRORC_INTERNAL
+
+
 librorc::event_stream *
 prepareEventStream
 (
@@ -186,7 +186,6 @@ prepareEventStream
 
     return(eventStream);
 }
-#endif
 
 
 
