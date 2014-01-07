@@ -5,7 +5,7 @@ PCI_IDS[1]=0000\:02\:00.0
 PCI_IDS[2]=0000\:04\:00.0
 PCI_IDS[3]=0000\:05\:00.0
 PCI_IDS[4]=0000\:06\:00.0
-PCI_IDS[4]=0000\:08\:00.0
+PCI_IDS[5]=0000\:08\:00.0
 
 for ID in ${PCI_IDS[@]}
 do
@@ -23,7 +23,7 @@ echo 1 > /sys/bus/pci/rescan
 # make sure uio_pci_dma is loaded
 if [ ! -f /sys/bus/pci/drivers/uio_pci_dma/new_id ]
 then
-  modprobe uio_pci_dma
+  /sbin/modprobe uio_pci_dma
 fi
 
 # bind all C-RORCs to uio_pci_dma
@@ -35,6 +35,6 @@ find -L /sys/module/uio_pci_dma/drivers/pci\:uio_pci_dma/ -maxdepth 2 -iname "*r
 # make sure i2c-dev is loaded
 if [ ! -d /sys/module/i2c_dev ]
 then
-  modprobe i2c_dev
+  /sbin/modprobe i2c_dev
 fi
 chmod a+rw /dev/i2c-*
