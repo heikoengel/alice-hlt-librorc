@@ -84,10 +84,6 @@ int main( int argc, char *argv[])
     if( !(eventStream = prepareEventStream(opts)) )
     { exit(-1); }
 
-//    librorcChannelStatus *chstats
-//        = prepareSharedMemory(opts);
-//    if(chstats == NULL)
-//    { exit(-1); }
 
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
