@@ -35,6 +35,7 @@ parameters: \n\
         -h              Print this help screen \n\
         -n [0..255]     Target device ID \n\
         -w [freq]       Target frequency in MHz \n\
+        -r              Reset ClkGen to default Frequency \n\
 Examples: \n\
 get current configuration from device 0 \n\
         refclkgenctrl -n 0 \n\

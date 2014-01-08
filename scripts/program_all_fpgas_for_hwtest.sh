@@ -2,7 +2,7 @@
 
 CMDFILE=/tmp/impact_$$.tmp
 
-#module load xil/141
+module load xilinx
 
 # function to program single FPGA
 program_fpga()

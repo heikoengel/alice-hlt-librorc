@@ -180,10 +180,10 @@ main
 
     checkPcieState( sm, verbose );
 
+    checkAndReleaseQsfpResets( sm, verbose );
+
     /** check fan is running */
     checkFpgaFan( sm, verbose );
-
-
 
     printHeader("Clocking/Monitoring");
 
@@ -194,6 +194,9 @@ main
     for  ( uint32_t i=0; i<nchannels; i++ )
     {
         link[i] = new librorc::link(bar, i);
+
+        checkAndReleaseGtxReset( link[i], verbose );
+
         if (link[i]->isGtxDomainReady())
         {
             link[i]->clearAllGtxErrorCounters();

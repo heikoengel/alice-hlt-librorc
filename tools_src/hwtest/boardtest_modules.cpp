@@ -364,7 +364,7 @@ checkFlash
     uint16_t status = flash->resetChip();
     if ( status )
     {
-        cout << "ERROR Flash " << chip_select
+        cout << "ERROR: Flash " << chip_select
              << "resetChip failed: " << HEXSTR(status, 4) << endl;
     }
 
@@ -534,7 +534,7 @@ checkQsfpVcc
             << " VCC out of bounds: " << qsfpvcc << endl;
     } else if ( verbose )
     {
-        cout << "INFO QSFP" << module_id
+        cout << "INFO: QSFP" << module_id
             << " VCC: " << qsfpvcc << " V" << endl;
     }
 }
@@ -947,4 +947,63 @@ printPcieInfos
     cout << " [FW date: " << hex << setw(8) << sm->FwBuildDate()
          << ", FW revision: "      << hex << setw(8) << sm->FwRevision()
          << "]" << endl;
+}
+
+
+void
+checkAndReleaseQsfpResets
+(
+    librorc::sysmon *sm,
+    int verbose
+)
+{
+    for ( int i=0; i<LIBRORC_MAX_QSFP; i++ )
+    {
+        if (sm->qsfpGetReset(i))
+        {
+            if ( verbose )
+            {
+                cout << "INFO: QSFP " << i
+                     << " was active - releasing."
+                     << endl;
+            }
+            sm->qsfpSetReset(i, 0);
+        }
+    }
+}
+
+
+void
+checkAndReleaseGtxReset
+(
+    librorc::link *link,
+    int verbose
+)
+{
+    uint32_t gtxcfg = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+    if ( gtxcfg & 0x0000000b )
+    {
+        /** release any reset bit */
+        link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, (gtxcfg & ~(0x00000000b)));
+        if ( verbose )
+        {
+            cout << "INFO: found GTX in reset - releasing..." << endl;
+        }
+
+        /** Wait to get QSFPs a chance to establish a link */
+        sleep(1);
+
+        /** Wait for clock to be up */
+        uint32_t trycount = 0;
+        while( !link->isGtxDomainReady() )
+        {
+            usleep(100);
+            trycount++;
+            if ( trycount > 1000 )
+            {
+                cout << "ERROR: Timeout waiting for GTX clock" << endl;
+                break;
+            }
+        }
+    }
 }

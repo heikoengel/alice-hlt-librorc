@@ -96,6 +96,11 @@ resetAllGtx
     {
         librorc::link *link = new librorc::link(bar, i);
         uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+        /** clear all reset bits (0,1,3) */
+        gtxctrl &= ~(0x0000000b);
+        /** set new reset bits */
+        gtxctrl |= (reset & 0x0000000b);
+        /** write back */
         link->setPacketizer( RORC_REG_GTX_ASYNC_CFG, gtxctrl | (reset & 0xb) );
         delete link;
     }
@@ -189,8 +194,7 @@ waitForLinkUp
         for ( uint32_t i=0; i<nchannels; i++ )
         {
             librorc::link *link = new librorc::link(bar, i);
-            if ( ((link->packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x134) == 0x034) &&
-                    (link->GTX(RORC_REG_GTX_CTRL) & 1) )
+            if ( link->isGtxDomainReady() && (link->GTX(RORC_REG_GTX_CTRL) & 1) )
             {
                 lnkup |= (1<<i);
             }

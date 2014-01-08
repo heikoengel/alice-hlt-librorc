@@ -93,4 +93,8 @@ void checkLinkState( librorc::link *link, uint32_t channel_id );
 void testDmaChannel(librorc::device *dev, librorc::bar *bar, uint32_t channel_id, int timeout, int verbose);
 
 void printPcieInfos(librorc::device *dev, librorc::sysmon *sm);
+
+void checkAndReleaseGtxReset(librorc::link *link, int verbose);
+void checkAndReleaseQsfpResets(librorc::sysmon *sm, int verbose);
+
 #endif
