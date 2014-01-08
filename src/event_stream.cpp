@@ -304,6 +304,7 @@ namespace LIBRARY_NAME
 
                  m_bar1->simSetPacketSize(32);
             }
+            break;
 
         default:
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
