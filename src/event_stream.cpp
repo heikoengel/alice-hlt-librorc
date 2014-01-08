@@ -202,7 +202,7 @@ namespace LIBRARY_NAME
 
         try
         {
-            if ( !m_called_with_bar )
+            if( !m_called_with_bar )
             {
                 m_dev = new librorc::device(deviceId);
                 #ifdef SIM
@@ -288,6 +288,22 @@ namespace LIBRARY_NAME
                 );
             }
             break;
+
+            case LIBRORC_ES_OUT_SWPG:
+            {
+                m_channel =
+                new librorc::dma_channel
+                (
+                     m_channelId,
+                     MAX_PAYLOAD,
+                     m_dev,
+                     m_bar1,
+                     m_eventBuffer,
+                     m_reportBuffer
+                 );
+
+                 m_bar1->simSetPacketSize(32);
+            }
 
         default:
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;

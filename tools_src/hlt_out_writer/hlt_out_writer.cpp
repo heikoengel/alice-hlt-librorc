@@ -110,14 +110,6 @@ int main( int argc, char *argv[])
 
     bar->simSetPacketSize(32);
 
-//    /** Check if requested channel is implemented in firmware */
-//    if( !dev->DMAChannelIsImplemented(opts.channelId) )
-//    {
-//        printf("ERROR: Requsted channel %d is not implemented in "
-//               "firmware - exiting\n", opts.channelId);
-//        abort();
-//    }
-
     /** create new DMA event buffer */
     librorc::buffer *ebuf;
     try
@@ -127,7 +119,6 @@ int main( int argc, char *argv[])
         perror("ERROR: ebuf->allocate");
         abort();
     }
-    printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
 
     /** create new DMA report buffer */
     librorc::buffer *rbuf;
@@ -138,7 +129,6 @@ int main( int argc, char *argv[])
         perror("ERROR: rbuf->allocate");
         abort();
     }
-    printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
     /** Create DMA channel */
     librorc::dma_channel *ch;
@@ -154,6 +144,9 @@ int main( int argc, char *argv[])
     }
 
 //_____ remove
+
+    printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
+    printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
     try
     {
