@@ -193,7 +193,7 @@ namespace LIBRARY_NAME
     link::isGtxDomainReady()
     {
         uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
-        return( (gtxasynccfg & (1<<8)) == 0 );
+        return( (gtxasynccfg & 0x00000134) == 0x00000034 );
     }
 
     void
