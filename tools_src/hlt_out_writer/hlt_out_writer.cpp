@@ -110,17 +110,6 @@ int main( int argc, char *argv[])
 
     bar->simSetPacketSize(32);
 
-    try
-    {
-        librorc::sysmon *sm = new librorc::sysmon(bar);
-        cout << "CRORC FPGA" << endl
-             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
-        delete sm;
-    }
-    catch(...)
-    { cout << "Firmware Rev. and Date not available!" << endl; }
-
 //    /** Check if requested channel is implemented in firmware */
 //    if( !dev->DMAChannelIsImplemented(opts.channelId) )
 //    {
@@ -166,12 +155,25 @@ int main( int argc, char *argv[])
 
 //_____ remove
 
+    try
+    {
+        librorc::sysmon *sm = new librorc::sysmon(bar);
+        cout << "CRORC FPGA" << endl
+             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
+             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
+        delete sm;
+    }
+    catch(...)
+    { cout << "Firmware Rev. and Date not available!" << endl; }
+
     // check if firmware is HLT_OUT
     if ( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         abort();
     }
+
+
 
     // capture starting time
     bar->gettime(&start_time, 0);
