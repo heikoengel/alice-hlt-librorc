@@ -46,8 +46,6 @@ DMA_ABORT_HANDLER
 int main( int argc, char *argv[])
 {
     int result = 0;
-    librorc::device      *dev  = NULL;
-    librorc::bar         *bar1 = NULL;
     librorc::buffer      *ebuf = NULL;
     librorc::buffer      *rbuf = NULL;
     librorc::dma_channel *ch   = NULL;
@@ -89,7 +87,8 @@ int main( int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-    // create new device instance
+    //_____ remove
+    librorc::device *dev;
     try{ dev = new librorc::device(opts.deviceId); }
     catch(...)
     {
@@ -97,19 +96,13 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    /** Print some stats */
-    printf("Bus %x, Slot %x, Func %x\n",
-            dev->getBus(),
-            dev->getSlot(),
-            dev->getFunc());
-
-    // bind to BAR1
+    librorc::bar *bar;
     try
     {
     #ifdef SIM
-        bar1 = new librorc::sim_bar(dev, 1);
+        bar = new librorc::sim_bar(dev, 1);
     #else
-        bar1 = new librorc::rorc_bar(dev, 1);
+        bar = new librorc::rorc_bar(dev, 1);
     #endif
     }
     catch(...)
@@ -118,11 +111,11 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    bar1->simSetPacketSize(32);
+    bar->simSetPacketSize(32);
 
     try
     {
-        librorc::sysmon *sm = new librorc::sysmon(bar1);
+        librorc::sysmon *sm = new librorc::sysmon(bar);
         cout << "CRORC FPGA" << endl
              << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
              << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
@@ -131,16 +124,16 @@ int main( int argc, char *argv[])
     catch(...)
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
-    /** Check if requested channel is implemented in firmware */
-    if( !dev->DMAChannelIsImplemented(opts.channelId) )
-    {
-        printf("ERROR: Requsted channel %d is not implemented in "
-               "firmware - exiting\n", opts.channelId);
-        abort();
-    }
+//    /** Check if requested channel is implemented in firmware */
+//    if( !dev->DMAChannelIsImplemented(opts.channelId) )
+//    {
+//        printf("ERROR: Requsted channel %d is not implemented in "
+//               "firmware - exiting\n", opts.channelId);
+//        abort();
+//    }
 
     // check if firmware is HLT_OUT
-    if ( (bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
+    if ( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         abort();
@@ -171,7 +164,7 @@ int main( int argc, char *argv[])
     /** Create DMA channel */
     try
     {
-        ch = new librorc::dma_channel(opts.channelId, 128, dev, bar1, ebuf, rbuf);
+        ch = new librorc::dma_channel(opts.channelId, 128, dev, bar, ebuf, rbuf);
         ch->enable();
     }
     catch(...)
@@ -180,16 +173,10 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    //TODO: all SIU interface handling
-
-    /** wait for GTX domain to be ready */
-    //ch->waitForGTXDomain();
-
-    /** set ENABLE, activate flow control (DIU_IF:busy), MUX=0 */
-    //ch->setGTX(RORC_REG_DDL_CTRL, 0x00000003);
+//_____ remove
 
     // capture starting time
-    bar1->gettime(&start_time, 0);
+    bar->gettime(&start_time, 0);
     last_time = start_time;
     cur_time = start_time;
 
@@ -229,7 +216,7 @@ int main( int argc, char *argv[])
         else if(result==0)
         { usleep(100); }
 
-        bar1->gettime(&cur_time, 0);
+        bar->gettime(&cur_time, 0);
 
         // print status line each second
         if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
@@ -237,7 +224,7 @@ int main( int argc, char *argv[])
                     chstats->n_events,
                     (double)chstats->bytes_received/(double)(1<<30));
 
-            if ( chstats->bytes_received-last_bytes_received)
+            if(chstats->bytes_received-last_bytes_received)
             {
                 printf(" Rate: %9.3f MB/s",
                         (double)(chstats->bytes_received-last_bytes_received)/
@@ -246,7 +233,7 @@ int main( int argc, char *argv[])
                 printf(" Rate: -");
             }
 
-            if ( chstats->n_events - last_events_received)
+            if(chstats->n_events - last_events_received)
             {
                 printf(" (%.3f kHz)",
                         (double)(chstats->n_events-last_events_received)/
@@ -263,7 +250,7 @@ int main( int argc, char *argv[])
     }
 
     // EOR
-    bar1->gettime(&end_time, 0);
+    bar->gettime(&end_time, 0);
 
     // print summary
     printf("%ld Byte / %ld events in %.2f sec"
@@ -315,8 +302,8 @@ int main( int argc, char *argv[])
     if (rbuf)
         delete rbuf;
 
-    if (bar1)
-        delete bar1;
+    if (bar)
+        delete bar;
     if (dev)
         delete dev;
 

@@ -96,6 +96,7 @@ namespace LIBRARY_NAME
     }
 
 
+
     event_stream::event_stream
     (
         int32_t       deviceId,
@@ -104,15 +105,15 @@ namespace LIBRARY_NAME
         LibrorcEsType esType
     )
     {
-        m_deviceId = deviceId;
-        m_eventSize = eventSize;
+        m_deviceId        = deviceId;
+        m_eventSize       = eventSize;
         m_called_with_bar = false;
         generateDMAChannel(m_deviceId, channelId, esType);
         prepareSharedMemory();
     }
 
 
-#ifdef LIBRORC_INTERNAL
+
     event_stream::event_stream
     (
         librorc::device *dev,
@@ -146,7 +147,7 @@ namespace LIBRARY_NAME
         generateDMAChannel(m_deviceId, channelId, esType);
         prepareSharedMemory();
     }
-#endif
+
 
     event_stream::~event_stream()
     {
@@ -181,7 +182,7 @@ namespace LIBRARY_NAME
     {
         m_channelId = channelId;
 
-/** TODO : remove this */
+        /** TODO : remove this */
         /** set EventBuffer DMA direction according to EventStream type */
         int32_t dma_direction;
         switch (esType)
@@ -210,6 +211,16 @@ namespace LIBRARY_NAME
                     m_bar1 = new librorc::rorc_bar(m_dev, 1);
                 #endif
             }
+
+            /** Check if requested channel is implemented in firmware */
+            if( !m_dev->DMAChannelIsImplemented(channelId) )
+            {
+                printf("ERROR: Requsted channel %d is not implemented in "
+                       "firmware - exiting\n", channelId);
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
+
+
             m_eventBuffer
                 = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, dma_direction);
             m_reportBuffer
@@ -218,8 +229,8 @@ namespace LIBRARY_NAME
             chooseDMAChannel(esType);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-            m_done = false;
-            m_event_callback = NULL;
+            m_done             = false;
+            m_event_callback   = NULL;
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
