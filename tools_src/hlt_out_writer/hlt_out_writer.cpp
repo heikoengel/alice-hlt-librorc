@@ -45,6 +45,9 @@ DMA_ABORT_HANDLER
 
 int main( int argc, char *argv[])
 {
+    librorc::event_stream *eventStream;
+
+
     int result = 0;
     timeval start_time, end_time;
     timeval last_time, cur_time;
@@ -83,74 +86,12 @@ int main( int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-//_____ remove
-
-    librorc::device *dev;
-    try{ dev = new librorc::device(opts.deviceId); }
-    catch(...)
-    {
-        printf("ERROR: failed to initialize device.\n");
-        abort();
-    }
-
-    librorc::bar *bar;
-    try
-    {
-    #ifdef SIM
-        bar = new librorc::sim_bar(dev, 1);
-    #else
-        bar = new librorc::rorc_bar(dev, 1);
-    #endif
-    }
-    catch(...)
-    {
-        printf("ERROR: failed to initialize BAR1.\n");
-        abort();
-    }
-
-    bar->simSetPacketSize(32);
-
-    /** create new DMA event buffer */
-    librorc::buffer *ebuf;
-    try
-    { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*opts.channelId, 1, LIBRORC_DMA_TO_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: ebuf->allocate");
-        abort();
-    }
-
-    /** create new DMA report buffer */
-    librorc::buffer *rbuf;
-    try
-    { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: rbuf->allocate");
-        abort();
-    }
-
-    /** Create DMA channel */
-    librorc::dma_channel *ch;
-    try
-    {
-        ch = new librorc::dma_channel(opts.channelId, 128, dev, bar, ebuf, rbuf);
-        ch->enable();
-    }
-    catch(...)
-    {
-        cout << "DMA channel failed!" << endl;
-        abort();
-    }
-
-//_____ remove
-
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
     try
     {
-        librorc::sysmon *sm = new librorc::sysmon(bar);
+        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
         cout << "CRORC FPGA" << endl
              << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
              << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
@@ -160,7 +101,7 @@ int main( int argc, char *argv[])
     { cout << "Firmware Rev. and Date not available!" << endl; }
 
     // check if firmware is HLT_OUT
-    if ( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
+    if ( (eventStream->m_bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         abort();
@@ -169,7 +110,7 @@ int main( int argc, char *argv[])
 
 
     // capture starting time
-    bar->gettime(&start_time, 0);
+    eventStream->m_bar1->gettime(&start_time, 0);
     last_time = start_time;
     cur_time = start_time;
 
@@ -183,7 +124,14 @@ int main( int argc, char *argv[])
     { sanity_checks |= CHK_PATTERN | CHK_ID; }
 
 
-    event_generator eventGen(rbuf, ebuf, ch);
+    event_generator
+    eventGen
+    (
+        eventStream->m_reportBuffer,
+        eventStream->m_eventBuffer,
+        eventStream->m_channel
+    );
+
     // wait for RB entry
     while(!done)
     {
@@ -192,14 +140,17 @@ int main( int argc, char *argv[])
         if( nevents > 0 )
         { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents); }
 
-        result = handle_channel_data(
-                rbuf,
-                ebuf,
-                ch, // channe struct
-                chstats, // stats struct
+        result =
+            handle_channel_data
+            (
+                eventStream->m_reportBuffer,
+                eventStream->m_eventBuffer,
+                eventStream->m_channel,
+                chstats,
                 sanity_checks, // do sanity check
                 NULL, // no DDL reference file
-                0); //DDL reference size
+                0 //DDL reference size
+             );
 
         if (result<0)
         {
@@ -209,7 +160,7 @@ int main( int argc, char *argv[])
         else if(result==0)
         { usleep(100); }
 
-        bar->gettime(&cur_time, 0);
+        eventStream->m_bar1->gettime(&cur_time, 0);
 
         // print status line each second
         if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
@@ -243,7 +194,7 @@ int main( int argc, char *argv[])
     }
 
     // EOR
-    bar->gettime(&end_time, 0);
+    eventStream->m_bar1->gettime(&end_time, 0);
 
     // print summary
     printf("%ld Byte / %ld events in %.2f sec"
@@ -265,40 +216,33 @@ int main( int argc, char *argv[])
 
     // wait until EL_FIFO runs empty
     // TODO: add timeout
-    while( ch->getLink()->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
+    while( eventStream->m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
         usleep(100);
 
     // wait for pending transfers to complete (dma_busy->0)
     // TODO: add timeout
-    while( ch->getDMABusy() )
+    while( eventStream->m_channel->getDMABusy() )
     { usleep(100); }
 
     // disable EBDM Engine
-    ch->disableEventBuffer();
+    eventStream->m_channel->disableEventBuffer();
 
     // disable RBDM
-    ch->disableReportBuffer();
+    eventStream->m_channel->disableReportBuffer();
 
     // reset DFIFO, disable DMA PKT
-    ch->setDMAConfig(0X00000002);
+    eventStream->m_channel->setDMAConfig(0X00000002);
 
     // clear reportbuffer
-    memset(rbuf->getMem(), 0, rbuf->getMappingSize());
+    memset(eventStream->m_reportBuffer->getMem(), 0, eventStream->m_reportBuffer->getMappingSize());
 
 
     shmdt(chstats);
 
-    if (ch)
-        delete ch;
-    if (ebuf)
-        delete ebuf;
-    if (rbuf)
-        delete rbuf;
-
-    if (bar)
-        delete bar;
-    if (dev)
-        delete dev;
+    if(eventStream)
+    {
+        delete eventStream;
+    }
 
     return result;
 }

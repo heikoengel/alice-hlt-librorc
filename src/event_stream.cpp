@@ -295,7 +295,7 @@ namespace LIBRARY_NAME
                 new librorc::dma_channel
                 (
                      m_channelId,
-                     MAX_PAYLOAD,
+                     128,
                      m_dev,
                      m_bar1,
                      m_eventBuffer,
