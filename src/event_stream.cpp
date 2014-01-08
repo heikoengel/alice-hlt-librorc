@@ -212,7 +212,6 @@ namespace LIBRARY_NAME
                 #endif
             }
 
-            /** Check if requested channel is implemented in firmware */
             if( !m_dev->DMAChannelIsImplemented(channelId) )
             {
                 printf("ERROR: Requsted channel %d is not implemented in "

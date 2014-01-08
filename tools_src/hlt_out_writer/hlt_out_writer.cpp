@@ -46,10 +46,6 @@ DMA_ABORT_HANDLER
 int main( int argc, char *argv[])
 {
     int result = 0;
-    librorc::buffer      *ebuf = NULL;
-    librorc::buffer      *rbuf = NULL;
-    librorc::dma_channel *ch   = NULL;
-
     timeval start_time, end_time;
     timeval last_time, cur_time;
     unsigned long last_bytes_received;
@@ -87,7 +83,8 @@ int main( int argc, char *argv[])
     if(chstats == NULL)
     { exit(-1); }
 
-    //_____ remove
+//_____ remove
+
     librorc::device *dev;
     try{ dev = new librorc::device(opts.deviceId); }
     catch(...)
@@ -132,14 +129,8 @@ int main( int argc, char *argv[])
 //        abort();
 //    }
 
-    // check if firmware is HLT_OUT
-    if ( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
-    {
-        cout << "Firmware is not HLT_OUT - exiting." << endl;
-        abort();
-    }
-
     /** create new DMA event buffer */
+    librorc::buffer *ebuf;
     try
     { ebuf = new librorc::buffer(dev, EBUFSIZE, 2*opts.channelId, 1, LIBRORC_DMA_TO_DEVICE); }
     catch(...)
@@ -150,6 +141,7 @@ int main( int argc, char *argv[])
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
 
     /** create new DMA report buffer */
+    librorc::buffer *rbuf;
     try
     { rbuf = new librorc::buffer(dev, RBUFSIZE, 2*opts.channelId+1, 1, LIBRORC_DMA_FROM_DEVICE); }
     catch(...)
@@ -159,9 +151,8 @@ int main( int argc, char *argv[])
     }
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
-
-
     /** Create DMA channel */
+    librorc::dma_channel *ch;
     try
     {
         ch = new librorc::dma_channel(opts.channelId, 128, dev, bar, ebuf, rbuf);
@@ -174,6 +165,13 @@ int main( int argc, char *argv[])
     }
 
 //_____ remove
+
+    // check if firmware is HLT_OUT
+    if ( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
+    {
+        cout << "Firmware is not HLT_OUT - exiting." << endl;
+        abort();
+    }
 
     // capture starting time
     bar->gettime(&start_time, 0);
@@ -278,7 +276,7 @@ int main( int argc, char *argv[])
     // wait for pending transfers to complete (dma_busy->0)
     // TODO: add timeout
     while( ch->getDMABusy() )
-        usleep(100);
+    { usleep(100); }
 
     // disable EBDM Engine
     ch->disableEventBuffer();
