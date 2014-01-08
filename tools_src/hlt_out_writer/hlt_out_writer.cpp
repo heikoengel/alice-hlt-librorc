@@ -112,9 +112,9 @@ int main( int argc, char *argv[])
     // capture starting time
     eventStream->m_bar1->gettime(&start_time, 0);
     last_time = start_time;
-    cur_time = start_time;
+    cur_time  = start_time;
 
-    last_bytes_received = 0;
+    last_bytes_received  = 0;
     last_events_received = 0;
 
     int32_t sanity_checks = CHK_SIZES|CHK_SOE;
