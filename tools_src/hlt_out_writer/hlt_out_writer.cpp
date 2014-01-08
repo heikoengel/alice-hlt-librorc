@@ -81,6 +81,9 @@ int main( int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
+    if( !(eventStream = prepareEventStream(opts)) )
+    { exit(-1); }
+
     librorcChannelStatus *chstats
         = prepareSharedMemory(opts);
     if(chstats == NULL)

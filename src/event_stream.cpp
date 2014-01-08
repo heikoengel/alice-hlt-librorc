@@ -212,12 +212,12 @@ namespace LIBRARY_NAME
                 #endif
             }
 
-//            if( !m_dev->DMAChannelIsImplemented(channelId) )
-//            {
-//                printf("ERROR: Requsted channel %d is not implemented in "
-//                       "firmware - exiting\n", channelId);
-//                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-//            }
+            if( !m_dev->DMAChannelIsImplemented(channelId) )
+            {
+                printf("ERROR: Requsted channel %d is not implemented in "
+                       "firmware - exiting\n", channelId);
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
 
 
             m_eventBuffer
