@@ -190,14 +190,20 @@ namespace LIBRARY_NAME
             case LIBRORC_ES_IN_GENERIC:
             case LIBRORC_ES_IN_DDL:
             case LIBRORC_ES_IN_HWPG:
+            {
                 dma_direction = LIBRORC_DMA_FROM_DEVICE;
-                break;
+            }
+            break;
+
+            case LIBRORC_ES_OUT_GENERIC:
             case LIBRORC_ES_OUT_SWPG:
             case LIBRORC_ES_OUT_FILE:
+            {
                 dma_direction = LIBRORC_DMA_TO_DEVICE;
-                break;
+            }
+            break;
             default:
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
         }
 
         try
