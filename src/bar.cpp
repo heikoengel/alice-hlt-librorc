@@ -85,8 +85,6 @@ rorc_bar::memcopy
 uint32_t
 rorc_bar::get32(librorc_bar_address address )
 {
-    assert( m_bar != NULL );
-
     uint32_t *bar = (uint32_t *)m_bar;
     uint32_t result;
     if( (address << 2) < m_size)

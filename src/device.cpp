@@ -65,14 +65,19 @@ device::device
         uint64_t length = 0;
         if(Bar_getMap(bar, &buffer, &length) != PDA_SUCCESS)
         { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+        uint32_t *bar32 = (uint32_t *)bar;
 
         switch (esType)
         {
+            case LIBRORC_ES_BOTH:
+            break;
+
             case LIBRORC_ES_IN_GENERIC:
             case LIBRORC_ES_IN_DDL:
             case LIBRORC_ES_IN_HWPG:
             {
-                //dma_direction = LIBRORC_DMA_FROM_DEVICE;
+                if((bar32[RORC_REG_TYPE_CHANNELS] >> 16) != RORC_CFG_PROJECT_hlt_in)
+                { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
             }
             break;
 
@@ -80,9 +85,11 @@ device::device
             case LIBRORC_ES_OUT_SWPG:
             case LIBRORC_ES_OUT_FILE:
             {
-                //dma_direction = LIBRORC_DMA_TO_DEVICE;
+                if((bar32[RORC_REG_TYPE_CHANNELS] >> 16) != RORC_CFG_PROJECT_hlt_out)
+                { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
             }
             break;
+
             default:
             { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
         }
