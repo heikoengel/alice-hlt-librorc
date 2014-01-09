@@ -1,6 +1,6 @@
 /**
- * @file hlt_out_writer.cpp
- * @author Heiko Engel <hengel@cern.ch>
+ * @file
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @version 0.1
  * @date 2013-06-20
  *
@@ -18,18 +18,6 @@
  *
  * */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-#include <errno.h>
-#include <limits.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdint.h>
-#include <sys/shm.h>
-#include <getopt.h>
 
 #include <librorc.h>
 #include "dma_handling.hh"
@@ -45,16 +33,6 @@ DMA_ABORT_HANDLER
 
 int main( int argc, char *argv[])
 {
-    librorc::event_stream *eventStream;
-
-
-    int result = 0;
-    timeval start_time, end_time;
-    timeval last_time, cur_time;
-    unsigned long last_bytes_received;
-    unsigned long last_events_received;
-    uint64_t nevents;
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -81,7 +59,9 @@ int main( int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    if( !(eventStream = prepareEventStream(opts)) )
+    librorc::event_stream *eventStream
+        = prepareEventStream(opts);
+    if( !eventStream )
     { exit(-1); }
 
 
@@ -97,15 +77,14 @@ int main( int argc, char *argv[])
         abort();
     }
 
-
-
-    // capture starting time
+    /** capture starting time */
+    timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
-    last_time = start_time;
-    cur_time  = start_time;
+    timeval last_time = start_time;
+    timeval cur_time  = start_time;
 
-    last_bytes_received  = 0;
-    last_events_received = 0;
+    uint64_t last_bytes_received  = 0;
+    uint64_t last_events_received = 0;
 
     int32_t sanity_checks = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
@@ -123,12 +102,14 @@ int main( int argc, char *argv[])
     );
 
     // wait for RB entry
+    int result = 0;
+    uint64_t number_of_events;
     while(!done)
     {
-        nevents = eventGen.fillEventBuffer(opts.eventSize);
+        number_of_events = eventGen.fillEventBuffer(opts.eventSize);
 
-        if( nevents > 0 )
-        { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents); }
+        if( number_of_events > 0 )
+        { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
 
         result =
             handle_channel_data
@@ -184,6 +165,7 @@ int main( int argc, char *argv[])
     }
 
     // EOR
+    timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
     // print summary
@@ -208,7 +190,7 @@ int main( int argc, char *argv[])
     // wait until EL_FIFO runs empty
     // TODO: add timeout
     while( eventStream->m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
-        usleep(100);
+    { usleep(100); }
 
     // wait for pending transfers to complete (dma_busy->0)
     // TODO: add timeout
