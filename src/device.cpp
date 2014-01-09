@@ -56,6 +56,39 @@ device::device
     if(DeviceOperator_getPciDevice(m_dop, &m_device, device_index) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
 
+    #ifndef SIM
+        Bar *bar;
+        if(PciDevice_getBar(m_device, &bar, 1) != PDA_SUCCESS)
+        { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+
+        uint8_t *buffer = NULL;
+        uint64_t length = 0;
+        if(Bar_getMap(bar, &buffer, &length) != PDA_SUCCESS)
+        { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+
+        switch (esType)
+        {
+            case LIBRORC_ES_IN_GENERIC:
+            case LIBRORC_ES_IN_DDL:
+            case LIBRORC_ES_IN_HWPG:
+            {
+                //dma_direction = LIBRORC_DMA_FROM_DEVICE;
+            }
+            break;
+
+            case LIBRORC_ES_OUT_GENERIC:
+            case LIBRORC_ES_OUT_SWPG:
+            case LIBRORC_ES_OUT_FILE:
+            {
+                //dma_direction = LIBRORC_DMA_TO_DEVICE;
+            }
+            break;
+            default:
+            { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+        }
+
+    #endif
+
     m_number = device_index;
 }
 
