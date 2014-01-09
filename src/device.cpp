@@ -65,7 +65,7 @@ device::device
         uint64_t length = 0;
         if(Bar_getMap(bar, &buffer, &length) != PDA_SUCCESS)
         { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
-        uint32_t *bar32 = (uint32_t *)bar;
+        uint32_t *bar32 = (uint32_t *)buffer;
 
         switch (esType)
         {
