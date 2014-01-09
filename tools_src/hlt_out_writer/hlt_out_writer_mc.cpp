@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        dev = new librorc::device(opts[0].deviceId);
+        dev = new librorc::device(opts[0].deviceId, LIBRORC_ES_OUT_GENERIC);
     #ifdef SIM
         bar = new librorc::sim_bar(dev, 1);
     #else

@@ -29,7 +29,8 @@ namespace LIBRARY_NAME
 
 device::device
 (
-    int32_t device_index
+    int32_t       device_index,
+    LibrorcEsType esType
 )
 {
     PDAInit();

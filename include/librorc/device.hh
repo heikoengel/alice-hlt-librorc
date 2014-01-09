@@ -61,7 +61,11 @@ namespace LIBRARY_NAME
     friend class sim_bar;
 
     public:
-         device(int32_t device_index);
+         device
+         (
+             int32_t device_index,
+             LibrorcEsType esType
+         );
         ~device();
 
     uint16_t getDomain();

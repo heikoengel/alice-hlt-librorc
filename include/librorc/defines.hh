@@ -19,6 +19,35 @@ typedef enum librorc_verbosity_enum librorc_verbosity;
 
 
 /**
+ * TODO: which operating modes do we want to have here?
+ * further options:
+ * HLT_IN:
+ * - generate event data by SW: no DMA transfers involved
+ *     - from software PG, e.g. LIBRORC_ES_IN_SWPG
+ *     - from local file(s), e.g. LIBRORC_ES_IN_FILE
+ * HLT_OUT:
+ * - use external interface to get event data
+ *
+ * NOTE:
+ * HLT-OUT HWPG does not need an instance of event_stream to run,
+ * as no DMA data transfer is involved in this mode.
+ * */
+typedef enum
+{
+    /** HLT-IN */
+    LIBRORC_ES_IN_GENERIC, /** no source specific intializations */
+    LIBRORC_ES_IN_DDL, /** use DIU as data source */
+    LIBRORC_ES_IN_HWPG, /** use hardware PG as data source */
+    /** HLT-OUT */
+    LIBRORC_ES_OUT_GENERIC,
+    LIBRORC_ES_OUT_SWPG, /** use software based PG as data source */
+    LIBRORC_ES_OUT_FILE, /** use file as data source */
+    /** NOT DEFINED */
+    LIBRORC_ES_BOTH      /** bufferstats tool does need this */
+} LibrorcEsType;
+
+
+/**
  * gettimeofday_diff
  * @param time1 earlier timestamp
  * @param time2 later timestamp

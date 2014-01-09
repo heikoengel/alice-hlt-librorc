@@ -26,33 +26,6 @@
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
 
-
-/**
- * TODO: which operating modes do we want to have here?
- * further options:
- * HLT_IN:
- * - generate event data by SW: no DMA transfers involved
- *     - from software PG, e.g. LIBRORC_ES_IN_SWPG
- *     - from local file(s), e.g. LIBRORC_ES_IN_FILE
- * HLT_OUT:
- * - use external interface to get event data
- *
- * NOTE:
- * HLT-OUT HWPG does not need an instance of event_stream to run,
- * as no DMA data transfer is involved in this mode.
- * */
-typedef enum
-{
-    /** HLT-IN */
-    LIBRORC_ES_IN_GENERIC, /** no source specific intializations */
-    LIBRORC_ES_IN_DDL, /** use DIU as data source */
-    LIBRORC_ES_IN_HWPG, /** use hardware PG as data source */
-    /** HLT-OUT */
-    LIBRORC_ES_OUT_SWPG, /** use software based PG as data source */
-    LIBRORC_ES_OUT_FILE /** use file as data source */
-} LibrorcEsType;
-
-
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
     #define EBUFSIZE (((uint64_t)1) << 28)

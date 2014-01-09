@@ -72,14 +72,7 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    /** capture starting time */
-    timeval start_time;
-    eventStream->m_bar1->gettime(&start_time, 0);
-    timeval last_time = start_time;
-    timeval cur_time  = start_time;
 
-    uint64_t last_bytes_received  = 0;
-    uint64_t last_events_received = 0;
 
     int32_t sanity_checks = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
@@ -96,9 +89,19 @@ int main( int argc, char *argv[])
         eventStream->m_channel
     );
 
-    // wait for RB entry
+    /** capture starting time */
+    timeval start_time;
+    eventStream->m_bar1->gettime(&start_time, 0);
+    timeval last_time = start_time;
+    timeval cur_time  = start_time;
+
+    uint64_t last_bytes_received  = 0;
+    uint64_t last_events_received = 0;
+
     int result = 0;
     uint64_t number_of_events;
+
+    /** wait for RB entry */
     while(!done)
     {
         number_of_events = eventGen.fillEventBuffer(opts.eventSize);

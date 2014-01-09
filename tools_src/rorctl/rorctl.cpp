@@ -220,8 +220,9 @@ int main
                 {
                     options.device_number = atoi(optarg);
                     try
-                    { options.dev = new librorc::device(
-                            options.device_number); }
+                    { options.dev = new librorc::device
+                        (options.device_number, LIBRORC_ES_BOTH);
+                    }
                     catch(...)
                     {
                         cout << "failed to initialize device "
@@ -299,7 +300,7 @@ print_device
 {
     /** Instantiate device with index <index> */
     librorc::device *dev = NULL;
-    try{ dev = new librorc::device(index);}
+    try{ dev = new librorc::device(index, LIBRORC_ES_BOTH);}
     catch(...){ exit(0); }
 
     /** Instantiate a new bar */
