@@ -50,7 +50,6 @@ eventCallBack
 int main(int argc, char *argv[])
 {
     char logdirectory[] = "/tmp";
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if

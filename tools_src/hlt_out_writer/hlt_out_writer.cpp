@@ -33,6 +33,7 @@ DMA_ABORT_HANDLER
 
 int main( int argc, char *argv[])
 {
+    char logdirectory[] = "/tmp";
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -65,11 +66,11 @@ int main( int argc, char *argv[])
 
     eventStream->printDeviceStatus();
 
-    int32_t sanity_checks = CHK_SIZES|CHK_SOE;
+    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
-    { sanity_checks |= CHK_FILE; }
+    { sanity_check_mask |= CHK_FILE; }
     else
-    { sanity_checks |= CHK_PATTERN | CHK_ID; }
+    { sanity_check_mask |= CHK_PATTERN | CHK_ID; }
 
 
     event_generator
@@ -79,6 +80,16 @@ int main( int argc, char *argv[])
         eventStream->m_eventBuffer,
         eventStream->m_channel
     );
+
+    librorc::event_sanity_checker checker =
+        librorc::event_sanity_checker
+        (
+            eventStream->m_eventBuffer,
+            opts.channelId,
+            PG_PATTERN_INC,
+            sanity_check_mask,
+            logdirectory
+        );
 
     /** capture starting time */
     timeval start_time;
@@ -107,7 +118,7 @@ int main( int argc, char *argv[])
                 eventStream->m_eventBuffer,
                 eventStream->m_channel,
                 eventStream->m_channel_status,
-                sanity_checks, // do sanity check
+                sanity_check_mask, // do sanity check
                 NULL, // no DDL reference file
                 0 //DDL reference size
              );
