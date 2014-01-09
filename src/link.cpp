@@ -420,13 +420,13 @@ namespace LIBRARY_NAME
 
         /********************* TXPLL *********************/
 
-        //drpSetPllConfigA(0x1f, n1_reg, n2_reg, d_reg);
+        drpSetPllConfigA(0x1f, n1_reg, n2_reg, d_reg);
 
         /** set TXPLL_DIVSEL_REF/M: addr 0x20, bits [5:1] */
-        //drpSetPllConfigMRegister(0x20, m_reg);
+        drpSetPllConfigMRegister(0x20, m_reg);
 
         /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
-        //drpSetPllConfigClkDivider(0x23, 10, clkdiv);
+        drpSetPllConfigClkDivider(0x23, 10, clkdiv);
 
         /********************* RXPLL *********************/
 
