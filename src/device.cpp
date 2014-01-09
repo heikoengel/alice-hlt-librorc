@@ -77,7 +77,10 @@ device::device
             case LIBRORC_ES_IN_HWPG:
             {
                 if((bar32[RORC_REG_TYPE_CHANNELS] >> 16) != RORC_CFG_PROJECT_hlt_in)
-                { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+                {
+                    cout << "Wrong device firmware loaded [out] instead [in]" << endl;
+                    throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED;
+                }
             }
             break;
 
@@ -86,7 +89,10 @@ device::device
             case LIBRORC_ES_OUT_FILE:
             {
                 if((bar32[RORC_REG_TYPE_CHANNELS] >> 16) != RORC_CFG_PROJECT_hlt_out)
-                { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+                {
+                    cout << "Wrong device firmware loaded [in] instead [out]" << endl;
+                    throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED;
+                }
             }
             break;
 
