@@ -65,15 +65,6 @@ int main( int argc, char *argv[])
 
     eventStream->printDeviceStatus();
 
-    // check if firmware is HLT_OUT
-    if ( (eventStream->m_bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
-    {
-        cout << "Firmware is not HLT_OUT - exiting." << endl;
-        abort();
-    }
-
-
-
     int32_t sanity_checks = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
     { sanity_checks |= CHK_FILE; }

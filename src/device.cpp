@@ -99,7 +99,6 @@ device::device
             default:
             { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
         }
-
     #endif
 
     m_number = device_index;
