@@ -292,8 +292,7 @@ namespace LIBRARY_NAME
 
         setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
-        uint32_t drp_status
-            = waitForDrpDenToDeassert();
+        waitForDrpDenToDeassert();
 
         DEBUG_PRINTF
         (

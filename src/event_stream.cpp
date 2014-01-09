@@ -461,6 +461,9 @@ namespace LIBRARY_NAME
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
                     : 0;
 
+                if(ret != 0)
+                { abort(); }
+
                 m_channel_status->last_id = event_id;
 
                 // increment the number of bytes received

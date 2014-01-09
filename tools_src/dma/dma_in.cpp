@@ -110,5 +110,5 @@ int main(int argc, char *argv[])
     /** Cleanup */
     delete eventStream;
 
-    return 0;
+    return result;
 }
