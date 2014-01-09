@@ -109,10 +109,11 @@ waitForResetDone
     uint32_t timeout = 0;
     while ( timeout < WAIT_FOR_RESET_DONE_TIMEOUT )
     {
-        uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
-        if ( gtxctrl & (BIT_RXRESETDONE | BIT_TXRESETDONE) )
+        if ( link->isGtxDomainReady() )
         {
-            return true;
+            /** make sure DFE eye is above threshold */
+            double dfeEye = (link->GTX(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200.0/31.0;
+            return (dfeEye > GTX_DFE_EYE_DAC_MIN);
         }
         usleep(100);
         timeout++;
@@ -231,7 +232,7 @@ waitForLinkUp
 )
 {
     uint32_t lnkup = 0;
-    uint32_t nchannels = (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff;
+    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     uint32_t chmask = (1<<nchannels)-1;
     uint32_t timeout = WAIT_FOR_LINK_UP_TIMEOUT;
 
@@ -258,3 +259,25 @@ waitForLinkUp
 
     return lnkup;
 }
+
+
+void
+clearAllErrorCounters
+(
+    librorc::bar *bar
+)
+{
+    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
+    for ( uint32_t i=0; i<nchannels; i++ )
+    {
+        librorc::link *link = new librorc::link(bar, i);
+        if ( link->isGtxDomainReady() )
+        {
+            link->clearAllGtxErrorCounters();
+            link->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+        }
+        delete link;
+    }
+}
+
+

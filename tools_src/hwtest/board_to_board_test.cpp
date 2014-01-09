@@ -133,8 +133,8 @@ main
         if ( verbose )
         { cout << "Resetting GTX" << endl; }
         /** put all GTX transceivers in reset */
-        resetAllGtx( bar[0], BIT_RXRESET|BIT_TXRESET );
-        resetAllGtx( bar[1], BIT_RXRESET|BIT_TXRESET );
+        resetAllGtx( bar[0], 1 );
+        resetAllGtx( bar[1], 1 );
 
         if ( verbose )
         { cout << "Resetting QSFPs" << endl; }
@@ -174,6 +174,9 @@ main
              << lnkup0 << dec << endl;
         cout << "Dev " << devnr[1] << " LnkUp " << hex
              << lnkup1 << dec << endl;
+
+        clearAllErrorCounters( bar[0] );
+        clearAllErrorCounters( bar[1] );
     }
 
     /**
