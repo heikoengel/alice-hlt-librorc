@@ -88,16 +88,7 @@ int main( int argc, char *argv[])
     printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
     printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
-    try
-    {
-        librorc::sysmon *sm = new librorc::sysmon(eventStream->m_bar1);
-        cout << "CRORC FPGA" << endl
-             << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
-             << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
-        delete sm;
-    }
-    catch(...)
-    { cout << "Firmware Rev. and Date not available!" << endl; }
+    eventStream->printDeviceStatus();
 
     // check if firmware is HLT_OUT
     if ( (eventStream->m_bar1->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
