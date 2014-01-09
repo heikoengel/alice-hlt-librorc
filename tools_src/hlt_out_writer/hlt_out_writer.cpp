@@ -59,14 +59,9 @@ int main( int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    librorc::event_stream *eventStream
-        = prepareEventStream(opts);
+    librorc::event_stream *eventStream = prepareEventStream(opts);
     if( !eventStream )
     { exit(-1); }
-
-
-    printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
-    printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
 
     eventStream->printDeviceStatus();
 

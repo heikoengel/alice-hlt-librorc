@@ -71,12 +71,13 @@ int main(int argc, char *argv[])
 
     librorc_event_callback event_callback = eventCallBack;
 
-    if( !(eventStream = prepareEventStream(opts)) )
+    librorc::event_stream *eventStream = prepareEventStream(opts);
+    if( !eventStream )
     { exit(-1); }
 
-    eventStream->setEventCallback(event_callback);
-
     eventStream->printDeviceStatus();
+
+    eventStream->setEventCallback(event_callback);
 
     /** make clear what will be checked*/
     int32_t sanity_check_mask = 0xff; /** all checks defaults */

@@ -342,6 +342,8 @@ namespace LIBRARY_NAME
     void
     event_stream::printDeviceStatus()
     {
+        printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
+        printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
         printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
 
         try
