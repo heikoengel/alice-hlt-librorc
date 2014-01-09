@@ -133,8 +133,8 @@ main
         if ( verbose )
         { cout << "Resetting GTX" << endl; }
         /** put all GTX transceivers in reset */
-        resetAllGtx( bar[0], 0xa );
-        resetAllGtx( bar[1], 0xa );
+        resetAllGtx( bar[0], BIT_RXRESET|BIT_TXRESET );
+        resetAllGtx( bar[1], BIT_RXRESET|BIT_TXRESET );
 
         if ( verbose )
         { cout << "Resetting QSFPs" << endl; }
@@ -154,17 +154,17 @@ main
         configureAllGtx( bar[0], available_configs[i] );
         configureAllGtx( bar[1], available_configs[i] );
 
-        /** release QSFP resets */
-        if ( verbose )
-        { cout << "Releasing QSFP resets" << endl; }
-        resetAllQsfps( sm[0], 0 );
-        resetAllQsfps( sm[1], 0 );
-
         /** release GTX resets */
         if ( verbose )
         { cout << "Releasing GTX resets" << endl; }
         resetAllGtx( bar[0], 0 );
         resetAllGtx( bar[1], 0 );
+
+        /** release QSFP resets */
+        if ( verbose )
+        { cout << "Releasing QSFP resets" << endl; }
+        resetAllQsfps( sm[0], 0 );
+        resetAllQsfps( sm[1], 0 );
 
         /** wait for link to go up, break after timeout */
         uint32_t lnkup0 = waitForLinkUp( bar[0] );

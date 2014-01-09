@@ -82,6 +82,45 @@ LinkRateFromPllSettings
     return cfg.refclk * cfg.n1 * cfg.n2 / cfg.m * 2.0 / cfg.d / 1000.0;
 }
 
+void
+resetGtx
+(
+    librorc::link *link,
+    uint32_t reset
+    )
+{
+    uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+    /** clear all reset bits (0,1,3) */
+    gtxctrl &= ~(BIT_GTXRESET|BIT_RXRESET|BIT_TXRESET);
+    /** set new reset bits */
+    gtxctrl |= (reset & (BIT_GTXRESET|BIT_RXRESET|BIT_TXRESET));
+    /** write back */
+    link->setPacketizer( RORC_REG_GTX_ASYNC_CFG, gtxctrl);
+}
+
+
+
+bool
+waitForResetDone
+(
+    librorc::link *link
+)
+{
+    uint32_t timeout = 0;
+    while ( timeout < WAIT_FOR_RESET_DONE_TIMEOUT )
+    {
+        uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+        if ( gtxctrl & (BIT_RXRESETDONE | BIT_TXRESETDONE) )
+        {
+            return true;
+        }
+        usleep(100);
+        timeout++;
+    }
+    return false;
+}
+
+
 
 void
 resetAllGtx
@@ -95,13 +134,24 @@ resetAllGtx
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
-        uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
-        /** clear all reset bits (0,1,3) */
-        gtxctrl &= ~(0x0000000b);
-        /** set new reset bits */
-        gtxctrl |= (reset & 0x0000000b);
-        /** write back */
-        link->setPacketizer( RORC_REG_GTX_ASYNC_CFG, gtxctrl | (reset & 0xb) );
+        resetGtx( link, reset );
+        if ( !reset )
+        {
+            uint32_t retry = WAIT_FOR_RESET_DONE_RETRY;
+            while( !waitForResetDone(link) )
+            {
+                resetGtx( link, reset );
+                if(retry==0)
+                {
+                    cout << "WARNING: Link " << i
+                         << " waitForResetDone failed after "
+                         << WAIT_FOR_RESET_DONE_RETRY
+                         << " retries." << endl;
+                    break;
+                }
+                retry--;
+            }
+        }
         delete link;
     }
 }
@@ -183,11 +233,7 @@ waitForLinkUp
     uint32_t lnkup = 0;
     uint32_t nchannels = (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) & 0xffff;
     uint32_t chmask = (1<<nchannels)-1;
-
-    //TODO capture start time
-    timeval start_time;
-    bar->gettime(&start_time, 0);
-    timeval cur_time = start_time;
+    uint32_t timeout = WAIT_FOR_LINK_UP_TIMEOUT;
 
     while ( lnkup != chmask )
     {
@@ -202,11 +248,12 @@ waitForLinkUp
         }
 
         //break on timeout
-        bar->gettime(&cur_time, 0);
-        if ( gettimeofdayDiff(start_time, cur_time) > WAIT_FOR_LINK_UP_TIMEOUT )
+        if ( timeout==0 )
         {
             break;
         }
+        timeout--;
+        usleep(100);
     }
 
     return lnkup;

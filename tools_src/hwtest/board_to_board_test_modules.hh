@@ -23,7 +23,9 @@
 
 #include <librorc.h>
 
-#define WAIT_FOR_LINK_UP_TIMEOUT 2.0
+#define WAIT_FOR_LINK_UP_TIMEOUT 10000
+#define WAIT_FOR_RESET_DONE_TIMEOUT 10000
+#define WAIT_FOR_RESET_DONE_RETRY 3
 
 const gtxpll_settings available_configs[] =
 {
@@ -34,7 +36,11 @@ const gtxpll_settings available_configs[] =
     {  9, 5, 2, 2, 1, 0, 212.5}, // 2.125 Gbps with RefClk=212.5 MHz
 };
 
-
+#define BIT_GTXRESET (1<<0)
+#define BIT_RXRESET (1<<1)
+#define BIT_RXRESETDONE (1<<2)
+#define BIT_TXRESET (1<<3)
+#define BIT_TXRESETDONE (1<<4)
 
 /**
  * get link rate from PLL settings struct
@@ -90,6 +96,12 @@ uint32_t
 waitForLinkUp
 (
     librorc::bar *bar
+);
+
+bool
+waitForResetDone
+(
+    librorc::link *link
 );
 
 #endif
