@@ -115,6 +115,10 @@ main
 
     int32_t nconfigs = sizeof(available_configs) /
                        sizeof(gtxpll_settings);
+    uint32_t nchannels[2];
+    nchannels[0] = bar[0]->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
+    nchannels[1] = bar[1]->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
+
     if ( verbose )
     {
         cout << "Testing " << nconfigs << " Link configurations."
@@ -133,8 +137,8 @@ main
         if ( verbose )
         { cout << "Resetting GTX" << endl; }
         /** put all GTX transceivers in reset */
-        resetAllGtx( bar[0], 1 );
-        resetAllGtx( bar[1], 1 );
+        resetAllGtx( bar[0], nchannels[0], 1 );
+        resetAllGtx( bar[1], nchannels[1], 1 );
 
         if ( verbose )
         { cout << "Resetting QSFPs" << endl; }
@@ -151,14 +155,14 @@ main
         /** configure all GTX instances for new link rate */
         if ( verbose )
         { cout << "Configuring GTX via DRP" << endl; }
-        configureAllGtx( bar[0], available_configs[i] );
-        configureAllGtx( bar[1], available_configs[i] );
+        configureAllGtx( bar[0], nchannels[0], available_configs[i] );
+        configureAllGtx( bar[1], nchannels[1], available_configs[i] );
 
         /** release GTX resets */
         if ( verbose )
         { cout << "Releasing GTX resets" << endl; }
-        resetAllGtx( bar[0], 0 );
-        resetAllGtx( bar[1], 0 );
+        resetAllGtx( bar[0], nchannels[0], 0 );
+        resetAllGtx( bar[1], nchannels[1], 0 );
 
         /** release QSFP resets */
         if ( verbose )
@@ -167,16 +171,27 @@ main
         resetAllQsfps( sm[1], 0 );
 
         /** wait for link to go up, break after timeout */
-        uint32_t lnkup0 = waitForLinkUp( bar[0] );
-        uint32_t lnkup1 = waitForLinkUp( bar[1] );
+        uint32_t lnkup0 = waitForLinkUp( bar[0], nchannels[0] );
+        uint32_t lnkup1 = waitForLinkUp( bar[1], nchannels[0] );
 
-        cout << "Dev " << devnr[0] << " LnkUp " << hex
-             << lnkup0 << dec << endl;
-        cout << "Dev " << devnr[1] << " LnkUp " << hex
-             << lnkup1 << dec << endl;
+        if ( lnkup0 != (uint32_t)((1<<nchannels[0])-1) ||
+                lnkup1 != (uint32_t)((1<<nchannels[1])-1) )
+        {
+            cout << "ERROR: Not all links came up - aborting..."
+                 << endl;
+            abort();
+        }
 
-        clearAllErrorCounters( bar[0] );
-        clearAllErrorCounters( bar[1] );
+        clearAllErrorCounters( bar[0], nchannels[0] );
+        clearAllErrorCounters( bar[1], nchannels[1] );
+
+        /** wait some time */
+        if ( verbose )
+        { cout << "Starting BER test" << endl; }
+        countDown( bar[0], WAIT_LINK_TEST );
+
+        checkErrorCounters( bar[0], nchannels[0], devnr[0] );
+        checkErrorCounters( bar[1], nchannels[1], devnr[1] );
     }
 
     /**

@@ -700,7 +700,7 @@ checkSysClkAvailable
 }
 
 
-void
+uint32_t
 checkCount
 (
  uint32_t channel_id,
@@ -714,17 +714,20 @@ checkCount
              << " " << name << " count was "
              << HEXSTR(count, 8) << endl;
     }
+    return count;
 }
 
 
 
-void
+uint32_t
 checkLinkState
 ( 
     librorc::link *link,
     uint32_t channel_id
 )
 {
+    uint32_t link_errors = 0;
+    uint32_t prot_errors = 0;
     if (link->isGtxDomainReady())
     {
         uint32_t gtxctrl = link->GTX(RORC_REG_GTX_CTRL);
@@ -732,25 +735,33 @@ checkLinkState
         {
             cout << "ERROR: Link channel " << channel_id
                  << " is down!" << endl;
+            link_errors++;
         }
         else
         {
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_DISPERR_CNT),
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_DISPERR_CNT),
                     "Disperity Error");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXNIT_CNT),
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_RXNIT_CNT),
                     "RX-Not-In-Table Error");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXLOS_CNT),
-                    "RX-Not-Loss-Of-Signal");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_RXLOS_CNT),
+                    "RX-Loss-Of-Signal");
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
                     "RX-Byte-Realign");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_ERROR_CNT),
+            prot_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_ERROR_CNT),
                     "LinkTester Error");
         }
     }
     else
     {
         cout << "ERROR: No clock on channel " << channel_id << "!" << endl;
+        link_errors++;
     }
+    return (link_errors | prot_errors);
 }
 
 

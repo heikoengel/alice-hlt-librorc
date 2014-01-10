@@ -26,6 +26,8 @@
 #define WAIT_FOR_LINK_UP_TIMEOUT 10000
 #define WAIT_FOR_RESET_DONE_TIMEOUT 10000
 #define WAIT_FOR_RESET_DONE_RETRY 3
+#define WAIT_LINK_TEST 10
+#define COUNTDOWN_INTERVAL 1.0
 
 #define GTX_DFE_EYE_DAC_MIN 120.0
 
@@ -68,6 +70,7 @@ void
 resetAllGtx
 (
     librorc::bar *bar,
+    uint32_t nchannels,
     uint32_t reset
 );
 
@@ -84,6 +87,7 @@ void
 configureAllGtx
 (
     librorc::bar *bar,
+    uint32_t nchannels,
     gtxpll_settings pllcfg
 );
 
@@ -97,7 +101,8 @@ configureRefclk
 uint32_t
 waitForLinkUp
 (
-    librorc::bar *bar
+    librorc::bar *bar,
+    uint32_t nchannels
 );
 
 bool
@@ -109,7 +114,23 @@ waitForResetDone
 void
 clearAllErrorCounters
 (
-    librorc::bar *bar
+    librorc::bar *bar,
+    uint32_t nchannels
+);
+
+void
+countDown
+(
+    librorc::bar *bar,
+    int time
+);
+
+void
+checkErrorCounters
+(
+    librorc::bar *bar,
+    uint32_t nchannels,
+    uint32_t device_number
 );
 
 #endif

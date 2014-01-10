@@ -88,7 +88,8 @@ bool checkForValidBarConfig(struct pci_dev *pdev);
 void checkFpgaFan(librorc::sysmon *sm, int verbose);
 int checkSysClkAvailable(librorc::sysmon *sm);
 
-void checkLinkState( librorc::link *link, uint32_t channel_id );
+uint32_t checkCount(uint32_t channel_id, uint32_t reg, const char *name);
+uint32_t checkLinkState( librorc::link *link, uint32_t channel_id );
 
 void testDmaChannel(librorc::device *dev, librorc::bar *bar, uint32_t channel_id, int timeout, int verbose);
 

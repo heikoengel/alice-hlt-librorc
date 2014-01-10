@@ -123,6 +123,12 @@ main
 
     if( do_reset )
     {
+
+        /** wait for phy_init_done */
+        while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
+        { usleep(100); }
+
+        ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
         /** clear reset bits */
         ddrctrl &= ~(1<<0 | 1<<16);
         /** set new values */

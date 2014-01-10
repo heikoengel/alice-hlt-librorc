@@ -19,6 +19,7 @@
  * */
 
 #include "board_to_board_test_modules.hh"
+#include "boardtest_modules.hh"
 
 void
 initLibrorcInstances
@@ -127,11 +128,10 @@ void
 resetAllGtx
 (
     librorc::bar *bar,
+    uint32_t nchannels,
     uint32_t reset
 )
 {
-    /** get number of links */
-    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
@@ -180,11 +180,10 @@ void
 configureAllGtx
 (
     librorc::bar *bar,
+    uint32_t nchannels,
     gtxpll_settings pllcfg
 )
 {
-    /** get number of links */
-    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
@@ -228,11 +227,11 @@ configureRefclk
 uint32_t
 waitForLinkUp
 (
-    librorc::bar *bar
+    librorc::bar *bar,
+    uint32_t nchannels
 )
 {
     uint32_t lnkup = 0;
-    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     uint32_t chmask = (1<<nchannels)-1;
     uint32_t timeout = WAIT_FOR_LINK_UP_TIMEOUT;
 
@@ -264,10 +263,10 @@ waitForLinkUp
 void
 clearAllErrorCounters
 (
-    librorc::bar *bar
+    librorc::bar *bar,
+    uint32_t nchannels
 )
 {
-    uint32_t nchannels = bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     for ( uint32_t i=0; i<nchannels; i++ )
     {
         librorc::link *link = new librorc::link(bar, i);
@@ -279,5 +278,59 @@ clearAllErrorCounters
         delete link;
     }
 }
+
+void
+countDown
+(
+    librorc::bar *bar,
+    int time
+)
+{
+    timeval start_time, cur_time, last_time;
+    bar->gettime(&start_time, 0);
+    cur_time = start_time;
+    last_time = start_time;
+
+    while( gettimeofdayDiff(start_time, cur_time) < time )
+    {
+        bar->gettime(&cur_time, 0);
+        if( gettimeofdayDiff(last_time, cur_time) > COUNTDOWN_INTERVAL )
+        {
+            cout << gettimeofdayDiff(start_time, cur_time)
+                 << "sec. remaining..." << endl;
+            last_time = cur_time;
+        }
+        usleep(1000);
+    }
+}
+
+
+void
+checkErrorCounters
+(
+    librorc::bar *bar,
+    uint32_t nchannels,
+    uint32_t device_number
+)
+{
+    uint32_t errors = 0;
+    for ( uint32_t i=0; i<nchannels; i++ )
+    {
+        librorc::link *link = new librorc::link(bar, i);
+        errors |= checkLinkState(link, i);
+        delete link;
+    }
+    if ( errors )
+    {
+        cout << "ERROR: Link test device " << device_number
+             << " failed." << endl;
+    }
+    else
+    {
+        cout << "INFO: Link test device " << device_number
+             << " passed." << endl;
+    }
+}
+
 
 
