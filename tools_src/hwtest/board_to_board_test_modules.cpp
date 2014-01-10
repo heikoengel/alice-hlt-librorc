@@ -296,12 +296,13 @@ countDown
         bar->gettime(&cur_time, 0);
         if( gettimeofdayDiff(last_time, cur_time) > COUNTDOWN_INTERVAL )
         {
-            cout << gettimeofdayDiff(start_time, cur_time)
-                 << "sec. remaining..." << endl;
+            cout << "\r" << (int)(time - gettimeofdayDiff(start_time, cur_time))
+                 << " sec. remaining..." << flush;
             last_time = cur_time;
         }
         usleep(1000);
     }
+    cout << "\r";
 }
 
 
@@ -322,13 +323,13 @@ checkErrorCounters
     }
     if ( errors )
     {
-        cout << "ERROR: Link test device " << device_number
-             << " failed." << endl;
+        cout << "ERROR: Device " << device_number
+             << " link test failed." << endl;
     }
     else
     {
-        cout << "INFO: Link test device " << device_number
-             << " passed." << endl;
+        cout << "INFO: Device " << device_number
+             << " link teset passed." << endl;
     }
 }
 

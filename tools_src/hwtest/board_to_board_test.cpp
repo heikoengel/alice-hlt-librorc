@@ -129,6 +129,7 @@ main
     {
 
         cout << "Configuring for Link Rate "
+             << setprecision(3) << fixed
              << LinkRateFromPllSettings( available_configs[i])
              << " Gbps, RefClk "
              << available_configs[i].refclk
