@@ -82,8 +82,9 @@ class event_sanity_checker;
 
              event_stream
              (
-                int32_t deviceId,
-                int32_t channelId
+                int32_t       deviceId,
+                int32_t       channelId,
+                LibrorcEsType esType
              );
 
              event_stream
@@ -98,17 +99,18 @@ class event_sanity_checker;
              event_stream
              (
                 librorc::device *dev,
-                librorc::bar *bar,
-                int32_t channelId
+                librorc::bar    *bar,
+                int32_t          channelId,
+                LibrorcEsType    esType
              );
 
              event_stream
              (
                 librorc::device *dev,
-                librorc::bar *bar,
-                int32_t channelId,
-                uint32_t      eventSize,
-                LibrorcEsType esType
+                librorc::bar    *bar,
+                int32_t          channelId,
+                uint32_t         eventSize,
+                LibrorcEsType    esType
              );
 #endif
 

@@ -85,8 +85,9 @@ namespace LIBRARY_NAME
 
     event_stream::event_stream
     (
-        int32_t deviceId,
-        int32_t channelId
+        int32_t       deviceId,
+        int32_t       channelId,
+        LibrorcEsType esType
     )
     {
         m_deviceId = deviceId;
@@ -118,12 +119,13 @@ namespace LIBRARY_NAME
     (
         librorc::device *dev,
         librorc::bar    *bar,
-        int32_t          channelId
+        int32_t          channelId,
+        LibrorcEsType    esType
     )
     {
-        m_dev = dev;
-        m_bar1 = bar;
-        m_deviceId = dev->getDeviceId();
+        m_dev             = dev;
+        m_bar1            = bar;
+        m_deviceId        = dev->getDeviceId();
         m_called_with_bar = true;
         generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
         prepareSharedMemory();
