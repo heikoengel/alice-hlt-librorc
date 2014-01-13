@@ -179,25 +179,33 @@ namespace LIBRARY_NAME
     {
         sysmon monitor(m_bar1);
 
-        switch (esType)
+        if
+        (
+            esType == LIBRORC_ES_BOTH ||
+            esType == LIBRORC_ES_IN_GENERIC ||
+            esType == LIBRORC_ES_IN_DDL ||
+            esType == LIBRORC_ES_IN_HWPG
+        )
         {
-            case LIBRORC_ES_IN_GENERIC:
-            case LIBRORC_ES_IN_DDL:
-            case LIBRORC_ES_IN_HWPG:
+            if( !monitor.firmwareIsHltIn() )
             {
-                if( !monitor.firmwareIsHltIn() )
-                { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+                cout << "Wrong device firmware loaded [out] instead [in]" << endl;
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
             }
-            break;
+        }
 
-            case LIBRORC_ES_OUT_GENERIC:
-            case LIBRORC_ES_OUT_SWPG:
-            case LIBRORC_ES_OUT_FILE:
+        if
+        (
+            esType == LIBRORC_ES_OUT_GENERIC ||
+            esType == LIBRORC_ES_OUT_SWPG ||
+            esType == LIBRORC_ES_OUT_FILE
+        )
+        {
+            if( !monitor.firmwareIsHltOut() )
             {
-                if( !monitor.firmwareIsHltOut() )
-                { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+                cout << "Wrong device firmware loaded [in] instead [out]" << endl;
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
             }
-            break;
         }
     }
 
