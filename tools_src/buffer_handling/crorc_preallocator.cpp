@@ -49,7 +49,7 @@ int main( int argc, char *argv[])
     {
         /** create new device instance */
         librorc::device *Dev;
-        try{ Dev = new librorc::device(i, LIBRORC_ES_BOTH); }
+        try{ Dev = new librorc::device(i); }
         catch(...){ break; }
 
         /** bind to BAR1 */

@@ -252,7 +252,7 @@ int main( int argc, char *argv[])
 
     /** Create new device instance */
     librorc::device *dev = NULL;
-    try{ dev = new librorc::device(DeviceId, LIBRORC_ES_BOTH); }
+    try{ dev = new librorc::device(DeviceId); }
     catch(...)
     {
         cout << "ERROR: failed to initialize device " << DeviceId << endl;

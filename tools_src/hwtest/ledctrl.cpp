@@ -145,7 +145,7 @@ main
     librorc::device *dev = NULL;
     try
     {
-        dev = new librorc::device(device_number, LIBRORC_ES_BOTH);
+        dev = new librorc::device(device_number);
     }
     catch(...)
     { 

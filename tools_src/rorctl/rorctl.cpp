@@ -221,7 +221,7 @@ int main
                     options.device_number = atoi(optarg);
                     try
                     { options.dev = new librorc::device
-                        (options.device_number, LIBRORC_ES_BOTH);
+                        (options.device_number);
                     }
                     catch(...)
                     {
@@ -300,7 +300,7 @@ print_device
 {
     /** Instantiate device with index <index> */
     librorc::device *dev = NULL;
-    try{ dev = new librorc::device(index, LIBRORC_ES_BOTH);}
+    try{ dev = new librorc::device(index);}
     catch(...){ exit(0); }
 
     /** Instantiate a new bar */

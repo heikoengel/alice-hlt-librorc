@@ -163,7 +163,7 @@ int
     librorc::device *dev = NULL;
     try
     {
-        dev = new librorc::device(options.device_number, LIBRORC_ES_BOTH);
+        dev = new librorc::device(options.device_number);
     }
     catch(...)
     {
