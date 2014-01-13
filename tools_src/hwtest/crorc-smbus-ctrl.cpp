@@ -46,7 +46,7 @@ checkSmBus
     int fd = 0;
     try
     {
-        fd = crorc_smbus_init(1);
+        fd = crorc_smbus_init(0);
     }
     catch (...)
     {
