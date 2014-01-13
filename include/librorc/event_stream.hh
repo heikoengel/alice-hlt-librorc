@@ -115,6 +115,9 @@ class event_sanity_checker;
 #endif
 
             ~event_stream();
+
+            void checkFirmware(LibrorcEsType esType);
+
             void printDeviceStatus();
 
             uint64_t eventLoop(void *user_data);

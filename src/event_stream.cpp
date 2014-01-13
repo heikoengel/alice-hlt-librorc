@@ -131,6 +131,8 @@ namespace LIBRARY_NAME
         prepareSharedMemory();
     }
 
+
+
     event_stream::event_stream
     (
         librorc::device *dev,
@@ -172,7 +174,32 @@ namespace LIBRARY_NAME
         }
     }
 
+    void
+    event_stream::checkFirmware(LibrorcEsType esType)
+    {
+        sysmon monitor(m_bar1);
 
+        switch (esType)
+        {
+            case LIBRORC_ES_IN_GENERIC:
+            case LIBRORC_ES_IN_DDL:
+            case LIBRORC_ES_IN_HWPG:
+            {
+                if( !monitor.firmwareIsHltIn() )
+                { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+            }
+            break;
+
+            case LIBRORC_ES_OUT_GENERIC:
+            case LIBRORC_ES_OUT_SWPG:
+            case LIBRORC_ES_OUT_FILE:
+            {
+                if( !monitor.firmwareIsHltOut() )
+                { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+            }
+            break;
+        }
+    }
 
     void
     event_stream::generateDMAChannel
@@ -242,6 +269,7 @@ namespace LIBRARY_NAME
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
 
+        checkFirmware(esType);
     }
 
 
