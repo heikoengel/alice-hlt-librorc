@@ -22,6 +22,55 @@
 
 #include "crorc-smbus-ctrl.hh"
 
+void
+checkSmBus
+(
+    librorc::bar *bar,
+    uint32_t verbose
+)
+{
+    uint8_t dipswitch = getDipSwitch( bar );
+    if (dipswitch==0 || dipswitch>0x7f)
+    {
+        cout << "ERROR: invalid dip switch setting "
+             << HEXSTR(dipswitch, 1)
+             << " - SMBus access is likely to fail!"
+             << endl;
+    }
+    else
+    {
+        cout << "INFO: uC using slave address "
+             << HEXSTR((int)dipswitch, 1) << endl;
+    }
+
+    int fd = 0;
+    try
+    {
+        fd = crorc_smbus_init(1);
+    }
+    catch (...)
+    {
+        cout << "ERROR: failed to init SMBus!" << endl;
+    }
+
+    try
+    {
+        uint32_t byte = crorc_smbus_read_byte(fd, dipswitch, 0);
+        if ( byte != UC_FW_REV_LSB )
+        {
+            cout << "ERROR: unexpected FW-Rev LSB via SMBus: "
+                 << HEXSTR(byte, 2) << endl;
+        }
+    }
+    catch(...)
+    {
+        cout << "ERROR: Failed to read FW revision from SMBus!"
+             << endl;
+    }
+
+    crorc_smbus_close(fd);
+}
+
 
 int
 crorc_smbus_init
@@ -72,15 +121,20 @@ crorc_smbus_read_byte
     /** select target slave address */
     if (ioctl(fd, I2C_SLAVE, slv_addr) < 0) 
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to select slave address");
+        DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to select slave address\n");
+        perror("ioctl");
         throw LIBRORC_SMBUS_SLA_SELECT_FAILED;
     }
+
+    usleep(100000);
 
     /** read byte */
     int result = i2c_smbus_read_byte_data(fd, mem_addr);
     if ( result < 0 )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "i2c_smbus_read_byte failed");
+        DEBUG_PRINTF(PDADEBUG_ERROR, "i2c_smbus_read_byte failed %x:%x\n",
+                slv_addr, mem_addr);
+        perror("i2c_smbus_read_byte_data");
         throw LIBRORC_SMBUS_READ_FAILED;
     }
     return result;

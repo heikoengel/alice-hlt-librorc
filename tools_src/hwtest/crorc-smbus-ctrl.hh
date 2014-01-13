@@ -27,12 +27,17 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
+#include "boardtest_modules.hh"
+
+#define UC_FW_REV_LSB 0xd6
+
 #define LIBRORC_SMBUS_OPEN_FAILED 1
 #define LIBRORC_SMBUS_FUNCS_FAILED 2
 #define LIBRORC_SMBUS_CAPS_FAILED 3
 #define LIBRORC_SMBUS_SLA_SELECT_FAILED 4
 #define LIBRORC_SMBUS_READ_FAILED 5
 
+void checkSmBus(librorc::bar *bar, uint32_t verbose);
 
 /**
  * initialize SMBus chain

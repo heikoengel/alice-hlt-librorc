@@ -17,6 +17,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * */
+#include "crorc-smbus-ctrl.hh"
 #include "boardtest_modules.hh"
 #include "../dma/dma_handling.hh"
 
@@ -27,7 +28,7 @@ printHeader
     const char *title
 )
 {
-    cout << endl << "--===== " << title << " =====--" << endl;
+    //cout << endl << "--===== " << title << " =====--" << endl;
 }
 
 
@@ -148,6 +149,18 @@ checkDdr3ModuleTg
 }
 
 
+uint8_t
+getDipSwitch
+(
+    librorc::bar *bar
+)
+{    
+    /** get DIP switch setting */
+    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
+    return (dipswitch & 0x7f);
+}
+
+
 
 void
 checkMicrocontroller
@@ -158,21 +171,6 @@ checkMicrocontroller
 )
 {
     int uc_avail = 1;
-
-    /** get DIP switch setting */
-    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
-    if (dipswitch==0 || dipswitch>0x7f)
-    {
-        cout << "ERROR: invalid dip switch setting "
-             << HEXSTR(dipswitch, 1)
-             << " - SMBus access is likely to fail!"
-             << endl;
-    }
-    else
-    {
-        cout << "INFO: uC using slave address "
-             << HEXSTR(dipswitch, 1) << endl;
-    }
 
     librorc::microcontroller *uc;
     try
@@ -263,6 +261,8 @@ checkMicrocontroller
         delete uc;
     }
 }
+
+
 
 
 void
@@ -372,6 +372,9 @@ checkFlash
     if ( flashManufacturerCodeIsValid(flash, verbose) )
     {
         devnr = flash->getUniqueDeviceNumber();
+        cout << "INFO: Flash " << chip_select
+             << " unique device number: "
+             << HEXSTR(devnr, 16) << endl;
     }
 
     delete flash;
@@ -382,7 +385,7 @@ checkFlash
 
 
 bool
-flashDeviceNumbersAreValid
+checkFlashDeviceNumbersAreValid
 (
     uint64_t devnr0,
     uint64_t devnr1
@@ -409,11 +412,6 @@ flashDeviceNumbersAreValid
     {
         valid = true;
     }
-
-    cout << "INFO: Flash 0 unique device number: "
-         << HEXSTR(devnr0, 16) << endl;
-    cout << "INFO: Flash 1 unique device number: "
-         << HEXSTR(devnr1, 16) << endl;
 
     return valid;
 }

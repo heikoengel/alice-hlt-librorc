@@ -28,6 +28,7 @@ extern "C"{
 #include <pci/pci.h>
 }
 #include "../dma/dma_handling.hh"
+#include "crorc-smbus-ctrl.hh"
 
 #define FPGA_TEMP_MIN 35.0
 #define FPGA_TEMP_MAX 65.0
@@ -65,14 +66,16 @@ void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
 void checkDdr3ModuleCalib(librorc::bar *bar, int module_id, int verbose);
 void checkDdr3ModuleTg(librorc::bar *bar, int module_id, int verbose);
 
+uint8_t getDipSwitch(librorc::bar *bar);
 void checkMicrocontroller(librorc::bar *bar, int firstrun, int verbose);
+
 void checkLvdsTester (librorc::bar *bar, int verbose);
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
 void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 
 bool flashManufacturerCodeIsValid( librorc::flash *flash, int verbose );
 uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
-bool flashDeviceNumbersAreValid( uint64_t devnr0, uint64_t devnr1 );
+bool checkFlashDeviceNumbersAreValid( uint64_t devnr0, uint64_t devnr1 );
 
 bool checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpTemperature(librorc::sysmon *sm, int module_id, int verbose);

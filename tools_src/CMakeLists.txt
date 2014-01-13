@@ -155,7 +155,7 @@ add_executable( boardtest
   ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest_modules.cpp 
   ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/fmc_tester.cpp 
   ${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp
-  ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest.cpp)
+  ${LIBRORC_SOURCE_DIR}/tools_src/hwtest/boardtest.cpp )
 target_link_libraries( boardtest rorc pthread pci ${EXTRA_LIBS})
 INSTALL(TARGETS boardtest RUNTIME DESTINATION bin )
 

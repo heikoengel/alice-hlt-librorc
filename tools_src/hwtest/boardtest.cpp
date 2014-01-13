@@ -23,6 +23,7 @@
 #include <iomanip>
 
 #include "librorc.h"
+#include "crorc-smbus-ctrl.hh"
 #include "boardtest_modules.hh"
 #include "fmc_tester.hh"
 #include "../dma/dma_handling.hh"
@@ -126,8 +127,6 @@ main
     printHeader("PCIe");
 
     struct pci_dev *pdev = initLibPciDev(dev);
-    cout << "INFO: FPGA Unique Device ID: "
-        << HEXSTR(getPcieDSN(pdev), 16) << endl;
 
     if( !checkForValidBarConfig(pdev) )
     {
@@ -166,6 +165,9 @@ main
     }
 
     printPcieInfos(dev, sm);
+
+    cout << "INFO: FPGA Unique Device ID: "
+        << HEXSTR(getPcieDSN(pdev), 16) << endl;
 
     /** check FW type */
     uint32_t fwtype = bar->get32(RORC_REG_TYPE_CHANNELS);
@@ -255,17 +257,14 @@ main
 
     printHeader("Microcontroller");
     checkMicrocontroller ( bar, firstrun, verbose );
+    checkSmBus ( bar, verbose );
 
     printHeader("Flash Chips");
     /** check flashes */
     uint64_t flash0_devnr = checkFlash( dev, 0, verbose );
     uint64_t flash1_devnr = checkFlash( dev, 1, verbose );
-    if ( firstrun && 
-            flashDeviceNumbersAreValid(flash0_devnr, flash1_devnr) )
-    {
-        /** program crorc_fpgafw_flash0_latest.bin to Flash0 */
-        /** program crorc_fpgafw_flash1_latest.bin to Flash1 */
-    }
+    checkFlashDeviceNumbersAreValid(flash0_devnr, flash1_devnr);
+
 
     if ( do_long_test )
     {
