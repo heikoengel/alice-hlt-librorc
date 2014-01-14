@@ -181,7 +181,6 @@ namespace LIBRARY_NAME
 
         if
         (
-            esType == LIBRORC_ES_BOTH ||
             esType == LIBRORC_ES_IN_GENERIC ||
             esType == LIBRORC_ES_IN_DDL ||
             esType == LIBRORC_ES_IN_HWPG
