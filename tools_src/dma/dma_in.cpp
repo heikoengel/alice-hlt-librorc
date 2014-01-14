@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
     librorc_event_callback event_callback = eventCallBack;
 
-    librorc::event_stream *eventStream = prepareEventStream(opts);
+    eventStream = prepareEventStream(opts);
     if( !eventStream )
     { exit(-1); }
 
