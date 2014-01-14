@@ -85,7 +85,7 @@ librorc::event_stream *prepareEventStream(DMAOptions opts);
 
 
 
-timeval
+void
 printStatusLine
 (
     timeval               last_time,
