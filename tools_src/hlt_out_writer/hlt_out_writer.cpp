@@ -60,7 +60,7 @@ int main( int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    librorc::event_stream *eventStream = prepareEventStream(opts);
+    eventStream = prepareEventStream(opts);
     if( !eventStream )
     { exit(-1); }
 
@@ -104,7 +104,7 @@ int main( int argc, char *argv[])
     uint64_t number_of_events;
 
     /** wait for RB entry */
-    while(!done)
+    while(!eventStream->m_done)
     {
         number_of_events = eventGen.fillEventBuffer(opts.eventSize);
 
