@@ -194,7 +194,7 @@ printStatusLine
 (
     timeval               last_time,
     timeval               cur_time,
-    librorcChannelStatus *chstats,
+    librorcChannelStatus *channel_status,
     uint64_t             *last_events_received,
     uint64_t             *last_bytes_received
 )
@@ -204,38 +204,38 @@ printStatusLine
         printf
         (
             "Events IN: %10ld, Size: %8.3f GB ",
-            chstats->n_events,
-            (double)chstats->bytes_received/(double)(1<<30)
+            channel_status->n_events,
+            (double)channel_status->bytes_received/(double)(1<<30)
         );
 
-        if(chstats->bytes_received - *last_bytes_received)
+        if(channel_status->bytes_received - *last_bytes_received)
         {
             printf
             (
                 " Rate: %9.3f MB/s",
-                (double)(chstats->bytes_received - *last_bytes_received)/
+                (double)(channel_status->bytes_received - *last_bytes_received)/
                 gettimeofdayDiff(last_time, cur_time)/(double)(1<<20)
             );
         }
         else
         { printf(" Rate: -"); }
 
-        if(chstats->n_events - *last_events_received)
+        if(channel_status->n_events - *last_events_received)
         {
             printf
             (
-                " (%.3f kHz)",
-                (double)(chstats->n_events - *last_events_received)/
+                " EventRate: %9.3f kHz/s",
+                (double)(channel_status->n_events - *last_events_received)/
                 gettimeofdayDiff(last_time, cur_time)/1000.0
             );
         }
         else
         { printf(" ( - )"); }
 
-        printf(" Errors: %ld\n", chstats->error_count);
+        printf(" Errors: %ld\n", channel_status->error_count);
         last_time = cur_time;
-        *last_bytes_received  = chstats->bytes_received;
-        *last_events_received = chstats->n_events;
+        *last_bytes_received  = channel_status->bytes_received;
+        *last_events_received = channel_status->n_events;
     }
 
     return last_time;

@@ -257,7 +257,7 @@ printFinalStatusLine
     );
 
     if(!chstats->set_offset_count)
-    { printf("CH%d: No Events\n", chstats->channel); }
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
     {
         printf
