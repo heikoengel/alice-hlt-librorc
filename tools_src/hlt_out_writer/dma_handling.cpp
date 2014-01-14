@@ -234,9 +234,6 @@ printStatusLine
         { printf(" ( - )"); }
 
         printf(" Errors: %ld\n", channel_status->error_count);
-        last_time = current_time;
-        *last_bytes_received  = channel_status->bytes_received;
-        *last_events_received = channel_status->n_events;
     }
 
     return last_time;
