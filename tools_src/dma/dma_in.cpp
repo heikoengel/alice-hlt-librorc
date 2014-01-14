@@ -79,12 +79,15 @@ int main(int argc, char *argv[])
     eventStream->setEventCallback(event_callback);
 
     /** make clear what will be checked*/
-    int32_t sanity_check_mask = 0xff; /** all checks defaults */
-    if(opts.esType == LIBRORC_ES_IN_DDL)
-    { sanity_check_mask = CHK_FILE | CHK_SIZES; }
+    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    if(opts.useRefFile)
+    { sanity_check_mask |= CHK_FILE; }
+    else
+    { sanity_check_mask |= (CHK_PATTERN|CHK_ID); }
+
 
     librorc::event_sanity_checker checker =
-        (opts.esType==LIBRORC_ES_IN_DDL) /** is DDL reference file enabled? */
+        (opts.useRefFile) /** is DDL reference file enabled? */
         ?   librorc::event_sanity_checker
             (
                 eventStream->m_eventBuffer,

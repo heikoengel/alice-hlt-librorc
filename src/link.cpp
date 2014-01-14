@@ -540,7 +540,7 @@ namespace LIBRARY_NAME
          * - add timeout
          * - return/handle/report timeout error
          * */
-        while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x174) != 0x074 )
+        while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x134) != 0x034 )
         { usleep(100); }
     }
 
