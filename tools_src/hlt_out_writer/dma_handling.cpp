@@ -195,8 +195,8 @@ printStatusLine
     timeval               last_time,
     timeval               current_time,
     librorcChannelStatus *channel_status,
-    uint64_t             last_events_received,
-    uint64_t             last_bytes_received
+    uint64_t              last_events_received,
+    uint64_t              last_bytes_received
 )
 {
     if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
@@ -213,13 +213,13 @@ printStatusLine
         {
             printf
             (
-                " Rate: %9.3f MB/s",
+                " Data Rate: %9.3f MB/s",
                 (double)(channel_status->bytes_received - last_bytes_received)/
                 gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
             );
         }
         else
-        { printf(" Rate: -"); }
+        { printf(" Data Rate: -"); }
 
         if(channel_status->n_events - last_events_received)
         {
@@ -315,3 +315,4 @@ prepareSharedMemory
 
     return(chstats);
 }
+

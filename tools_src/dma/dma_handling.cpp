@@ -213,13 +213,13 @@ printStatusLine
         {
             printf
             (
-                " DataRate: %9.3f MB/s",
+                " Data Rate: %9.3f MB/s",
                 (double)(channel_status->bytes_received - last_bytes_received)/
                 gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
             );
         }
         else
-        { printf(" Rate: -"); }
+        { printf(" Data Rate: -"); }
 
         if(channel_status->n_events - last_events_received)
         {
