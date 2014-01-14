@@ -27,10 +27,10 @@ void abort_handler( int s )                                          \
     { eventStream->m_done = true; }                                  \
 }
 
-#define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler; \
-sigIntHandler.sa_handler = abort_handler;                          \
-sigemptyset(&sigIntHandler.sa_mask);                               \
-sigIntHandler.sa_flags = 0;                                        \
+#define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler;   \
+sigIntHandler.sa_handler = abort_handler;                            \
+sigemptyset(&sigIntHandler.sa_mask);                                 \
+sigIntHandler.sa_flags = 0;                                          \
 sigaction(SIGINT, &sigIntHandler, NULL);
 
 /** maximum channel number allowed **/
