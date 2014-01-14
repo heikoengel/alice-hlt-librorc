@@ -91,8 +91,8 @@ printStatusLine
     timeval               last_time,
     timeval               cur_time,
     librorcChannelStatus *chstats,
-    uint64_t             *last_events_received,
-    uint64_t             *last_bytes_received
+    uint64_t              last_events_received,
+    uint64_t              last_bytes_received
 );
 
 void
