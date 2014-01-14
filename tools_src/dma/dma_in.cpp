@@ -108,7 +108,13 @@ int main(int argc, char *argv[])
 
     uint64_t result = eventStream->eventLoop((void*)&checker);
 
-    printFinalStatusLine(eventStream->m_channel_status, eventStream->m_start_time, eventStream->m_end_time);
+    printFinalStatusLine
+    (
+        eventStream->m_channel_status,
+        opts,
+        eventStream->m_start_time,
+        eventStream->m_end_time
+    );
 
     /** Cleanup */
     delete eventStream;

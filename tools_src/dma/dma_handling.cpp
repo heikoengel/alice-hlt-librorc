@@ -242,6 +242,7 @@ void
 printFinalStatusLine
 (
     librorcChannelStatus *chstats,
+    DMAOptions            opts,
     timeval               start_time,
     timeval               end_time
 )
@@ -262,7 +263,7 @@ printFinalStatusLine
         printf
         (
             "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
-            chstats->channel,
+            opts.channelId,
             chstats->n_events,
             chstats->max_epi,
             chstats->min_epi,

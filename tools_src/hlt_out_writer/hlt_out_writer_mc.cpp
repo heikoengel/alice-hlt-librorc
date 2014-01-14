@@ -224,10 +224,13 @@ int main(int argc, char *argv[])
 
     for ( i=0; i<nChannels; i++ )
     {
-        printFinalStatusLine(
-                eventStream[i]->m_channel_status,
-                eventStream[i]->m_start_time,
-                eventStream[i]->m_end_time);
+        printFinalStatusLine
+        (
+            eventStream[i]->m_channel_status,
+            opts[i],
+            eventStream[i]->m_start_time,
+            eventStream[i]->m_end_time
+        );
 
         // wait until EL_FIFO runs empty
         // wait for pending transfers to complete (dma_busy->0)
