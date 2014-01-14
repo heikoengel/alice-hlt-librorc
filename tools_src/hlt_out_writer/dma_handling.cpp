@@ -203,7 +203,8 @@ printStatusLine
     {
         printf
         (
-            "Events IN: %10ld, Size: %8.3f GB ",
+            "CH%d Events IN: %10ld, Size: %8.3f GB ",
+            channel_status->channel,
             channel_status->n_events,
             (double)channel_status->bytes_received/(double)(1<<30)
         );
