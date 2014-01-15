@@ -96,7 +96,7 @@ INSTALL(TARGETS hlt_out_writer RUNTIME DESTINATION bin )
 
 # Build DMA-out testbed
 add_executable( hlt_out_writer_mc
-"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer_mc.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out_mc.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
 target_link_libraries( hlt_out_writer_mc rorc pthread ${EXTRA_LIBS})
