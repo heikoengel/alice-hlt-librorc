@@ -36,17 +36,19 @@ dump_rb
  * @param time2 later timestamp
  * @return time difference in seconds as double
  * */
-double gettimeofday_diff(timeval time1, timeval time2) {
-  timeval diff;
-  diff.tv_sec = time2.tv_sec - time1.tv_sec;
-  diff.tv_usec = time2.tv_usec - time1.tv_usec;
-  while(diff.tv_usec < 0) {
-    diff.tv_usec += 1000000;
-    diff.tv_sec -= 1;
-  }
+double gettimeofday_diff(timeval time1, timeval time2)
+{
+    timeval diff;
+    diff.tv_sec = time2.tv_sec - time1.tv_sec;
+    diff.tv_usec = time2.tv_usec - time1.tv_usec;
+    while(diff.tv_usec < 0)
+    {
+        diff.tv_usec += 1000000;
+        diff.tv_sec -= 1;
+    }
 
-  return (double)((double)diff.tv_sec +
-      (double)((double)diff.tv_usec / 1000000));
+    return (double)((double)diff.tv_sec +
+        (double)((double)diff.tv_usec / 1000000));
 }
 
 /**
@@ -75,35 +77,8 @@ event_sanity_check
     librorc::event_sanity_checker *checker
 )
 {
-    //char log_directory_path[] = "/tmp";
-
     try
-    {
-//        librorc::event_sanity_checker checker =
-//            ddl_reference_is_enabled
-//            ?
-//                librorc::event_sanity_checker
-//                (
-//                    event_buffer,
-//                    channel_status->channel,
-//                    pattern_mode,
-//                    sanity_check_mask,
-//                    log_directory_path,
-//                    ddl_path
-//                )
-//            :
-//                librorc::event_sanity_checker
-//                (
-//                    event_buffer,
-//                    channel_status->channel,
-//                    pattern_mode,
-//                    sanity_check_mask,
-//                    log_directory_path
-//                )
-//            ;
-
-        *event_id = checker->check(report_buffer, channel_status);
-    }
+    { *event_id = checker->check(report_buffer, channel_status); }
     catch( int error )
     { abort(); }
 }
