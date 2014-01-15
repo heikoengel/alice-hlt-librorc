@@ -7,30 +7,6 @@
 
 
 /**
- * Dump reportbuffer entry
- * @param reportbuffer pointer to reportbuffer
- * @param i index of current librorc_event_descriptor within
- * reportbuffer
- * @param ch DMA channel number
- * */
-void
-dump_rb
-(
-    librorc_event_descriptor *reportbuffer,
-    uint64_t i,
-    uint32_t ch
-)
-{
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-            "CH%2d - RB[%3ld]: calc_size=%08x\t"
-            "reported_size=%08x\t"
-            "offset=%lx\n",
-            ch, i, reportbuffer->calc_event_size,
-            reportbuffer->reported_event_size,
-            reportbuffer->offset);
-}
-
-/**
  * gettimeofday_diff
  * @param time1 earlier timestamp
  * @param time2 later timestamp
@@ -49,38 +25,6 @@ double gettimeofday_diff(timeval time1, timeval time2)
 
     return (double)((double)diff.tv_sec +
         (double)((double)diff.tv_usec / 1000000));
-}
-
-/**
- * Sanity checks on received data
- * @param reportbuffer pointer to librorc_event_descriptor
- * @param eventbuffer pointer to eventbuffer
- * @param i current reportbuffer index
- * @param ch DMA channel number
- * @param pattern_mode pattern to check data against
- * @param check_mask mask of checks to be done on the recived data
- * @param event_id pointer to uint64_t, used to return event ID
- * @return !=0 on error, 0 on sucess
- **/
-
-void
-event_sanity_check
-(
-    librorcChannelStatus     *channel_status,
-    librorc_event_descriptor *report_buffer,
-    librorc::buffer          *event_buffer,
-    uint32_t                  pattern_mode,
-    uint32_t                       sanity_check_mask,
-    uint64_t                      *event_id,
-    bool                           ddl_reference_is_enabled,
-    char                          *ddl_path,
-    librorc::event_sanity_checker *checker
-)
-{
-    try
-    { *event_id = checker->check(report_buffer, channel_status); }
-    catch( int error )
-    { abort(); }
 }
 
 
@@ -137,18 +81,6 @@ int handle_channel_data
             if (do_sanity_check)
             {
                 rb = raw_report_buffer[stats->index];
-//                event_sanity_check
-//                (
-//                    stats,
-//                    raw_report_buffer,
-//                    ebuf,
-//                    PG_PATTERN_INC,
-//                    do_sanity_check,
-//                    &EventID,
-//                    ddl_reference_is_enabled,
-//                    ddl_path,
-//                    checker
-//                );
 
                 try
                 { EventID = checker->check(raw_report_buffer, stats); }
@@ -158,9 +90,18 @@ int handle_channel_data
                 stats->last_id = EventID;
             }
 
-            #ifdef DEBUG
-                dump_rb(&raw_report_buffer[stats->index], stats->index, stats->channel);
-            #endif
+            DEBUG_PRINTF
+            (
+                PDADEBUG_CONTROL_FLOW,
+                "CH%2d - RB[%3ld]: calc_size=%08x\t"
+                "reported_size=%08x\t"
+                "offset=%lx\n",
+                stats->channel,
+                stats->index,
+                raw_report_buffer[stats->index].calc_event_size,
+                raw_report_buffer[stats->index].reported_event_size,
+                raw_report_buffer[stats->index].offset
+            );
 
             // increment the number of bytes received
             stats->bytes_received +=
