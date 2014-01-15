@@ -20,9 +20,9 @@
 
 
 #include <librorc.h>
+#include <event_generation.h>
 #include "dma_handling.hh"
-#include "event_handling.h"
-#include "event_generation.h"
+
 
 using namespace std;
 
