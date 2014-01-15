@@ -81,16 +81,6 @@ int main( int argc, char *argv[])
         eventStream->m_channel
     );
 
-    librorc::event_sanity_checker checker =
-        librorc::event_sanity_checker
-        (
-            eventStream->m_eventBuffer,
-            opts.channelId,
-            PG_PATTERN_INC,
-            sanity_check_mask,
-            logdirectory
-        );
-
     /** capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
@@ -102,6 +92,29 @@ int main( int argc, char *argv[])
 
     int result = 0;
     uint64_t number_of_events;
+
+    librorc::event_sanity_checker checker =
+        (opts.useRefFile)
+        ?
+            librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                opts.channelId,
+                PG_PATTERN_INC,
+                sanity_check_mask,
+                logdirectory,
+                opts.refname
+            )
+        :
+            librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                opts.channelId,
+                PG_PATTERN_INC,
+                sanity_check_mask,
+                logdirectory
+            )
+        ;
 
     /** wait for RB entry */
     while(!eventStream->m_done)
@@ -120,7 +133,8 @@ int main( int argc, char *argv[])
                 eventStream->m_channel_status,
                 sanity_check_mask, // do sanity check
                 NULL, // no DDL reference file
-                0 //DDL reference size
+                0, //DDL reference size
+                &checker
              );
 
         if (result<0)

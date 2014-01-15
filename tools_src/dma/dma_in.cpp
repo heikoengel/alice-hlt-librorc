@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
 
     librorc::event_sanity_checker checker =
-        (opts.useRefFile) /** is DDL reference file enabled? */
+        (opts.useRefFile)
         ?   librorc::event_sanity_checker
             (
                 eventStream->m_eventBuffer,

@@ -68,40 +68,41 @@ event_sanity_check
     librorc_event_descriptor *report_buffer,
     librorc::buffer          *event_buffer,
     uint32_t                  pattern_mode,
-    uint32_t                  sanity_check_mask,
-    uint64_t                 *event_id,
-    bool                      ddl_reference_is_enabled,
-    char                     *ddl_path
+    uint32_t                       sanity_check_mask,
+    uint64_t                      *event_id,
+    bool                           ddl_reference_is_enabled,
+    char                          *ddl_path,
+    librorc::event_sanity_checker *checker
 )
 {
-    char log_directory_path[] = "/tmp";
+    //char log_directory_path[] = "/tmp";
 
     try
     {
-        librorc::event_sanity_checker checker =
-            ddl_reference_is_enabled
-            ?
-                librorc::event_sanity_checker
-                (
-                    event_buffer,
-                    channel_status->channel,
-                    pattern_mode,
-                    sanity_check_mask,
-                    log_directory_path,
-                    ddl_path
-                )
-            :
-                librorc::event_sanity_checker
-                (
-                    event_buffer,
-                    channel_status->channel,
-                    pattern_mode,
-                    sanity_check_mask,
-                    log_directory_path
-                )
-            ;
+//        librorc::event_sanity_checker checker =
+//            ddl_reference_is_enabled
+//            ?
+//                librorc::event_sanity_checker
+//                (
+//                    event_buffer,
+//                    channel_status->channel,
+//                    pattern_mode,
+//                    sanity_check_mask,
+//                    log_directory_path,
+//                    ddl_path
+//                )
+//            :
+//                librorc::event_sanity_checker
+//                (
+//                    event_buffer,
+//                    channel_status->channel,
+//                    pattern_mode,
+//                    sanity_check_mask,
+//                    log_directory_path
+//                )
+//            ;
 
-        *event_id = checker.check(report_buffer, channel_status);
+        *event_id = checker->check(report_buffer, channel_status);
     }
     catch( int error )
     { abort(); }
@@ -130,7 +131,8 @@ int handle_channel_data
     librorcChannelStatus *stats,
     int                   do_sanity_check,
     bool                  ddl_reference_is_enabled,
-    char                 *ddl_path
+    char                 *ddl_path,
+    librorc::event_sanity_checker *checker
 )
 {
   uint64_t events_per_iteration = 0;
@@ -151,13 +153,15 @@ int handle_channel_data
     starting_index = stats->index;
 
     // handle all following entries
-    while( raw_report_buffer[stats->index].calc_event_size!=0 ) {
+    while( raw_report_buffer[stats->index].calc_event_size!=0 )
+    {
 
       // increment number of events processed in this interation
       events_processed++;
 
       // perform validity tests on the received data (if enabled)
-      if (do_sanity_check) {
+      if (do_sanity_check)
+      {
         rb = raw_report_buffer[stats->index];
         event_sanity_check
         (
@@ -168,7 +172,8 @@ int handle_channel_data
             do_sanity_check,
             &EventID,
             ddl_reference_is_enabled,
-            ddl_path
+            ddl_path,
+            checker
         );
 
         stats->last_id = EventID;
