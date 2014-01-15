@@ -61,20 +61,20 @@ INSTALL(TARGETS dma_in_generic RUNTIME DESTINATION bin )
 #-----------------------------------------------------------
 
 # Build DMA-out testbed
-add_executable( hlt_out_writer
+add_executable( dma_out
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS hlt_out_writer RUNTIME DESTINATION bin )
+target_link_libraries( dma_out rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_out RUNTIME DESTINATION bin )
 
 # Build DMA-out testbed
-add_executable( hlt_out_writer_mc
+add_executable( dma_out_mc
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out_mc.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( hlt_out_writer_mc rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS hlt_out_writer_mc RUNTIME DESTINATION bin )
+target_link_libraries( dma_out_mc rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_out_mc RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------
 
