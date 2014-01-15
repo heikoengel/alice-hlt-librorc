@@ -137,23 +137,23 @@ int handle_channel_data
             if (do_sanity_check)
             {
                 rb = raw_report_buffer[stats->index];
-                event_sanity_check
-                (
-                    stats,
-                    raw_report_buffer,
-                    ebuf,
-                    PG_PATTERN_INC,
-                    do_sanity_check,
-                    &EventID,
-                    ddl_reference_is_enabled,
-                    ddl_path,
-                    checker
-                );
+//                event_sanity_check
+//                (
+//                    stats,
+//                    raw_report_buffer,
+//                    ebuf,
+//                    PG_PATTERN_INC,
+//                    do_sanity_check,
+//                    &EventID,
+//                    ddl_reference_is_enabled,
+//                    ddl_path,
+//                    checker
+//                );
 
-//                try
-//                { checker->check(raw_report_buffer, stats); }
-//                catch( int error )
-//                { abort(); }
+                try
+                { EventID = checker->check(raw_report_buffer, stats); }
+                catch( int error )
+                { abort(); }
 
                 stats->last_id = EventID;
             }
