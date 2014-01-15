@@ -44,7 +44,7 @@ evaluateArguments(int argc, char *argv[])
     if( 0 == strcmp(app_name, "dma_in_ddl") )
     { ret.esType = LIBRORC_ES_IN_DDL; }
 
-    if( 0 == strcmp(app_name, "hlt_out_writer") )
+    if( 0 == strcmp(app_name, "dma_out") )
     { ret.esType = LIBRORC_ES_OUT_SWPG; }
 
     /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
