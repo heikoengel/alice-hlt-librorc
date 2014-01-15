@@ -110,105 +110,105 @@ int handle_channel_data
     librorc::event_sanity_checker *checker
 )
 {
-  uint64_t events_per_iteration = 0;
-  int events_processed = 0;
-  uint64_t eboffset = 0;
-  uint64_t rboffset = 0;
-  uint64_t starting_index, entrysize;
-  librorc_event_descriptor rb;
-  uint64_t EventID = 0;
+    uint64_t events_per_iteration = 0;
+    int      events_processed     = 0;
+    uint64_t eboffset             = 0;
+    uint64_t rboffset             = 0;
+    uint64_t starting_index, entrysize;
+    librorc_event_descriptor rb;
+    uint64_t EventID = 0;
 
-  librorc_event_descriptor *raw_report_buffer =
-    (librorc_event_descriptor *)(rbuf->getMem());
+    librorc_event_descriptor *raw_report_buffer =
+        (librorc_event_descriptor *)(rbuf->getMem());
 
-  // new event received
-  if( raw_report_buffer[stats->index].calc_event_size!=0 ) {
-
-    // capture index of the first found reportbuffer entry
-    starting_index = stats->index;
-
-    // handle all following entries
-    while( raw_report_buffer[stats->index].calc_event_size!=0 )
+    // new event received
+    if( raw_report_buffer[stats->index].calc_event_size!=0 )
     {
+        // capture index of the first found reportbuffer entry
+        starting_index = stats->index;
 
-      // increment number of events processed in this interation
-      events_processed++;
+        // handle all following entries
+        while( raw_report_buffer[stats->index].calc_event_size!=0 )
+        {
+            // increment number of events processed in this interation
+            events_processed++;
 
-      // perform validity tests on the received data (if enabled)
-      if (do_sanity_check)
-      {
-        rb = raw_report_buffer[stats->index];
-        event_sanity_check
+            // perform validity tests on the received data (if enabled)
+            if (do_sanity_check)
+            {
+                rb = raw_report_buffer[stats->index];
+                event_sanity_check
+                (
+                    stats,
+                    raw_report_buffer,
+                    ebuf,
+                    PG_PATTERN_INC,
+                    do_sanity_check,
+                    &EventID,
+                    ddl_reference_is_enabled,
+                    ddl_path,
+                    checker
+                );
+
+                stats->last_id = EventID;
+            }
+
+            #ifdef DEBUG
+                dump_rb(&raw_report_buffer[stats->index], stats->index, stats->channel);
+            #endif
+
+            // increment the number of bytes received
+            stats->bytes_received +=
+                (raw_report_buffer[stats->index].calc_event_size<<2);
+
+            // save new EBOffset
+            eboffset = raw_report_buffer[stats->index].offset;
+
+            // increment reportbuffer offset
+            rboffset = ((stats->index)*
+                sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
+
+            // wrap RB index if necessary
+            if( stats->index < (rbuf->getMaxRBEntries()-1) )
+            { stats->index++; }
+            else
+            { stats->index=0; }
+
+            //increment total number of events received
+            stats->n_events++;
+
+            //increment number of events processed in this while-loop
+            events_per_iteration++;
+        }
+
+        // clear processed reportbuffer entries
+        entrysize = sizeof(librorc_event_descriptor);
+        memset(&raw_report_buffer[starting_index], 0, events_per_iteration*entrysize);
+
+        // update min/max statistics on how many events have been received
+        // in the above while-loop
+        if(events_per_iteration > stats->max_epi)
+        { stats->max_epi = events_per_iteration; }
+
+        if(events_per_iteration < stats->min_epi)
+        { stats->min_epi = events_per_iteration; }
+
+        events_per_iteration = 0;
+        stats->set_offset_count++;
+
+        channel->setBufferOffsetsOnDevice(eboffset, rboffset);
+
+        DEBUG_PRINTF
         (
-            stats,
-            raw_report_buffer,
-            ebuf,
-            PG_PATTERN_INC,
-            do_sanity_check,
-            &EventID,
-            ddl_reference_is_enabled,
-            ddl_path,
-            checker
+            PDADEBUG_CONTROL_FLOW,
+            "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
+            stats->channel,
+            rboffset,
+            eboffset
         );
-
-        stats->last_id = EventID;
-      }
-
-#ifdef DEBUG
-      dump_rb(&raw_report_buffer[stats->index], stats->index, stats->channel);
-#endif
-
-      // increment the number of bytes received
-      stats->bytes_received +=
-        (raw_report_buffer[stats->index].calc_event_size<<2);
-
-      // save new EBOffset
-      eboffset = raw_report_buffer[stats->index].offset;
-
-      // increment reportbuffer offset
-      rboffset = ((stats->index)*
-          sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
-
-      // wrap RB index if necessary
-      if( stats->index < rbuf->getMaxRBEntries()-1 )
-        stats->index++;
-      else
-        stats->index=0;
-
-      //increment total number of events received
-      stats->n_events++;
-
-      //increment number of events processed in this while-loop
-      events_per_iteration++;
     }
 
-    // clear processed reportbuffer entries
-    entrysize = sizeof(librorc_event_descriptor);
-    memset(&raw_report_buffer[starting_index], 0,
-        events_per_iteration*entrysize);
-
-
-    // update min/max statistics on how many events have been received
-    // in the above while-loop
-    if(events_per_iteration > stats->max_epi)
-      stats->max_epi = events_per_iteration;
-    if(events_per_iteration < stats->min_epi)
-      stats->min_epi = events_per_iteration;
-    events_per_iteration = 0;
-    stats->set_offset_count++;
-
-    // actually update the offset pointers in the firmware
-    //channel->setEBOffset(eboffset);
-    //channel->setRBOffset(rboffset);
-
-    channel->setBufferOffsetsOnDevice(eboffset, rboffset);
-
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-    "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
-        stats->channel, rboffset, eboffset);
-  }
-
-  return events_processed;
+    return events_processed;
 }
 
 #endif
