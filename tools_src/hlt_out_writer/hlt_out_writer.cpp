@@ -26,6 +26,18 @@
 
 using namespace std;
 
+int handle_channel_data
+(
+    librorc::buffer      *rbuf,
+    librorc::buffer      *ebuf,
+    librorc::dma_channel *channel,
+    librorcChannelStatus *stats,
+    int                   do_sanity_check,
+    bool                  ddl_reference_is_enabled,
+    char                 *ddl_path,
+    librorc::event_sanity_checker *checker
+);
+
 
 DMA_ABORT_HANDLER
 
@@ -148,7 +160,7 @@ int main( int argc, char *argv[])
         eventStream->m_bar1->gettime(&cur_time, 0);
 
         // print status line each second
-        if(gettimeofday_diff(last_time, cur_time)>STAT_INTERVAL) {
+        if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL) {
             printf("Events OUT: %10ld, Size: %8.3f GB",
                     eventStream->m_channel_status->n_events,
                     (double)eventStream->m_channel_status->bytes_received/(double)(1<<30));
@@ -157,7 +169,7 @@ int main( int argc, char *argv[])
             {
                 printf(" Rate: %9.3f MB/s",
                         (double)(eventStream->m_channel_status->bytes_received-last_bytes_received)/
-                        gettimeofday_diff(last_time, cur_time)/(double)(1<<20));
+                        gettimeofdayDiff(last_time, cur_time)/(double)(1<<20));
             } else {
                 printf(" Rate: -");
             }
@@ -166,7 +178,7 @@ int main( int argc, char *argv[])
             {
                 printf(" (%.3f kHz)",
                         (double)(eventStream->m_channel_status->n_events-last_events_received)/
-                        gettimeofday_diff(last_time, cur_time)/1000.0);
+                        gettimeofdayDiff(last_time, cur_time)/1000.0);
             } else {
                 printf(" ( - )");
             }
@@ -186,9 +198,9 @@ int main( int argc, char *argv[])
     printf("%ld Byte / %ld events in %.2f sec"
             "-> %.1f MB/s.\n",
             (eventStream->m_channel_status->bytes_received), eventStream->m_channel_status->n_events,
-            gettimeofday_diff(start_time, end_time),
+            gettimeofdayDiff(start_time, end_time),
             ((float)eventStream->m_channel_status->bytes_received/
-             gettimeofday_diff(start_time, end_time))/(float)(1<<20) );
+                    gettimeofdayDiff(start_time, end_time))/(float)(1<<20) );
 
     if(!eventStream->m_channel_status->set_offset_count) //avoid DivByZero Exception
         printf("CH%d: No Events\n", opts.channelId);
@@ -231,3 +243,135 @@ int main( int argc, char *argv[])
 
     return result;
 }
+
+
+
+/**
+ * handle incoming data
+ *
+ * check if there is a reportbuffer entry at the current polling index
+ * if yes, handle all available reportbuffer entries
+ * @param rbuf pointer to ReportBuffer
+ * @param eventbuffer pointer to EventBuffer Memory
+ * @param channel pointer
+ * @param ch_stats pointer to channel stats struct
+ * @param do_sanity_check mask of sanity checks to be done on the
+ * received data. See CHK_* defines above.
+ * @return number of events processed
+ **/
+int handle_channel_data
+(
+    librorc::buffer      *rbuf,
+    librorc::buffer      *ebuf,
+    librorc::dma_channel *channel,
+    librorcChannelStatus *stats,
+    int                   do_sanity_check,
+    bool                  ddl_reference_is_enabled,
+    char                 *ddl_path,
+    librorc::event_sanity_checker *checker
+)
+{
+    uint64_t events_per_iteration = 0;
+    int      events_processed     = 0;
+    uint64_t eboffset             = 0;
+    uint64_t rboffset             = 0;
+    uint64_t starting_index, entrysize;
+    librorc_event_descriptor rb;
+    uint64_t EventID = 0;
+
+    librorc_event_descriptor *raw_report_buffer =
+        (librorc_event_descriptor *)(rbuf->getMem());
+
+    // new event received
+    if( raw_report_buffer[stats->index].calc_event_size!=0 )
+    {
+        // capture index of the first found reportbuffer entry
+        starting_index = stats->index;
+
+        // handle all following entries
+        while( raw_report_buffer[stats->index].calc_event_size!=0 )
+        {
+            // increment number of events processed in this interation
+            events_processed++;
+
+            // perform validity tests on the received data (if enabled)
+            if (do_sanity_check)
+            {
+                rb = raw_report_buffer[stats->index];
+
+                try
+                { EventID = checker->check(raw_report_buffer, stats); }
+                catch( int error )
+                { abort(); }
+
+                stats->last_id = EventID;
+            }
+
+            DEBUG_PRINTF
+            (
+                PDADEBUG_CONTROL_FLOW,
+                "CH%2d - RB[%3ld]: calc_size=%08x\t"
+                "reported_size=%08x\t"
+                "offset=%lx\n",
+                stats->channel,
+                stats->index,
+                raw_report_buffer[stats->index].calc_event_size,
+                raw_report_buffer[stats->index].reported_event_size,
+                raw_report_buffer[stats->index].offset
+            );
+
+            // increment the number of bytes received
+            stats->bytes_received +=
+                (raw_report_buffer[stats->index].calc_event_size<<2);
+
+            // save new EBOffset
+            eboffset = raw_report_buffer[stats->index].offset;
+
+            // increment reportbuffer offset
+            rboffset = ((stats->index)*
+                sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
+
+            // wrap RB index if necessary
+            if( stats->index < (rbuf->getMaxRBEntries()-1) )
+            { stats->index++; }
+            else
+            { stats->index=0; }
+
+            //increment total number of events received
+            stats->n_events++;
+
+            //increment number of events processed in this while-loop
+            events_per_iteration++;
+        }
+
+        // clear processed reportbuffer entries
+        entrysize = sizeof(librorc_event_descriptor);
+        memset(&raw_report_buffer[starting_index], 0, events_per_iteration*entrysize);
+
+        // update min/max statistics on how many events have been received
+        // in the above while-loop
+        if(events_per_iteration > stats->max_epi)
+        { stats->max_epi = events_per_iteration; }
+
+        if(events_per_iteration < stats->min_epi)
+        { stats->min_epi = events_per_iteration; }
+
+        events_per_iteration = 0;
+        stats->set_offset_count++;
+
+        channel->setBufferOffsetsOnDevice(eboffset, rboffset);
+
+        DEBUG_PRINTF
+        (
+            PDADEBUG_CONTROL_FLOW,
+            "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
+            stats->channel,
+            rboffset,
+            eboffset
+        );
+    }
+
+    return events_processed;
+}
+
+
