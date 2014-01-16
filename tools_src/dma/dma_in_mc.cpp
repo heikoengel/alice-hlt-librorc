@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     while( !done )
     {
 
-        for ( i=0; i<nChannels; i++ )
+        for( i=0; i<nChannels; i++ )
         {
             result = eventStream[i]->handleChannelData( (void*)&(checker[i]) );
         }
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
 
         if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
         {
-            for ( i=0; i<nChannels; i++ )
+            for( i=0; i<nChannels; i++ )
             {
                 //here we need a callback
                 printStatusLine
@@ -201,12 +201,15 @@ int main(int argc, char *argv[])
     timeval end_time;
     eventStream[0]->m_bar1->gettime(&end_time, 0);
 
-    for ( i=0; i<nChannels; i++ )
+    for( i=0; i<nChannels; i++ )
     {
-        printFinalStatusLine(
-                eventStream[i]->m_channel_status,
-                eventStream[i]->m_start_time,
-                eventStream[i]->m_end_time);
+        printFinalStatusLine
+        (
+            eventStream[i]->m_channel_status,
+            opts[i],
+            eventStream[i]->m_start_time,
+            eventStream[i]->m_end_time
+        );
 
         /** Cleanup */
         delete eventStream[i];

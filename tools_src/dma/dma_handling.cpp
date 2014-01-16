@@ -44,7 +44,7 @@ evaluateArguments(int argc, char *argv[])
     if( 0 == strcmp(app_name, "dma_in_ddl") )
     { ret.esType = LIBRORC_ES_IN_DDL; }
 
-    if( 0 == strcmp(app_name, "hlt_out_writer") )
+    if( 0 == strcmp(app_name, "dma_out") )
     { ret.esType = LIBRORC_ES_OUT_SWPG; }
 
     /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
@@ -204,7 +204,8 @@ printStatusLine
         printf
         (
             "CH%d Events IN: %10ld, Size: %8.3f GB ",
-            channel_status->channel, channel_status->n_events,
+            channel_status->channel,
+            channel_status->n_events,
             (double)channel_status->bytes_received/(double)(1<<30)
         );
 
@@ -212,13 +213,13 @@ printStatusLine
         {
             printf
             (
-                " DataRate: %9.3f MB/s",
+                " Data Rate: %9.3f MB/s",
                 (double)(channel_status->bytes_received - last_bytes_received)/
                 gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
             );
         }
         else
-        { printf(" Rate: -"); }
+        { printf(" Data Rate: -"); }
 
         if(channel_status->n_events - last_events_received)
         {
@@ -242,6 +243,7 @@ void
 printFinalStatusLine
 (
     librorcChannelStatus *chstats,
+    DMAOptions            opts,
     timeval               start_time,
     timeval               end_time
 )
@@ -256,13 +258,13 @@ printFinalStatusLine
     );
 
     if(!chstats->set_offset_count)
-    { printf("CH%d: No Events\n", chstats->channel); }
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
     {
         printf
         (
             "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
-            chstats->channel,
+            opts.channelId,
             chstats->n_events,
             chstats->max_epi,
             chstats->min_epi,
@@ -272,45 +274,3 @@ printFinalStatusLine
     }
 
 }
-
-
-
-//TODO: LEGACY CODE!
-librorcChannelStatus*
-prepareSharedMemory
-(
-    DMAOptions opts
-)
-{
-    librorcChannelStatus *chstats = NULL;
-
-    /** allocate shared mem */
-    int shID =
-        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
-    if(shID==-1)
-    {
-        perror("Shared memory getching failed!");
-        return(chstats);
-    }
-
-    /** attach to shared memory */
-    char *shm = (char*)shmat(shID, 0, 0);
-    if(shm==(char*)-1)
-    {
-        perror("Attaching of shared memory failed");
-        return(chstats);
-    }
-
-    chstats = (librorcChannelStatus*)shm;
-
-    /** Wipe SHM */
-    memset(chstats, 0, sizeof(librorcChannelStatus));
-    chstats->index = 0;
-    chstats->last_id = 0xfffffffff;
-    chstats->channel = (unsigned int)opts.channelId;
-    chstats->device = (unsigned int)opts.deviceId;
-
-    return(chstats);
-}
-

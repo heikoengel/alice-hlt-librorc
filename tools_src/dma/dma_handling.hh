@@ -19,18 +19,18 @@ parameters:                                                  \n\
 
 #define DMA_ABORT_HANDLER librorc::event_stream *eventStream = NULL; \
 void abort_handler( int s )                                          \
-{                                        \
-    printf("Caught signal %d\n", s);     \
-    if( eventStream->m_done==true )      \
-    { exit(-1); }                        \
-    else                                 \
-    { eventStream->m_done = true; }                     \
+{                                                                    \
+    printf("Caught signal %d\n", s);                                 \
+    if( eventStream->m_done==true )                                  \
+    { exit(-1); }                                                    \
+    else                                                             \
+    { eventStream->m_done = true; }                                  \
 }
 
-#define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler; \
-sigIntHandler.sa_handler = abort_handler;                          \
-sigemptyset(&sigIntHandler.sa_mask);                               \
-sigIntHandler.sa_flags = 0;                                        \
+#define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler;   \
+sigIntHandler.sa_handler = abort_handler;                            \
+sigemptyset(&sigIntHandler.sa_mask);                                 \
+sigIntHandler.sa_flags = 0;                                          \
 sigaction(SIGINT, &sigIntHandler, NULL);
 
 /** maximum channel number allowed **/
@@ -73,6 +73,7 @@ void
 printFinalStatusLine
 (
     librorcChannelStatus *chstats,
+    DMAOptions            opts,
     timeval               start_time,
     timeval               end_time
 );

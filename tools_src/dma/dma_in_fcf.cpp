@@ -270,10 +270,13 @@ int main(int argc, char *argv[])
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
-    printFinalStatusLine(
-            eventStream->m_channel_status,
-            eventStream->m_start_time,
-            eventStream->m_end_time);
+    printFinalStatusLine
+    (
+        eventStream->m_channel_status,
+        opts,
+        eventStream->m_start_time,
+        eventStream->m_end_time
+    );
 
     /** Cleanup */
     delete sm;

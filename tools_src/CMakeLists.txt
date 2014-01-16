@@ -6,6 +6,18 @@ add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS rorctl RUNTIME DESTINATION bin )
 
+# Build ucctrl
+add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
+target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ucctrl RUNTIME DESTINATION bin )
+
+# Build reset_error_counters
+add_executable( reset_error_counters ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/reset_error_counters.cpp)
+target_link_libraries( reset_error_counters rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
+
+#-----------------------------------------------------------
+
 # Build DMA test with Pattern Generator
 add_executable( dma_in_hwpg
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
@@ -48,6 +60,24 @@ INSTALL(TARGETS dma_in_generic RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------
 
+# Build DMA-out testbed
+add_executable( dma_out
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_out rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_out RUNTIME DESTINATION bin )
+
+# Build DMA-out testbed
+add_executable( dma_out_mc
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out_mc.cpp"
+"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+)
+target_link_libraries( dma_out_mc rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_out_mc RUNTIME DESTINATION bin )
+
+#-----------------------------------------------------------
+
 # Build i2c
 add_executable( i2c ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/i2c.cpp)
 target_link_libraries( i2c rorc pthread ${EXTRA_LIBS})
@@ -85,23 +115,6 @@ add_executable( hwpgdma_es_sweep ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/hwp
 target_link_libraries( hwpgdma_es_sweep rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS hwpgdma_es_sweep RUNTIME DESTINATION bin )
 
-
-# Build DMA-out testbed
-add_executable( hlt_out_writer
-"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/dma_handling.cpp"
-)
-target_link_libraries( hlt_out_writer rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS hlt_out_writer RUNTIME DESTINATION bin )
-
-# Build DMA-out testbed
-add_executable( hlt_out_writer_mc
-"${LIBRORC_SOURCE_DIR}/tools_src/hlt_out_writer/hlt_out_writer_mc.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
-)
-target_link_libraries( hlt_out_writer_mc rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS hlt_out_writer_mc RUNTIME DESTINATION bin )
-
 # Build gtxctrl
 add_executable( gtxctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/gtxctrl.cpp)
 target_link_libraries( gtxctrl rorc pthread ${EXTRA_LIBS})
@@ -122,15 +135,7 @@ add_executable( channeldump ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/channeldump
 target_link_libraries( channeldump rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS channeldump RUNTIME DESTINATION bin )
 
-# Build ucctrl
-add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
-target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS ucctrl RUNTIME DESTINATION bin )
-
-# Build reset_error_counters
-add_executable( reset_error_counters ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/reset_error_counters.cpp)
-target_link_libraries( reset_error_counters rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
+#-----------------------------------------------------------
 
 # Build hwtests
 add_executable( fmc_loopback_tester
