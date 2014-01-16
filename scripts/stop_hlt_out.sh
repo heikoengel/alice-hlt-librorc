@@ -7,9 +7,9 @@ if [ -z $DEV ]; then
 fi
 
 
-for CH in {0..11}
+for CH in {0..7}
 do
-  PID=/var/run/hlt_out_writer_${DEV}_${CH}.pid
+  PID=/var/run/dma_out_${DEV}_${CH}.pid
   if [ -f $PID ]; then
     kill -s 2 `cat $PID`
   else
