@@ -220,8 +220,9 @@ int main
                 {
                     options.device_number = atoi(optarg);
                     try
-                    { options.dev = new librorc::device(
-                            options.device_number); }
+                    { options.dev = new librorc::device
+                        (options.device_number);
+                    }
                     catch(...)
                     {
                         cout << "failed to initialize device "

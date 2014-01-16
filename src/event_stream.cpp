@@ -85,8 +85,9 @@ namespace LIBRARY_NAME
 
     event_stream::event_stream
     (
-        int32_t deviceId,
-        int32_t channelId
+        int32_t       deviceId,
+        int32_t       channelId,
+        LibrorcEsType esType
     )
     {
         m_deviceId = deviceId;
@@ -94,6 +95,7 @@ namespace LIBRARY_NAME
         generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
         prepareSharedMemory();
     }
+
 
 
     event_stream::event_stream
@@ -104,29 +106,32 @@ namespace LIBRARY_NAME
         LibrorcEsType esType
     )
     {
-        m_deviceId = deviceId;
-        m_eventSize = eventSize;
+        m_deviceId        = deviceId;
+        m_eventSize       = eventSize;
         m_called_with_bar = false;
         generateDMAChannel(m_deviceId, channelId, esType);
         prepareSharedMemory();
     }
 
 
-#ifdef LIBRORC_INTERNAL
+
     event_stream::event_stream
     (
         librorc::device *dev,
         librorc::bar    *bar,
-        int32_t          channelId
+        int32_t          channelId,
+        LibrorcEsType    esType
     )
     {
-        m_dev = dev;
-        m_bar1 = bar;
-        m_deviceId = dev->getDeviceId();
+        m_dev             = dev;
+        m_bar1            = bar;
+        m_deviceId        = dev->getDeviceId();
         m_called_with_bar = true;
         generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
         prepareSharedMemory();
     }
+
+
 
     event_stream::event_stream
     (
@@ -146,7 +151,7 @@ namespace LIBRARY_NAME
         generateDMAChannel(m_deviceId, channelId, esType);
         prepareSharedMemory();
     }
-#endif
+
 
     event_stream::~event_stream()
     {
@@ -169,7 +174,39 @@ namespace LIBRARY_NAME
         }
     }
 
+    void
+    event_stream::checkFirmware(LibrorcEsType esType)
+    {
+        sysmon monitor(m_bar1);
 
+        if
+        (
+            esType == LIBRORC_ES_IN_GENERIC ||
+            esType == LIBRORC_ES_IN_DDL ||
+            esType == LIBRORC_ES_IN_HWPG
+        )
+        {
+            if( !monitor.firmwareIsHltIn() )
+            {
+                cout << "Wrong device firmware loaded [out] instead [in]" << endl;
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
+        }
+
+        if
+        (
+            esType == LIBRORC_ES_OUT_GENERIC ||
+            esType == LIBRORC_ES_OUT_SWPG ||
+            esType == LIBRORC_ES_OUT_FILE
+        )
+        {
+            if( !monitor.firmwareIsHltOut() )
+            {
+                cout << "Wrong device firmware loaded [in] instead [out]" << endl;
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
+        }
+    }
 
     void
     event_stream::generateDMAChannel
@@ -181,6 +218,7 @@ namespace LIBRARY_NAME
     {
         m_channelId = channelId;
 
+        /** TODO : remove this */
         /** set EventBuffer DMA direction according to EventStream type */
         int32_t dma_direction;
         switch (esType)
@@ -188,19 +226,25 @@ namespace LIBRARY_NAME
             case LIBRORC_ES_IN_GENERIC:
             case LIBRORC_ES_IN_DDL:
             case LIBRORC_ES_IN_HWPG:
+            {
                 dma_direction = LIBRORC_DMA_FROM_DEVICE;
-                break;
+            }
+            break;
+
+            case LIBRORC_ES_OUT_GENERIC:
             case LIBRORC_ES_OUT_SWPG:
             case LIBRORC_ES_OUT_FILE:
+            {
                 dma_direction = LIBRORC_DMA_TO_DEVICE;
-                break;
+            }
+            break;
             default:
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
         }
 
         try
         {
-            if ( !m_called_with_bar )
+            if( !m_called_with_bar )
             {
                 m_dev = new librorc::device(deviceId);
                 #ifdef SIM
@@ -209,6 +253,15 @@ namespace LIBRARY_NAME
                     m_bar1 = new librorc::rorc_bar(m_dev, 1);
                 #endif
             }
+
+            if( !m_dev->DMAChannelIsImplemented(channelId) )
+            {
+                printf("ERROR: Requsted channel %d is not implemented in "
+                       "firmware - exiting\n", channelId);
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
+
+
             m_eventBuffer
                 = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, dma_direction);
             m_reportBuffer
@@ -217,12 +270,13 @@ namespace LIBRARY_NAME
             chooseDMAChannel(esType);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-            m_done = false;
-            m_event_callback = NULL;
+            m_done             = false;
+            m_event_callback   = NULL;
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
 
+        checkFirmware(esType);
     }
 
 
@@ -278,6 +332,24 @@ namespace LIBRARY_NAME
             }
             break;
 
+            case LIBRORC_ES_OUT_SWPG:
+            {
+                m_channel =
+                new librorc::dma_channel
+                (
+                     m_channelId,
+                     128,
+                     m_dev,
+                     m_bar1,
+                     m_eventBuffer,
+                     m_reportBuffer
+                 );
+
+                 m_bar1->simSetPacketSize(32);
+                 m_channel->enable();
+            }
+            break;
+
         default:
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
@@ -313,6 +385,8 @@ namespace LIBRARY_NAME
     void
     event_stream::printDeviceStatus()
     {
+        printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
+        printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
         printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
 
         try
@@ -432,6 +506,9 @@ namespace LIBRARY_NAME
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
                     : 0;
+
+                if(ret != 0)
+                { abort(); }
 
                 m_channel_status->last_id = event_id;
 

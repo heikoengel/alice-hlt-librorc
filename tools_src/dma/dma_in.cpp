@@ -50,7 +50,6 @@ eventCallBack
 int main(int argc, char *argv[])
 {
     char logdirectory[] = "/tmp";
-
     DMAOptions opts = evaluateArguments(argc, argv);
 
     if
@@ -71,12 +70,13 @@ int main(int argc, char *argv[])
 
     librorc_event_callback event_callback = eventCallBack;
 
-    if( !(eventStream = prepareEventStream(opts)) )
+    eventStream = prepareEventStream(opts);
+    if( !eventStream )
     { exit(-1); }
 
-    eventStream->setEventCallback(event_callback);
-
     eventStream->printDeviceStatus();
+
+    eventStream->setEventCallback(event_callback);
 
     /** make clear what will be checked*/
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
@@ -113,5 +113,5 @@ int main(int argc, char *argv[])
     /** Cleanup */
     delete eventStream;
 
-    return 0;
+    return result;
 }

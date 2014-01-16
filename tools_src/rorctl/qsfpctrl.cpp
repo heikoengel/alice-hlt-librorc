@@ -125,9 +125,8 @@ main
 
     /** Instantiate device **/
     librorc::device *dev = NULL;
-    try{
-        dev = new librorc::device(device_number);
-    }
+    try
+    { dev = new librorc::device(device_number); }
     catch(...)
     {
         cout << "Failed to intialize device " << device_number

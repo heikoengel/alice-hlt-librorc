@@ -29,21 +29,16 @@ rorc_bar::rorc_bar
     int32_t  n
 )
 {
-    m_parent_dev = dev;
-    m_number     = n;
-
+    m_parent_dev     = dev;
+    m_number         = n;
     m_pda_pci_device = dev->getPdaPciDevice();
-
-    m_bar = m_parent_dev->getBarMap(m_number);
+    m_bar            = m_parent_dev->getBarMap(m_number);
 
     if(m_bar == NULL)
-    {
-        throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
-    }
+    { throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED; }
 
     m_size = m_parent_dev->getBarSize(m_number);
 
-    /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
 }
 
@@ -90,8 +85,6 @@ rorc_bar::memcopy
 uint32_t
 rorc_bar::get32(librorc_bar_address address )
 {
-    assert( m_bar != NULL );
-
     uint32_t *bar = (uint32_t *)m_bar;
     uint32_t result;
     if( (address << 2) < m_size)
@@ -100,9 +93,7 @@ rorc_bar::get32(librorc_bar_address address )
         return result;
     }
     else
-    {
-        return -1;
-    }
+    { return -1; }
 }
 
 
@@ -121,9 +112,7 @@ rorc_bar::get16(librorc_bar_address address )
         return result;
     }
     else
-    {
-        return 0xffff;
-    }
+    { return 0xffff; }
 }
 
 

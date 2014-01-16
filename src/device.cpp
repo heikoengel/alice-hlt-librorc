@@ -27,10 +27,7 @@
 namespace LIBRARY_NAME
 {
 
-device::device
-(
-    int32_t device_index
-)
+device::device(int32_t device_index)
 {
     PDAInit();
 

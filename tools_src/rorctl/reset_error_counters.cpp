@@ -75,7 +75,8 @@ main
 
     /** Instantiate device **/
     librorc::device *dev = NULL;
-    try{
+    try
+    {
         dev = new librorc::device(device_number);
     }
     catch(...)

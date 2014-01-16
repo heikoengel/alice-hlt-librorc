@@ -1,3 +1,4 @@
+#define LIBRORC_INTERNAL
 #include "dma_handling.hh"
 
 using namespace std;
@@ -38,19 +39,13 @@ evaluateArguments(int argc, char *argv[])
 
     ret.esType = LIBRORC_ES_IN_GENERIC;
     if( 0 == strcmp(app_name, "dma_in_hwpg") )
-    {
-        ret.esType = LIBRORC_ES_IN_HWPG;
-    }
+    { ret.esType = LIBRORC_ES_IN_HWPG; }
 
     if( 0 == strcmp(app_name, "dma_in_ddl") )
-    {
-        ret.esType = LIBRORC_ES_IN_DDL;
-    }
+    { ret.esType = LIBRORC_ES_IN_DDL; }
 
     if( 0 == strcmp(app_name, "hlt_out_writer") )
-    {
-        ret.esType = LIBRORC_ES_OUT_SWPG;
-    }
+    { ret.esType = LIBRORC_ES_OUT_SWPG; }
 
     /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
     {
@@ -149,46 +144,6 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 }
 
 
-//TODO: that should be a part of the dma channel class
-librorcChannelStatus*
-prepareSharedMemory
-(
-    DMAOptions opts
-)
-{
-    librorcChannelStatus *chstats = NULL;
-
-    /** allocate shared mem */
-    int shID =
-        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
-            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
-    if(shID==-1)
-    {
-        perror("Shared memory getching failed!");
-        return(chstats);
-    }
-
-    /** attach to shared memory */
-    char *shm = (char*)shmat(shID, 0, 0);
-    if(shm==(char*)-1)
-    {
-        perror("Attaching of shared memory failed");
-        return(chstats);
-    }
-
-    chstats = (librorcChannelStatus*)shm;
-
-    /** Wipe SHM */
-    memset(chstats, 0, sizeof(librorcChannelStatus));
-    chstats->index = 0;
-    chstats->last_id = 0xfffffffff;
-    chstats->channel = (unsigned int)opts.channelId;
-    chstats->device = (unsigned int)opts.deviceId;
-
-    return(chstats);
-}
-
-
 
 librorc::event_stream *
 prepareEventStream
@@ -200,6 +155,29 @@ prepareEventStream
 
     try
     { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize, opts.esType); }
+    catch( int error )
+    {
+        cout << "ERROR: failed to initialize event stream." << endl;
+        return(NULL);
+    }
+
+    return(eventStream);
+}
+
+
+
+librorc::event_stream *
+prepareEventStream
+(
+    librorc::device *dev,
+    librorc::bar *bar,
+    DMAOptions opts
+)
+{
+    librorc::event_stream *eventStream = NULL;
+
+    try
+    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.eventSize, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
@@ -299,4 +277,45 @@ printFinalStatusLine
         );
     }
 
+}
+
+
+
+//TODO: LEGACY CODE!
+librorcChannelStatus*
+prepareSharedMemory
+(
+    DMAOptions opts
+)
+{
+    librorcChannelStatus *chstats = NULL;
+
+    /** allocate shared mem */
+    int shID =
+        shmget(SHM_KEY_OFFSET + opts.deviceId*SHM_DEV_OFFSET + opts.channelId,
+            sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+    if(shID==-1)
+    {
+        perror("Shared memory getching failed!");
+        return(chstats);
+    }
+
+    /** attach to shared memory */
+    char *shm = (char*)shmat(shID, 0, 0);
+    if(shm==(char*)-1)
+    {
+        perror("Attaching of shared memory failed");
+        return(chstats);
+    }
+
+    chstats = (librorcChannelStatus*)shm;
+
+    /** Wipe SHM */
+    memset(chstats, 0, sizeof(librorcChannelStatus));
+    chstats->index = 0;
+    chstats->last_id = 0xfffffffff;
+    chstats->channel = (unsigned int)opts.channelId;
+    chstats->device = (unsigned int)opts.deviceId;
+
+    return(chstats);
 }

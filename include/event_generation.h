@@ -18,153 +18,258 @@
  *
  * */
 
-#define MAX_EVENTS_PER_ITERATION 0x0
 #include <math.h>
+#define MAX_EVENTS_PER_ITERATION 0x0
 
-/**
- * create event
- * @param dest uint32_t* pointer to destination memory
- * @param event_id Event ID
- * @param length event length
- * */
-void 
-create_event
-(
-    volatile uint32_t *dest,
-    uint64_t event_id,
-    uint32_t length
-)
+
+class event_generator
 {
-    uint32_t i;
+	public:
 
-    //TODO: make sure length is >=8
+         event_generator()
+         {
 
-    // first 8 DWs are CDH
-    dest[0] = 0xffffffff;
-    dest[1] = event_id & 0xfff;
-    dest[2] = ((event_id>>12) & 0x00ffffff);
-    dest[3] = 0x00000000; // PGMode / participating subdetectors
-    dest[4] = 0x00000000; // mini event id, error flags, MBZ
-    dest[5] = 0xaffeaffe; // trigger classes low
-    dest[6] = 0x00000000; // trigger classes high, MBZ, ROI
-    dest[7] = 0xdeadbeaf; // ROI high
+         };
 
-    for (i=0; i<length-8; i++) {
-        dest[8+i] = i;
-    }
-}
+		 event_generator
+		 (
+		     librorc::buffer      *report_buffer,
+			 librorc::buffer      *event_buffer,
+			 librorc::dma_channel *channel
+		 )
+		 {
+			 m_report_buffer           = report_buffer;
+			 m_event_buffer            = event_buffer;
+			 m_channel                 = channel;
+			 m_event_generation_offset = 0;
+			 m_event_id                = 0;
+		 };
+
+		~event_generator()
+		 {
+
+		 };
+
+		uint64_t
+		fillEventBuffer(uint32_t event_size)
+		{
+			m_last_event_buffer_offset
+			    = m_channel->getLastEBOffset();
+
+			uint32_t max_read_req
+				= m_channel->pciePacketSize();
+
+			uint64_t available_buffer_space
+			    = availableBufferSpace(m_event_generation_offset);
+
+			uint32_t fragment_size
+				= fragmentSize(event_size, max_read_req);
+
+			uint64_t number_of_events
+				= numberOfEvents(available_buffer_space, event_size, fragment_size);
+
+			packEventsIntoMemory(number_of_events, event_size, fragment_size);
+
+			return number_of_events;
+		};
+
+	protected:
+
+		uint64_t              m_last_event_buffer_offset;
+		uint64_t              m_event_generation_offset;
+		uint64_t              m_event_id;
+		librorc::buffer      *m_report_buffer;
+		librorc::buffer      *m_event_buffer;
+		librorc::dma_channel *m_channel;
 
 
-uint64_t
-fill_eventbuffer
-(
-    librorc::buffer      *rbuf,
-    librorc::buffer      *ebuf,
-    librorc::dma_channel *channel,
-    uint64_t             *event_generation_offset,
-    uint64_t             *EventID,
-    uint32_t             EventSize
-)
-{
-    // get last EB Offset written to channel
-    uint64_t last_eb_offset = channel->getLastEBOffset();
-    uint64_t buf_space_avail;
-    uint32_t fragment_size;
+		/**
+		 * Create event
+		 * @param dest uint32_t* pointer to destination memory
+		 * @param event_id Event ID
+		 * @param length event length
+		 **/
+		//TODO: since this needs to be extended it should better refactored into a class!
+		void
+		createEvent
+		(
+		    volatile uint32_t *dest,
+		    uint64_t event_id,
+		    uint32_t length
+		)
+		{
+		    uint32_t i;
 
-    // get the available event buffer space in bytes between the current
-    // generation offset and the last offset written to the channel
-    if ( *event_generation_offset < last_eb_offset )
-    {
-        // generation offset is smaller than last offset -> no wrap
-        buf_space_avail = last_eb_offset - *event_generation_offset;
-    } else 
-    {
-        // generation offset is larger than last offset -> wrap in between
-        buf_space_avail = last_eb_offset + ebuf->getSize() - 
-            *event_generation_offset;
-    }
+		    if(length <= 8)
+		    { throw 0; }
 
-    // check how many events can be put into the available space
-    // note: EventSize is in DWs and events have to be aligned to
-    // MaxReadReq boundaries
-    // fragment_size is in bytes
-    uint32_t max_read_req = channel->pciePacketSize();
-    if ( (EventSize<<2) % max_read_req )
-    {
-        // EventSize is not a multiple of max_read_req
-        fragment_size = (trunc((EventSize<<2) / max_read_req) + 1) * 
-            max_read_req;
-    } else
-    {
-        fragment_size = (EventSize<<2);
-    }
+		    /** First 8 DWs are CDH */
+		    dest[0] = 0xffffffff;
+		    dest[1] = event_id & 0xfff;
+		    dest[2] = ((event_id>>12) & 0x00ffffff);
+		    dest[3] = 0x00000000; // PGMode / participating subdetectors
+		    dest[4] = 0x00000000; // mini event id, error flags, MBZ
+		    dest[5] = 0xaffeaffe; // trigger classes low
+		    dest[6] = 0x00000000; // trigger classes high, MBZ, ROI
+		    dest[7] = 0xdeadbeaf; // ROI high
 
-    uint64_t nevents = (uint64_t)(buf_space_avail / fragment_size);
+		    for(i=0; i<length-8; i++)
+		    { dest[8+i] = i; }
+		};
 
-    // never use full buf_space_avail to avoid the situation where
-    // event_generation_offset==last_eb_offset because this will break
-    // buf_space_avail calculation above
-    if ( (buf_space_avail - EventSize) <= fragment_size )
-        nevents = 0;
-    else
-        nevents = (uint64_t)(buf_space_avail / fragment_size) - 1;
 
-    // get current EL FIFO fill state consisting of:
-    // el_fifo_state[31:16] = FIFO write limit
-    // el_fifo_state[15:0]  = FIFO write count
-    uint32_t el_fifo_state = channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
-    uint32_t el_fifo_wrlimit = ((el_fifo_state>>16) & 0x0000ffff);
-    uint32_t el_fifo_wrcount = (el_fifo_state & 0x0000ffff);
+        /**
+         * Get the available event buffer space in bytes between the current
+         * generation offset and the last offset written to the channel
+         **/
+		uint64_t
+		availableBufferSpace(uint64_t event_generation_offset)
+		{
+			return   (event_generation_offset < m_last_event_buffer_offset)
+				   ? m_last_event_buffer_offset - event_generation_offset
+				   : m_last_event_buffer_offset + m_event_buffer->getSize()
+					  - event_generation_offset; /** wrap in between */
+		};
 
-    // break if no sufficient FIFO space available
-    // margin of 10 is chosen arbitrarily here
-    if ( el_fifo_wrcount + 10 >= el_fifo_wrlimit )
-    {
-        return 0;
-    }
+		/**
+		 * check how many events can be put into the available space
+		 * note: EventSize is in DWs and events have to be aligned to
+		 * MaxReadReq boundaries fragment_size is in bytes
+		 **/
+		uint32_t
+		fragmentSize
+		(
+	        uint32_t event_size,
+	        uint32_t max_read_req
+	    )
+		{
+			return   ((event_size << 2) % max_read_req)
+				   ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
+				   : (event_size << 2);
+		}
 
-    // reduce nevents to the maximum the EL_FIFO can handle a.t.m.
-    if ( el_fifo_wrlimit - el_fifo_wrcount < nevents )
-    {
-        nevents = el_fifo_wrlimit - el_fifo_wrcount;
-    }
 
-    // reduce nevents to a custom maximum
-    if ( MAX_EVENTS_PER_ITERATION &&
-            nevents > MAX_EVENTS_PER_ITERATION )
-    {
-        nevents = MAX_EVENTS_PER_ITERATION;
-    }
-    
-    volatile uint32_t *eventbuffer = ebuf->getMem();
 
-    for ( uint64_t i=0; i < nevents; i++ )
-    {
-        // byte offset of next event
-        uint64_t offset = *event_generation_offset;
+		uint64_t
+		numberOfEvents
+		(
+		    uint64_t available_buffer_space,
+			uint32_t event_size,
+			uint32_t fragment_size)
+		{
 
-        // write event data to buffer
-        create_event(
-                 eventbuffer + (offset>>2), // destination pointer
-                 *EventID, // event ID
-                 EventSize ); // event size
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "create_event(%lx, %lx, %x)\n",
-                offset, *EventID, EventSize);
+			if(!isSufficientFifoSpaceAvailable())
+			{ return 0; }
 
-        // push event size into EL FIFO
-        channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, EventSize);
+			uint64_t
+			number_of_events
+				= numberOfEventsThatFitIntoBuffer
+					(available_buffer_space, event_size, fragment_size);
 
-        // adjust event buffer fill state
-        *event_generation_offset += fragment_size;
-        *EventID += 1;
+			number_of_events
+				= maximumElfifoCanHandle(number_of_events);
 
-        // wrap fill state if neccessary
-        if ( *event_generation_offset >= ebuf->getSize() )
-        {
-            *event_generation_offset -= ebuf->getSize();
-        }
+			number_of_events
+				= reduceNumberOfEventsToCustomMaximum(number_of_events);
 
-    }
+			return number_of_events;
+		}
 
-    return nevents;
-}
+		bool
+		isSufficientFifoSpaceAvailable()
+		{
+			uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+			uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+			uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+			return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
+		}
+
+		/**
+		 * reduce the number of events to the maximum the
+		 * EL_FIFO can handle a.t.m.
+		 */
+		uint64_t
+		maximumElfifoCanHandle(uint64_t number_of_events)
+		{
+		    uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+		    uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+		    uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+
+		    return
+		    (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+		    ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
+		}
+
+		uint64_t
+		reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events)
+		{
+		    return
+		    (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
+			? MAX_EVENTS_PER_ITERATION : number_of_events;
+		}
+
+		uint64_t
+		numberOfEventsThatFitIntoBuffer
+		(
+		    uint64_t available_buffer_space,
+			uint32_t event_size,
+			uint32_t fragment_size
+		)
+		{
+			return
+			((available_buffer_space - event_size) <= fragment_size)
+			? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
+		}
+
+
+
+		void
+		packEventsIntoMemory
+		(
+		    uint64_t number_of_events,
+		    uint32_t event_size,
+			uint32_t fragment_size
+		)
+		{
+			volatile uint32_t* eventbuffer = m_event_buffer->getMem();
+			for(uint64_t i = 0; i < number_of_events; i++)
+			{
+				createEvent((eventbuffer + (m_event_generation_offset >> 2)), m_event_id, event_size);
+
+				DEBUG_PRINTF
+				(
+				    PDADEBUG_CONTROL_FLOW,
+				    "create_event(%lx, %lx, %x)\n",
+					m_event_generation_offset,
+					m_event_id,
+					event_size
+				);
+
+				pushEventSizeIntoELFifo(event_size);
+				iterateEventBufferFillState(fragment_size);
+				wrapFillStateIfNecessary();
+			}
+		}
+
+		void
+		pushEventSizeIntoELFifo(uint32_t event_size)
+		{
+			m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+		}
+
+		void
+		iterateEventBufferFillState(uint32_t fragment_size)
+		{
+			m_event_generation_offset += fragment_size;
+			m_event_id += 1;
+		}
+
+		void
+		wrapFillStateIfNecessary()
+		{
+			m_event_generation_offset
+				= (m_event_generation_offset >= m_event_buffer->getSize())
+				? (m_event_generation_offset - m_event_buffer->getSize())
+				: m_event_generation_offset;
+		}
+};
