@@ -113,8 +113,11 @@ uint8_t *buffer_ptr;
 uint32_t *buffer;
 int buffer_size;
 
+int trn_rd_busy = 0;
+
 // Prototypes
 static void trn_monitor( void *param );
+static void done_monitor( void *param );
 static void sockreader( void *param );
 int init_sockets(char *hostname, int port, int *sd_srv, int *sd_srv_acc);
 void close_socket(int *sd);
@@ -133,7 +136,7 @@ void fli_init(
     mtiInterfaceListT *ports)
 {
   inst_rec    *ip;       // Declare ports            
-  mtiProcessIdT trnproc, sockreaderproc; // process id
+  mtiProcessIdT trnproc, sockreaderproc, doneproc; // process id
   char        hostname[] = "localhost";
   int         port=2000;
   int i;
@@ -219,6 +222,12 @@ void fli_init(
   trnproc = mti_CreateProcess("trn_monitor", trn_monitor, ip);
   mti_Sensitize(trnproc, ip->clk, MTI_EVENT);
 
+  // done-monitor: watch rd_done, wr_done, cmpl_done
+  doneproc = mti_CreateProcess("done_monitor", done_monitor, ip);
+  mti_Sensitize(doneproc, ip->rd_done, MTI_EVENT);
+  mti_Sensitize(doneproc, ip->wr_done, MTI_EVENT);
+  mti_Sensitize(doneproc, ip->cmpl_done, MTI_EVENT);
+
   mti_PrintFormatted("Opening socket %d on %s\nWaiting for connection...\n",
       port,hostname);
 
@@ -300,7 +309,7 @@ static void sockreader( void *arg )
   uint32_t *outbuf = NULL;
   int result;
 
-  if (mti_GetSignalValue(ip->clk)==STD_LOGIC_1) { //rising_edge(clk)
+  if (mti_GetSignalValue(ip->clk)==STD_LOGIC_1 && !trn_rd_busy) { //rising_edge(clk)
     // check if a new command is available
     result = read(ip->sock, &tmpvar, sizeof(uint32_t)); // read 1 DW
     if (result == 0)  {   // terminate if 0 characters received
@@ -343,6 +352,7 @@ static void sockreader( void *arg )
           mti_ScheduleDriver(ip->rd_en, STD_LOGIC_1, 0, MTI_INERTIAL);
 
           fli_debug("%d CMD_READ_FROM_DEVICE(%x)\n", msgid, addr);
+          trn_rd_busy = 1;
           break;
 
         case CMD_WRITE_TO_DEVICE:
@@ -378,23 +388,30 @@ static void sockreader( void *arg )
           set_slv( ip->wr_len, (param & 0xffff), 10);
           fli_debug("%d CMD_WRITE_TO_DEVICE(%x, %d DWs)\n", 
               msgid, addr, msgsize);
+          trn_rd_busy = 1;
           break;
 
         case CMD_GET_TIME:
           if(msgsize!=2)
             mti_PrintMessage("FLI Warning: Illegal message size "
                 "for CMD_GET_TIME\n");
-          outbuf = (uint32_t *)mti_Malloc(3*sizeof(uint32_t));
+          outbuf = (uint32_t *)mti_Malloc(4*sizeof(uint32_t));
           if(!outbuf) {
             mti_PrintMessage("Failed to allocate outbuf memory\n");
             close_socket(&ip->sock);
             close_socket(&ip->sock_acc);
             mti_Break();
           }
-          outbuf[0] = (3<<16) + CMD_ACK_TIME;
+          uint64_t time = ((uint64_t)mti_NowUpper()<<32) + mti_Now();
+          int limit = mti_GetResolutionLimit();
+          // convert time to ns
+          time = time * pow(10.0, (limit + 9));
+
+          outbuf[0] = (4<<16) + CMD_ACK_TIME;
           outbuf[1] = msgid;
-          outbuf[2] = mti_Now(); //least significant 32bits
-          result = send(ip->sock, outbuf, 3*sizeof(uint32_t), 0);
+          outbuf[2] = ((time>>32) & 0xffffffff);//mti_NowUpper(); //most significant 32bits
+          outbuf[3] = (time & 0xffffffff);//mti_Now(); //least significant 32bits
+          result = send(ip->sock, outbuf, 4*sizeof(uint32_t), 0);
           if(result<0)
             mti_PrintMessage("ERROR: failed to send CMD_ACK_TIME\n");
           //fli_debug("%d CMD_GET_TIME: %d\n", msgid, outbuf[2]);
@@ -440,6 +457,7 @@ static void sockreader( void *arg )
           // send completion request
           mti_ScheduleDriver(ip->cmpl_en, STD_LOGIC_1, 0, MTI_INERTIAL);
 
+          trn_rd_busy = 1;
 
           break;
 
@@ -458,6 +476,18 @@ void dump_sockcmd(uint32_t *buf, uint32_t len)
   for(i=0; i<(len>>2); i++)
     fli_debug("%d: %08x\n", i, *(buf+i));
 }
+
+static void done_monitor( void *arg )
+{
+    inst_rec *ip = (inst_rec *)arg;
+    if( mti_GetSignalValue(ip->rd_done)==STD_LOGIC_1 ||
+            mti_GetSignalValue(ip->wr_done)==STD_LOGIC_1 ||
+            mti_GetSignalValue(ip->cmpl_done)==STD_LOGIC_1)
+    {
+      trn_rd_busy = 0;
+    }
+}
+
 
 
 /**

@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    bar->simSetPacketSize(32);
+    bar->simSetPacketSize(128);
 
     // check if firmware is HLT_OUT
     if( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
@@ -173,6 +173,11 @@ int main(int argc, char *argv[])
 
     /** Create event stream */
     uint64_t result = 0;
+    int refill[nChannels];
+    for( i=0; i<nChannels; i++ )
+    {
+        refill[i] = 1;
+    }
 
     /** Capture starting time */
     timeval start_time;
@@ -187,13 +192,17 @@ int main(int argc, char *argv[])
 
         for ( i=0; i<nChannels; i++ )
         {
-            uint32_t nevents =
-                generators[i].fillEventBuffer(opts[i].eventSize);
+            if( refill[i] )
+            {
+                uint32_t nevents =
+                    generators[i].fillEventBuffer(opts[i].eventSize);
 
-            if(nevents > 0)
-            { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents);}
+                if(nevents > 0)
+                { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents);}
+            }
 
             result = eventStream[i]->handleChannelData( (void*)&(checkers[i]) );
+            refill[i] = (result!=0) ? 1 : 0;
         }
 
         eventStream[0]->m_bar1->gettime(&current_time, 0);
@@ -228,8 +237,8 @@ int main(int argc, char *argv[])
         (
             eventStream[i]->m_channel_status,
             opts[i],
-            eventStream[i]->m_start_time,
-            eventStream[i]->m_end_time
+            start_time,
+            end_time
         );
 
         // wait until EL_FIFO runs empty

@@ -52,6 +52,7 @@ sim_bar::sim_bar
     pthread_mutex_init(&m_mtx, NULL);
 
     m_read_from_dev_done = 0;
+    m_read_time_done = 0;
     m_write_to_dev_done  = 0;
     m_max_packet_size = DEFAULT_PACKET_SIZE;
 
@@ -406,17 +407,17 @@ sim_bar::gettime
         }
 
         /** wait for FLI completion */
-        while( !m_read_from_dev_done )
+        while( !m_read_time_done )
         {
             usleep(USLEEP_TIME);
         }
 
-        uint32_t data = m_read_from_dev_data;
-        m_read_from_dev_done = 0;
+        uint64_t data = m_read_time_data;
+        m_read_time_done = 0;
 
-        /** mti_Now is in [ps] */
-        tv->tv_sec  = (data/1000/1000/1000/1000);
-        tv->tv_usec = (data/1000/1000)%1000000;
+        /** mti_Now is in [ns] */
+        tv->tv_sec  = (data/1000/1000/1000);
+        tv->tv_usec = (data/1000)%1000000;
         m_msgid++;
     }
     pthread_mutex_unlock(&m_mtx);
@@ -647,13 +648,14 @@ sim_bar::sockMonitor()
         uint16_t msgsize
     )
     {
-        if (msgsize!=3)
+        if (msgsize!=4)
         {
             cout << "ERROR: Invalid message size for CMD_ACK_TIME: "
                  << msgsize << endl;
         }
-        m_read_from_dev_data = readDWfromSock(m_sockfd);
-        m_read_from_dev_done = 1;
+        m_read_time_data = ((uint64_t)readDWfromSock(m_sockfd)<<32);
+        m_read_time_data += readDWfromSock(m_sockfd);
+        m_read_time_done = 1;
     }
 
 

@@ -345,7 +345,7 @@ namespace LIBRARY_NAME
                      m_reportBuffer
                  );
 
-                 m_bar1->simSetPacketSize(32);
+                 //m_bar1->simSetPacketSize(32);
                  m_channel->enable();
             }
             break;
