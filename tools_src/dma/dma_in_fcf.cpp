@@ -274,8 +274,8 @@ int main(int argc, char *argv[])
     (
         eventStream->m_channel_status,
         opts,
-        eventStream->m_start_time,
-        eventStream->m_end_time
+        start_time,
+        end_time
     );
 
     /** Cleanup */
