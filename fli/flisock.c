@@ -93,9 +93,10 @@
  * 	[payload] where payload consists of 1 DW
  *
  * * CMD_ACK_TIME
- * 	[short msgsize=3, short cmd=CMD_ACK_TIME]
+ * 	[short msgsize=4, short cmd=CMD_ACK_TIME]
  * 	[msgID]
- * 	[simulation time]
+ * 	[simulation time upper]
+ * 	[simulation time lower]
  *
  * * CMD_ACK_CMPL
  * 	[short msgsize=2, short cmd=CMD_ACK_TIME]
@@ -143,7 +144,6 @@ void fli_init(
 
   // allocate memory for ports
   ip = (inst_rec *)mti_Malloc(sizeof(inst_rec));  
-  fli_debug("malloc ip\n");
   if (ip==NULL) {
     mti_PrintMessage("Failed to alloc struct\n");
     close_socket(&ip->sock);
@@ -255,11 +255,11 @@ void restartCallback(void *param)  // User types quit/restart
   rx_frame64 = 0;
   rx_frame32 = 0;
   rx_dvld = 0;
+  trn_rd_busy = 0;
   buffer = NULL;
   close_socket(&ip->sock);
   close_socket(&ip->sock_acc);
   mti_Free(param);
-  fli_debug("free param\n");
 }
 
 
@@ -616,7 +616,7 @@ static void trn_monitor( void *arg )
 
         } else if (mti_GetSignalValue(ip->teof_n)==STD_LOGIC_0) {
           // send data
-          dump_sockcmd(buffer, buffer_size);
+          //dump_sockcmd(buffer, buffer_size);
           result = send(ip->sock, buffer, buffer_size, 0);
           if(result<0)
             mti_PrintMessage("ERROR: failed to send CMD_WRITE_TO_HOST\n");
@@ -641,7 +641,6 @@ static void trn_monitor( void *arg )
             // [msgsize,cmd][msgID][addr_high][addr_low][rx_ndw*DW]
             buffer_size = (rx_ndw+4)*sizeof(uint32_t);
             buffer = (uint32_t *)mti_Malloc( buffer_size );
-            fli_debug("malloc buffer 605\n");
             buffer_ptr = (uint8_t *)buffer;
             if (!buffer) {
               perror("dma_monitor: malloc buffer");
@@ -667,7 +666,6 @@ static void trn_monitor( void *arg )
             // [msgsize,cmd][msgID][addr_high][addr_low][rx_ndw*DW]
             buffer_size = (rx_ndw+4)*sizeof(uint32_t);
             buffer = (uint32_t *)mti_Malloc( buffer_size );
-            fli_debug("malloc buffer\n");
             buffer_ptr = (uint8_t *)buffer;
             if (!buffer) {
               perror("dma_monitor: malloc buffer 634");
@@ -698,7 +696,6 @@ static void trn_monitor( void *arg )
             // [msgsize,cmd][msgID][addr_high][addr_low][ReqID][params]
             buffer_size = 6*sizeof(uint32_t);
             buffer = (uint32_t *)mti_Malloc( buffer_size );
-            fli_debug("malloc buffer 662\n");
             buffer_ptr = (uint8_t *)buffer;
             if (!buffer) {
               perror("dma_monitor: malloc buffer");
@@ -722,7 +719,7 @@ static void trn_monitor( void *arg )
                 rx_ndw, rx_addr);
 
             // send request to host
-            dump_sockcmd(buffer, buffer_size);
+            //dump_sockcmd(buffer, buffer_size);
             result = send(ip->sock, buffer, buffer_size, 0);
             if(result<0)
               mti_PrintMessage("ERROR: failed to send "
@@ -734,7 +731,6 @@ static void trn_monitor( void *arg )
             // [msgsize,cmd][msgID][addr_high][addr_low][ReqID][params]
             buffer_size = 6*sizeof(uint32_t);
             buffer = (uint32_t *)mti_Malloc( buffer_size );
-            fli_debug("malloc buffer 697\n");
             buffer_ptr = (uint8_t *)buffer;
             if (!buffer) {
               perror("dma_monitor: malloc buffer");
@@ -758,7 +754,7 @@ static void trn_monitor( void *arg )
                 buffer[5], buffer[3]);
 
             // send request to host
-            dump_sockcmd(buffer, buffer_size);
+            //dump_sockcmd(buffer, buffer_size);
             result = send(ip->sock, buffer, buffer_size, 0);
             if(result<0)
               mti_PrintMessage("ERROR: failed to send "
@@ -776,7 +772,6 @@ static void trn_monitor( void *arg )
                   rx_ndw);
             lbufsize = 4*sizeof(uint32_t);
             lbuf = (uint32_t *)mti_Malloc( lbufsize );
-            fli_debug("malloc lbuf 736\n");
             buffer_ptr = (uint8_t *)lbuf;
             if (!lbuf) {
               perror("dma_monitor: malloc lbuf");
@@ -793,14 +788,13 @@ static void trn_monitor( void *arg )
             lbuf[3] = (uint32_t)(byte_reorder(rx_data) >> 32);
 
             mti_ScheduleDriver( ip->rd_en, STD_LOGIC_0, 0, MTI_INERTIAL );
-            dump_sockcmd(lbuf, lbufsize);
+            //dump_sockcmd(lbuf, lbufsize);
             result = send(ip->sock, lbuf, lbufsize, 0);
             if(result<0)
               mti_PrintFormatted("failed to send CMD_CMPL_TO_HOST\n");
             fli_debug("%d FLI CMD %d served: %lx\n", 
                 mti_Now(), msgid, lbuf[3]);
             mti_Free(lbuf);
-            fli_debug("free lbuf 759\n");
             break;
 
 
@@ -817,7 +811,6 @@ static void trn_monitor( void *arg )
       // [msgsize,cmd][msgID]
       lbufsize = 2*sizeof(uint32_t);
       lbuf = (uint32_t *)mti_Malloc( lbufsize );
-      fli_debug("malloc lbuf 776\n");
       if (!lbuf) {
         perror("trn_monitor: malloc CMD_ACK_WRITE lbuf");
         close_socket(&ip->sock);
@@ -835,7 +828,6 @@ static void trn_monitor( void *arg )
         if(result<0)
           mti_PrintFormatted("ERROR: failed to send CMD_ACK_WRITE\n");
         mti_Free(lbuf);
-        fli_debug("free lbuf 794\n");
         fli_debug("%d FLI CMD %d served\n", mti_Now(), msgid);
       }
     } //wr_done
@@ -846,7 +838,6 @@ static void trn_monitor( void *arg )
       // [msgsize,cmd][msgID]
       lbufsize = 2*sizeof(uint32_t);
       lbuf = (uint32_t *)mti_Malloc( lbufsize );
-      fli_debug("malloc lbuf 805\n");
       if (!lbuf) {
         perror("trn_monitor: malloc CMD_ACK_CMPL lbuf");
         close_socket(&ip->sock);
@@ -864,7 +855,6 @@ static void trn_monitor( void *arg )
         if(result<0)
           mti_PrintFormatted("ERROR: failed to send CMD_ACK_CMPL\n");
         mti_Free(lbuf);
-        fli_debug("free lbuf 823\n");
         fli_debug("%d FLI CMD_ACK_CMPL %d served\n", mti_Now(), msgid);
       }
     } //cmpl_done
