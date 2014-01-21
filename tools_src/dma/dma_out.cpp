@@ -100,10 +100,6 @@ int main( int argc, char *argv[])
     timeval last_time = start_time;
     timeval cur_time  = start_time;
 
-    uint64_t last_bytes_received  = 0;
-    uint64_t last_events_received = 0;
-    uint64_t number_of_events     = 0;
-
     librorc::event_sanity_checker checker =
         (opts.useRefFile)
         ?
@@ -127,6 +123,9 @@ int main( int argc, char *argv[])
             )
         ;
 
+    uint64_t last_bytes_received  = 0;
+    uint64_t last_events_received = 0;
+    uint64_t number_of_events     = 0;
     /** wait for RB entry */
     while(!eventStream->m_done)
     {
@@ -268,12 +267,11 @@ handle_channel_data
     librorc::event_sanity_checker *checker
 )
 {
-    uint64_t events_processed = 0;
-
     librorc_event_descriptor *raw_report_buffer =
         (librorc_event_descriptor *)(rbuf->getMem());
 
     // new event received
+    uint64_t events_processed = 0;
     if( raw_report_buffer[stats->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
