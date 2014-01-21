@@ -270,7 +270,6 @@ int handle_channel_data
 )
 {
     int      events_processed     = 0;
-    uint64_t entrysize            = 0;
     librorc_event_descriptor rb;
     uint64_t EventID = 0;
 
@@ -343,8 +342,7 @@ int handle_channel_data
         }
 
         // clear processed reportbuffer entries
-        entrysize = sizeof(librorc_event_descriptor);
-        memset(&raw_report_buffer[start_index], 0, events_per_iteration*entrysize);
+        memset(&raw_report_buffer[start_index], 0, events_per_iteration*sizeof(librorc_event_descriptor));
 
         // update min/max statistics on how many events have been received
         // in the above while-loop
