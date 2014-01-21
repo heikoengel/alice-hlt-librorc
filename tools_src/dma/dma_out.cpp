@@ -271,7 +271,6 @@ int handle_channel_data
 {
     int      events_processed     = 0;
     librorc_event_descriptor rb;
-    uint64_t EventID = 0;
 
     librorc_event_descriptor *raw_report_buffer =
         (librorc_event_descriptor *)(rbuf->getMem());
@@ -296,6 +295,7 @@ int handle_channel_data
             {
                 rb = raw_report_buffer[stats->index];
 
+                uint64_t EventID ;
                 try
                 { EventID = checker->check(raw_report_buffer, stats); }
                 catch( int error )
