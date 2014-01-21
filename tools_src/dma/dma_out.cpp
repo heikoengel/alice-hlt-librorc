@@ -269,8 +269,7 @@ int handle_channel_data
     librorc::event_sanity_checker *checker
 )
 {
-    int      events_processed     = 0;
-    librorc_event_descriptor rb;
+    int events_processed = 0;
 
     librorc_event_descriptor *raw_report_buffer =
         (librorc_event_descriptor *)(rbuf->getMem());
@@ -293,8 +292,6 @@ int handle_channel_data
             // perform validity tests on the received data (if enabled)
             if(do_sanity_check)
             {
-                rb = raw_report_buffer[stats->index];
-
                 uint64_t EventID ;
                 try
                 { EventID = checker->check(raw_report_buffer, stats); }
