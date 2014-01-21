@@ -271,11 +271,9 @@ int handle_channel_data
     librorc::event_sanity_checker *checker
 )
 {
-    uint64_t events_per_iteration = 0;
     int      events_processed     = 0;
-    uint64_t eboffset             = 0;
-    uint64_t rboffset             = 0;
-    uint64_t starting_index, entrysize;
+    uint64_t starting_index       = 0;
+    uint64_t entrysize            = 0;
     librorc_event_descriptor rb;
     uint64_t EventID = 0;
 
@@ -289,13 +287,16 @@ int handle_channel_data
         starting_index = stats->index;
 
         // handle all following entries
+        uint64_t events_per_iteration = 0;
+        uint64_t report_buffer_offset = 0;
+        uint64_t event_buffer_offset  = 0;
         while( raw_report_buffer[stats->index].calc_event_size!=0 )
         {
             // increment number of events processed in this interation
             events_processed++;
 
             // perform validity tests on the received data (if enabled)
-            if (do_sanity_check)
+            if(do_sanity_check)
             {
                 rb = raw_report_buffer[stats->index];
 
@@ -325,10 +326,10 @@ int handle_channel_data
                 (raw_report_buffer[stats->index].calc_event_size<<2);
 
             // save new EBOffset
-            eboffset = raw_report_buffer[stats->index].offset;
+            event_buffer_offset = raw_report_buffer[stats->index].offset;
 
             // increment reportbuffer offset
-            rboffset = ((stats->index)*
+            report_buffer_offset = ((stats->index)*
                 sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
 
             // wrap RB index if necessary
@@ -359,15 +360,15 @@ int handle_channel_data
         events_per_iteration = 0;
         stats->set_offset_count++;
 
-        channel->setBufferOffsetsOnDevice(eboffset, rboffset);
+        channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
         DEBUG_PRINTF
         (
             PDADEBUG_CONTROL_FLOW,
             "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
             stats->channel,
-            rboffset,
-            eboffset
+            report_buffer_offset,
+            event_buffer_offset
         );
     }
 
