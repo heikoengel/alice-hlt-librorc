@@ -26,7 +26,8 @@
 
 using namespace std;
 
-int handle_channel_data
+uint64_t
+handle_channel_data
 (
     librorc::buffer      *rbuf,
     librorc::buffer      *ebuf,
@@ -127,7 +128,6 @@ int main( int argc, char *argv[])
         ;
 
     /** wait for RB entry */
-    int result = 0;
     while(!eventStream->m_done)
     {
         number_of_events = eventGen.fillEventBuffer(opts.eventSize);
@@ -135,7 +135,8 @@ int main( int argc, char *argv[])
         if( number_of_events > 0 )
         { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
 
-        result =
+        if
+        (
             handle_channel_data
             (
                 eventStream->m_reportBuffer,
@@ -146,9 +147,8 @@ int main( int argc, char *argv[])
                 NULL, // no DDL reference file
                 0, //DDL reference size
                 &checker
-             );
-
-        if(result==0)
+             ) == 0
+        )
         { usleep(100); }
 
         eventStream->m_bar1->gettime(&cur_time, 0);
@@ -237,7 +237,7 @@ int main( int argc, char *argv[])
     if(eventStream)
     { delete eventStream; }
 
-    return result;
+    return 1;
 }
 
 
@@ -255,7 +255,7 @@ int main( int argc, char *argv[])
  * received data. See CHK_* defines above.
  * @return number of events processed
  **/
-int
+uint64_t
 handle_channel_data
 (
     librorc::buffer               *rbuf,
@@ -268,7 +268,7 @@ handle_channel_data
     librorc::event_sanity_checker *checker
 )
 {
-    int events_processed = 0;
+    uint64_t events_processed = 0;
 
     librorc_event_descriptor *raw_report_buffer =
         (librorc_event_descriptor *)(rbuf->getMem());
