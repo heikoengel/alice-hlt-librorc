@@ -101,9 +101,7 @@ int main( int argc, char *argv[])
 
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
-
-    int result = 0;
-    uint64_t number_of_events;
+    uint64_t number_of_events     = 0;
 
     librorc::event_sanity_checker checker =
         (opts.useRefFile)
@@ -129,6 +127,7 @@ int main( int argc, char *argv[])
         ;
 
     /** wait for RB entry */
+    int result = 0;
     while(!eventStream->m_done)
     {
         number_of_events = eventGen.fillEventBuffer(opts.eventSize);
@@ -149,18 +148,14 @@ int main( int argc, char *argv[])
                 &checker
              );
 
-        if (result<0)
-        {
-            printf("handle_channel_data failed for channel %d\n",
-                    opts.channelId);
-        }
-        else if(result==0)
+        if(result==0)
         { usleep(100); }
 
         eventStream->m_bar1->gettime(&cur_time, 0);
 
         // print status line each second
-        if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL) {
+        if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
+        {
             printf("Events OUT: %10ld, Size: %8.3f GB",
                     eventStream->m_channel_status->n_events,
                     (double)eventStream->m_channel_status->bytes_received/(double)(1<<30));
@@ -170,18 +165,19 @@ int main( int argc, char *argv[])
                 printf(" Rate: %9.3f MB/s",
                         (double)(eventStream->m_channel_status->bytes_received-last_bytes_received)/
                         gettimeofdayDiff(last_time, cur_time)/(double)(1<<20));
-            } else {
-                printf(" Rate: -");
             }
+            else
+            { printf(" Rate: -"); }
 
             if(eventStream->m_channel_status->n_events - last_events_received)
             {
                 printf(" (%.3f kHz)",
                         (double)(eventStream->m_channel_status->n_events-last_events_received)/
                         gettimeofdayDiff(last_time, cur_time)/1000.0);
-            } else {
-                printf(" ( - )");
             }
+            else
+            { printf(" ( - )"); }
+
             printf(" Errors: %ld\n", eventStream->m_channel_status->error_count);
             last_time = cur_time;
             last_bytes_received  = eventStream->m_channel_status->bytes_received;
@@ -202,9 +198,10 @@ int main( int argc, char *argv[])
             ((float)eventStream->m_channel_status->bytes_received/
                     gettimeofdayDiff(start_time, end_time))/(float)(1<<20) );
 
-    if(!eventStream->m_channel_status->set_offset_count) //avoid DivByZero Exception
-        printf("CH%d: No Events\n", opts.channelId);
+    if(!eventStream->m_channel_status->set_offset_count)
+    { printf("CH%d: No Events\n", opts.channelId); }
     else
+    {
         printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
                 "avg_epi=%ld, set_offset_count=%ld\n", opts.channelId,
                 eventStream->m_channel_status->n_events,
@@ -212,6 +209,7 @@ int main( int argc, char *argv[])
                 eventStream->m_channel_status->min_epi,
                 eventStream->m_channel_status->n_events/eventStream->m_channel_status->set_offset_count,
                 eventStream->m_channel_status->set_offset_count);
+    }
 
     // wait until EL_FIFO runs empty
     // TODO: add timeout
@@ -257,15 +255,16 @@ int main( int argc, char *argv[])
  * received data. See CHK_* defines above.
  * @return number of events processed
  **/
-int handle_channel_data
+int
+handle_channel_data
 (
-    librorc::buffer      *rbuf,
-    librorc::buffer      *ebuf,
-    librorc::dma_channel *channel,
-    librorcChannelStatus *stats,
-    int                   do_sanity_check,
-    bool                  ddl_reference_is_enabled,
-    char                 *ddl_path,
+    librorc::buffer               *rbuf,
+    librorc::buffer               *ebuf,
+    librorc::dma_channel          *channel,
+    librorcChannelStatus          *stats,
+    int                            do_sanity_check,
+    bool                           ddl_reference_is_enabled,
+    char                          *ddl_path,
     librorc::event_sanity_checker *checker
 )
 {
@@ -322,8 +321,8 @@ int handle_channel_data
             event_buffer_offset = raw_report_buffer[stats->index].offset;
 
             // increment reportbuffer offset
-            report_buffer_offset = ((stats->index)*
-                sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
+            report_buffer_offset =
+                    ((stats->index) * sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
 
             // wrap RB index if necessary
             if( stats->index < (rbuf->getMaxRBEntries()-1) )
