@@ -237,9 +237,7 @@ int main( int argc, char *argv[])
 
 
     if(eventStream)
-    {
-        delete eventStream;
-    }
+    { delete eventStream; }
 
     return result;
 }
@@ -272,7 +270,6 @@ int handle_channel_data
 )
 {
     int      events_processed     = 0;
-    uint64_t starting_index       = 0;
     uint64_t entrysize            = 0;
     librorc_event_descriptor rb;
     uint64_t EventID = 0;
@@ -284,7 +281,7 @@ int handle_channel_data
     if( raw_report_buffer[stats->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
-        starting_index = stats->index;
+        uint64_t start_index = stats->index;
 
         // handle all following entries
         uint64_t events_per_iteration = 0;
@@ -347,7 +344,7 @@ int handle_channel_data
 
         // clear processed reportbuffer entries
         entrysize = sizeof(librorc_event_descriptor);
-        memset(&raw_report_buffer[starting_index], 0, events_per_iteration*entrysize);
+        memset(&raw_report_buffer[start_index], 0, events_per_iteration*entrysize);
 
         // update min/max statistics on how many events have been received
         // in the above while-loop
