@@ -42,7 +42,40 @@ handle_channel_data
 
 DMA_ABORT_HANDLER
 
+void
+printSummary
+(
+    const timeval& start_time,
+    const timeval& end_time,
+    DMAOptions opts
+)
+{
+    printf
+    (
+        "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
+        (eventStream->m_channel_status->bytes_received),
+        eventStream->m_channel_status->n_events,
+        gettimeofdayDiff(start_time, end_time),
+        ((float) (eventStream->m_channel_status->bytes_received) / gettimeofdayDiff(start_time, end_time)) /
+        (float) ((1 << 20))
+    );
 
+    if(!eventStream->m_channel_status->set_offset_count)
+    { printf("CH%d: No Events\n", opts.channelId); }
+    else
+    {
+        printf
+        (
+            "CH%d: Events %ld, max_epi=%ld, min_epi=%ld, avg_epi=%ld, set_offset_count=%ld\n",
+            opts.channelId,
+            eventStream->m_channel_status->n_events,
+            eventStream->m_channel_status->max_epi,
+            eventStream->m_channel_status->min_epi,
+            eventStream->m_channel_status->n_events / eventStream->m_channel_status->set_offset_count,
+            eventStream->m_channel_status->set_offset_count
+        );
+    }
+}
 
 int main( int argc, char *argv[])
 {
@@ -189,26 +222,7 @@ int main( int argc, char *argv[])
     timeval end_time;
     eventStream->m_bar1->gettime(&end_time, 0);
 
-    // print summary
-    printf("%ld Byte / %ld events in %.2f sec"
-            "-> %.1f MB/s.\n",
-            (eventStream->m_channel_status->bytes_received), eventStream->m_channel_status->n_events,
-            gettimeofdayDiff(start_time, end_time),
-            ((float)eventStream->m_channel_status->bytes_received/
-                    gettimeofdayDiff(start_time, end_time))/(float)(1<<20) );
-
-    if(!eventStream->m_channel_status->set_offset_count)
-    { printf("CH%d: No Events\n", opts.channelId); }
-    else
-    {
-        printf("CH%d: Events %ld, max_epi=%ld, min_epi=%ld, "
-                "avg_epi=%ld, set_offset_count=%ld\n", opts.channelId,
-                eventStream->m_channel_status->n_events,
-                eventStream->m_channel_status->max_epi,
-                eventStream->m_channel_status->min_epi,
-                eventStream->m_channel_status->n_events/eventStream->m_channel_status->set_offset_count,
-                eventStream->m_channel_status->set_offset_count);
-    }
+    printSummary(start_time, end_time, opts);
 
     // wait until EL_FIFO runs empty
     // TODO: add timeout
@@ -232,9 +246,7 @@ int main( int argc, char *argv[])
     // clear reportbuffer
     memset(eventStream->m_reportBuffer->getMem(), 0, eventStream->m_reportBuffer->getMappingSize());
 
-
-    if(eventStream)
-    { delete eventStream; }
+    delete eventStream;
 
     return 1;
 }
