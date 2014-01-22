@@ -59,7 +59,7 @@ librorc::event_stream *prepareEventStream(DMAOptions opts);
 librorc::event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
 #endif
 
-void
+uint64_t
 printStatusLine
 (
     timeval               last_time,

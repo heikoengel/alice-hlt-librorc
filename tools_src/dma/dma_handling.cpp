@@ -189,7 +189,7 @@ prepareEventStream
 
 
 
-void
+uint64_t
 printStatusLine
 (
     timeval               last_time,
@@ -235,6 +235,8 @@ printStatusLine
 
         printf(" Errors: %ld\n", channel_status->error_count);
     }
+
+    return 0;
 }
 
 

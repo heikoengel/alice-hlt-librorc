@@ -68,15 +68,14 @@ int main(int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    librorc_event_callback event_callback = eventCallBack;
-
     eventStream = prepareEventStream(opts);
     if( !eventStream )
     { exit(-1); }
 
     eventStream->printDeviceStatus();
 
-    eventStream->setEventCallback(event_callback);
+    eventStream->setEventCallback(eventCallBack);
+    eventStream->setStatusCallback(printStatusLine);
 
     /** make clear what will be checked*/
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
