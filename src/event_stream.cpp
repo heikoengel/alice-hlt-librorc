@@ -402,7 +402,18 @@ namespace LIBRARY_NAME
         { cout << "Firmware Rev. and Date not available!" << endl; }
     }
 
-
+    void statusCallback
+    (
+        timeval               last_time,
+        timeval               current_time,
+        librorcChannelStatus *channel_status,
+        uint64_t              last_events_received,
+        uint64_t              last_bytes_received
+    )
+    {
+        printStatusLine(last_time, current_time, channel_status,
+                last_events_received, last_bytes_received);
+    }
 
     uint64_t
     event_stream::eventLoop
@@ -428,14 +439,8 @@ namespace LIBRARY_NAME
             if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
             {
                 //here we need a callback
-                printStatusLine
-                (
-                    m_last_time,
-                    m_current_time,
-                    m_channel_status,
-                    m_last_events_received,
-                    m_last_bytes_received
-                );
+                statusCallback(m_last_time, m_current_time, m_channel_status,
+                        m_last_events_received, m_last_bytes_received);
 
                 m_last_bytes_received  = m_channel_status->bytes_received;
                 m_last_events_received = m_channel_status->n_events;
@@ -506,7 +511,7 @@ namespace LIBRARY_NAME
 
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
-                    : 0;
+                    : 1;
 
                 if(ret != 0)
                 { abort(); }
