@@ -69,7 +69,7 @@ typedef uint64_t (*librorc_status_callback)
 (
     timeval,
     timeval,
-    librorcChannelStatus,
+    librorcChannelStatus*,
     uint64_t,
     uint64_t
 );

@@ -33,7 +33,7 @@
 #include <librorc/event_sanity_checker.hh>
 
 
-//TODO: WTF!!!! why is this still the very old version?
+
 void
 printStatusLine
 (
@@ -143,10 +143,10 @@ namespace LIBRARY_NAME
         LibrorcEsType    esType
     )
     {
-        m_dev = dev;
-        m_bar1 = bar;
-        m_eventSize = eventSize;
-        m_deviceId = dev->getDeviceId();
+        m_dev             = dev;
+        m_bar1            = bar;
+        m_eventSize       = eventSize;
+        m_deviceId        = dev->getDeviceId();
         m_called_with_bar = true;
 
         generateDMAChannel(m_deviceId, channelId, esType);
@@ -273,6 +273,7 @@ namespace LIBRARY_NAME
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done             = false;
             m_event_callback   = NULL;
+            m_status_callback  = NULL;
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
@@ -439,8 +440,9 @@ namespace LIBRARY_NAME
             if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
             {
                 //here we need a callback
-                statusCallback(m_last_time, m_current_time, m_channel_status,
-                        m_last_events_received, m_last_bytes_received);
+                m_status_callback
+                ? m_status_callback(m_last_time, m_current_time, m_channel_status, m_last_events_received, m_last_bytes_received)
+                : 0;
 
                 m_last_bytes_received  = m_channel_status->bytes_received;
                 m_last_events_received = m_channel_status->n_events;
