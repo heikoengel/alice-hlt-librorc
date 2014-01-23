@@ -460,7 +460,10 @@ namespace LIBRARY_NAME
                     : 1;
 
                 if(ret != 0)
-                { abort(); }
+                {
+                    cout << "Event Callback is set!" << endl;
+                    abort();
+                }
 
                 m_channel_status->last_id = event_id;
 

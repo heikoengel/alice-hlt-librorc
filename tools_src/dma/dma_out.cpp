@@ -79,6 +79,8 @@ int main( int argc, char *argv[])
 
     eventStream->printDeviceStatus();
 
+    eventStream->setEventCallback(eventCallBack);
+
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
     { sanity_check_mask |= CHK_FILE; }
