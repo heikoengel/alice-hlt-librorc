@@ -236,8 +236,8 @@ int main( int argc, char *argv[])
 uint64_t
 handle_channel_data
 (
-    librorc::buffer               *rbuf,
-    librorc::buffer               *ebuf,
+    librorc::buffer               *m_reportBuffer,
+    librorc::buffer               *m_eventBuffer,
     librorc::dma_channel          *channel,
     librorcChannelStatus          *m_channel_status,
     int                            do_sanity_check,
@@ -247,7 +247,7 @@ handle_channel_data
 )
 {
     librorc_event_descriptor *raw_report_buffer =
-        (librorc_event_descriptor *)(rbuf->getMem());
+        (librorc_event_descriptor *)(m_reportBuffer->getMem());
 
     // new event received
     uint64_t events_processed = 0;
@@ -299,11 +299,11 @@ handle_channel_data
 
             // increment reportbuffer offset
             report_buffer_offset =
-                    ((m_channel_status->index) * sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
+                    ((m_channel_status->index) * sizeof(librorc_event_descriptor)) % m_reportBuffer->getPhysicalSize();
 
             // wrap RB index if necessary
             m_channel_status->index
-                = (m_channel_status->index < rbuf->getMaxRBEntries()-1)
+                = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
                 ? (m_channel_status->index+1) : 0;
 
             //increment total number of events received
