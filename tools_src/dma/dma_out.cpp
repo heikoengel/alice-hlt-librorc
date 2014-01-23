@@ -302,10 +302,9 @@ handle_channel_data
                     ((stats->index) * sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
 
             // wrap RB index if necessary
-            if( stats->index < (rbuf->getMaxRBEntries()-1) )
-            { stats->index++; }
-            else
-            { stats->index=0; }
+            stats->index
+                = (stats->index < rbuf->getMaxRBEntries()-1)
+                ? (stats->index+1) : 0;
 
             //increment total number of events received
             stats->n_events++;
