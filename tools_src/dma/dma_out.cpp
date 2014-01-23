@@ -277,19 +277,6 @@ handle_channel_data
                 m_channel_status->last_id = EventID;
             }
 
-            DEBUG_PRINTF
-            (
-                PDADEBUG_CONTROL_FLOW,
-                "CH%2d - RB[%3ld]: calc_size=%08x\t"
-                "reported_size=%08x\t"
-                "offset=%lx\n",
-                m_channel_status->channel,
-                m_channel_status->index,
-                raw_report_buffer[m_channel_status->index].calc_event_size,
-                raw_report_buffer[m_channel_status->index].reported_event_size,
-                raw_report_buffer[m_channel_status->index].offset
-            );
-
             // increment the number of bytes received
             m_channel_status->bytes_received +=
                 (raw_report_buffer[m_channel_status->index].calc_event_size<<2);
@@ -298,8 +285,9 @@ handle_channel_data
             event_buffer_offset = raw_report_buffer[m_channel_status->index].offset;
 
             // increment reportbuffer offset
-            report_buffer_offset =
-                    ((m_channel_status->index) * sizeof(librorc_event_descriptor)) % m_reportBuffer->getPhysicalSize();
+            report_buffer_offset
+                = ((m_channel_status->index) * sizeof(librorc_event_descriptor))
+                % m_reportBuffer->getPhysicalSize();
 
             // wrap RB index if necessary
             m_channel_status->index
