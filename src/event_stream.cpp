@@ -429,10 +429,7 @@ namespace LIBRARY_NAME
 
 
     uint64_t
-    event_stream::handleChannelData
-    (
-        void *user_data
-    )
+    event_stream::handleChannelData(void *user_data)
     {
         librorc_event_descriptor *reports
             = (librorc_event_descriptor*)m_reportBuffer->getMem();
