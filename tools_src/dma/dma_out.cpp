@@ -82,12 +82,6 @@ int main( int argc, char *argv[])
         eventStream->m_channel
     );
 
-    /** capture starting time */
-    timeval start_time;
-    eventStream->m_bar1->gettime(&start_time, 0);
-    timeval last_time = start_time;
-    timeval cur_time  = start_time;
-
     librorc::event_sanity_checker checker =
         (opts.useRefFile)
         ?
@@ -110,6 +104,12 @@ int main( int argc, char *argv[])
                 logdirectory
             )
         ;
+
+    /** capture starting time */
+    timeval start_time;
+    eventStream->m_bar1->gettime(&start_time, 0);
+    timeval last_time = start_time;
+    timeval cur_time  = start_time;
 
     uint64_t last_bytes_received  = 0;
     uint64_t last_events_received = 0;
