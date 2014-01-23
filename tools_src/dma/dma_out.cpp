@@ -239,7 +239,7 @@ handle_channel_data
     librorc::buffer               *rbuf,
     librorc::buffer               *ebuf,
     librorc::dma_channel          *channel,
-    librorcChannelStatus          *stats,
+    librorcChannelStatus          *m_channel_status,
     int                            do_sanity_check,
     bool                           ddl_reference_is_enabled,
     char                          *ddl_path,
@@ -251,16 +251,16 @@ handle_channel_data
 
     // new event received
     uint64_t events_processed = 0;
-    if( raw_report_buffer[stats->index].calc_event_size!=0 )
+    if( raw_report_buffer[m_channel_status->index].calc_event_size!=0 )
     {
         // capture index of the first found reportbuffer entry
-        uint64_t start_index = stats->index;
+        uint64_t start_index = m_channel_status->index;
 
         // handle all following entries
         uint64_t events_per_iteration = 0;
         uint64_t report_buffer_offset = 0;
         uint64_t event_buffer_offset  = 0;
-        while( raw_report_buffer[stats->index].calc_event_size!=0 )
+        while( raw_report_buffer[m_channel_status->index].calc_event_size!=0 )
         {
             // increment number of events processed in this interation
             events_processed++;
@@ -270,11 +270,11 @@ handle_channel_data
             {
                 uint64_t EventID ;
                 try
-                { EventID = checker->check(raw_report_buffer, stats); }
+                { EventID = checker->check(raw_report_buffer, m_channel_status); }
                 catch( int error )
                 { abort(); }
 
-                stats->last_id = EventID;
+                m_channel_status->last_id = EventID;
             }
 
             DEBUG_PRINTF
@@ -283,31 +283,31 @@ handle_channel_data
                 "CH%2d - RB[%3ld]: calc_size=%08x\t"
                 "reported_size=%08x\t"
                 "offset=%lx\n",
-                stats->channel,
-                stats->index,
-                raw_report_buffer[stats->index].calc_event_size,
-                raw_report_buffer[stats->index].reported_event_size,
-                raw_report_buffer[stats->index].offset
+                m_channel_status->channel,
+                m_channel_status->index,
+                raw_report_buffer[m_channel_status->index].calc_event_size,
+                raw_report_buffer[m_channel_status->index].reported_event_size,
+                raw_report_buffer[m_channel_status->index].offset
             );
 
             // increment the number of bytes received
-            stats->bytes_received +=
-                (raw_report_buffer[stats->index].calc_event_size<<2);
+            m_channel_status->bytes_received +=
+                (raw_report_buffer[m_channel_status->index].calc_event_size<<2);
 
             // save new EBOffset
-            event_buffer_offset = raw_report_buffer[stats->index].offset;
+            event_buffer_offset = raw_report_buffer[m_channel_status->index].offset;
 
             // increment reportbuffer offset
             report_buffer_offset =
-                    ((stats->index) * sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
+                    ((m_channel_status->index) * sizeof(librorc_event_descriptor)) % rbuf->getPhysicalSize();
 
             // wrap RB index if necessary
-            stats->index
-                = (stats->index < rbuf->getMaxRBEntries()-1)
-                ? (stats->index+1) : 0;
+            m_channel_status->index
+                = (m_channel_status->index < rbuf->getMaxRBEntries()-1)
+                ? (m_channel_status->index+1) : 0;
 
             //increment total number of events received
-            stats->n_events++;
+            m_channel_status->n_events++;
 
             //increment number of events processed in this while-loop
             events_per_iteration++;
@@ -318,14 +318,14 @@ handle_channel_data
 
         // update min/max statistics on how many events have been received
         // in the above while-loop
-        if(events_per_iteration > stats->max_epi)
-        { stats->max_epi = events_per_iteration; }
+        if(events_per_iteration > m_channel_status->max_epi)
+        { m_channel_status->max_epi = events_per_iteration; }
 
-        if(events_per_iteration < stats->min_epi)
-        { stats->min_epi = events_per_iteration; }
+        if(events_per_iteration < m_channel_status->min_epi)
+        { m_channel_status->min_epi = events_per_iteration; }
 
         events_per_iteration = 0;
-        stats->set_offset_count++;
+        m_channel_status->set_offset_count++;
 
         channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
@@ -333,7 +333,7 @@ handle_channel_data
         (
             PDADEBUG_CONTROL_FLOW,
             "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
-            stats->channel,
+            m_channel_status->channel,
             report_buffer_offset,
             event_buffer_offset
         );
