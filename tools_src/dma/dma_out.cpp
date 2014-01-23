@@ -21,12 +21,10 @@
 
 #include <librorc.h>
 #include <event_generation.h>
+
 #include "dma_handling.hh"
 
-
 using namespace std;
-
-
 
 DMA_ABORT_HANDLER
 
