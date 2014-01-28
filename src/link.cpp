@@ -482,7 +482,7 @@ namespace LIBRARY_NAME
     {
         uint32_t result = waitForDiuStatusWord(RORC_REG_DDL_CTSTW);
 
-        if (result==0xffffffff)
+        if(result==0xffffffff)
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "Timeout waiting for DDL "

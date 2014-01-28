@@ -59,7 +59,17 @@ librorc::event_stream *prepareEventStream(DMAOptions opts);
 librorc::event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
 #endif
 
-void
+uint64_t
+eventCallBack
+(
+    void                     *userdata,
+    uint64_t                  event_id,
+    librorc_event_descriptor  report,
+    const uint32_t           *event,
+    librorcChannelStatus     *channel_status
+);
+
+uint64_t
 printStatusLine
 (
     timeval               last_time,

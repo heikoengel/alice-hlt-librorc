@@ -39,23 +39,6 @@ void abort_handler( int s )                                          \
     { done = true; }                     \
 }
 
-uint64_t
-eventCallBack
-(
-    void                     *userdata,
-    uint64_t                  event_id,
-    librorc_event_descriptor  report,
-    const uint32_t           *event,
-    librorcChannelStatus     *channel_status
-)
-{
-    librorc::event_sanity_checker *checker = (librorc::event_sanity_checker*)userdata;
-
-    try{ checker->check(report, channel_status, event_id); }
-    catch(...){ abort(); }
-    return 0;
-}
-
 
 
 int main(int argc, char *argv[])

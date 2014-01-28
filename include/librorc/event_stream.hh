@@ -65,6 +65,14 @@ typedef uint64_t (*librorc_event_callback)
     librorcChannelStatus*
 );
 
+typedef uint64_t (*librorc_status_callback)
+(
+    timeval,
+    timeval,
+    librorcChannelStatus*,
+    uint64_t,
+    uint64_t
+);
 
 
 namespace LIBRARY_NAME
@@ -124,9 +132,11 @@ class event_sanity_checker;
 
             void
             setEventCallback(librorc_event_callback event_callback)
-            {
-                m_event_callback = event_callback;
-            }
+            { m_event_callback = event_callback; }
+
+            void
+            setStatusCallback(librorc_status_callback status_callback)
+            { m_status_callback = status_callback; }
 
             uint64_t handleChannelData(void *user_data);
 
@@ -158,7 +168,8 @@ class event_sanity_checker;
 
             volatile uint32_t *m_raw_event_buffer;
 
-            librorc_event_callback m_event_callback;
+            librorc_event_callback  m_event_callback;
+            librorc_status_callback m_status_callback;
 
             void
             generateDMAChannel

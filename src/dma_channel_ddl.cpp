@@ -92,18 +92,14 @@ namespace LIBRARY_NAME
 
             uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
             /** wait for LF_N to go high */
-            while( (!(m_link->GTX(RORC_REG_DDL_CTRL) & (1<<4))) &&
-                (timeout!=0) )
+            while( (!(m_link->GTX(RORC_REG_DDL_CTRL) & (1<<4))) && (timeout!=0) )
             {
                 usleep(100);
                 timeout--;
             }
 
-            if ( !timeout )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR,
-                        "Timeout waiting for LF_N to deassert\n");
-            }
+            if( !timeout )
+            { DEBUG_PRINTF(PDADEBUG_ERROR, "Timeout waiting for LF_N to deassert\n"); }
 
             /** clear DIU_IF IFSTW */
             m_link->setGTX(RORC_REG_DDL_IFSTW, 0);
@@ -117,18 +113,14 @@ namespace LIBRARY_NAME
              * STS[7:4]="0000"
              */
             timeout = LIBRORC_LINK_DDL_TIMEOUT;
-            while( (m_link->GTX(RORC_REG_DDL_CTSTW) & 0xf0) &&
-                (timeout!=0) )
+            while( (m_link->GTX(RORC_REG_DDL_CTSTW) & 0xf0) && (timeout!=0) )
             {
                 usleep(100);
                 timeout--;
             }
 
             if( !timeout )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR,
-                        "Timeout waiting for CTSTW\n");
-            }
+            { DEBUG_PRINTF(PDADEBUG_ERROR, "Timeout waiting for CTSTW\n"); }
 
             /** disable DIU_IF */
             m_link->setGTX(RORC_REG_DDL_CTRL, 0x00000000);
