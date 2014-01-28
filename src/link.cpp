@@ -759,6 +759,19 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CMD, command);
     }
 
+    
+    bool
+    link::isDiuLinkFull()
+    {
+        return ( (GTX(RORC_REG_DDL_CTRL) & (1<<4)) != 0 );
+    }
+
+
+    bool
+    link::isDiuLinkUp()
+    {
+        return ( (GTX(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
+    }
 
 
     /**********************************************************
@@ -820,6 +833,34 @@ namespace LIBRARY_NAME
         diuSendCommand(LIBRORC_LINK_CMD_DIU_LINK_INIT);
     }
 
+
+    /**
+     * NOTE: this is a rewrite of dma_channel_ddl::configureDDL()
+     **/
+    void
+    link::prepareDiuForFeeData()
+    {
+        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
+        /** wait for LF_N to go high */
+        while( !isDiuLinkUp() && (timeout!=0) )
+        {
+            usleep(100);
+            timeout--;
+        }
+
+        if ( !timeout )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for LF_N to deassert\n");
+        }
+        else
+        {
+            /** close any open transfer */
+            sendFeeEndOfBlockTransfer();
+            /** re-open the link */
+            sendFeeReadyToReceive();
+        }
+    }
 
 
     /**********************************************************
@@ -896,4 +937,72 @@ namespace LIBRARY_NAME
             }
         }
     }
+
+    void
+    link::enableDdl()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<0); // enable DDL_IF
+        ddlctrl |= (1<<1); // enable flow control
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+    
+    void
+    link::enableFcf()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<8); // enable FCF (same bit as PG_ENABLE)
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+    void
+    link::setDataSourceDdl()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<3); // set MUX to DIU
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+    void
+    link::setDataSourceDdr3DataReplay()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<3); // set MUX to DDR3 DataReplay
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+    void
+    link::configureDdr3DataReplayChannel
+    (
+        uint32_t ddr3_start_address
+    )
+    {
+        uint32_t ch_cfg = ddr3_start_address | //start addr
+            (1<<1) | // continuous
+            (1<<0); //enable
+        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+
+
+
+    /**
+     * TODO:
+     * disableFcf()
+     *
+     * from dma_channel_pg:
+     * setDataSourcePatternGenerator()
+     * configurePatternGenerator()
+     * enablePatternGenerator()
+     * disablePatternGenerator()
+     *
+     * from dma_channel_ddl:
+     * closeDDL() <- needs refactoring!
+     *
+     * more to come here!
+     **/
+
 }

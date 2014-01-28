@@ -186,7 +186,9 @@ namespace LIBRARY_NAME
             esType == LIBRORC_ES_IN_HWPG
         )
         {
-            if( !monitor.firmwareIsHltIn() && !monitor.firmwareIsHltHardwareTest())
+            if( !monitor.firmwareIsHltIn() &&
+                    !monitor.firmwareIsHltHardwareTest() &&
+                    !monitor.firmwareIsHltInFcf())
             {
                 cout << "Wrong device firmware loaded [out] instead [in]" << endl;
                 throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;

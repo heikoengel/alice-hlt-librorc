@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     char logdirectory[] = "/tmp";
     DMAOptions opts;
     opts = evaluateArguments(argc, argv);
+    opts.esType = LIBRORC_ES_IN_GENERIC;
 
     DMA_ABORT_HANDLER_REGISTER
 
@@ -143,8 +144,24 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    /** wait for phy_init_done */
-    cout << "Waiting for phy_init_done..." << endl;
+    //-----------------------------------------------------//
+
+    /** 
+     * Option1: 
+     * configure datastream: from DIU through FCF 
+     **/
+    link->setDataSourceDdl();
+    link->enableDdl();
+    link->enableFcf();
+    link->prepareDiuForFeeData();
+
+    //-----------------------------------------------------//
+
+    /**
+     * Option 2:
+     * configure datastream: from DDR3 through FCF 
+     **/
+    /*cout << "Waiting for phy_init_done..." << endl;
     while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
     { usleep(100); }
 
@@ -164,28 +181,16 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    /** configure data replay channel */
-    uint32_t ch_cfg = ch_start_addr | //start addr
-        (1<<1) | // continuous
-        (1<<0); //enable
-    link->setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    link->setDataSourceDdr3DataReplay();
+    link->enableDdl();
+    link->enableFcf();
+    // configure and start data replay channel
+    link->configureDdr3DataReplayChannel(ch_start_addr);
 
-    /** configure DDL datastream */
-    uint32_t ddlctrl = (1<<0) | //enable DDLIF
-        (1<<1) | // enable flow control
-        (1<<3) | // set MUX to use DDR3 as data source
-        (1<<9) | // enable PG adaptive
-        (1<<10) | // enable continuous mode
-        (1<<8) | // enable PG
-        //(1<<13) | // enable PRBS EventLength
-        (0<<11); // set mode to INCREMENT
-    link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-
-    /** enable data replay */
+    // enable data replay globally
     bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x80000000);
-
-    /** send RdyRx to SIU */
-    //link->setGTX(RORC_REG_DDL_CMD, 0x00000014);
+*/
+    //-----------------------------------------------------//
 
 
     uint64_t last_bytes_received;

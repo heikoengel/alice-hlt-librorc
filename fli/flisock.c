@@ -224,9 +224,7 @@ void fli_init(
 
   // done-monitor: watch rd_done, wr_done, cmpl_done
   doneproc = mti_CreateProcess("done_monitor", done_monitor, ip);
-  mti_Sensitize(doneproc, ip->rd_done, MTI_EVENT);
-  mti_Sensitize(doneproc, ip->wr_done, MTI_EVENT);
-  mti_Sensitize(doneproc, ip->cmpl_done, MTI_EVENT);
+  mti_Sensitize(doneproc, ip->clk, MTI_EVENT);
 
   mti_PrintFormatted("Opening socket %d on %s\nWaiting for connection...\n",
       port,hostname);
@@ -480,11 +478,14 @@ void dump_sockcmd(uint32_t *buf, uint32_t len)
 static void done_monitor( void *arg )
 {
     inst_rec *ip = (inst_rec *)arg;
-    if( mti_GetSignalValue(ip->rd_done)==STD_LOGIC_1 ||
-            mti_GetSignalValue(ip->wr_done)==STD_LOGIC_1 ||
-            mti_GetSignalValue(ip->cmpl_done)==STD_LOGIC_1)
+    if (mti_GetSignalValue(ip->clk)==STD_LOGIC_0) //falling edge
     {
-      trn_rd_busy = 0;
+        if( mti_GetSignalValue(ip->rd_done)==STD_LOGIC_1 ||
+                mti_GetSignalValue(ip->wr_done)==STD_LOGIC_1 ||
+                mti_GetSignalValue(ip->cmpl_done)==STD_LOGIC_1)
+        {
+            trn_rd_busy = 0;
+        }
     }
 }
 

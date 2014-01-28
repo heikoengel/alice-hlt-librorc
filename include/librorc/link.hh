@@ -516,6 +516,40 @@ class device;
             sendDiuLinkInitialization();
 
 
+            /**
+             * wait for link up, cleanly open FEE link
+             **/
+            void
+            prepareDiuForFeeData();
+
+
+            bool
+            isDiuLinkUp();
+
+
+            bool
+            isDiuLinkFull();
+
+
+            void
+            enableDdl();
+
+
+            /**********************************************************
+             *             Data Path Configuration
+             *********************************************************/
+
+            /**
+             * Set DIU as data source
+             **/
+            void
+            setDataSourceDdl();
+
+            /**
+             * set DDR3 Data Replay as data source
+             **/
+            void
+            setDataSourceDdr3DataReplay();
 
             /**********************************************************
              *             Fast Cluster Finder Interfacing
@@ -534,6 +568,34 @@ class device;
                  const char *fname
             );
 
+            /**
+             * enable FastClusterFinder processing
+             **/
+            void
+            enableFcf();
+
+
+
+            /**********************************************************
+             *             Data Replay Channel Level Interfacing
+             *********************************************************/
+
+            /**
+             * set start address of current channel's replay data
+             * in DDR3 memory
+             * @param ddr3_start_address replay data start address
+             **/
+            void
+            configureDdr3DataReplayChannel
+            (
+                 uint32_t ddr3_start_address
+            );
+
+            /**
+             * enable DDR3 data replay channel
+             **/
+            void
+            enableDdr3DataReplayChannel();
 
             /**********************************************************
              *             Debug Output
@@ -607,6 +669,7 @@ class device;
             (
                  string line
             );
+
 };
 
 }
