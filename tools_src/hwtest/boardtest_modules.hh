@@ -28,6 +28,7 @@ extern "C"{
 #include <pci/pci.h>
 }
 #include "../dma/dma_handling.hh"
+#include "crorc-smbus-ctrl.hh"
 
 #define FPGA_TEMP_MIN 35.0
 #define FPGA_TEMP_MAX 65.0
@@ -65,18 +66,21 @@ void checkDdr3ModuleSpd(librorc::sysmon *sm, int module_id, int verbose);
 void checkDdr3ModuleCalib(librorc::bar *bar, int module_id, int verbose);
 void checkDdr3ModuleTg(librorc::bar *bar, int module_id, int verbose);
 
-void checkMicrocontroller(librorc::bar *bar, int verbose);
+uint8_t getDipSwitch(librorc::bar *bar);
+void checkMicrocontroller(librorc::bar *bar, int firstrun, int verbose);
+
 void checkLvdsTester (librorc::bar *bar, int verbose);
-uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
-void checkFlashDeviceNumbers( uint64_t devnr0, uint64_t devnr1 );
 void checkRefClkGen (librorc::sysmon *sm, int verbose);
+void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
+
+bool flashManufacturerCodeIsValid( librorc::flash *flash, int verbose );
+uint64_t checkFlash(librorc::device *dev, int chip_select, int verbose);
+bool checkFlashDeviceNumbersAreValid( uint64_t devnr0, uint64_t devnr1 );
 
 bool checkQsfp(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpTemperature(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpVcc(librorc::sysmon *sm, int module_id, int verbose);
 void checkQsfpOpticalLevels(librorc::sysmon *sm, int module_id, int verbose);
-
-void checkFpgaSystemMonitor(librorc::sysmon *sm, int verbose);
 
 struct pci_dev *initLibPciDev(librorc::device *dev);
 
@@ -87,9 +91,14 @@ bool checkForValidBarConfig(struct pci_dev *pdev);
 void checkFpgaFan(librorc::sysmon *sm, int verbose);
 int checkSysClkAvailable(librorc::sysmon *sm);
 
-void checkLinkState( librorc::link *link, uint32_t channel_id );
+uint32_t checkCount(uint32_t channel_id, uint32_t reg, const char *name);
+uint32_t checkLinkState( librorc::link *link, uint32_t channel_id );
 
-void testDmaChannel(librorc::device *dev, librorc::bar *bar, int timeout, int verbose);
+void testDmaChannel(librorc::device *dev, librorc::bar *bar, uint32_t channel_id, int timeout, int verbose);
 
 void printPcieInfos(librorc::device *dev, librorc::sysmon *sm);
+
+void checkAndReleaseGtxReset(librorc::link *link, int verbose);
+void checkAndReleaseQsfpResets(librorc::sysmon *sm, int verbose);
+
 #endif

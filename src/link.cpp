@@ -338,17 +338,19 @@ namespace LIBRARY_NAME
         uint8_t& d_reg
     )
     {
-        uint16_t
-        drp_data = 0;
-        drp_data = drpRead(value);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(value);
         /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
-        drp_data = read_modify_write(drp_data, n1_reg, 6, 1);
+        drp_data = read_modify_write(drp_data_orig, n1_reg, 6, 1);
         /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
         drp_data = read_modify_write(drp_data, n2_reg, 1, 5);
         /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
         drp_data = read_modify_write(drp_data, d_reg, 14, 2);
-        drpWrite(value, drp_data);
-        drpRead(0x0);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(value, drp_data);
+            drpRead(0x0);
+        }
     }
 
     void
@@ -358,11 +360,14 @@ namespace LIBRARY_NAME
         uint8_t  m_reg
     )
     {
-        uint16_t
-        drp_data = drpRead(value);
-        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
-        drpWrite(value, drp_data);
-        drpRead(0x0);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(value);
+        drp_data = read_modify_write(drp_data_orig, m_reg, 1, 5);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(value, drp_data);
+            drpRead(0x0);
+        }
     }
 
     void
@@ -373,11 +378,14 @@ namespace LIBRARY_NAME
         uint8_t clkdiv
     )
     {
-        uint16_t
-        drp_data = drpRead(value);
-        drp_data = read_modify_write(drp_data, clkdiv, bit, 5);
-        drpWrite(value, drp_data);
-        drpRead(0x0);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(value);
+        drp_data = read_modify_write(drp_data_orig, clkdiv, bit, 5);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(value, drp_data);
+            drpRead(0x0);
+        }
     }
 
     void
@@ -386,11 +394,14 @@ namespace LIBRARY_NAME
         gtxpll_settings pll
     )
     {
-        uint16_t
-        drp_data = drpRead(0x39);
-        drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
-        drpWrite(0x39, drp_data);
-        drpRead(0x0);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(0x39);
+        drp_data = read_modify_write(drp_data_orig, pll.tx_tdcc_cfg, 14, 2);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(0x39, drp_data);
+            drpRead(0x0);
+        }
     }
 
     /**

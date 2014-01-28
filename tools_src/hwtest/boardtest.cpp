@@ -23,7 +23,9 @@
 #include <iomanip>
 
 #include "librorc.h"
+#include "crorc-smbus-ctrl.hh"
 #include "boardtest_modules.hh"
+#include "fmc_tester.hh"
 #include "../dma/dma_handling.hh"
 
 using namespace std;
@@ -37,6 +39,7 @@ Parameters: \n\
 -h              Print this help \n\
 -n [0...255]    Target device \n\
 -v              Verbose mode \n\
+-f              First run mode - configure uC and flashes \n\
 -q              Quick run, skip DMA test \n\
 "
 
@@ -52,11 +55,12 @@ main
 {
     int32_t device_number = -1;
     int verbose = 0;
+    int firstrun = 0;
     bool do_long_test = true;
 
     /** parse command line arguments */
     int arg;
-    while ( (arg = getopt(argc, argv, "hn:vq")) != -1 )
+    while ( (arg = getopt(argc, argv, "hn:vqf")) != -1 )
     {
         switch (arg)
         {
@@ -76,6 +80,12 @@ main
             case 'v':
                 {
                     verbose = 1;
+                }
+                break;
+
+            case 'f':
+                {
+                    firstrun = 1;
                 }
                 break;
 
@@ -117,8 +127,6 @@ main
     printHeader("PCIe");
 
     struct pci_dev *pdev = initLibPciDev(dev);
-    cout << "INFO: FPGA Unique Device ID: "
-        << HEXSTR(getPcieDSN(pdev), 16) << endl;
 
     if( !checkForValidBarConfig(pdev) )
     {
@@ -158,6 +166,9 @@ main
 
     printPcieInfos(dev, sm);
 
+    cout << "INFO: FPGA Unique Device ID: "
+        << HEXSTR(getPcieDSN(pdev), 16) << endl;
+
     /** check FW type */
     uint32_t fwtype = bar->get32(RORC_REG_TYPE_CHANNELS);
     if ( (fwtype>>16) != RORC_CFG_PROJECT_hwtest )
@@ -171,10 +182,10 @@ main
 
     checkPcieState( sm, verbose );
 
+    checkAndReleaseQsfpResets( sm, verbose );
+
     /** check fan is running */
     checkFpgaFan( sm, verbose );
-
-
 
     printHeader("Clocking/Monitoring");
 
@@ -185,6 +196,9 @@ main
     for  ( uint32_t i=0; i<nchannels; i++ )
     {
         link[i] = new librorc::link(bar, i);
+
+        checkAndReleaseGtxReset( link[i], verbose );
+
         if (link[i]->isGtxDomainReady())
         {
             link[i]->clearAllGtxErrorCounters();
@@ -225,6 +239,16 @@ main
         checkDdr3ModuleCalib( bar, 0, verbose);
         checkDdr3ModuleSpd( sm, 1, verbose);
         checkDdr3ModuleCalib( bar, 1, verbose);
+
+
+        printHeader("FMC Loopback Adapter");
+        if ( checkFmc(bar, sm, verbose) != 0 )
+        {
+            cout << "ERROR: FMC Loopback Adapter Test failed." << endl;
+        } else if (verbose)
+        {
+            cout << "INFO: FMC Loopback Test passed." << endl;
+        }
     }
 
     printHeader("LVDS");
@@ -232,20 +256,28 @@ main
     checkLvdsTester( bar, verbose );
 
     printHeader("Microcontroller");
-    /** read uc signature */
-    checkMicrocontroller ( bar, verbose );
+    checkMicrocontroller ( bar, firstrun, verbose );
+    checkSmBus ( bar, verbose );
 
     printHeader("Flash Chips");
     /** check flashes */
     uint64_t flash0_devnr = checkFlash( dev, 0, verbose );
     uint64_t flash1_devnr = checkFlash( dev, 1, verbose );
-    checkFlashDeviceNumbers(flash0_devnr, flash1_devnr);
+    checkFlashDeviceNumbersAreValid(flash0_devnr, flash1_devnr);
 
 
     if ( do_long_test )
     {
         printHeader("DMA to Host");
-        testDmaChannel( dev, bar, DMA_TIMEOUT, verbose );
+        if ( link[0]->isGtxDomainReady() )
+        {
+        testDmaChannel( dev, bar, 0, DMA_TIMEOUT, verbose );
+        }
+        else
+        {
+            cout << "ERROR: Link 0 Clock is down - skipping DMA test"
+                 << endl;
+        }
     }
 
 

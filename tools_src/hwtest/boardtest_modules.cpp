@@ -17,6 +17,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * */
+#include "crorc-smbus-ctrl.hh"
 #include "boardtest_modules.hh"
 #include "../dma/dma_handling.hh"
 
@@ -27,7 +28,7 @@ printHeader
     const char *title
 )
 {
-    cout << endl << "--===== " << title << " =====--" << endl;
+    //cout << endl << "--===== " << title << " =====--" << endl;
 }
 
 
@@ -148,32 +149,29 @@ checkDdr3ModuleTg
 }
 
 
+uint8_t
+getDipSwitch
+(
+    librorc::bar *bar
+)
+{    
+    /** get DIP switch setting */
+    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
+    return (dipswitch & 0x7f);
+}
+
+
 
 void
 checkMicrocontroller
 (
     librorc::bar *bar,
+    int firstrun,
     int verbose
 )
 {
     int uc_avail = 1;
 
-    /** get DIP switch setting */
-    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
-    if (dipswitch==0 || dipswitch>0x7f)
-    {
-        cout << "ERROR: invalid dip switch setting "
-             << HEXSTR(dipswitch, 1)
-             << " - SMBus access is likely to fail!"
-             << endl;
-    }
-    else
-    {
-        cout << "INFO: uC using slave address "
-             << HEXSTR(dipswitch, 1) << endl;
-    }
-
-    /** read uc signature */
     librorc::microcontroller *uc;
     try
     {
@@ -187,9 +185,10 @@ checkMicrocontroller
 
     if ( uc_avail )
     {
+        uc->configure_spi();
+
         try
         {
-            uc->configure_spi();
             uc->set_reset(1);
             uc->enter_prog_mode();
 
@@ -199,19 +198,49 @@ checkMicrocontroller
                 cout << "ERROR: unexpected microcontroller signature "
                      << HEXSTR(sig, 6) << " - expected "
                      << HEXSTR(UC_DEVICE_SIGNATURE, 6) << endl;
-            } else if ( verbose )
+            } else 
             {
-                cout << "INFO: Microcontroller signature: "
-                     << HEXSTR(sig, 6) << endl;
+                if ( verbose )
+                {
+                    cout << "INFO: Microcontroller signature: "
+                        << HEXSTR(sig, 6) << endl;
+                }
+            }
+            uc->set_reset(0);
+
+            /** program microcontroller */
+            if ( firstrun )
+            {
+                char *fwpath = getenv("LIBRORC_FIRMWARE_PATH");
+                if (!fwpath)
+                {
+                    cout << "WARNING: Environment variable "
+                        << "LIBRORC_FIRMWARE_PATH is not set - "
+                        << "will not program microcontroller!" << endl;
+                }
+                else
+                {
+                    char *fwfile = (char *)malloc(strlen(fwpath) +
+                            strlen("/crorc_ucfw_latest.bin") + 1);
+                    sprintf(fwfile, "%s/crorc_ucfw_latest.bin", fwpath);
+
+                    if ( verbose )
+                    {
+                        cout << "INFO: trying to program uC with " << fwfile
+                            << endl;
+                    }
+                    uc->programFromFile(fwfile);
+                }
             }
 
-            uc->set_reset(0);
         }
         catch (int e)
         {
-            cout << "ERROR: failed to access microcontroller via SPI: ";
             switch(e)
             {
+                case LIBRORC_UC_FILE_ERROR:
+                    cout << "ERROR: loading file failed";
+                    break;
                 case LIBRORC_UC_SPI_NOT_IMPLEMENTED:
                     cout << "ERROR: uC SPI not implemented";
                     break;
@@ -227,9 +256,13 @@ checkMicrocontroller
             }
             cout << endl;
         }
+
+        uc->unconfigure_spi();
         delete uc;
     }
 }
+
+
 
 
 void
@@ -266,6 +299,30 @@ checkLvdsTester
 }
 
 
+bool
+flashManufacturerCodeIsValid
+(
+    librorc::flash *flash,
+    int verbose
+)
+{
+    uint16_t mcode = flash->getManufacturerCode();
+    if ( mcode != 0x0049 )
+    {
+        cout << "ERROR: Flash " << flash->getChipSelect()
+             << "invalid Manufacturer Code "
+             << HEXSTR(mcode, 4) << endl;
+    } else if ( verbose )
+    {
+        cout << "INFO: Flash " << flash->getChipSelect() << " Status: "
+            << HEXSTR(mcode, 4) << endl;
+    }
+    return (mcode==0x0049);
+}
+
+
+
+
 uint64_t
 checkFlash
 (
@@ -297,7 +354,8 @@ checkFlash
     }
     catch(...)
     {
-        cout << "ERROR: Flash " << chip_select << " init failed" << endl;
+        cout << "FATAL: Flash " << chip_select << " init failed" << endl;
+        abort();
     }
 
     /** set asynchronous read mode */
@@ -306,23 +364,18 @@ checkFlash
     uint16_t status = flash->resetChip();
     if ( status )
     {
-        cout << "ERROR Flash " << chip_select
+        cout << "ERROR: Flash " << chip_select
              << "resetChip failed: " << HEXSTR(status, 4) << endl;
     }
 
-    uint16_t mcode = flash->getManufacturerCode();
-    if ( mcode != 0x0049 )
+    uint64_t devnr = 0;
+    if ( flashManufacturerCodeIsValid(flash, verbose) )
     {
-        cout << "ERROR: Flash " << chip_select
-             << "invalid Manufacturer Code "
-             << HEXSTR(mcode, 4) << endl;
-    } else if ( verbose )
-    {
-        cout << "INFO: Flash " << chip_select << " Status: "
-            << HEXSTR(mcode, 4) << endl;
+        devnr = flash->getUniqueDeviceNumber();
+        cout << "INFO: Flash " << chip_select
+             << " unique device number: "
+             << HEXSTR(devnr, 16) << endl;
     }
-
-    uint64_t devnr = flash->getUniqueDeviceNumber();
 
     delete flash;
     delete bar;
@@ -331,23 +384,36 @@ checkFlash
 }
 
 
-void
-checkFlashDeviceNumbers
+bool
+checkFlashDeviceNumbersAreValid
 (
     uint64_t devnr0,
     uint64_t devnr1
 )
 {
-    if ( devnr0==devnr1 )
+    bool valid = false;
+    if ( devnr0 == 0 || devnr0 == 0xfffffffff )
     {
-        cout << "ERROR: both flashed reported the same "
-             << "'unique' device number: " << devnr0
-             << endl;
+        cout << "ERROR: invalid unique device number for Flash0: "
+             << HEXSTR(devnr0, 16) << endl;
     }
-    cout << "INFO: Flash 0 unique device number: "
-         << HEXSTR(devnr0, 16) << endl;
-    cout << "INFO: Flash 1 unique device number: "
-         << HEXSTR(devnr1, 16) << endl;
+    else if ( devnr1 == 0 || devnr1 == 0xfffffffff )
+    {
+        cout << "ERROR: invalid unique device number for Flash1: "
+             << HEXSTR(devnr1, 16) << endl;
+    }
+    else if ( devnr0 == devnr1 )
+    {
+        cout << "ERROR: both flash memories reported the same "
+             << "'unique' device number: " << devnr0
+             << " - check U18!" << endl;
+    }
+    else
+    {
+        valid = true;
+    }
+
+    return valid;
 }
 
 
@@ -393,7 +459,6 @@ checkRefClkGen
         cout << "ERROR: failed to read Si570 Reference Clock configuration"
              << endl;
     }
-
     delete rc;
 }
 
@@ -467,7 +532,7 @@ checkQsfpVcc
             << " VCC out of bounds: " << qsfpvcc << endl;
     } else if ( verbose )
     {
-        cout << "INFO QSFP" << module_id
+        cout << "INFO: QSFP" << module_id
             << " VCC: " << qsfpvcc << " V" << endl;
     }
 }
@@ -633,8 +698,8 @@ checkSysClkAvailable
 }
 
 
-void
-    checkCount
+uint32_t
+checkCount
 (
  uint32_t channel_id,
  uint32_t count,
@@ -647,17 +712,20 @@ void
              << " " << name << " count was "
              << HEXSTR(count, 8) << endl;
     }
+    return count;
 }
 
 
 
-void
+uint32_t
 checkLinkState
 ( 
     librorc::link *link,
     uint32_t channel_id
 )
 {
+    uint32_t link_errors = 0;
+    uint32_t prot_errors = 0;
     if (link->isGtxDomainReady())
     {
         uint32_t gtxctrl = link->GTX(RORC_REG_GTX_CTRL);
@@ -665,25 +733,33 @@ checkLinkState
         {
             cout << "ERROR: Link channel " << channel_id
                  << " is down!" << endl;
+            link_errors++;
         }
         else
         {
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_DISPERR_CNT),
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_DISPERR_CNT),
                     "Disperity Error");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXNIT_CNT),
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_RXNIT_CNT),
                     "RX-Not-In-Table Error");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXLOS_CNT),
-                    "RX-Not-Loss-Of-Signal");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_RXLOS_CNT),
+                    "RX-Loss-Of-Signal");
+            link_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
                     "RX-Byte-Realign");
-            checkCount(channel_id, link->GTX(RORC_REG_GTX_ERROR_CNT),
+            prot_errors |= checkCount(channel_id,
+                    link->GTX(RORC_REG_GTX_ERROR_CNT),
                     "LinkTester Error");
         }
     }
     else
     {
         cout << "ERROR: No clock on channel " << channel_id << "!" << endl;
+        link_errors++;
     }
+    return (link_errors | prot_errors);
 }
 
 
@@ -753,13 +829,14 @@ testDmaChannel
 (
     librorc::device *dev,
     librorc::bar *bar,
+    uint32_t channel_id,
     int timeout,
     int verbose
 )
 {
     DMAOptions opts;
     opts.deviceId  = dev->getDeviceId();
-    opts.channelId = 0;
+    opts.channelId = channel_id;
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
     opts.esType = LIBRORC_ES_IN_HWPG;
@@ -793,10 +870,9 @@ testDmaChannel
     /** Capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
-    timeval last_time = start_time;
     timeval current_time = start_time;
     
-    while( gettimeofdayDiff(last_time, current_time) < timeout )
+    while( gettimeofdayDiff(start_time, current_time) < timeout )
     {
         eventStream->handleChannelData( (void*)&(checker) );
         eventStream->m_bar1->gettime(&current_time, 0);
@@ -831,9 +907,6 @@ struct pci_dev
 }
 
 
-
-
-
 uint64_t
 getPcieDSN
 (
@@ -846,6 +919,7 @@ getPcieDSN
 
     return device_serial;
 }
+
 
 bool
 checkForValidBarConfig
@@ -860,9 +934,9 @@ checkForValidBarConfig
     ptr = (uint8_t *)&bar1;
     pci_read_block(pdev, 0x14, ptr, 4);
 
-    return (bar0!=0 and bar1!=0);
+    return (bar0!=0 && bar0!=0xffffffff &&
+            bar1!=0 && bar1!=0xffffffff);
 }
-
 
 
 void
@@ -874,7 +948,7 @@ printPcieInfos
 {
     cout << "INFO: Device " << (unsigned int)dev->getDeviceId() << " at PCI ";
     cout << setfill('0')
-        << hex << setw(4) << (unsigned int)dev->getDomain() << ":"
+         << hex << setw(4) << (unsigned int)dev->getDomain() << ":"
          << hex << setw(2) << (unsigned int)dev->getBus() << ":"
          << hex << setw(2) << (unsigned int)dev->getSlot() << "."
          << hex << setw(1) << (unsigned int)dev->getFunc();
@@ -882,4 +956,63 @@ printPcieInfos
     cout << " [FW date: " << hex << setw(8) << sm->FwBuildDate()
          << ", FW revision: "      << hex << setw(8) << sm->FwRevision()
          << "]" << endl;
+}
+
+
+void
+checkAndReleaseQsfpResets
+(
+    librorc::sysmon *sm,
+    int verbose
+)
+{
+    for ( int i=0; i<LIBRORC_MAX_QSFP; i++ )
+    {
+        if (sm->qsfpGetReset(i))
+        {
+            if ( verbose )
+            {
+                cout << "INFO: QSFP " << i
+                     << " was active - releasing."
+                     << endl;
+            }
+            sm->qsfpSetReset(i, 0);
+        }
+    }
+}
+
+
+void
+checkAndReleaseGtxReset
+(
+    librorc::link *link,
+    int verbose
+)
+{
+    uint32_t gtxcfg = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+    if ( gtxcfg & 0x0000000b )
+    {
+        /** release any reset bit */
+        link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, (gtxcfg & ~(0x00000000b)));
+        if ( verbose )
+        {
+            cout << "INFO: found GTX in reset - releasing..." << endl;
+        }
+
+        /** Wait to get QSFPs a chance to establish a link */
+        sleep(1);
+
+        /** Wait for clock to be up */
+        uint32_t trycount = 0;
+        while( !link->isGtxDomainReady() )
+        {
+            usleep(100);
+            trycount++;
+            if ( trycount > 1000 )
+            {
+                cout << "ERROR: Timeout waiting for GTX clock" << endl;
+                break;
+            }
+        }
+    }
 }
