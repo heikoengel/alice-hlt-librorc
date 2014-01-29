@@ -765,7 +765,7 @@ checkLinkState
 
 
 uint64_t
-eventCallBack
+eventTestCallBack
 (
     void                     *userdata,
     uint64_t                  event_id,
@@ -843,7 +843,7 @@ testDmaChannel
 
     char logdirectory[] = "/tmp";
     
-    librorc_event_callback event_callback = eventCallBack;
+    librorc_event_callback event_callback = eventTestCallBack;
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
     librorc::event_stream *eventStream;
