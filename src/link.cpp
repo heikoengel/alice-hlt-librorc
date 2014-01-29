@@ -957,7 +957,7 @@ namespace LIBRARY_NAME
         ddlctrl |= (1<<1); // enable flow control
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
-    
+
     void
     link::enableFcf()
     {

@@ -16,8 +16,8 @@ include(CMakePda.txt)
 
 
 #--- Setup CPack --------------------------------------------------------------
-SET(CPACK_GENERATOR "RPM")
-INCLUDE(CPack)
+#SET(CPACK_GENERATOR "RPM")
+#INCLUDE(CPack)
 
 
 #--- Find libPCI --------------------------------------------------------------
