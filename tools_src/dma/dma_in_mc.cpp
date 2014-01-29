@@ -190,8 +190,8 @@ int main(int argc, char *argv[])
         (
             eventStream[i]->m_channel_status,
             opts[i],
-            eventStream[i]->m_start_time,
-            eventStream[i]->m_end_time
+            start_time,
+            end_time
         );
 
         /** Cleanup */

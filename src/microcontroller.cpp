@@ -280,4 +280,73 @@ namespace LIBRARY_NAME
         usleep(4500);
     }
 
+
+    void
+    microcontroller::programFromFile
+    (
+        char *filename
+    )
+    {
+        /** open file */
+        int fd = open(filename, O_RDONLY);
+        if ( fd < 0 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to read file %s\n",
+                    filename);
+            throw LIBRORC_UC_FILE_ERROR;
+        }
+
+        struct stat stats;
+        if ( fstat(fd, &stats) == -1 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to stat file %s\n",
+                    filename);
+            throw LIBRORC_UC_FILE_ERROR;
+        }
+
+        if ( stats.st_size & 1 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Invalid file size: %d\n",
+                    stats.st_size);
+            throw LIBRORC_UC_FILE_ERROR;
+        }
+
+        /** configure FPGA IOs for SPI */
+        configure_spi();
+
+        /** erase flash */
+        earse_chip();
+
+        /** enable reset */
+        set_reset(1);
+
+        /** enter programming mode */
+        enter_prog_mode();
+
+        /** set extended address for page 0 */
+        load_extended_addr(0);
+
+        uint32_t addr = 0;
+        uint32_t nbytes = 0;
+        uint16_t page[UC_SPI_PAGESIZE];
+
+        /** read page from file */
+        while ( (nbytes = read(fd, &page, UC_SPI_PAGESIZE<<1)) >0 )
+        {
+            for ( uint32_t i=0; i<(nbytes>>1); i++ )
+            {
+                load_mem_page(i, page[i]);
+            }
+            prog_mem_page(addr);
+            addr += UC_SPI_PAGESIZE;
+        }
+
+        /** release reset */
+        set_reset(0);
+
+        close(fd);
+
+        unconfigure_spi();
+    }
+
 }

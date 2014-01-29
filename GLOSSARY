@@ -1,0 +1,28 @@
+CDH: Common Data Header - first 8(10) datawords of a DDL event transfer
+CDR: Clock to Data Recovery - recover clock and data from a serial bit stream
+DCO: Digitally Controlled Oscillator - internal part of the reference clock generator
+DDL: Detector Data Link - optical detector readout protocol implementation. Raw data transferred over this link is stored in *.ddl files
+DIU: Destination Interface Unit - Receiver side block for optical Detector Data Link (->DDL)
+DRP: Dynamic Reconfiguration Protocol - In-FPGA bus to change configuration of transceivers
+DSN: Device Serial Number - FPGA unique device ID reported as PCI device serial number in lspci
+EBDM: Event Buffer Descriptor Manager - FPGA firmware component handling DMA scatter gather lists for Event Buffer
+EOE: End of Event - last dataword of a DDL event transfer
+FCF: Fast Cluster Finder - TPC hardware cluster finder from Torsten
+FEE: Front End Electronics - On-Detector readout electronics delivering data to SIU
+FLI: Foreign Language Interface - Interface to Modelsim firmware simulation with a C library.
+FMC: FPGA Mezzanine Connector - General purpose input/output connector on the C-RORC
+GTX: type of Xilinx Gigabit Transceivers available in Virtex-6 FPGAs
+HWPG: Hardware Pattern Generator - FPGA firmware component to generate events for HLT_IN tests
+LVDS: Low Voltage Differential Signalling - electrical transmission standard. here also used for interface between RORC and TPC BusyBox
+PLL: Phase Locked Loop - internal clocking component of GTX transceivers
+QSFP: Quad-SFP - serial optical to electrical transceiver module for interface between optical links and FPGA transceivers
+RBDM: Report Buffer Descriptor Manager - FPGA firmware component handling DMA scatter gather lists for Report Buffer
+RCU: Readout Control Unit - TPC electronics feeding the SIU. Also comes with an own protocol within the DDL payload.
+SIU: Source Interface Unit - Sender side block for optical Detector Data Link (->DDL)
+SMBus: subset of the I2C protocol. Used for the configuration/status interface from Host PC to C-RORC.
+SOE: Start of Event - first dataword of a DDL event transfer
+SPD: Serial Presence Detect - I2C interface of DDR3 modules for status readout
+SPD: Silicon Pixel Detector - subdetector of ALICE
+TPC: Time Projection Chamber - one of the main ALICE detectors with the highest data volumes
+UC: Microcontroller
+VCC: Supply Voltage

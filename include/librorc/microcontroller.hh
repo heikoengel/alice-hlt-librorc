@@ -18,16 +18,17 @@
  *
  * */
 
-#include "include_ext.hh"
-#include "defines.hh"
-
 #ifndef LIBRORC_MICROCONTROLLER_H
 #define LIBRORC_MICROCONTROLLER_H
+
+#include "include_ext.hh"
+#include "defines.hh"
 
 #define LIBRORC_UC_ERROR_CONSTRUCTOR_FAILED 1
 #define LIBRORC_UC_SPI_NOT_IMPLEMENTED 2
 #define LIBRORC_UC_SEND_CMD_TIMEOUT 4
 #define LIBRORC_UC_PROG_MODE_FAILED 8
+#define LIBRORC_UC_FILE_ERROR 16
 
 
 /**
@@ -53,10 +54,6 @@
 #define UC_SPI_WRITE_PAGE  0x4c000000
 #define UC_SPI_READ_LOW    0x20000000
 #define UC_SPI_READ_HIGH   0x28000000
-
-#define UCCTRL_PROG_MODE_FAILED 0
-#define UCCTRL_UC_SPI_NOT_IMPLEMENTED 1
-#define UCCTRL_SEND_CMD_TIMEOUT 2
 
 
 namespace LIBRARY_NAME
@@ -119,6 +116,11 @@ class bar;
             prog_mem_page
             (
                 uint32_t addr
+            );
+
+            void programFromFile
+            (
+                char *filename
             );
 
         private:

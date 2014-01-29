@@ -280,7 +280,8 @@ int main( int argc, char *argv[])
     uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
 
     /** make sure FW is HLT_IN */
-    if ( (type_channels>>16) != RORC_CFG_PROJECT_hlt_in )
+    if ( (type_channels>>16) != RORC_CFG_PROJECT_hlt_in &&
+    (type_channels>>16) != RORC_CFG_PROJECT_hwtest )
     {
         cout << "ERROR: No HLT_IN firmware detected - aborting." << endl;
         delete bar;

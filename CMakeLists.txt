@@ -14,6 +14,17 @@ MESSAGE( STATUS "---------------------------------------------------------------
 
 include(CMakePda.txt)
 
+
+#--- Setup CPack --------------------------------------------------------------
+#SET(CPACK_GENERATOR "RPM")
+#INCLUDE(CPack)
+
+
+#--- Find libPCI --------------------------------------------------------------
+find_library(PCI pci
+    PATHS ${LD_LIBRARY_PATH})
+
+
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
 if(${SIM})

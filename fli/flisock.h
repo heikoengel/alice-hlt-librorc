@@ -73,9 +73,10 @@
 * 	[payload] where payload consists of 1 DW
 *
 * * CMD_ACK_TIME
-* 	[short msgsize=3, short cmd=CMD_ACK_TIME]
+* 	[short msgsize=4, short cmd=CMD_ACK_TIME]
 * 	[msgID]
-* 	[simulation time]
+* 	[simulation time upper]
+* 	[simulation time lower]
 *
 * * CMD_ACK_WRITE
 * 	[short msgsize=2, short cmd=CMD_ACK_WRITE]
