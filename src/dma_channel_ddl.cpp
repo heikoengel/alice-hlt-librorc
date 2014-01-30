@@ -45,8 +45,7 @@ namespace LIBRARY_NAME
 
         uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
         /** wait for riLD_N='1' */
-        while( ((m_link->GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20) &&
-                (timeout!=0) )
+        while( ((m_link->GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20) && (timeout!=0) )
         {
             timeout--;
             usleep(100);

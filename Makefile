@@ -7,3 +7,6 @@ $(TARGETS):
 
 clean:
 	$(RM) -r build
+
+count:
+	wc -l `find . -iname '*.c' && find . -iname '*.hh' && find . -iname '*.cpp'`
