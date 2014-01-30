@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: 9cb67bd018cbf622d4f4e0c4deb05b7be88248ee
-// short hash: 9cb67bd
+// hash: f5f9eac844d4a7260de4f8eec69c8f936563f25b
+// short hash: f5f9eac
 //
 
-#define RORC_REVISION 0x9cb67bd
-#define RORC_BUILD_DATE 0x20131112
+#define RORC_REVISION 0xf5f9eac
+#define RORC_BUILD_DATE 0x20131209
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -45,6 +45,8 @@
 #define RORC_REG_FMC_CTRL_HIGH 42
 #define RORC_REG_DDR3_MOD0 43
 #define RORC_REG_DDR3_MOD1 44
+#define RORC_REG_DATA_REPLAY_CTRL 45
+#define RORC_REG_DATA_REPLAY_PAYLOAD_BASE 48
 #define RORC_REG_EBDM_N_SG_CONFIG 0
 #define RORC_REG_EBDM_BUFFER_SIZE_L 1
 #define RORC_REG_EBDM_BUFFER_SIZE_H 2
@@ -70,6 +72,7 @@
 #define RORC_REG_DMA_ELFIFO 22
 #define RORC_REG_DMA_PKT_SIZE 23
 #define RORC_REG_GTX_DRP_CTRL 24
+#define RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL 25
 #define RORC_REG_GTX_CTRL 0
 #define RORC_REG_GTX_RXDFE 1
 #define RORC_REG_GTX_DISPERR_CNT 2
@@ -96,6 +99,5 @@
 #define RORC_DMA_CMP_SEL 13
 #define RORC_CFG_PROJECT_hlt_in 0
 #define RORC_CFG_PROJECT_hlt_out 1
-#define RORC_CFG_PROJECT_pciedbg 2
-#define RORC_CFG_PROJECT_hlt_in_fcf 3
+#define RORC_CFG_PROJECT_hlt_in_fcf 2
 #define RORC_CFG_PROJECT_hwtest 4

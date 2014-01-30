@@ -338,17 +338,19 @@ namespace LIBRARY_NAME
         uint8_t& d_reg
     )
     {
-        uint16_t
-        drp_data = 0;
-        drp_data = drpRead(value);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(value);
         /** set TXPLL_DIVSEL_FB45/N1: addr 0x1f bit [6] */
-        drp_data = read_modify_write(drp_data, n1_reg, 6, 1);
+        drp_data = read_modify_write(drp_data_orig, n1_reg, 6, 1);
         /** set TXPLL_DIVSEL_FB/N2: addr 0x1f bits [5:1] */
         drp_data = read_modify_write(drp_data, n2_reg, 1, 5);
         /** set TXPLL_DIVSEL_OUT/D: addr 0x1f bits [15:14] */
         drp_data = read_modify_write(drp_data, d_reg, 14, 2);
-        drpWrite(value, drp_data);
-        drpRead(0x0);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(value, drp_data);
+            drpRead(0x0);
+        }
     }
 
     void
@@ -358,11 +360,14 @@ namespace LIBRARY_NAME
         uint8_t  m_reg
     )
     {
-        uint16_t
-        drp_data = drpRead(value);
-        drp_data = read_modify_write(drp_data, m_reg, 1, 5);
-        drpWrite(value, drp_data);
-        drpRead(0x0);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(value);
+        drp_data = read_modify_write(drp_data_orig, m_reg, 1, 5);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(value, drp_data);
+            drpRead(0x0);
+        }
     }
 
     void
@@ -373,11 +378,14 @@ namespace LIBRARY_NAME
         uint8_t clkdiv
     )
     {
-        uint16_t
-        drp_data = drpRead(value);
-        drp_data = read_modify_write(drp_data, clkdiv, bit, 5);
-        drpWrite(value, drp_data);
-        drpRead(0x0);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(value);
+        drp_data = read_modify_write(drp_data_orig, clkdiv, bit, 5);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(value, drp_data);
+            drpRead(0x0);
+        }
     }
 
     void
@@ -386,11 +394,14 @@ namespace LIBRARY_NAME
         gtxpll_settings pll
     )
     {
-        uint16_t
-        drp_data = drpRead(0x39);
-        drp_data = read_modify_write(drp_data, pll.tx_tdcc_cfg, 14, 2);
-        drpWrite(0x39, drp_data);
-        drpRead(0x0);
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(0x39);
+        drp_data = read_modify_write(drp_data_orig, pll.tx_tdcc_cfg, 14, 2);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(0x39, drp_data);
+            drpRead(0x0);
+        }
     }
 
     /**
@@ -759,6 +770,19 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CMD, command);
     }
 
+    
+    bool
+    link::isDiuLinkFull()
+    {
+        return ( (GTX(RORC_REG_DDL_CTRL) & (1<<4)) != 0 );
+    }
+
+
+    bool
+    link::isDiuLinkUp()
+    {
+        return ( (GTX(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
+    }
 
 
     /**********************************************************
@@ -819,5 +843,177 @@ namespace LIBRARY_NAME
     {
         diuSendCommand(LIBRORC_LINK_CMD_DIU_LINK_INIT);
     }
+
+
+    /**
+     * NOTE: this is a rewrite of dma_channel_ddl::configureDDL()
+     **/
+    void
+    link::prepareDiuForFeeData()
+    {
+        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
+        /** wait for LF_N to go high */
+        while( !isDiuLinkUp() && (timeout!=0) )
+        {
+            usleep(100);
+            timeout--;
+        }
+
+        if ( !timeout )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for LF_N to deassert\n");
+        }
+        else
+        {
+            /** close any open transfer */
+            sendFeeEndOfBlockTransfer();
+            /** re-open the link */
+            sendFeeReadyToReceive();
+        }
+    }
+
+
+    /**********************************************************
+     *             Fast Cluster Finder Interfacing
+     * *******************************************************/
+
+    // protected
+    void
+    link::fcfWriteMappingRamEntry
+    (
+        uint32_t addr,
+        uint32_t data
+    )
+    {
+        setGTX(RORC_REG_FCF_RAM_DATA, data);
+        setGTX(RORC_REG_FCF_RAM_CTRL, addr);
+    }
+
+
+    // protected
+    uint32_t
+    link::fcfHexstringToUint32
+    (
+        string line
+    )
+    {
+        uint32_t hexval;
+        stringstream ss;
+        ss << hex << line;
+        ss >> hexval;
+        return hexval;
+    }
+
+
+
+    void
+    link::fcfLoadMappingRam
+    (
+        const char *fname
+    )
+    {
+        ifstream memfile(fname);
+        if ( !memfile.is_open() )
+        {
+            cout << "Failed to open mapping file" << endl;
+            abort();
+        }
+
+        string line;
+        uint32_t i = 0;
+
+        while ( getline(memfile, line) )
+        {
+            if ( i>4095 )
+            {
+                DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has more " \
+                        "than 4096 entries - skipping remaining lines");
+                break;
+            }
+
+            uint32_t hexval = fcfHexstringToUint32(line);
+            fcfWriteMappingRamEntry(i, hexval);
+            i++;
+        }
+
+        if ( i<4096 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has less " \
+                    "than 4096 entries - filling remaining lines");
+            while( i<4096 )
+            {
+                fcfWriteMappingRamEntry(i, 0);
+                i++;
+            }
+        }
+    }
+
+    void
+    link::enableDdl()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<0); // enable DDL_IF
+        ddlctrl |= (1<<1); // enable flow control
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    void
+    link::enableFcf()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<8); // enable FCF (same bit as PG_ENABLE)
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+    void
+    link::setDataSourceDdl()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<3); // set MUX to DIU
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+    void
+    link::setDataSourceDdr3DataReplay()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<3); // set MUX to DDR3 DataReplay
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+    void
+    link::configureDdr3DataReplayChannel
+    (
+        uint32_t ddr3_start_address
+    )
+    {
+        uint32_t ch_cfg = ddr3_start_address | //start addr
+            (1<<1) | // continuous
+            (1<<0); //enable
+        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+
+
+
+    /**
+     * TODO:
+     * disableFcf()
+     *
+     * from dma_channel_pg:
+     * setDataSourcePatternGenerator()
+     * configurePatternGenerator()
+     * enablePatternGenerator()
+     * disablePatternGenerator()
+     *
+     * from dma_channel_ddl:
+     * closeDDL() <- needs refactoring!
+     *
+     * more to come here!
+     **/
 
 }

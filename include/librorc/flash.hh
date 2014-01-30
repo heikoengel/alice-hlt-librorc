@@ -123,7 +123,7 @@ class bar;
         flash
         (
             bar                    *flashbar,
-            uint64_t                chip_select,
+            uint32_t                chip_select,
             librorc_verbosity_enum  verbose
         );
 
@@ -373,9 +373,14 @@ class bar;
             struct flash_architecture *arch
         );
 
+        uint32_t
+        getChipSelect();
+
     private:
         bar      *m_bar;
         uint32_t  m_base_addr;
+        uint32_t  m_chip_select;
+
     };
 
 }

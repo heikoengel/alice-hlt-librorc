@@ -128,6 +128,8 @@ class device;
             int32_t  m_msgid;
             uint32_t m_read_from_dev_data;
             uint32_t m_read_from_dev_done;
+            uint64_t m_read_time_data;
+            uint32_t m_read_time_done;
             uint32_t m_write_to_dev_done;
             uint32_t m_cmpl_to_dev_done;
             uint32_t m_max_packet_size;

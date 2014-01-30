@@ -140,7 +140,9 @@ namespace LIBRARY_NAME
             esType == LIBRORC_ES_IN_HWPG
         )
         {
-            if( !monitor.firmwareIsHltIn() && !monitor.firmwareIsHltHardwareTest())
+            if( !monitor.firmwareIsHltIn() &&
+                    !monitor.firmwareIsHltHardwareTest() &&
+                    !monitor.firmwareIsHltInFcf())
             {
                 cout << "Wrong device firmware loaded [out] instead [in]" << endl;
                 throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
@@ -300,7 +302,7 @@ namespace LIBRARY_NAME
                      m_reportBuffer
                  );
 
-                 m_bar1->simSetPacketSize(32);
+                 //m_bar1->simSetPacketSize(32);
                  m_channel->enable();
             }
             break;
@@ -489,6 +491,14 @@ namespace LIBRARY_NAME
 
                 //increment number of events processed in this while-loop
                 events_per_iteration++;
+
+                DEBUG_PRINTF
+                (
+                     PDADEBUG_CONTROL_FLOW,
+                     "CH %d - Event, %d DWs\n",
+                     m_channel_status->channel,
+                     report.calc_event_size
+                );
             }
 
             // clear processed report-buffer entries

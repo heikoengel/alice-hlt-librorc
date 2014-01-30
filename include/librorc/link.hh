@@ -22,6 +22,8 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
+#include <sstream>
+#include <fstream>
 
 #define LIBRORC_LINK_DDL_TIMEOUT 10000
 
@@ -514,6 +516,86 @@ class device;
             sendDiuLinkInitialization();
 
 
+            /**
+             * wait for link up, cleanly open FEE link
+             **/
+            void
+            prepareDiuForFeeData();
+
+
+            bool
+            isDiuLinkUp();
+
+
+            bool
+            isDiuLinkFull();
+
+
+            void
+            enableDdl();
+
+
+            /**********************************************************
+             *             Data Path Configuration
+             *********************************************************/
+
+            /**
+             * Set DIU as data source
+             **/
+            void
+            setDataSourceDdl();
+
+            /**
+             * set DDR3 Data Replay as data source
+             **/
+            void
+            setDataSourceDdr3DataReplay();
+
+            /**********************************************************
+             *             Fast Cluster Finder Interfacing
+             *********************************************************/
+
+            /**
+             * load mapping file into FCF mapping RAM
+             * @param fname path to mapping file. The mapping file
+             *        is a plain-text file with one 32bit hex string
+             *        per line, e.g.
+             *        "0x1000801f"
+             **/
+            void
+            fcfLoadMappingRam
+            (
+                 const char *fname
+            );
+
+            /**
+             * enable FastClusterFinder processing
+             **/
+            void
+            enableFcf();
+
+
+
+            /**********************************************************
+             *             Data Replay Channel Level Interfacing
+             *********************************************************/
+
+            /**
+             * set start address of current channel's replay data
+             * in DDR3 memory
+             * @param ddr3_start_address replay data start address
+             **/
+            void
+            configureDdr3DataReplayChannel
+            (
+                 uint32_t ddr3_start_address
+            );
+
+            /**
+             * enable DDR3 data replay channel
+             **/
+            void
+            enableDdr3DataReplayChannel();
 
             /**********************************************************
              *             Debug Output
@@ -559,6 +641,35 @@ class device;
             );
 
             void drpSetPllConfigCommon(gtxpll_settings pll);
+
+
+
+            /**********************************************************
+             *             Fast Cluster Finder Interfacing
+             *********************************************************/
+
+            /** write entry into FCF mapping RAM
+             * @param addr mapping RAM addr
+             * @param data data to be written
+             **/
+            void
+            fcfWriteMappingRamEntry
+            (
+                 uint32_t addr,
+                 uint32_t data
+            );
+
+            /**
+             * convert hex string to uint32_t
+             * @param line input string
+             * @return line as uint32_t
+             **/
+            uint32_t
+            fcfHexstringToUint32
+            (
+                 string line
+            );
+
 };
 
 }
