@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
-    int fd_in = open(INPUT_FILE, O_RDONLY);
+    /*int fd_in = open(INPUT_FILE, O_RDONLY);
     if ( fd_in==-1 )
     {
         cout << "ERROR: Failed to open input file" << endl;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     {
         cout << "ERROR: failed to mmap input file" << endl;
         abort();
-    }
+    }*/
 
     /** wait until GTX domain is up */
     cout << "Waiting for GTX domain..." << endl;
