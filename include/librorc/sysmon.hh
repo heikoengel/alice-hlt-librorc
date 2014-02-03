@@ -109,6 +109,11 @@ class bar;
             **/
             uint32_t FwBuildDate();
 
+            /**
+             * get number of implemented DMA channels
+             **/
+            uint32_t numberOfChannels();
+
             uint16_t    firmwareType();
             bool        firmwareIsHltIn();
             bool        firmwareIsHltOut();
@@ -377,6 +382,10 @@ class bar;
                 uint8_t channel,
                 bool last_event
             );
+
+
+            void
+            clearSysmonErrorCounters();
 
 
         protected:

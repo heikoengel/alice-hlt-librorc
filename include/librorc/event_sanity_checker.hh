@@ -48,10 +48,10 @@
  *
  *  Pattern Generator Modes :
  */
-#define PG_PATTERN_INC    (1<<0) /** Increment value by 1 */
-#define PG_PATTERN_DEC    (1<<1) /** Decrement value by 1 */
-#define PG_PATTERN_SHIFT  (1<<2) /** Shifts the value to the left, the leftmost bit is inserted on the right side */
-#define PG_PATTERN_TOGGLE (1<<3) /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
+#define PG_PATTERN_INC    0 /** Increment value by 1 */
+#define PG_PATTERN_DEC    2 /** Decrement value by 1 */
+#define PG_PATTERN_SHIFT  1 /** Shifts the value to the left, the leftmost bit is inserted on the right side */
+#define PG_PATTERN_TOGGLE 3 /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
 
 namespace LIBRARY_NAME
 {

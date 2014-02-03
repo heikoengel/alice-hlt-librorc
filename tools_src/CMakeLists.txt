@@ -6,6 +6,12 @@ add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS rorctl RUNTIME DESTINATION bin )
 
+# Build board_reset
+add_executable( board_reset
+  ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/board_reset.cpp)
+target_link_libraries( board_reset rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS board_reset RUNTIME DESTINATION bin )
+
 # Build ucctrl
 add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
 target_link_libraries( ucctrl rorc pthread ${EXTRA_LIBS})
