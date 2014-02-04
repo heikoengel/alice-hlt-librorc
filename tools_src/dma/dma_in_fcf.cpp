@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
-    /*int fd_in = open(INPUT_FILE, O_RDONLY);
+    int fd_in = open(INPUT_FILE, O_RDONLY);
     if ( fd_in==-1 )
     {
         cout << "ERROR: Failed to open input file" << endl;
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     {
         cout << "ERROR: failed to mmap input file" << endl;
         abort();
-    }*/
+    }
 
     /** wait until GTX domain is up */
     cout << "Waiting for GTX domain..." << endl;
@@ -133,10 +133,10 @@ int main(int argc, char *argv[])
      * Option1: 
      * configure datastream: from DIU through FCF 
      **/
-    link->setDataSourceDdl();
+    /*link->setDataSourceDdl();
     link->enableDdl();
     link->enableFcf();
-    link->prepareDiuForFeeData();
+    link->prepareDiuForFeeData(); */
 
     //-----------------------------------------------------//
 
@@ -144,7 +144,15 @@ int main(int argc, char *argv[])
      * Option 2:
      * configure datastream: from DDR3 through FCF 
      **/
-    /*cout << "Waiting for phy_init_done..." << endl;
+    //link->setDataSourceDdr3DataReplay();
+    //link->enableFcf();
+    //link->enableDdl();
+
+    // disable Data Replay
+    bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000);
+    link->disableDdr3DataReplayChannel();
+
+    cout << "Waiting for phy_init_done..." << endl;
     while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
     { usleep(100); }
 
@@ -169,10 +177,11 @@ int main(int argc, char *argv[])
     link->enableFcf();
     // configure and start data replay channel
     link->configureDdr3DataReplayChannel(ch_start_addr);
+    link->enableDdr3DataReplayChannel();
 
     // enable data replay globally
     bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x80000000);
-*/
+
     //-----------------------------------------------------//
 
 
@@ -251,8 +260,8 @@ int main(int argc, char *argv[])
 
             last_bytes_received  = eventStream->m_channel_status->bytes_received;
             last_events_received = eventStream->m_channel_status->n_events;
+            last_time = current_time;
         }
-        last_time = current_time;
     }
 
     timeval end_time;

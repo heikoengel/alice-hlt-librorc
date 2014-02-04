@@ -255,6 +255,7 @@ namespace LIBRARY_NAME
                      m_eventBuffer,
                      m_reportBuffer
                  );
+                 m_channel->enable();
             }
             break;
 

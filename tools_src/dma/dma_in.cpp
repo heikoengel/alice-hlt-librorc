@@ -61,10 +61,11 @@ int main(int argc, char *argv[])
     eventStream->setStatusCallback(printStatusLine);
 
     /** make clear what will be checked*/
-    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    //int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    int32_t sanity_check_mask = CHK_SOE|CHK_EOE;
     if(opts.useRefFile)
     { sanity_check_mask |= CHK_FILE; }
-    else
+    else if ( opts.esType == LIBRORC_ES_IN_HWPG )
     { sanity_check_mask |= (CHK_PATTERN|CHK_ID); }
 
 

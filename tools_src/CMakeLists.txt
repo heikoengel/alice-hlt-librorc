@@ -141,6 +141,12 @@ add_executable( channeldump ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/channeldump
 target_link_libraries( channeldump rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS channeldump RUNTIME DESTINATION bin )
 
+# Build ddr3_data_replay 
+add_executable( ddr3_data_replay
+  ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/ddr3_data_replay.cpp)
+target_link_libraries( ddr3_data_replay rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ddr3_data_replay RUNTIME DESTINATION bin )
+
 #-----------------------------------------------------------
 
 # Build hwtests

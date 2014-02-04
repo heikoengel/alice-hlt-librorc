@@ -1050,8 +1050,6 @@ namespace LIBRARY_NAME
     }
 
 
-
-
     /**
      * Hardware Pattern Generator
      **/
