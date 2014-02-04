@@ -19,7 +19,7 @@ mkdir -p $LOGPATH
 #$BINPATH/crorc_preallocator
 #sleep 1
 
-for CH in {0..7}
+for CH in {0..3}
 do
   PID=/var/run/dma_out_${DEV}_${CH}.pid
   LOG=$LOGPATH/dev${DEV}_ch${CH}

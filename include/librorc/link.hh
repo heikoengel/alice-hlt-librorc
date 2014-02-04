@@ -35,6 +35,14 @@
 #define LIBRORC_LINK_CMD_SIU_RST 0x00000082
 #define LIBRORC_LINK_CMD_DIU_LINK_INIT 0x000000b1
 
+/**
+ * TODO: this is a copy of include/librorc/event_sanity_checker.hh:51
+ **/
+#define PG_PATTERN_INC    0 /** Increment value by 1 */
+#define PG_PATTERN_DEC    2 /** Decrement value by 1 */
+#define PG_PATTERN_SHIFT  1 /** Shifts the value to the left, the leftmost bit is inserted on the right side */
+#define PG_PATTERN_TOGGLE 3 /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
+
 typedef struct
 gtxpll_settings_struct
 {
@@ -148,6 +156,8 @@ class device;
             /** clear Event Count */
             void clearEventCount();
 
+            void clearAllDmaCounters();
+
             uint32_t dmaStallCount();
 
             uint32_t dmaNumberOfEventsProcessed();
@@ -183,6 +193,10 @@ class device;
              * @return buffer size in bytes
              **/
             uint64_t getRBSize();
+
+
+            void disableDmaEngine();
+
 
 
 
@@ -534,6 +548,9 @@ class device;
             void
             enableDdl();
 
+            void
+            disableDdl();
+
 
             /**********************************************************
              *             Data Path Configuration
@@ -550,6 +567,40 @@ class device;
              **/
             void
             setDataSourceDdr3DataReplay();
+
+            /**********************************************************
+             *             Pattern Generator
+             *********************************************************/
+
+            void
+            enablePatternGenerator();
+
+            void
+            disablePatternGenerator();
+
+            void
+            setDataSourcePatternGenerator();
+
+            void
+            setPatternGeneratorStaticEventSize
+            (
+                uint32_t eventSize
+            );
+
+            void
+            setPatternGeneratorPrbsSize
+            (
+                uint16_t prbs_min_size,
+                uint32_t prbs_max_size_mask
+            );
+
+            void
+            configurePatternGenerator
+            (
+                uint32_t patternMode,
+                uint32_t initialPattern,
+                uint32_t numberOfEvents
+            );
 
             /**********************************************************
              *             Fast Cluster Finder Interfacing
@@ -574,6 +625,12 @@ class device;
             void
             enableFcf();
 
+            /**
+             * disable FastClusterFinder processing
+             **/
+            void
+            disableFcf();
+
 
 
             /**********************************************************
@@ -596,6 +653,12 @@ class device;
              **/
             void
             enableDdr3DataReplayChannel();
+
+            /**
+             * disable DDR3 data replay channel
+             **/
+            void
+            disableDdr3DataReplayChannel();
 
             /**********************************************************
              *             Debug Output

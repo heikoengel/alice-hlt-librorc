@@ -148,6 +148,13 @@ namespace LIBRARY_NAME
     }
 
 
+    uint32_t
+    sysmon::numberOfChannels()
+    {
+        return(m_bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff);
+    }
+
+
 
     /** SYSTEM Monitoring *********************************************/
 
@@ -579,6 +586,31 @@ namespace LIBRARY_NAME
         return ((i2c_read_mem(index, QSFP_I2C_SLVADDR, 129) & (1<<2)) != 0);
     }
 
+
+
+    /** Error Counters ***************************************************/
+
+    void
+    sysmon::clearSysmonErrorCounters()
+    {
+        /** reset SC Request Canceled counter */
+        m_bar->set32(RORC_REG_SC_REQ_CANCELED, 0);
+
+        /** reset DMA TX Timeout counter */
+        m_bar->set32(RORC_REG_DMA_TX_TIMEOUT, 0);
+
+        /** reset Illegal Request counter */
+        m_bar->set32(RORC_REG_ILLEGAL_REQ, 0);
+
+        /** reset Multi-DW Read counter */
+        m_bar->set32(RORC_REG_MULTIDWREAD, 0);
+
+        /** reset PCIe Destination Busy counter */
+        m_bar->set32(RORC_REG_PCIE_DST_BUSY, 0);
+
+        /** reset PCIe TErr Drop counter */
+        m_bar->set32(RORC_REG_PCIE_TERR_DROP, 0);
+    }
 
 
 

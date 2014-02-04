@@ -235,6 +235,13 @@ namespace LIBRARY_NAME
         return packetizer(RORC_REG_DMA_STALL_CNT);
     }
 
+    void
+    link::clearAllDmaCounters()
+    {
+        clearEventCount();
+        clearDmaStallCount();
+    }
+
 
     uint32_t
     link::dmaNumberOfEventsProcessed()
@@ -465,6 +472,18 @@ namespace LIBRARY_NAME
     {
         return ((uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
                (uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
+    }
+
+    void
+    link::disableDmaEngine()
+    {
+        /**
+         * disable EBDM + RBDM
+         * disable Packetizer
+         * Reset D_FIFO
+         * Reset MaxPayload
+         **/
+        setPacketizer(RORC_REG_DMA_CTRL, 0X00000002);
     }
 
 
@@ -770,7 +789,7 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CMD, command);
     }
 
-    
+
     bool
     link::isDiuLinkFull()
     {
@@ -959,13 +978,28 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::enableFcf()
+    link::disableDdl()
     {
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<8); // enable FCF (same bit as PG_ENABLE)
+        ddlctrl &= ~(1<<0); // disable DDL_IF
+        ddlctrl &= ~(1<<1); // disable flow control
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
+    void
+    link::enableFcf()
+    {
+        // enable FCF (same bit as PG_ENABLE)
+        enablePatternGenerator();
+    }
+
+    void
+    link::disableFcf()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<8); // disable FCF (same bit as PG_ENABLE)
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
 
     void
     link::setDataSourceDdl()
@@ -979,9 +1013,9 @@ namespace LIBRARY_NAME
     void
     link::setDataSourceDdr3DataReplay()
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<3); // set MUX to DDR3 DataReplay
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        // set MUX to DDR3 DataReplay:
+        // same as PatternGenerator for HLT_IN & HWTEST
+        setDataSourcePatternGenerator();
     }
 
 
@@ -991,9 +1025,27 @@ namespace LIBRARY_NAME
         uint32_t ddr3_start_address
     )
     {
-        uint32_t ch_cfg = ddr3_start_address | //start addr
-            (1<<1) | // continuous
+        uint32_t ch_cfg = packetizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        ch_cfg &= ~(0xfffffffc); // clear [31:2]
+        ch_cfg |= (ddr3_start_address & 0xfffffffc); //set start_addr[31:2]
+        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+
+    void
+    link::enableDdr3DataReplayChannel()
+    {
+        uint32_t ch_cfg = packetizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        ch_cfg |= (1<<1) | // continuous
             (1<<0); //enable
+        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+    void
+    link::disableDdr3DataReplayChannel()
+    {
+        uint32_t ch_cfg = packetizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        ch_cfg &= ~(1<<0); //disable
         setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
@@ -1001,9 +1053,106 @@ namespace LIBRARY_NAME
 
 
     /**
+     * Hardware Pattern Generator
+     **/
+    void
+    link::setPatternGeneratorStaticEventSize
+    (
+        uint32_t eventSize
+    )
+    {
+        setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<13); // static event size
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    void
+    link::setPatternGeneratorPrbsSize
+    (
+        uint16_t prbs_min_size,
+        uint32_t prbs_max_size_mask
+    )
+    {
+        uint32_t eventSize = (prbs_max_size_mask & 0xffff0000) |
+            prbs_min_size;
+        setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<13); // PRBS event size
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    void
+    link::setDataSourcePatternGenerator()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<3); // set MUX to 1
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    void
+    link::enablePatternGenerator()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<8); // enable PatternGenerator
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    void
+    link::disablePatternGenerator()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<8); // disable PatternGenerator
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    void
+    link::configurePatternGenerator
+    (
+        uint32_t patternMode,
+        uint32_t initialPattern,
+        uint32_t numberOfEvents
+    )
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        /**
+         * allow only implemented PatternGenerator Modes:
+         * PG_PATTERN_INC, PG_PATTERN_DEC,
+         * PG_PATTERN_SHIFT, PG_PATTERN_TOGGLE
+         * TODO: report/break on invalid mode
+         **/
+
+        ddlctrl &= ~(3<<11); // clear current mode setting
+        if( patternMode==PG_PATTERN_DEC ||
+                patternMode==PG_PATTERN_SHIFT ||
+                patternMode==PG_PATTERN_TOGGLE )
+        { ddlctrl |= ((patternMode & 3)<<11); }
+        else
+        { ddlctrl |= (PG_PATTERN_INC<<11); } // default to PG_PATTERN_INC
+
+
+        if(numberOfEvents)
+        {
+            ddlctrl &= ~(1<<10); // disable continuous mode
+            setGTX(RORC_REG_DDL_PG_NUM_EVENTS, numberOfEvents);
+        }
+        else
+        {
+            ddlctrl |= (1<<10); // enable continuous mode
+        }
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+
+
+
+
+
+
+
+
+    /**
      * TODO:
-     * disableFcf()
-     *
      * from dma_channel_pg:
      * setDataSourcePatternGenerator()
      * configurePatternGenerator()
