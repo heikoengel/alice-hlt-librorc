@@ -141,30 +141,63 @@ main
 
         if(link->isGtxDomainReady())
         {
-
             link->clearAllGtxErrorCounters();
 
             switch( sm->firmwareType() )
             {
                 case RORC_CFG_PROJECT_hlt_in:
-                    link->clearAllLastDiuStatusWords();
-                    link->disablePatternGenerator();
+                    {
+                        librorc::diu *diu = new librorc::diu(link);
+                        diu->disableInterface();
+                        diu->clearAllLastStatusWords();
+                        delete diu;
+
+                        librorc::patterngenerator *pg =
+                            new librorc::patterngenerator(link);
+                        pg->disable();
+                        delete pg;
+                    }
                     break;
                 case RORC_CFG_PROJECT_hwtest:
-                    link->disablePatternGenerator();
+                    {
+                        librorc::patterngenerator *pg =
+                            new librorc::patterngenerator(link);
+                        pg->disable();
+                        delete pg;
+                    }
                     break;
                 case RORC_CFG_PROJECT_hlt_out:
-                    link->disablePatternGenerator();
+                    {
+                        librorc::patterngenerator *pg =
+                            new librorc::patterngenerator(link);
+                        pg->disable();
+                        delete pg;
+                    }
                     break;
                 case RORC_CFG_PROJECT_hlt_in_fcf:
-                    link->disableDdr3DataReplayChannel();
-                    bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0);
-                    link->disableFcf();
+                    {
+                        // DIU only available on lower 6 channels
+                        if ( i<6 )
+                        {
+                            librorc::diu *diu = new librorc::diu(link);
+                            diu->disableInterface();
+                            diu->clearAllLastStatusWords();
+                            delete diu;
+
+                            link->disableDdr3DataReplayChannel();
+                            bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0);
+                            link->disableFcf();
+                        } else {
+                            // TODO: disable raw readout
+                            librorc::diu *diu = new librorc::diu(link);
+                            diu->disableInterface();
+                            delete diu;
+                        }
+                    }
                     break;
                 default:
                     break;
             }
-            link->disableDdl();
         }
 
         link->disableDmaEngine();

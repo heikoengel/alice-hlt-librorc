@@ -58,21 +58,18 @@ librorc_firmware_mode_descriptions[LIBRORC_NUMBER_OF_FIRMWARE_MODES][1024]
 "hwtest"
 };
 
-//const char librorc_firmware_mode_descriptions[] = "in";
 
-
-/**
- * @class librorc_sysmon
- * @brief System monitor class
- *
- * This class can be attached to librorc::rorc_bar to provide access to the
- * static parts of the design, like PCIe status, SystemMonitor readings
- * and access to the ICAP interface
- **/
 namespace LIBRARY_NAME
 {
-class bar;
+    class bar;
 
+    /**
+     * @brief System monitor class
+     *
+     * This class can be attached to bar to provide access to the
+     * static parts of the design, like PCIe status and SystemMonitor 
+     * readings
+     **/
     class sysmon
     {
         public:
@@ -266,28 +263,10 @@ class bar;
                  uint8_t index
             );
 
-            /**
-             * write to ICAP Interface
-             * @param dword bit-reordered configuration word
-             *
-             * use this function to write already reordered
-             * (*.bin-file) contents to the ICAP interface.
-            **/
-            //void setIcapDin( uint32_t dword );
-
-            /**
-             * write to ICAP Interface and do the bit reordering
-             * @param dword not reordered configuration word
-             *
-             * use this function to write non-reordered
-             * (*.bit-files) to ICAP and do the reordering
-             * in the FPGA.
-            **/
-            //void setIcapDinReorder( uint32_t dword );
-
 
             /**
              * reset i2c bus
+             * @param chain chain to be resetted
             **/
             void i2c_reset
             (
@@ -295,12 +274,12 @@ class bar;
             );
 
             /**
-             * read byte from i2c memory location
+             * Read byte from i2c memory location.
+             * Throws exception on error
+             * @param chain i2c chain number
              * @param slvaddr slave address
              * @param memaddr memory address
-             * @param data pointer to unsigned char for
-             * received data
-             * @return 0 on success, -1 on errors
+             * @return data
             **/
             uint8_t
             i2c_read_mem
@@ -311,11 +290,12 @@ class bar;
             );
 
             /**
-             * write byte to i2c memory location
+             * Write byte to i2c memory location.
+             * Throws exception on error
+             * @param chain i2c chain number
              * @param slvaddr slave address
              * @param memaddr memory address
              * @param data to be written
-             * throws exception on error
             **/
             void
             i2c_write_mem
@@ -327,11 +307,14 @@ class bar;
             );
 
             /**
-             * write byte to i2c memory location
+             * perform a write of two bytes to independent i2c
+             * memory locations. Throws exception on error.
+             * @param chain i2c chain number
              * @param slvaddr slave address
-             * @param memaddr memory address
-             * @param data to be written
-             * throws exception on error
+             * @param memaddr0 first memory address
+             * @param data0 first byte to be written
+             * @param memaddr1 second memory address
+             * @param data1 second byte to be written
             **/
             void
             i2c_write_mem_dual
@@ -433,6 +416,13 @@ class bar;
 
             uint32_t i2c_wait_for_cmpl();
 
+            /**
+             * read string from QSFP i2c memory map
+             * @param index target QSFP
+             * @param start start address
+             * @param end end address
+             * @return string
+             **/
             string*
             qsfp_i2c_string_readout
             (
@@ -442,13 +432,20 @@ class bar;
             );
 
 
+            /**
+             * select page 0 address space
+             * @param index target QSFP
+             **/
             void
             qsfp_select_page0
             (
                 uint8_t index
             );
 
+            /** base bar instance */
             bar *m_bar;
+
+            /** high speed mode flag */
             uint8_t m_i2c_hsmode;
     };
 

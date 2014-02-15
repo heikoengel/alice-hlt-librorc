@@ -52,23 +52,46 @@ typedef struct
 
 namespace LIBRARY_NAME
 {
-class sysmon;
+    class sysmon;
 
+    /**
+     * @brief GTX Reference Clock Generator Interface class
+     *
+     * See SiliconLabs Si570 Datasheet for technical details:
+     * http://www.silabs.com/Support%20Documents/TechnicalDocs/si570.pdf
+     **/
     class refclk
     {
         public:
             refclk(sysmon *parent_sysmon);
             ~refclk();
             
+            /**
+             * Release DCO
+             **/
             void
             releaseDCO();
             
+            /**
+             * read back current oscillator settings from device
+             * @param fout current output frequency.
+             * @return struct refclkopts with all settings
+             **/
             refclkopts
             getCurrentOpts
             (
                 double fout
             );
             
+            /**
+             * calculate a new set of oscillator settings with a
+             * new output frequency based on the device specific
+             * XTAL frequency, which has been retrived via 
+             * getCurrentOpts()
+             * @param new output frequency
+             * @param device specific XTAL frequency
+             * @return a new set of oscillator settings
+             **/
             refclkopts
             getNewOpts
             (
@@ -76,21 +99,36 @@ class sysmon;
                 double fxtal
             );
 
+            /**
+             * setReser/Freeze/Memory Control Register
+             * @param flag value to be written
+             **/
             void
             setRFMCtrl
             (
                 uint8_t flag
             );
 
+            /**
+             * set Freeze-DCO bit
+             **/
             void
             setFreezeDCO();
 
+            /**
+             * wait for flag to be cleared in RFMC register
+             * @param flag bitmask of requested bits. This call blocks
+             * until (reg135 & flag)==0.
+             **/
             void
             waitForClearance
             (
                 uint8_t flag
             );
 
+            /**
+             * write oscillator settings into device
+             **/
             void 
             setOpts
             (
@@ -101,48 +139,77 @@ class sysmon;
                 sysmon *m_sysmon;
 
         protected:
+                
+            /**
+             * convert 48bit hex value to float, see Si570 UG
+             **/
             double
             hex2float
             (
                 uint64_t value
             );
 
+            /**
+             * convert float to 48bit hex value, see Si570 UG
+             **/
             uint64_t
             float2hex
             (
                 double value
             );
             
+            /**
+             * convert encoding to logical value for HsDiv
+             **/
             int32_t
             hsdiv_reg2val
             (
                 uint32_t hs_reg
             );
 
+            /**
+             * convert logical value to encoding for HsDiv
+             **/
             int32_t
             hsdiv_val2reg
             (
                 uint32_t hs_val
             );
             
+            /**
+             * convert encoding to logical value for N1
+             **/
             int32_t
             n1_reg2val
             (
                 uint32_t n1_reg
             );
 
+            /**
+             * convert logical value to encoding for N1
+             **/
             int32_t
             n1_val2reg
             (
                 uint32_t n1_val
             );
 
+            /**
+             * low-level read from RefClkGen
+             * @param addr target address
+             * @return value read
+             **/
             uint8_t
             refclk_read
             (
                 uint8_t addr
             );
 
+            /**
+             * low-level write to RefClkGen
+             * @param addr target address
+             * @param value value to be written
+             **/
             void 
             refclk_write
             (

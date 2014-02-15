@@ -59,20 +59,21 @@ typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
 
 
-/**
- * @class librorc::buffer
- * @brief buffer management class
- *
- * This class manages the DMA receive buffers. One instance of this
- * class represents one couple of EventBuffer and ReportBuffer with
- * their corresponding sysfs attributes
- **/
+
 namespace LIBRARY_NAME
 {
-class device;
-class dma_channel;
-class buffer_sglist_programmer;
+    class device;
+    class dma_channel;
+    class buffer_sglist_programmer;
 
+
+    /**
+     * @brief buffer management class
+     *
+     * This class manages the DMA receive buffers. One instance of this
+     * class represents one couple of EventBuffer and ReportBuffer with
+     * their corresponding sysfs attributes
+     **/
     class buffer
     {
         friend class dma_channel;

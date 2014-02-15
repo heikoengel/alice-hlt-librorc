@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: f5f9eac844d4a7260de4f8eec69c8f936563f25b
-// short hash: f5f9eac
+// hash: b2d6458c8dc13c779168b6cecfdbf14729b81a54
+// short hash: b2d6458
 //
 
-#define RORC_REVISION 0xf5f9eac
-#define RORC_BUILD_DATE 0x20131209
+#define RORC_REVISION 0xb2d6458
+#define RORC_BUILD_DATE 0x20140213
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -96,8 +96,14 @@
 #define RORC_REG_DDL_IFSTW 21
 #define RORC_REG_FCF_RAM_DATA 22
 #define RORC_REG_FCF_RAM_CTRL 23
+#define RORC_REG_DDL_FILTER_CTRL 24
+#define RORC_REG_DDL_DMA_DEADTIME 25
 #define RORC_DMA_CMP_SEL 13
 #define RORC_CFG_PROJECT_hlt_in 0
 #define RORC_CFG_PROJECT_hlt_out 1
 #define RORC_CFG_PROJECT_hlt_in_fcf 2
 #define RORC_CFG_PROJECT_hwtest 4
+#define RORC_CFG_LINK_TYPE_DIU 0
+#define RORC_CFG_LINK_TYPE_SIU 1
+#define RORC_CFG_LINK_TYPE_VIRTUAL 2
+#define RORC_CFG_LINK_TYPE_LINKTEST 3

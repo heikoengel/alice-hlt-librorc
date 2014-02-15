@@ -12,3 +12,6 @@
 #include "librorc/dma_channel.hh"
 #include "librorc/event_stream.hh"
 #include "librorc/event_sanity_checker.hh"
+#include "librorc/patterngenerator.hh"
+#include "librorc/ddl.hh"
+#include "librorc/diu.hh"

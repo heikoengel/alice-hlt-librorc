@@ -44,8 +44,8 @@ int main
    /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
-    uint32_t channel_enable_val;
-    uint32_t global_enable_val;
+    uint32_t channel_enable_val = 0;
+    uint32_t global_enable_val = 0;
     char *filename = NULL;
 
     int do_channel_enable = 0;
@@ -145,7 +145,7 @@ int main
         abort();
     }
 
-    if ( ChannelId < 0 || ChannelId >= sm->numberOfChannels() )
+    if ( ChannelId < 0 || ChannelId >= (int)sm->numberOfChannels() )
     {
         cout << "ERROR: no or invalid channel selected: " << ChannelId
              << endl;

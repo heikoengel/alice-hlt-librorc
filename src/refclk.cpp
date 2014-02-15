@@ -25,7 +25,7 @@
 namespace LIBRARY_NAME
 {
 
-    /**------------- public --------------*/
+    //------------- public --------------
 
     refclk::refclk
     (
@@ -48,10 +48,10 @@ namespace LIBRARY_NAME
     void
     refclk::releaseDCO()
     {
-        /** get current FREEZE_DCO settings */
+        // get current FREEZE_DCO settings 
         uint8_t freeze_val = refclk_read(137);
 
-        /** clear FREEZE_DCO bit */
+        // clear FREEZE_DCO bit 
         freeze_val &= 0xef;
 
         m_sysmon->i2c_write_mem_dual(LIBRORC_REFCLK_I2C_CHAIN,
@@ -69,11 +69,11 @@ namespace LIBRARY_NAME
         double fout
     )
     {
-        /** get current RFREQ, HSDIV, N1 */
+        // get current RFREQ, HSDIV, N1
         refclkopts opts;
         uint8_t value;
 
-        /** addr 7: HS_DIV[2:0], N1[6:2] */
+        // addr 7: HS_DIV[2:0], N1[6:2]
         value = refclk_read(13);
         opts.hs_div = hsdiv_reg2val((value>>5) & 0x07);
         uint32_t n1 = ((uint32_t)(value&0x1f))<<2;
@@ -83,7 +83,7 @@ namespace LIBRARY_NAME
         opts.n1 = n1_reg2val(n1);
         opts.rfreq_int = (uint64_t(value & 0x3f)<<((uint64_t)32));
 
-        /** addr 15...18: RFREQ[31:0] */
+        // addr 15...18: RFREQ[31:0]
         for(uint8_t i=0; i<=3; i++)
         {
             value = refclk_read(i+15);
@@ -92,15 +92,15 @@ namespace LIBRARY_NAME
 
         opts.rfreq_float = hex2float(opts.rfreq_int);
 
-        /** fOUT is known -> get accurate fDCO */
+        // fOUT is known -> get accurate fDCO
         if ( fout!=0 )
         {
             opts.fdco = fout * opts.n1 * opts.hs_div;
             opts.fxtal = opts.fdco/opts.rfreq_float;
         }
         else
-            /** fOUT is unknown 
-             * -> use default fXTAL to get approximate fDCO */
+        // fOUT is unknown 
+        // -> use default fXTAL to get approximate fDCO
         {
             opts.fdco = 114.285 * opts.rfreq_float;
             opts.fxtal = 114.285;
@@ -128,7 +128,7 @@ namespace LIBRARY_NAME
 
         for ( int n=1; n<=128; n++ )
         {
-            /** N1 can be 1 or any even number up to 128 */
+            // N1 can be 1 or any even number up to 128 
             if ( n!=1 && (n & 0x1) )
             {
                 continue;
@@ -136,7 +136,7 @@ namespace LIBRARY_NAME
 
             for ( int h=11; h>3; h-- )
             {
-                /** valid values for HSDIV are 4, 5, 6, 7, 9 or 11 */
+                // valid values for HSDIV are 4, 5, 6, 7, 9 or 11 
                 if ( h==8 || h==10 )
                 {
                     continue;
@@ -145,7 +145,7 @@ namespace LIBRARY_NAME
                 if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 )
                 {
                     vco_found = 1;
-                    /** find lowest possible fDCO for this configuration */
+                    // find lowest possible fDCO for this configuration 
                     if (fDCO_new<lastfDCO)
                     {
                         opts.hs_div = h;
@@ -191,7 +191,7 @@ namespace LIBRARY_NAME
         uint8_t flag
     )
     {
-        /** wait for flag to be cleared by device */
+        // wait for flag to be cleared by device 
         uint8_t reg135 = flag;
         while ( reg135 & flag )
         {
@@ -205,10 +205,10 @@ namespace LIBRARY_NAME
         refclkopts opts
     )
     {
-        /** Freeze oscillator */
+        // Freeze oscillator 
         setFreezeDCO();
 
-        /** write new osciallator values */
+        // write new osciallator values 
         uint8_t value = (hsdiv_val2reg(opts.hs_div)<<5) | 
             (n1_val2reg(opts.n1)>>2);
         refclk_write(13, value);
@@ -217,22 +217,22 @@ namespace LIBRARY_NAME
             (opts.rfreq_int>>32);
         refclk_write(14, value);
 
-        /** addr 15...18: RFREQ[31:0] */
+        // addr 15...18: RFREQ[31:0] 
         for(uint8_t i=0; i<=3; i++)
         {
             value = ((opts.rfreq_int>>((3-i)*8)) & 0xff);
             refclk_write(15+i, value);
         }
 
-        /** release DCO Freeze */
+        // release DCO Freeze 
         releaseDCO();
 
-        /** wait for NewFreq to be deasserted */
+        // wait for NewFreq to be deasserted 
         waitForClearance(M_NEWFREQ);
     }
 
 
-    /**------------- protected --------------*/
+    //------------- protected --------------
     double
     refclk::hex2float
     (

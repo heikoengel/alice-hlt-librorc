@@ -25,12 +25,12 @@ INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
 #-----------------------------------------------------------
 
 # Build DMA test with Pattern Generator
-add_executable( dma_in_hwpg
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
-)
-target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS dma_in_hwpg RUNTIME DESTINATION bin )
+#add_executable( dma_in_hwpg
+#"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
+#"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+#)
+#target_link_libraries( dma_in_hwpg rorc pthread ${EXTRA_LIBS})
+#INSTALL(TARGETS dma_in_hwpg RUNTIME DESTINATION bin )
 
 # Build DMA test with Pattern Generator
 add_executable( dma_in_hwpg_mc
@@ -49,20 +49,20 @@ target_link_libraries( dma_in_ddl_fcf rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS dma_in_ddl_fcf RUNTIME DESTINATION bin )
 
 # Build DMA test DDL backend
-add_executable( dma_in_ddl
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
-)
-target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS dma_in_ddl RUNTIME DESTINATION bin )
+#add_executable( dma_in_ddl
+#"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
+#"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+#)
+#target_link_libraries( dma_in_ddl rorc pthread ${EXTRA_LIBS})
+#INSTALL(TARGETS dma_in_ddl RUNTIME DESTINATION bin )
 
 # Build DMA test pure backend
-add_executable( dma_in_generic
+add_executable( dma_in
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( dma_in_generic rorc pthread ${EXTRA_LIBS})
-INSTALL(TARGETS dma_in_generic RUNTIME DESTINATION bin )
+target_link_libraries( dma_in rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS dma_in RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------
 

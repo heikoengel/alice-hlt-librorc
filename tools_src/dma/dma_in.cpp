@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
     if
     (
-        (opts.esType == LIBRORC_ES_IN_HWPG) &&
+        (opts.datasource == ES_SRC_HWPG) &&
         !checkEventSize(opts.eventSize, argv[0])
     )
     { exit(-1); }
@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
     eventStream = prepareEventStream(opts);
     if( !eventStream )
     { exit(-1); }
+
+    configureDataSource(eventStream, opts);
 
     eventStream->printDeviceStatus();
 
@@ -65,7 +67,7 @@ int main(int argc, char *argv[])
     int32_t sanity_check_mask = CHK_SOE|CHK_EOE;
     if(opts.useRefFile)
     { sanity_check_mask |= CHK_FILE; }
-    else if ( opts.esType == LIBRORC_ES_IN_HWPG )
+    else if ( opts.datasource == ES_SRC_HWPG )
     { sanity_check_mask |= (CHK_PATTERN|CHK_ID); }
 
 
@@ -90,6 +92,8 @@ int main(int argc, char *argv[])
             ) ;
 
     uint64_t result = eventStream->eventLoop((void*)&checker);
+
+    unconfigureDataSource(eventStream, opts);
 
     printFinalStatusLine
     (

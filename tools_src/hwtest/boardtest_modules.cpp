@@ -839,7 +839,7 @@ testDmaChannel
     opts.channelId = channel_id;
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
-    opts.esType = LIBRORC_ES_IN_HWPG;
+    opts.esType = LIBRORC_ES_TO_HOST;
 
     char logdirectory[] = "/tmp";
     
@@ -849,6 +849,8 @@ testDmaChannel
     librorc::event_stream *eventStream;
     if( !(eventStream = prepareEventStream(dev, bar, opts)) )
     { exit(-1); }
+
+    configureDataSource(eventStream, opts);
     eventStream->setEventCallback(event_callback);
 
     /** enable EBDM + RBDM + PKT */

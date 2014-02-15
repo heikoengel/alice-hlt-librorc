@@ -100,15 +100,14 @@ struct flash_architecture
 };
 
 
-/**
- * @class librorc_flash
- * @brief interface class to the StrataFlash Embedded
- * Memory P30-65nm on the HTG board
- **/
+
 namespace LIBRARY_NAME
 {
-class bar;
+    class bar;
 
+    /**
+     * @brief Interface class to the onboard flash memories
+     **/
     class flash
     {
     public:

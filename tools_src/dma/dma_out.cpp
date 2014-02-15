@@ -63,6 +63,8 @@ int main( int argc, char *argv[])
     if( !eventStream )
     { exit(-1); }
 
+    configureDataSource(eventStream, opts);
+
     eventStream->printDeviceStatus();
 
     eventStream->setEventCallback(eventCallBack);
@@ -166,27 +168,13 @@ int main( int argc, char *argv[])
 
     printFinalStatusLine(eventStream->m_channel_status, opts, start_time, end_time);
 
-    // wait until EL_FIFO runs empty
-    // TODO: add timeout
-    while( eventStream->m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO) & 0xffff )
-    { usleep(100); }
-
-    // wait for pending transfers to complete (dma_busy->0)
-    // TODO: add timeout
-    while( eventStream->m_channel->getDMABusy() )
-    { usleep(100); }
-
-    // disable EBDM Engine
-    eventStream->m_channel->disableEventBuffer();
-
-    // disable RBDM
-    eventStream->m_channel->disableReportBuffer();
-
-    // reset DFIFO, disable DMA PKT
-    eventStream->m_channel->setDMAConfig(0X00000002);
+    // disable SIU
+    // TODO: this should happen after stopping the data source,
+    // which is currently in eventStream::~event_stream()
+    unconfigureDataSource(eventStream, opts);
 
     // clear reportbuffer
-    memset(eventStream->m_reportBuffer->getMem(), 0, eventStream->m_reportBuffer->getMappingSize());
+    //memset(eventStream->m_reportBuffer->getMem(), 0, eventStream->m_reportBuffer->getMappingSize());
 
     delete eventStream;
 

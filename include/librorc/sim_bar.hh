@@ -25,6 +25,7 @@
 #define SIM_BAR_H
 
 #include <librorc/include_ext.hh>
+#include <librorc/defines.hh>
 #include <librorc/bar_proto.hh>
 
 /**
@@ -44,21 +45,20 @@
 
 #define DEFAULT_PACKET_SIZE 128
 
-/**
- * @class sim_bar
- * @brief Represents a simulated Base Address Register
- * (BAR) file mapping of the RORCs PCIe address space
- *
- * Create a new sim_bar object after initializing your
- * librorc::device instance. <br>Once your sim_bar instance is
- * initialized (with init()) you can use get() and set() to
- * read from and/or write to the device.
- */
 
 namespace LIBRARY_NAME
 {
-class device;
+    class device;
 
+    /**
+     * @brief Represents a simulated Base Address Register
+     * (BAR) file mapping of the RORCs PCIe address space
+     *
+     * Create a new sim_bar object after initializing your
+     * librorc::device instance. <br>Once your sim_bar instance is
+     * initialized (with init()) you can use get() and set() to
+     * read from and/or write to the device.
+     */
     class sim_bar : public bar
     {
         public:

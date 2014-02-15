@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     opts[0] = evaluateArguments(argc, argv);
     int32_t nChannels = opts[0].channelId;
     opts[0].channelId = 0;
-    opts[0].esType = LIBRORC_ES_IN_HWPG;
+    opts[0].esType = LIBRORC_ES_TO_HOST;
 
     int i;
 
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     for ( i=0; i<nChannels; i++ )
     {
         checker[i] =
-        (opts[i].esType==LIBRORC_ES_IN_DDL) /** is DDL reference file enabled? */
+        (opts[i].useRefFile) /** is DDL reference file enabled? */
         ?   librorc::event_sanity_checker
             (
                 eventStream[i]->m_eventBuffer,

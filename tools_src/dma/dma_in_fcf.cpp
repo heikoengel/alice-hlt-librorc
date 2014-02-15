@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     char logdirectory[] = "/tmp";
     DMAOptions opts;
     opts = evaluateArguments(argc, argv);
-    opts.esType = LIBRORC_ES_IN_GENERIC;
+    opts.esType = LIBRORC_ES_TO_HOST;
 
     DMA_ABORT_HANDLER_REGISTER
 
@@ -129,9 +129,9 @@ int main(int argc, char *argv[])
 
     //-----------------------------------------------------//
 
-    /** 
-     * Option1: 
-     * configure datastream: from DIU through FCF 
+    /**
+     * Option1:
+     * configure datastream: from DIU through FCF
      **/
     /*link->setDataSourceDdl();
     link->enableDdl();
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 
     /**
      * Option 2:
-     * configure datastream: from DDR3 through FCF 
+     * configure datastream: from DDR3 through FCF
      **/
     //link->setDataSourceDdr3DataReplay();
     //link->enableFcf();
@@ -172,8 +172,10 @@ int main(int argc, char *argv[])
         abort();
     }
 
+    //librorc::diu *diu = new librorc::diu(link);
+
     link->setDataSourceDdr3DataReplay();
-    link->enableDdl();
+    //diu->enableInterface();
     link->enableFcf();
     // configure and start data replay channel
     link->configureDdr3DataReplayChannel(ch_start_addr);
@@ -200,7 +202,7 @@ int main(int argc, char *argv[])
     eventStream->printDeviceStatus();
 
     /** enable EBDM + RBDM + PKT */
-    link->setPacketizer(RORC_REG_DMA_CTRL, 
+    link->setPacketizer(RORC_REG_DMA_CTRL,
             (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
 
 
@@ -217,7 +219,7 @@ int main(int argc, char *argv[])
 
     cout << "Event Loop Start" << endl;
 
-    librorc::event_sanity_checker checker = 
+    librorc::event_sanity_checker checker =
         librorc::event_sanity_checker
         (
          eventStream->m_eventBuffer,

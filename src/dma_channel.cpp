@@ -394,6 +394,7 @@ dma_channel::enable()
     if( (!m_eventBuffer)||(!m_reportBuffer) )
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
+    setSuspend(0);
     enableEventBuffer();
     enableReportBuffer();
 
@@ -403,15 +404,21 @@ dma_channel::enable()
 void
 dma_channel::disable()
 {
-    disableEventBuffer();
+    setSuspend(1);
 
-    // TODO: add timeout
+    /**
+     * TODO: add timeout
+     * Timeout handling: simply continue after loop.
+     * This may lead to wrong calculated/reported event sizes
+     * but as we want to disable readout anyway...
+     **/
     while(getDMABusy())
     { usleep(100); }
 
+    disableEventBuffer();
     disableReportBuffer();
 
-    /** Reset DFIFO, disable DMA PKT */
+    /** Reset DFIFO, disable DMA engine, disable SUSPEND */
     setDMAConfig(0X00000002);
 }
 
@@ -420,22 +427,20 @@ dma_channel::disable()
 void
 dma_channel::enableEventBuffer()
 {
-    m_link->setPacketizer
-    (RORC_REG_DMA_CTRL, (m_link->packetizer(RORC_REG_DMA_CTRL) | (1 << 2)) );
+    setDMAConfig(DMAConfig()|(1<<2));
 }
 
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableEventBuffer()
 {
-    m_link->setPacketizer
-    (RORC_REG_DMA_CTRL, (m_link->packetizer(RORC_REG_DMA_CTRL) & ~(1 << 2)) );
+    setDMAConfig(DMAConfig() & ~(1<<2));
 }
 
 uint32_t
 dma_channel::isEventBufferEnabled()
 {
-    return (m_link->packetizer(RORC_REG_DMA_CTRL) >> 2 ) & 0x01;
+    return ((DMAConfig()>>2) & 0x01);
 }
 
 
@@ -443,21 +448,19 @@ dma_channel::isEventBufferEnabled()
 void
 dma_channel::enableReportBuffer()
 {
-    m_link->setPacketizer
-    (RORC_REG_DMA_CTRL, (m_link->packetizer(RORC_REG_DMA_CTRL) | (1 << 3)) );
+    setDMAConfig(DMAConfig()|(1<<3));
 }
 //TODO : this is protected when hlt out writer is refactored
 void
 dma_channel::disableReportBuffer()
 {
-    m_link->setPacketizer
-    (RORC_REG_DMA_CTRL, (m_link->packetizer(RORC_REG_DMA_CTRL) & ~(1 << 3)));
+    setDMAConfig(DMAConfig() & ~(1<<3));
 }
 
 unsigned int
 dma_channel::isReportBufferEnabled()
 {
-    return(m_link->packetizer( RORC_REG_DMA_CTRL ) >> 3 ) & 0x01;
+    return ((DMAConfig()>>3) & 0x01);
 }
 
 
@@ -525,9 +528,7 @@ dma_channel::setEBOffset
         sizeof(offset)
     );
 
-    m_link->setPacketizer
-    (RORC_REG_DMA_CTRL, m_link->packetizer(RORC_REG_DMA_CTRL) | (1 << 31) );
-
+    setDMAConfig( DMAConfig() | (1<<31) );
     m_last_ebdm_offset = offset;
 }
 
@@ -580,8 +581,7 @@ dma_channel::setRBOffset
         sizeof(offset)
     );
 
-    m_link->setPacketizer
-    (RORC_REG_DMA_CTRL, m_link->packetizer(RORC_REG_DMA_CTRL) | (1 << 31) );
+    setDMAConfig( DMAConfig() | (1<<31) );
 
     m_last_rbdm_offset = offset;
 }
@@ -609,7 +609,7 @@ dma_channel::getRBDMAOffset()
 uint32_t
 dma_channel::getDMABusy()
 {
-    return(m_link->packetizer(RORC_REG_DMA_CTRL) >> 7) & 0x01;
+    return ((DMAConfig()>>7) & 0x01);
 }
 
 
@@ -738,58 +738,27 @@ dma_channel::getDMABusy()
                (uint64_t)m_link->packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
     }
 
+
+    /**
+     * set suspend before disabling DMA engine. DMA-Busy will only go low
+     * when suspend is set. Clear suspend before starting any readout.
+     **/
     void
-    dma_channel::printDMAState()
+    dma_channel::setSuspend
+    (
+        uint32_t value
+    )
     {
-        printf("\nPKT:\n");
-        printf("#Events: 0x%08x; ", m_link->packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED));
-        printf("#Stall: 0x%08x; ", m_link->packetizer(RORC_REG_DMA_STALL_CNT));
-
-        uint32_t dma_ctrl = m_link->packetizer(RORC_REG_DMA_CTRL);
-
-        printf
-        (
-            "PKT_EN:%d; FIFO_RST:%d; EOE_IN_FIFO:%d; FIFO_EMPTY:%d; "
-            "FIFO_PEMPTY:%d; BUSY:%d; EBDM_EN:%d, RBDM_EN:%d\n",
-            (dma_ctrl)&1,
-            (dma_ctrl>>1)&1,
-            (dma_ctrl>>4)&1,
-            (dma_ctrl>>5)&1,
-            (dma_ctrl>>6)&1,
-            (dma_ctrl>>7)&1,
-            (dma_ctrl>>2)&1,
-            (dma_ctrl>>3)&1
-        );
-
-        printf("EBDM:\n");
-        printf
-        (
-            "EBDM rdptr: 0x%08x_%08x; ",
-            m_link->packetizer(RORC_REG_EBDM_SW_READ_POINTER_L),
-            m_link->packetizer(RORC_REG_EBDM_SW_READ_POINTER_H)
-        );
-
-        printf
-        (
-            "EBDM wrptr: 0x%08x_%08x; ",
-            m_link->packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_L),
-            m_link->packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_H)
-        );
-
-        printf("\n");
-        printf("RBDM:\n");
-        printf
-        (
-            "RBDM rdptr: 0x%08x_%08x; ",
-            m_link->packetizer(RORC_REG_RBDM_SW_READ_POINTER_L),
-            m_link->packetizer(RORC_REG_RBDM_SW_READ_POINTER_H)
-        );
-
-        printf
-        (
-            "RBDM wrptr: 0x%08x_%08x; ",
-            m_link->packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_L),
-            m_link->packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H)
-        );
+        uint32_t dmacfg = DMAConfig();
+        // clear suspend bit and set new value
+        dmacfg &= ~(1<<10);
+        dmacfg |= ( (value&1)<<10 );
+        setDMAConfig(dmacfg);
+    }
+    
+    uint32_t
+    dma_channel::getSuspend()
+    {
+        return ((DMAConfig()>>10) & 1);
     }
 }

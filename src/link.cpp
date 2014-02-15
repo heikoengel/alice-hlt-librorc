@@ -230,6 +230,13 @@ namespace LIBRARY_NAME
     }
 
     uint32_t
+    link::linkType()
+    {
+        return ((packetizer(RORC_REG_GTX_ASYNC_CFG)>>12) & 3);
+    }
+
+
+    uint32_t
     link::dmaStallCount()
     {
         return packetizer(RORC_REG_DMA_STALL_CNT);
@@ -487,77 +494,6 @@ namespace LIBRARY_NAME
     }
 
 
-    uint32_t
-    link::waitForDiuStatusWord
-    (
-        uint32_t address
-    )
-    {
-        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
-        uint32_t status;
-
-        while( ((status = GTX(address)) == 0xffffffff) &&
-                (timeout!=0) )
-        {
-            usleep(100);
-            timeout--;
-        }
-
-        /** return 0xffffffff on timeout, value on sucess */
-        return status;
-    }
-
-    int
-    link::waitForDiuCommandTransmissionStatusWord()
-    {
-        uint32_t result = waitForDiuStatusWord(RORC_REG_DDL_CTSTW);
-
-        if(result==0xffffffff)
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for DDL "
-                    "CommandTransmissionStatusWord\n");
-            return -1;
-        }
-        else
-        {
-            DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForDiuCommandTransmissionStatusWord: "
-                    "got CTSTW: %08x\n", result);
-            return 0;
-        }
-
-        /**
-         * TODO: check error bit 31:
-         * ALICE DETECTOR DATA LINK, ALICE/96-43, p.17
-         * In any cases, when the error bit in the CTSTW is set to ‘1’,
-         * the DDL control software shall read-out the interface status
-         * words from both interface units by sending a R&CIFST command,
-         * in order to identify all the errors in the DDL!
-         * */
-    }
-
-    int
-    link::waitForDiuInterfaceStatusWord()
-    {
-        uint32_t result = waitForDiuStatusWord(RORC_REG_DDL_IFSTW);
-
-        if (result==0xffffffff)
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for DDL "
-                    "InterfaceStatusWord\n");
-        }
-        else
-        {
-            DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForDiuInterfaceStatusWord: "
-                    "got IFSTW: %08x\n", result);
-        }
-        return result;
-    }
-
-
     void
     link::waitForGTXDomain()
     {
@@ -572,324 +508,6 @@ namespace LIBRARY_NAME
          * */
         while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x134) != 0x034 )
         { usleep(100); }
-    }
-
-
-    void
-    link::printDiuState()
-    {
-        uint32_t status = GTX(RORC_REG_DDL_CTRL);
-
-        printf("\nDIU_IF: ");
-
-        (status & 1)       ? printf("DIU_ON ") : printf("DIU_OFF ");
-        ((status>>1)  & 1) ? printf("FC_ON ")  : printf("FC_OFF ");
-        ((status>>4)  & 1) ? 0                 : printf("LF ");
-        ((status>>5)  & 1) ? 0                 : printf("LD ");
-        ((status>>30) & 1) ? 0                 : printf("BSY ");
-
-        /** PG disabled or enabled */
-        ((status>>8) & 1)  ? printf("PG_ON")   : printf("PG_OFF");
-        ((status>>8) & 1)  ? 0                 : printf("CTSTW: %08x ", GTX(RORC_REG_DDL_CTSTW));
-        ((status>>8) & 1)  ? 0                 : printf("DEADTIME: %08x ", GTX(RORC_REG_DDL_DEADTIME));
-        ((status>>8) & 1)  ? 0                 : printf("EC: %08x ", GTX(RORC_REG_DDL_EC));
-    }
-
-
-    void
-    link::printDMAState()
-    {
-        printf("\nPKT:\n");
-        printf("#Events: 0x%08x; ", packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED));
-        printf("#Stall: 0x%08x; ", packetizer(RORC_REG_DMA_STALL_CNT));
-
-        uint32_t dma_ctrl = packetizer(RORC_REG_DMA_CTRL);
-
-        printf
-        (
-            "PKT_EN:%d; FIFO_RST:%d; EOE_IN_FIFO:%d; FIFO_EMPTY:%d; "
-            "FIFO_PEMPTY:%d; BUSY:%d; EBDM_EN:%d, RBDM_EN:%d\n",
-            (dma_ctrl)&1,
-            (dma_ctrl>>1)&1,
-            (dma_ctrl>>4)&1,
-            (dma_ctrl>>5)&1,
-            (dma_ctrl>>6)&1,
-            (dma_ctrl>>7)&1,
-            (dma_ctrl>>2)&1,
-            (dma_ctrl>>3)&1
-        );
-
-        printf("EBDM:\n");
-        printf
-        (
-            "EBDM rdptr: 0x%08x_%08x; ",
-            packetizer(RORC_REG_EBDM_SW_READ_POINTER_L),
-            packetizer(RORC_REG_EBDM_SW_READ_POINTER_H)
-        );
-
-        printf
-        (
-            "EBDM wrptr: 0x%08x_%08x; ",
-            packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_L),
-            packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_H)
-        );
-
-        printf("\n");
-        printf("RBDM:\n");
-        printf
-        (
-            "RBDM rdptr: 0x%08x_%08x; ",
-            packetizer(RORC_REG_RBDM_SW_READ_POINTER_L),
-            packetizer(RORC_REG_RBDM_SW_READ_POINTER_H)
-        );
-
-        printf
-        (
-            "RBDM wrptr: 0x%08x_%08x; ",
-            packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_L),
-            packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H)
-        );
-    }
-
-    /** RORC_REG_DDL_CTRL encoding:
-    * [0]  : DDL Interface enable
-    * [1]  : Flow-Control enable
-    * [2]  : Clear DIU event length counter
-    * [3]  : DIU EventStream source multiplexer:
-    *        0 -> use DDL as source
-    *        1 -> use PG as source
-    * [4]  : LinkFullN
-    * [5]  : LinkDownN
-    * [6]  : DIU force XOFF
-    * [8]  : PatternGenerator Enable
-    * [9]  : PatternGenerator Adaptive Mode
-    * [10] : PatternGenerator Continuous Mode
-    * [12:11] : PG mode
-    *           0 -> increment
-    *           1 -> rotate left
-    *           2 -> decrement
-    *           3 -> invert
-    * [13] : PRBS event length
-    * [28] : SIU Interface FIFO full
-    * [29] : SIU Interface FIFO empty
-    * [30] : RORC-out busyN (DIU) / source empty (SIU)
-    *
-    *
-    * RORC_REG_DDL_PG_WAIT_TIME
-    * RORC_REG_DDL_PG_EVENT_LENGTH
-    * RORC_REG_DDL_PG_NUM_EVENTS
-    * RORC_REG_DDL_PG_PATTERN
-    **/
-
-    void
-    link::clearDiuEventSizeCounter()
-    {
-        setGTX(RORC_REG_DDL_CTRL, GTX(RORC_REG_DDL_CTRL)|(1<<2));
-    }
-
-
-    uint32_t
-    link::lastDiuFrontEndStatusWord()
-    {
-        return GTX(RORC_REG_DDL_FESTW);
-    }
-
-    uint32_t
-    link::lastSiuFrontEndCommandWord()
-    {
-        return lastDiuFrontEndStatusWord();
-    }
-
-    void
-    link::clearLastDiuFrontEndStatusWord()
-    {
-        setGTX(RORC_REG_DDL_FESTW, 0);
-    }
-
-    void
-    link::clearLastSiuFrontEndCommandWord()
-    {
-        clearLastDiuFrontEndStatusWord();
-    }
-
-
-    uint32_t
-    link::lastDiuCommandTransmissionStatusWord()
-    {
-        return GTX(RORC_REG_DDL_CTSTW);
-    }
-
-    void
-    link::clearLastDiuCommandTransmissionStatusWord()
-    {
-        setGTX(RORC_REG_DDL_CTSTW, 0);
-    }
-
-
-    uint32_t
-    link::lastDiuDataTransmissionStatusWord()
-    {
-        return GTX(RORC_REG_DDL_DTSTW);
-    }
-
-    void
-    link::clearLastDiuDataTransmissionStatusWord()
-    {
-        setGTX(RORC_REG_DDL_DTSTW, 0);
-    }
-
-
-    uint32_t
-    link::lastDiuInterfaceStatusWord()
-    {
-        return GTX(RORC_REG_DDL_IFSTW);
-    }
-
-    void
-    link::clearLastDiuInterfaceStatusWord()
-    {
-        setGTX(RORC_REG_DDL_IFSTW, 0);
-    }
-
-    void
-    link::clearAllLastDiuStatusWords()
-    {
-        clearLastDiuFrontEndStatusWord();
-        clearLastDiuCommandTransmissionStatusWord();
-        clearLastDiuDataTransmissionStatusWord();
-        clearLastDiuInterfaceStatusWord();
-    }
-
-
-    uint32_t
-    link::ddlEventCount()
-    {
-        return GTX(RORC_REG_DDL_EC);
-    }
-
-    uint32_t
-    link::ddlDeadtime()
-    {
-        return GTX(RORC_REG_DDL_DEADTIME);
-    }
-
-    void
-    link::clearDdlDeadtime()
-    {
-        setGTX(RORC_REG_DDL_DEADTIME, 0);
-    }
-
-
-    void
-    link::diuSendCommand
-    (
-        uint32_t command
-    )
-    {
-        setGTX(RORC_REG_DDL_CMD, command);
-    }
-
-
-    bool
-    link::isDiuLinkFull()
-    {
-        return ( (GTX(RORC_REG_DDL_CTRL) & (1<<4)) != 0 );
-    }
-
-
-    bool
-    link::isDiuLinkUp()
-    {
-        return ( (GTX(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
-    }
-
-
-    /**********************************************************
-     *             Protocol Level DDL Status and Control
-     * *******************************************************/
-    int
-    link::sendFeeEndOfBlockTransfer()
-    {
-        clearLastDiuCommandTransmissionStatusWord();
-        diuSendCommand(LIBRORC_LINK_CMD_FEE_EOBTR); // EOBTR to FEE
-        return waitForDiuCommandTransmissionStatusWord();
-    }
-
-
-    int
-    link::sendFeeReadyToReceive()
-    {
-        clearLastDiuCommandTransmissionStatusWord();
-        diuSendCommand(LIBRORC_LINK_CMD_FEE_RDYRX); // RdyRx to FEE
-        return waitForDiuCommandTransmissionStatusWord();
-    }
-
-
-    uint32_t
-    link::readAndClearDiuInterfaceStatus()
-    {
-        clearLastDiuInterfaceStatusWord();
-        diuSendCommand(LIBRORC_LINK_CMD_DIU_RCIFSTW); // R&CIFSTW to DIU
-        return waitForDiuInterfaceStatusWord();
-    }
-
-
-    uint32_t
-    link::readAndClearSiuInterfaceStatus()
-    {
-        clearLastDiuInterfaceStatusWord();
-        diuSendCommand(LIBRORC_LINK_CMD_SIU_RCIFSTW); // R&CIFSTW to SIU
-        return waitForDiuInterfaceStatusWord();
-    }
-
-
-    void
-    link::sendDiuLinkReset()
-    {
-        diuSendCommand(LIBRORC_LINK_CMD_DIU_LINK_RST);
-    }
-
-
-    void
-    link::sendSiuReset()
-    {
-        diuSendCommand(LIBRORC_LINK_CMD_SIU_RST);
-    }
-
-
-    void
-    link::sendDiuLinkInitialization()
-    {
-        diuSendCommand(LIBRORC_LINK_CMD_DIU_LINK_INIT);
-    }
-
-
-    /**
-     * NOTE: this is a rewrite of dma_channel_ddl::configureDDL()
-     **/
-    void
-    link::prepareDiuForFeeData()
-    {
-        uint32_t timeout = LIBRORC_LINK_DDL_TIMEOUT;
-        /** wait for LF_N to go high */
-        while( !isDiuLinkUp() && (timeout!=0) )
-        {
-            usleep(100);
-            timeout--;
-        }
-
-        if ( !timeout )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for LF_N to deassert\n");
-        }
-        else
-        {
-            /** close any open transfer */
-            sendFeeEndOfBlockTransfer();
-            /** re-open the link */
-            sendFeeReadyToReceive();
-        }
     }
 
 
@@ -969,19 +587,17 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::enableDdl()
+    link::enableFlowControl()
     {
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<0); // enable DDL_IF
         ddlctrl |= (1<<1); // enable flow control
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     void
-    link::disableDdl()
+    link::disableFlowControl()
     {
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<0); // disable DDL_IF
         ddlctrl &= ~(1<<1); // disable flow control
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
@@ -990,7 +606,9 @@ namespace LIBRARY_NAME
     link::enableFcf()
     {
         // enable FCF (same bit as PG_ENABLE)
-        enablePatternGenerator();
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<8); // enable PatternGenerator
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     void
@@ -1002,20 +620,13 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::setDataSourceDdl()
-    {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<3); // set MUX to DIU
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-
-    void
     link::setDataSourceDdr3DataReplay()
     {
         // set MUX to DDR3 DataReplay:
         // same as PatternGenerator for HLT_IN & HWTEST
-        setDataSourcePatternGenerator();
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl |= (1<<3); // set MUX to 1
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -1048,119 +659,5 @@ namespace LIBRARY_NAME
         ch_cfg &= ~(1<<0); //disable
         setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
-
-
-    /**
-     * Hardware Pattern Generator
-     **/
-    void
-    link::setPatternGeneratorStaticEventSize
-    (
-        uint32_t eventSize
-    )
-    {
-        setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<13); // static event size
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-    void
-    link::setPatternGeneratorPrbsSize
-    (
-        uint16_t prbs_min_size,
-        uint32_t prbs_max_size_mask
-    )
-    {
-        uint32_t eventSize = (prbs_max_size_mask & 0xffff0000) |
-            prbs_min_size;
-        setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<13); // PRBS event size
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-    void
-    link::setDataSourcePatternGenerator()
-    {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<3); // set MUX to 1
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-    void
-    link::enablePatternGenerator()
-    {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<8); // enable PatternGenerator
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-    void
-    link::disablePatternGenerator()
-    {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<8); // disable PatternGenerator
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-    void
-    link::configurePatternGenerator
-    (
-        uint32_t patternMode,
-        uint32_t initialPattern,
-        uint32_t numberOfEvents
-    )
-    {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        /**
-         * allow only implemented PatternGenerator Modes:
-         * PG_PATTERN_INC, PG_PATTERN_DEC,
-         * PG_PATTERN_SHIFT, PG_PATTERN_TOGGLE
-         * TODO: report/break on invalid mode
-         **/
-
-        ddlctrl &= ~(3<<11); // clear current mode setting
-        if( patternMode==PG_PATTERN_DEC ||
-                patternMode==PG_PATTERN_SHIFT ||
-                patternMode==PG_PATTERN_TOGGLE )
-        { ddlctrl |= ((patternMode & 3)<<11); }
-        else
-        { ddlctrl |= (PG_PATTERN_INC<<11); } // default to PG_PATTERN_INC
-
-
-        if(numberOfEvents)
-        {
-            ddlctrl &= ~(1<<10); // disable continuous mode
-            setGTX(RORC_REG_DDL_PG_NUM_EVENTS, numberOfEvents);
-        }
-        else
-        {
-            ddlctrl |= (1<<10); // enable continuous mode
-        }
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-
-
-
-
-
-
-
-
-    /**
-     * TODO:
-     * from dma_channel_pg:
-     * setDataSourcePatternGenerator()
-     * configurePatternGenerator()
-     * enablePatternGenerator()
-     * disablePatternGenerator()
-     *
-     * from dma_channel_ddl:
-     * closeDDL() <- needs refactoring!
-     *
-     * more to come here!
-     **/
 
 }
