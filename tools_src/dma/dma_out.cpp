@@ -105,8 +105,8 @@ int main( int argc, char *argv[])
             )
         ;
 
-    uint64_t result = eventStream->eventLoop((void*)&checker);
     uint64_t number_of_events = eventGen.fillEventBuffer(opts.eventSize);
+    uint64_t result = eventStream->eventLoop((void*)&checker);
 
     /** capture starting time */
 //    timeval start_time;
