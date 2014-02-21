@@ -74,7 +74,7 @@ int main( int argc, char *argv[])
     { sanity_check_mask |= CHK_PATTERN | CHK_ID; }
 
 
-    event_generator
+    librorc::event_generator
     eventGen
     (
         eventStream->m_reportBuffer,

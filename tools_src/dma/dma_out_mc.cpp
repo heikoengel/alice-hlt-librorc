@@ -116,11 +116,11 @@ int main(int argc, char *argv[])
 
     cout << "Event Loop Start" << endl;
 
-    event_generator generators[MAX_CHANNELS];
+    librorc::event_generator generators[MAX_CHANNELS];
     for(i=0; i<nChannels; i++)
     {
         generators[i] =
-            event_generator
+            librorc::event_generator
             (
                 eventStream[i]->m_reportBuffer,
                 eventStream[i]->m_eventBuffer,
