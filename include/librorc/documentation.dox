@@ -1,8 +1,7 @@
 /**
- * @mainpage
  * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
  * @date 2014-02-21
- * @brief Library to interface to CRORCs
+ * @brief Librorc is a library to interface to CRORCs
  *
  * @section Organization
  * A librorc::device object corresponds to a phsical RORC, resp. a PCI
