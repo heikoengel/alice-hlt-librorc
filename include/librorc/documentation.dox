@@ -1,0 +1,37 @@
+/**
+ * @mainpage
+ * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @date 2014-02-21
+ * @brief Library to interface to CRORCs
+ *
+ * @section Organization
+ * A librorc::device object corresponds to a phsical RORC, resp. a PCI
+ * device controlled by the librorc device driver. Use librorc::device::init()
+ * to bind the object to the hardware.
+ *
+ * Objects of librorc::rorc_bar can be attached to a librorc::device to control
+ * its PCIe Base Address Registers (BARs). Once the librorc::rorc_bar object is
+ * initialized with librorc::rorc_bar::init() it can perform low level IO to/from
+ * the RORC via librorc::rorc_bar::get() or librorc::rorc_bar::set() methods. These
+ * methods are widely used in the rorcLib.
+ *
+ * A librorc::buffer object represents a DMA buffer on the host machine. This
+ * buffers are mapped to the RORC for DMA transfers. Buffers can be
+ * allocated and deallocated with librorc::buffer::allocate() and
+ * librorc::buffer::deallocate(). The object can be bound to existing buffers
+ * via the librorc::buffer::connect() method.
+ *
+ * All DMA operations are handled with objects of librorc::dma_channel. These
+ * objects have to be initialized to a specific bar and offset within the
+ * bar with librorc::dma_channel::init(). After initialization the DMA buffer
+ * information can be copied to the RORC, the maximum payload can be set and
+ * the DMA channel can be enabled. Once data is available it is written to the
+ * buffers on the host machine.
+ *
+ * In order to receive data a DIU has to be instantiated. This is done with an
+ * object of diu. The data source of the diu object can either
+ * be an actual DIU or a pattern generator at the DIU Interface. The data source
+ * can be selected with diu::setDataSource(). If a pattern generator is
+ * chosen, an according pattern_generator object has to be attached to
+ * the DIU in order to control the pattern generator parameters.
+ **/
