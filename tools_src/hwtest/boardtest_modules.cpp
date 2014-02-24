@@ -156,8 +156,8 @@ getDipSwitch
 )
 {    
     /** get DIP switch setting */
-    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
-    return (dipswitch & 0x7f);
+    uint32_t dipswitch = bar->get32(RORC_REG_UC_SPI_CTRL)>>16;
+    return (dipswitch & 0xff);
 }
 
 

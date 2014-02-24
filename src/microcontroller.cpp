@@ -53,7 +53,7 @@ namespace LIBRARY_NAME
         // set prescaler 
         m_bar->set32(RORC_REG_UC_SPI_CTRL, UC_SPI_PRESCALER);
 
-        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
+        /*uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
         // drive MOSI low from GPIO 
         ucctrl &= ~(1<<5);
         // drive SCK low from GPIO 
@@ -68,20 +68,20 @@ namespace LIBRARY_NAME
         // set RESET_N as output 
         ucctrl &= ~(1<<20);
 
-        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);
+        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);*/
     }
 
 
     void
     microcontroller::unconfigure_spi()
     {
-        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
+        /*uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
         // set all CTRL lines to input 
         ucctrl |= (0x07<<20);
         // set all DAT lines to input 
         ucctrl |= (0xff<<8);
 
-        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);
+        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);*/
     }
 
 
@@ -91,19 +91,19 @@ namespace LIBRARY_NAME
         uint32_t rstval
     )
     {
-        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
+        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_SPI_CTRL);
         if ( rstval )
         {
             // drive low, assert reset 
-            ucctrl &= ~(1<<16);
+            ucctrl &= ~(1<<30);
         }
         else
         {
             // drive high, deassert reset 
-            ucctrl |= (1<<16);
+            ucctrl |= (1<<30);
         }
 
-        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);
+        m_bar->set32(RORC_REG_UC_SPI_CTRL, ucctrl);
 
         // wait for at least 20 ms 
         usleep(20000);
