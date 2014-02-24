@@ -130,6 +130,15 @@ class dma_channel;
             void pushEventSizeIntoELFifo(uint32_t event_size);
             void iterateEventBufferFillState(uint32_t fragment_size);
             void wrapFillStateIfNecessary();
+
+            void
+            packEventIntoBuffer
+            (
+                uint32_t          *tmp_buffer,
+                uint32_t           event_size,
+                uint32_t           fragment_size,
+                volatile uint32_t *dest
+            );
     };
 
 }

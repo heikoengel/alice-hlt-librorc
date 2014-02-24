@@ -183,8 +183,7 @@ namespace LIBRARY_NAME
         for(i=0; i<event_size-8; i++)
         { tmp_buffer[8+i] = i; }
 
-        memcpy((void*)dest, tmp_buffer, (event_size*sizeof(uint32_t)) );
-        pushEventSizeIntoELFifo(event_size);
+        packEventIntoBuffer(tmp_buffer, event_size, fragment_size, dest);
     }
 
     void
@@ -215,21 +214,26 @@ namespace LIBRARY_NAME
                 event_size
             );
 
-            iterateEventBufferFillState(fragment_size);
-            wrapFillStateIfNecessary();
         }
     }
 
-    void
-    event_generator::wrapFillStateIfNecessary()
-    {
-        m_event_generation_offset
-            = (m_event_generation_offset >= m_event_buffer->getSize())
-            ? (m_event_generation_offset - m_event_buffer->getSize())
-            : m_event_generation_offset;
-    }
 
     //----- PACKING API
+
+    void
+    event_generator::packEventIntoBuffer
+    (
+        uint32_t          *tmp_buffer,
+        uint32_t           event_size,
+        uint32_t           fragment_size,
+        volatile uint32_t *dest
+    )
+    {
+        memcpy((void*) (dest), tmp_buffer, (event_size * sizeof(uint32_t)));
+        pushEventSizeIntoELFifo(event_size);
+        iterateEventBufferFillState(fragment_size);
+        wrapFillStateIfNecessary();
+    }
 
     void
     event_generator::pushEventSizeIntoELFifo(uint32_t event_size)
@@ -242,6 +246,15 @@ namespace LIBRARY_NAME
     {
         m_event_generation_offset += fragment_size;
         m_event_id += 1;
+    }
+
+    void
+    event_generator::wrapFillStateIfNecessary()
+    {
+        m_event_generation_offset
+            = (m_event_generation_offset >= m_event_buffer->getSize())
+            ? (m_event_generation_offset - m_event_buffer->getSize())
+            : m_event_generation_offset;
     }
 
 }
