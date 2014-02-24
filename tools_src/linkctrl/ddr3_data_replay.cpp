@@ -139,7 +139,7 @@ int main
 
     librorc::sysmon *sm = new librorc::sysmon(bar);
 
-    if ( !sm->firmwareIsHltInFcf() )
+    if ( !sm->firmwareIsHltInFcf() && !sm->firmwareIsHltIn() )
     {
         cout << "ERROR: no HLT_IN_FCF firmware with DataReplay capabilities detected!" << endl;
         abort();
@@ -154,8 +154,15 @@ int main
 
     librorc::link *link = new librorc::link(bar, ChannelId);
 
+#ifdef SIM
+    /** wait for phy_init_done */
+    while( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
+    { usleep(100); }
+#endif
+
     /**
      * TODO: get module size, divide by number of DDLs, set start_addr, ...
+     * TODO: confirm phy_init_done==1
      **/
     uint32_t ch_start_addr = 0x00000000;
     
@@ -178,10 +185,6 @@ int main
             cout << "ERROR: failed to mmap input file" << endl;
             abort();
         }
-
-        cout << "Waiting for phy_init_done..." << endl;
-        while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
-        { usleep(100); }
 
         cout << "Writing event to DDR3..." << endl;
         try {

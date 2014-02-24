@@ -128,7 +128,7 @@ namespace LIBRARY_NAME
     diu::useAsDataSource()
     {
         uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<3); // set MUX to DIU
+        ddlctrl &= ~(3<<16); // set MUX to 0
         m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 

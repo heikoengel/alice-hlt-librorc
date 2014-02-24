@@ -146,7 +146,8 @@ namespace LIBRARY_NAME
     patterngenerator::useAsDataSource()
     {
         uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<3); // set MUX to 1
+        ddlctrl &= ~(3<<16);
+        ddlctrl |= (2<<16); // set MUX to 2
         m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 

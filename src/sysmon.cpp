@@ -764,13 +764,10 @@ namespace LIBRARY_NAME
         uint32_t flags
     )
     {
-        if ( channel>7 )
+        if ( channel>11 )
         {
             throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID;
         }
-
-        /** set start address */
-        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, start_addr);
 
         /** copy valid data to block bufffer */
         uint32_t block_buffer[16];
@@ -782,16 +779,25 @@ namespace LIBRARY_NAME
             }
         }
         /** set block header */
-        block_buffer[0] = ((uint32_t)mask<<16) | flags | (1<<channel);
+        block_buffer[0] = ((uint32_t)mask<<16) | flags | (1<<(channel&7));
 
         /** copy data to onboard buffer */
-        /*m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
-                block_buffer, 16*sizeof(uint32_t));*/
-        for (int i=0; i<16; i++)
+        m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
+                block_buffer, 16*sizeof(uint32_t));
+        /*for (int i=0; i<16; i++)
         {
             m_bar->set32(RORC_REG_DATA_REPLAY_PAYLOAD_BASE+i,
                     block_buffer[i]);
-        }
+        }*/
+
+        /** set start address */
+        uint32_t drctrl = (start_addr & 0x7ffffffc);
+        if( channel>6 )
+        { drctrl |= (1<<1); } // write to C1
+        else
+        { drctrl |= (1<<0); } // write to C0
+
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drctrl);
 
 
         /** wait for write_done */

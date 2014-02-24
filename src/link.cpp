@@ -625,7 +625,8 @@ namespace LIBRARY_NAME
         // set MUX to DDR3 DataReplay:
         // same as PatternGenerator for HLT_IN & HWTEST
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<3); // set MUX to 1
+        ddlctrl &= ~(3<<16);
+        ddlctrl |= (1<<16); // set MUX to 1
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
