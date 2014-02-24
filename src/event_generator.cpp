@@ -70,15 +70,15 @@ namespace LIBRARY_NAME
     (
         volatile uint32_t *dest,
         uint64_t event_id,
-        uint32_t length
+        uint32_t event_size
     )
     {
         uint32_t i;
 
-        if(length <= 8)
+        if(event_size <= 8)
         { throw 0; }
 
-        uint32_t tmp_buffer[length];
+        uint32_t tmp_buffer[event_size];
 
         /** First 8 DWs are CDH */
         tmp_buffer[0] = 0xffffffff;
@@ -90,10 +90,11 @@ namespace LIBRARY_NAME
         tmp_buffer[6] = 0x00000000; // trigger classes high, MBZ, ROI
         tmp_buffer[7] = 0xdeadbeaf; // ROI high
 
-        for(i=0; i<length-8; i++)
+        for(i=0; i<event_size-8; i++)
         { tmp_buffer[8+i] = i; }
 
-        memcpy((void*)dest, tmp_buffer, (length*sizeof(uint32_t)) );
+        memcpy((void*)dest, tmp_buffer, (event_size*sizeof(uint32_t)) );
+        pushEventSizeIntoELFifo(event_size);
     }
 
     uint64_t
@@ -207,16 +208,9 @@ namespace LIBRARY_NAME
                 event_size
             );
 
-            pushEventSizeIntoELFifo(event_size);
             iterateEventBufferFillState(fragment_size);
             wrapFillStateIfNecessary();
         }
-    }
-
-    void
-    event_generator::pushEventSizeIntoELFifo(uint32_t event_size)
-    {
-        m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
     }
 
     void
@@ -237,5 +231,10 @@ namespace LIBRARY_NAME
 
     //----- PACKING API
 
+    void
+    event_generator::pushEventSizeIntoELFifo(uint32_t event_size)
+    {
+        m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+    }
 
 }
