@@ -124,9 +124,11 @@ main
     if( do_reset )
     {
 
+#ifdef SIM
         /** wait for phy_init_done */
         while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
         { usleep(100); }
+#endif
 
         ddrctrl = bar->get32(RORC_REG_DDR3_CTRL);
         /** clear reset bits */
@@ -139,49 +141,38 @@ main
     }
     else
     {
-        uint32_t rorcval = bar->get32(RORC_REG_DDR3_C0_RDLO);
-        uint64_t rdcnt0 = rorcval;
+        uint32_t rdcnt0 = bar->get32(RORC_REG_DDR3_C0_TESTER_RDCNT);
+        uint32_t wrcnt0 = bar->get32(RORC_REG_DDR3_C0_TESTER_WRCNT);
 
-        rorcval = bar->get32(RORC_REG_DDR3_C0_WRLO);
-        uint64_t wrcnt0 = rorcval;
-        rorcval = bar->get32(RORC_REG_DDR3_C0_RDWRHI);
-        rdcnt0 += ((uint64_t)(rorcval & 0xffff)<<32);
-        wrcnt0 += (((uint64_t)(rorcval>>16) & 0xffff)<<32);
+        uint32_t rdcnt1 = bar->get32(RORC_REG_DDR3_C1_TESTER_RDCNT);
+        uint32_t wrcnt1 = bar->get32(RORC_REG_DDR3_C1_TESTER_WRCNT);
 
-        rorcval = bar->get32(RORC_REG_DDR3_C0_RDLO);
-        uint64_t rdcnt1 = rorcval;
-        rorcval = bar->get32(RORC_REG_DDR3_C0_WRLO);
-        uint64_t wrcnt1 = rorcval;
-        rorcval = bar->get32(RORC_REG_DDR3_C0_RDWRHI);
-        rdcnt1 += ((uint64_t)(rorcval & 0xffff)<<32);
-        wrcnt1 += (((uint64_t)(rorcval>>16) & 0xffff)<<32);
-
-        cout << "C0 Reset: " << (ddrctrl&0x01) << endl;
-        cout << "C0 PhyInitDone: " << ((ddrctrl>>2)&1) << endl;
-        cout << "C0 PLL Lock: " << ((ddrctrl>>3)&1) << endl;
-        cout << "C0 Read Levelling Started: " << ((ddrctrl>>4)&3) << endl;
-        cout << "C0 Read Levelling Done: " << ((ddrctrl>>6)&3) << endl;
-        cout << "C0 Read Levelling Error: " << ((ddrctrl>>8)&3) << endl;
-        cout << "C0 Write Levelling Started: " << ((ddrctrl>>10)&1) << endl;
-        cout << "C0 Write Levelling Done: " << ((ddrctrl>>11)&1) << endl;
-        cout << "C0 Write Levelling Error: " << ((ddrctrl>>12)&1) << endl;
+        cout << "C0 Reset: " << (ddrctrl&1) << endl;
+        cout << "C0 PhyInitDone: " << ((ddrctrl>>1)&1) << endl;
+        cout << "C0 PLL Lock: " << ((ddrctrl>>2)&1) << endl;
+        cout << "C0 Read Levelling Started: " << ((ddrctrl>>3)&1) << endl;
+        cout << "C0 Read Levelling Done: " << ((ddrctrl>>4)&1) << endl;
+        cout << "C0 Read Levelling Error: " << ((ddrctrl>>5)&1) << endl;
+        cout << "C0 Write Levelling Started: " << ((ddrctrl>>6)&1) << endl;
+        cout << "C0 Write Levelling Done: " << ((ddrctrl>>7)&1) << endl;
+        cout << "C0 Write Levelling Error: " << ((ddrctrl>>8)&1) << endl;
         cout << "C0 Read Count: " << rdcnt0 << endl;
         cout << "C0 Write Count: " << wrcnt0 << endl;
-        cout << "C0 TG Error: " << ((ddrctrl>>13)&1) << endl;
+        cout << "C0 TG Error: " << ((ddrctrl>>15)&1) << endl;
         cout << endl;
 
-        cout << "C1 Reset: " << ((ddrctrl>>16)&0x01) << endl;
-        cout << "C1 PhyInitDone: " << ((ddrctrl>>18)&1) << endl;
-        cout << "C1 PLL Lock: " << ((ddrctrl>>19)&1) << endl;
-        cout << "C1 Read Levelling Started: " << ((ddrctrl>>20)&3) << endl;
-        cout << "C1 Read Levelling Done: " << ((ddrctrl>>22)&3) << endl;
-        cout << "C1 Read Levelling Error: " << ((ddrctrl>>24)&3) << endl;
-        cout << "C1 Write Levelling Started: " << ((ddrctrl>>26)&1) << endl;
-        cout << "C1 Write Levelling Done: " << ((ddrctrl>>27)&1) << endl;
-        cout << "C1 Write Levelling Error: " << ((ddrctrl>>28)&1) << endl;
+        cout << "C1 Reset: " << ((ddrctrl>>16)&1) << endl;
+        cout << "C1 PhyInitDone: " << ((ddrctrl>>17)&1) << endl;
+        cout << "C1 PLL Lock: " << ((ddrctrl>>18)&1) << endl;
+        cout << "C1 Read Levelling Started: " << ((ddrctrl>>19)&1) << endl;
+        cout << "C1 Read Levelling Done: " << ((ddrctrl>>20)&1) << endl;
+        cout << "C1 Read Levelling Error: " << ((ddrctrl>>21)&1) << endl;
+        cout << "C1 Write Levelling Started: " << ((ddrctrl>>22)&1) << endl;
+        cout << "C1 Write Levelling Done: " << ((ddrctrl>>23)&1) << endl;
+        cout << "C1 Write Levelling Error: " << ((ddrctrl>>24)&1) << endl;
         cout << "C1 Read Count: " << rdcnt1 << endl;
         cout << "C1 Write Count: " << wrcnt1 << endl;
-        cout << "C1 TG Error: " << ((ddrctrl>>29)&1) << endl;
+        cout << "C1 TG Error: " << ((ddrctrl>>31)&1) << endl;
     }
 
     delete bar;
