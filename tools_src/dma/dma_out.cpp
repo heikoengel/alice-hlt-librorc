@@ -20,7 +20,7 @@
 
 
 #include <librorc.h>
-#include <event_generation.h>
+
 
 #include "dma_handling.hh"
 
@@ -76,7 +76,7 @@ int main( int argc, char *argv[])
     { sanity_check_mask |= CHK_PATTERN | CHK_ID; }
 
 
-    event_generator
+    librorc::event_generator
     eventGen
     (
         eventStream->m_reportBuffer,
@@ -106,6 +106,9 @@ int main( int argc, char *argv[])
                 logdirectory
             )
         ;
+
+//    uint64_t number_of_events = eventGen.fillEventBuffer(opts.eventSize);
+//    uint64_t result = eventStream->eventLoop((void*)&checker);
 
     /** capture starting time */
     timeval start_time;

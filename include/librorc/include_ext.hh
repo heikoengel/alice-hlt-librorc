@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <math.h>
 
 #include <sys/mman.h>
 #include <sys/stat.h>

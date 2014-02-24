@@ -15,3 +15,4 @@
 #include "librorc/patterngenerator.hh"
 #include "librorc/ddl.hh"
 #include "librorc/diu.hh"
+#include "librorc/event_generator.hh"

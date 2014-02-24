@@ -18,6 +18,7 @@ set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/diu.cpp"
 "${LIBRORC_SOURCE_DIR}/src/siu.cpp"
 "${LIBRORC_SOURCE_DIR}/src/eventfilter.cpp"
+"${LIBRORC_SOURCE_DIR}/src/event_generator.cpp"
 )
 
 add_library(LIBRORC_OBJECTS OBJECT ${LIBRORC_LIBRARY_SOURCE})
