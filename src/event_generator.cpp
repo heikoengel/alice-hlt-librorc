@@ -65,38 +65,6 @@ namespace LIBRARY_NAME
         return number_of_events;
     }
 
-    void
-    event_generator::createEvent
-    (
-        volatile uint32_t *dest,
-        uint64_t event_id,
-        uint32_t event_size
-    )
-    {
-        uint32_t i;
-
-        if(event_size <= 8)
-        { throw 0; }
-
-        uint32_t tmp_buffer[event_size];
-
-        /** First 8 DWs are CDH */
-        tmp_buffer[0] = 0xffffffff;
-        tmp_buffer[1] = event_id & 0xfff;
-        tmp_buffer[2] = ((event_id>>12) & 0x00ffffff);
-        tmp_buffer[3] = 0x00000000; // PGMode / participating subdetectors
-        tmp_buffer[4] = 0x00000000; // mini event id, error flags, MBZ
-        tmp_buffer[5] = 0xaffeaffe; // trigger classes low
-        tmp_buffer[6] = 0x00000000; // trigger classes high, MBZ, ROI
-        tmp_buffer[7] = 0xdeadbeaf; // ROI high
-
-        for(i=0; i<event_size-8; i++)
-        { tmp_buffer[8+i] = i; }
-
-        memcpy((void*)dest, tmp_buffer, (event_size*sizeof(uint32_t)) );
-        pushEventSizeIntoELFifo(event_size);
-    }
-
     uint64_t
     event_generator::availableBufferSpace(uint64_t event_generation_offset)
     {
@@ -187,6 +155,39 @@ namespace LIBRARY_NAME
     }
 
     void
+    event_generator::createEvent
+    (
+        volatile uint32_t *dest,
+        uint64_t event_id,
+        uint32_t event_size,
+        uint32_t fragment_size
+    )
+    {
+        uint32_t i;
+
+        if(event_size <= 8)
+        { throw 0; }
+
+        uint32_t tmp_buffer[event_size];
+
+        /** First 8 DWs are CDH */
+        tmp_buffer[0] = 0xffffffff;
+        tmp_buffer[1] = event_id & 0xfff;
+        tmp_buffer[2] = ((event_id>>12) & 0x00ffffff);
+        tmp_buffer[3] = 0x00000000; // PGMode / participating subdetectors
+        tmp_buffer[4] = 0x00000000; // mini event id, error flags, MBZ
+        tmp_buffer[5] = 0xaffeaffe; // trigger classes low
+        tmp_buffer[6] = 0x00000000; // trigger classes high, MBZ, ROI
+        tmp_buffer[7] = 0xdeadbeaf; // ROI high
+
+        for(i=0; i<event_size-8; i++)
+        { tmp_buffer[8+i] = i; }
+
+        memcpy((void*)dest, tmp_buffer, (event_size*sizeof(uint32_t)) );
+        pushEventSizeIntoELFifo(event_size);
+    }
+
+    void
     event_generator::packEventsIntoMemory
     (
         uint64_t number_of_events,
@@ -197,7 +198,13 @@ namespace LIBRARY_NAME
         volatile uint32_t* eventbuffer = m_event_buffer->getMem();
         for(uint64_t i = 0; i < number_of_events; i++)
         {
-            createEvent((eventbuffer + (m_event_generation_offset >> 2)), m_event_id, event_size);
+            createEvent
+            (
+                (eventbuffer + (m_event_generation_offset >> 2)),
+                m_event_id,
+                event_size,
+                fragment_size
+            );
 
             DEBUG_PRINTF
             (
@@ -211,13 +218,6 @@ namespace LIBRARY_NAME
             iterateEventBufferFillState(fragment_size);
             wrapFillStateIfNecessary();
         }
-    }
-
-    void
-    event_generator::iterateEventBufferFillState(uint32_t fragment_size)
-    {
-        m_event_generation_offset += fragment_size;
-        m_event_id += 1;
     }
 
     void
@@ -235,6 +235,13 @@ namespace LIBRARY_NAME
     event_generator::pushEventSizeIntoELFifo(uint32_t event_size)
     {
         m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+    }
+
+    void
+    event_generator::iterateEventBufferFillState(uint32_t fragment_size)
+    {
+        m_event_generation_offset += fragment_size;
+        m_event_id += 1;
     }
 
 }

@@ -68,7 +68,8 @@ class dma_channel;
             (
                 volatile uint32_t *dest,
                 uint64_t event_id,
-                uint32_t length
+                uint32_t length,
+                uint32_t fragment_size
             );
 
             /**
