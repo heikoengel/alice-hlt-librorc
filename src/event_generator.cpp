@@ -48,19 +48,24 @@ namespace LIBRARY_NAME
         m_last_event_buffer_offset
             = m_channel->getLastEBOffset();
 
-        uint32_t max_read_req
-            = m_channel->pciePacketSize();
+//        uint32_t max_read_req
+//            = m_channel->pciePacketSize();
 
         uint64_t available_buffer_space
             = availableBufferSpace(m_event_generation_offset);
 
-        uint32_t fragment_size
-            = fragmentSize(event_size, max_read_req);
+//        uint32_t fragment_size
+//            = fragmentSize(event_size, max_read_req);
 
         uint64_t number_of_events
-        = numberOfEvents(available_buffer_space, event_size, fragment_size);
+            = numberOfEvents
+              (
+                  available_buffer_space,
+                  event_size,
+                  fragmentSize(event_size)
+              );
 
-        packEventsIntoMemory(number_of_events, event_size, fragment_size);
+        packEventsIntoMemory(number_of_events, event_size);
 
         return number_of_events;
     }
@@ -72,18 +77,6 @@ namespace LIBRARY_NAME
                ? m_last_event_buffer_offset - event_generation_offset
                : m_last_event_buffer_offset + m_event_buffer->getSize()
                - event_generation_offset; /** wrap in between */
-    }
-
-    uint32_t
-    event_generator::fragmentSize
-    (
-         uint32_t event_size,
-         uint32_t max_read_req
-    )
-    {
-        return   ((event_size << 2) % max_read_req)
-               ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
-               : (event_size << 2);
     }
 
     uint64_t
@@ -154,13 +147,44 @@ namespace LIBRARY_NAME
         ? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
     }
 
+
+    void
+    event_generator::packEventsIntoMemory
+    (
+        uint64_t number_of_events,
+        uint32_t event_size
+    )
+    {
+        volatile uint32_t* eventbuffer = m_event_buffer->getMem();
+        for(uint64_t i = 0; i < number_of_events; i++)
+        {
+            createEvent
+            (
+                (eventbuffer + (m_event_generation_offset >> 2)),
+                m_event_id,
+                event_size
+            );
+
+            DEBUG_PRINTF
+            (
+                PDADEBUG_CONTROL_FLOW,
+                "create_event(%lx, %lx, %x)\n",
+                m_event_generation_offset,
+                m_event_id,
+                event_size
+            );
+
+        }
+    }
+
+
+
     void
     event_generator::createEvent
     (
         volatile uint32_t *dest,
-        uint64_t event_id,
-        uint32_t event_size,
-        uint32_t fragment_size
+        uint64_t           event_id,
+        uint32_t           event_size
     )
     {
         uint32_t i;
@@ -183,39 +207,9 @@ namespace LIBRARY_NAME
         for(i=0; i<event_size-8; i++)
         { tmp_buffer[8+i] = i; }
 
-        packEventIntoBuffer(tmp_buffer, event_size, fragment_size, dest);
+        packEventIntoBuffer(tmp_buffer, event_size, dest);
     }
 
-    void
-    event_generator::packEventsIntoMemory
-    (
-        uint64_t number_of_events,
-        uint32_t event_size,
-        uint32_t fragment_size
-    )
-    {
-        volatile uint32_t* eventbuffer = m_event_buffer->getMem();
-        for(uint64_t i = 0; i < number_of_events; i++)
-        {
-            createEvent
-            (
-                (eventbuffer + (m_event_generation_offset >> 2)),
-                m_event_id,
-                event_size,
-                fragment_size
-            );
-
-            DEBUG_PRINTF
-            (
-                PDADEBUG_CONTROL_FLOW,
-                "create_event(%lx, %lx, %x)\n",
-                m_event_generation_offset,
-                m_event_id,
-                event_size
-            );
-
-        }
-    }
 
 
     //----- PACKING API
@@ -225,13 +219,12 @@ namespace LIBRARY_NAME
     (
         uint32_t          *tmp_buffer,
         uint32_t           event_size,
-        uint32_t           fragment_size,
         volatile uint32_t *dest
     )
     {
         memcpy((void*) (dest), tmp_buffer, (event_size * sizeof(uint32_t)));
         pushEventSizeIntoELFifo(event_size);
-        iterateEventBufferFillState(fragment_size);
+        iterateEventBufferFillState(event_size);
         wrapFillStateIfNecessary();
     }
 
@@ -242,9 +235,9 @@ namespace LIBRARY_NAME
     }
 
     void
-    event_generator::iterateEventBufferFillState(uint32_t fragment_size)
+    event_generator::iterateEventBufferFillState(uint32_t event_size)
     {
-        m_event_generation_offset += fragment_size;
+        m_event_generation_offset += fragmentSize(event_size);
         m_event_id += 1;
     }
 
@@ -255,6 +248,19 @@ namespace LIBRARY_NAME
             = (m_event_generation_offset >= m_event_buffer->getSize())
             ? (m_event_generation_offset - m_event_buffer->getSize())
             : m_event_generation_offset;
+    }
+
+    uint32_t
+    event_generator::fragmentSize
+    (
+         uint32_t event_size
+    )
+    {
+        uint32_t max_read_req = m_channel->pciePacketSize();
+
+        return   ((event_size << 2) % max_read_req)
+               ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
+               : (event_size << 2);
     }
 
 }
