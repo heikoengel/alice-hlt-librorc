@@ -45,16 +45,10 @@ namespace LIBRARY_NAME
     uint64_t
     event_generator::fillEventBuffer(uint32_t event_size)
     {
-        m_last_event_buffer_offset
-            = m_channel->getLastEBOffset();
-
-        uint64_t available_buffer_space
-            = availableBufferSpace(m_event_generation_offset);
-
         uint64_t number_of_events
             = numberOfEvents
               (
-                  available_buffer_space,
+                  availableBufferSpace(),
                   event_size,
                   fragmentSize(event_size)
               );
@@ -64,14 +58,7 @@ namespace LIBRARY_NAME
         return number_of_events;
     }
 
-    uint64_t
-    event_generator::availableBufferSpace(uint64_t event_generation_offset)
-    {
-        return   (event_generation_offset < m_last_event_buffer_offset)
-               ? m_last_event_buffer_offset - event_generation_offset
-               : m_last_event_buffer_offset + m_event_buffer->getSize()
-               - event_generation_offset; /** wrap in between */
-    }
+
 
     uint64_t
     event_generator::numberOfEvents
@@ -207,6 +194,18 @@ namespace LIBRARY_NAME
 
 
     //----- PACKING API
+
+    uint64_t
+    event_generator::availableBufferSpace()
+    {
+        m_last_event_buffer_offset
+            = m_channel->getLastEBOffset();
+
+        return   (m_event_generation_offset < m_last_event_buffer_offset)
+               ? m_last_event_buffer_offset - m_event_generation_offset
+               : m_last_event_buffer_offset + m_event_buffer->getSize()
+               - m_event_generation_offset; /** wrap in between */
+    }
 
     void
     event_generator::packEventIntoBuffer

@@ -56,13 +56,6 @@ class dma_channel;
             buffer      *m_event_buffer;
             dma_channel *m_channel;
 
-            /**
-             * Get the available event buffer space in bytes between the current
-             * generation offset and the last offset written to the channel
-             **/
-            uint64_t
-            availableBufferSpace(uint64_t event_generation_offset);
-
             uint64_t
             numberOfEvents
             (
@@ -119,6 +112,11 @@ class dma_channel;
             );
 
 //-----------------------------------
+            /**
+             * Get the available event buffer space in bytes between the current
+             * generation offset and the last offset written to the channel
+             **/
+            uint64_t availableBufferSpace();
 
             void
             packEventIntoBuffer
