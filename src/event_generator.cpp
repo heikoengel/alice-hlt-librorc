@@ -48,14 +48,8 @@ namespace LIBRARY_NAME
         m_last_event_buffer_offset
             = m_channel->getLastEBOffset();
 
-//        uint32_t max_read_req
-//            = m_channel->pciePacketSize();
-
         uint64_t available_buffer_space
             = availableBufferSpace(m_event_generation_offset);
-
-//        uint32_t fragment_size
-//            = fragmentSize(event_size, max_read_req);
 
         uint64_t number_of_events
             = numberOfEvents
@@ -217,12 +211,12 @@ namespace LIBRARY_NAME
     void
     event_generator::packEventIntoBuffer
     (
-        uint32_t          *tmp_buffer,
+        uint32_t          *event,
         uint32_t           event_size,
         volatile uint32_t *dest
     )
     {
-        memcpy((void*) (dest), tmp_buffer, (event_size * sizeof(uint32_t)));
+        memcpy((void*) (dest), event, (event_size * sizeof(uint32_t)));
         pushEventSizeIntoELFifo(event_size);
         iterateEventBufferFillState(event_size);
         wrapFillStateIfNecessary();
