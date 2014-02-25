@@ -46,11 +46,7 @@ namespace LIBRARY_NAME
     event_generator::fillEventBuffer(uint32_t event_size)
     {
         uint64_t number_of_events
-            = numberOfEvents
-              (
-                  availableBufferSpace(),
-                  event_size
-              );
+            = numberOfEvents( event_size );
 
         packEventsIntoMemory
         (
@@ -60,76 +56,6 @@ namespace LIBRARY_NAME
 
         return number_of_events;
     }
-
-
-
-    uint64_t
-    event_generator::numberOfEvents
-    (
-        uint64_t available_buffer_space,
-        uint32_t event_size
-    )
-    {
-
-        if(!isSufficientFifoSpaceAvailable())
-        { return 0; }
-
-        uint64_t
-        number_of_events
-            = numberOfEventsThatFitIntoBuffer
-                (available_buffer_space, event_size, fragmentSize(event_size));
-
-        number_of_events
-            = maximumElfifoCanHandle(number_of_events);
-
-        number_of_events
-            = reduceNumberOfEventsToCustomMaximum(number_of_events);
-
-        return number_of_events;
-    }
-
-    bool
-    event_generator::isSufficientFifoSpaceAvailable()
-    {
-        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
-        uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
-        uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
-        return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
-    }
-
-    uint64_t
-    event_generator::maximumElfifoCanHandle(uint64_t number_of_events)
-    {
-        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
-        uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
-        uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
-
-        return
-        (el_fifo_write_limit - el_fifo_write_count < number_of_events)
-        ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
-    }
-
-    uint64_t
-    event_generator::reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events)
-    {
-        return
-        (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
-        ? MAX_EVENTS_PER_ITERATION : number_of_events;
-    }
-
-    uint64_t
-    event_generator::numberOfEventsThatFitIntoBuffer
-    (
-        uint64_t available_buffer_space,
-        uint32_t event_size,
-        uint32_t fragment_size
-    )
-    {
-        return
-        ((available_buffer_space - event_size) <= fragment_size)
-        ? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
-    }
-
 
     void
     event_generator::packEventsIntoMemory
@@ -159,8 +85,6 @@ namespace LIBRARY_NAME
 
         }
     }
-
-
 
     void
     event_generator::createEvent
@@ -257,5 +181,70 @@ namespace LIBRARY_NAME
                ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
                : (event_size << 2);
     }
+
+    uint64_t
+    event_generator::numberOfEvents
+    ( uint32_t event_size)
+    {
+
+        if(!isSufficientFifoSpaceAvailable())
+        { return 0; }
+
+        uint64_t
+        number_of_events
+            = numberOfEventsThatFitIntoBuffer
+                (availableBufferSpace(), event_size, fragmentSize(event_size));
+
+        number_of_events
+            = maximumElfifoCanHandle(number_of_events);
+
+        number_of_events
+            = reduceNumberOfEventsToCustomMaximum(number_of_events);
+
+        return number_of_events;
+    }
+
+        bool
+        event_generator::isSufficientFifoSpaceAvailable()
+        {
+            uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+            uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+            uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+            return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
+        }
+
+
+        uint64_t
+        event_generator::numberOfEventsThatFitIntoBuffer
+        (
+            uint64_t available_buffer_space,
+            uint32_t event_size,
+            uint32_t fragment_size
+        )
+        {
+            return
+            ((available_buffer_space - event_size) <= fragment_size)
+            ? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
+        }
+
+        uint64_t
+        event_generator::maximumElfifoCanHandle(uint64_t number_of_events)
+        {
+            uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+            uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+            uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+
+            return
+            (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+            ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
+        }
+
+        uint64_t
+        event_generator::reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events)
+        {
+            return
+            (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
+            ? MAX_EVENTS_PER_ITERATION : number_of_events;
+        }
 
 }

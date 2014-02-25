@@ -56,38 +56,6 @@ class dma_channel;
             buffer      *m_event_buffer;
             dma_channel *m_channel;
 
-            uint64_t
-            numberOfEvents
-            (
-                uint64_t available_buffer_space,
-                uint32_t event_size
-            );
-
-            bool isSufficientFifoSpaceAvailable();
-
-            /**
-             * reduce the number of events to the maximum the
-             * EL_FIFO can handle a.t.m.
-             */
-            uint64_t
-            maximumElfifoCanHandle(uint64_t number_of_events);
-
-            uint64_t
-            reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
-
-
-
-//-----------------------------------
-
-            uint64_t
-            numberOfEventsThatFitIntoBuffer
-            (
-                uint64_t available_buffer_space,
-                uint32_t event_size,
-                uint32_t fragment_size
-            );
-
-
             void
             packEventsIntoMemory
             (
@@ -106,8 +74,8 @@ class dma_channel;
             createEvent
             (
                 volatile uint32_t *dest,
-                uint64_t event_id,
-                uint32_t event_size
+                uint64_t           event_id,
+                uint32_t           event_size
             );
 
 //-----------------------------------
@@ -137,6 +105,27 @@ class dma_channel;
              * MaxReadReq boundaries fragment_size is in bytes
              **/
             uint32_t fragmentSize(uint32_t event_size);
+
+            uint64_t numberOfEvents(uint32_t event_size);
+                bool isSufficientFifoSpaceAvailable();
+
+                uint64_t
+                numberOfEventsThatFitIntoBuffer
+                (
+                    uint64_t available_buffer_space,
+                    uint32_t event_size,
+                    uint32_t fragment_size
+                );
+
+                /**
+                 * reduce the number of events to the maximum the
+                 * EL_FIFO can handle a.t.m.
+                 */
+                uint64_t
+                maximumElfifoCanHandle(uint64_t number_of_events);
+
+                uint64_t
+                reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
     };
 
 }
