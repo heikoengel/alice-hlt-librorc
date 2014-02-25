@@ -49,11 +49,14 @@ namespace LIBRARY_NAME
             = numberOfEvents
               (
                   availableBufferSpace(),
-                  event_size,
-                  fragmentSize(event_size)
+                  event_size
               );
 
-        packEventsIntoMemory(number_of_events, event_size);
+        packEventsIntoMemory
+        (
+            number_of_events,
+            event_size
+        );
 
         return number_of_events;
     }
@@ -64,8 +67,7 @@ namespace LIBRARY_NAME
     event_generator::numberOfEvents
     (
         uint64_t available_buffer_space,
-        uint32_t event_size,
-        uint32_t fragment_size
+        uint32_t event_size
     )
     {
 
@@ -75,7 +77,7 @@ namespace LIBRARY_NAME
         uint64_t
         number_of_events
             = numberOfEventsThatFitIntoBuffer
-                (available_buffer_space, event_size, fragment_size);
+                (available_buffer_space, event_size, fragmentSize(event_size));
 
         number_of_events
             = maximumElfifoCanHandle(number_of_events);

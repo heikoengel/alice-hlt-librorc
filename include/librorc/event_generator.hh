@@ -60,8 +60,7 @@ class dma_channel;
             numberOfEvents
             (
                 uint64_t available_buffer_space,
-                uint32_t event_size,
-                uint32_t fragment_size
+                uint32_t event_size
             );
 
             bool isSufficientFifoSpaceAvailable();
