@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
 
 #ifndef SIM
     /** in simulation FCF RAM is loaded by Modelsim */
-    cout << "Writing mapping file to FCF_RAM..." << endl;
-    link->fcfLoadMappingRam(MAPPING_FILE);
+    //cout << "Writing mapping file to FCF_RAM..." << endl;
+    //link->fcfLoadMappingRam(MAPPING_FILE);
 #endif
 
     /** wait until DDL is up */
@@ -149,17 +149,17 @@ int main(int argc, char *argv[])
     //link->enableDdl();
 
     // disable Data Replay
-    bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000);
+    sm->disableDdr3DataReplay();
     link->disableDdr3DataReplayChannel();
 
     cout << "Waiting for phy_init_done..." << endl;
-    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
+    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
     { usleep(100); }
 
     uint32_t ch_start_addr = 0x00000000;
     cout << "Writing event to DDR3..." << endl;
     try {
-    sm->data_replay_write_event(
+    sm->ddr3DataReplayEventToRam(
             event,
             (fd_in_stat.st_size>>2), // num_dws
             ch_start_addr, // ddr3 start address
@@ -172,17 +172,6 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    //librorc::diu *diu = new librorc::diu(link);
-
-    link->setDataSourceDdr3DataReplay();
-    //diu->enableInterface();
-    link->enableFcf();
-    // configure and start data replay channel
-    link->configureDdr3DataReplayChannel(ch_start_addr);
-    link->enableDdr3DataReplayChannel();
-
-    // enable data replay globally
-    bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x80000000);
 
     //-----------------------------------------------------//
 
@@ -202,8 +191,16 @@ int main(int argc, char *argv[])
     eventStream->printDeviceStatus();
 
     /** enable EBDM + RBDM + PKT */
-    link->setPacketizer(RORC_REG_DMA_CTRL,
-            (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+    //link->setPacketizer(RORC_REG_DMA_CTRL,
+    //        (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+
+    link->setDataSourceDdr3DataReplay();
+    link->enableFlowControl();
+    link->configureDdr3DataReplayChannel(ch_start_addr);
+    link->enableDdr3DataReplayChannel();
+
+    // enable data replay globally
+    sm->enableDdr3DataReplay();
 
 
     /** make clear what will be checked*/

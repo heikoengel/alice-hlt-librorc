@@ -637,28 +637,28 @@ namespace LIBRARY_NAME
         uint32_t ddr3_start_address
     )
     {
-        uint32_t ch_cfg = packetizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
         ch_cfg &= ~(0xfffffffc); // clear [31:2]
         ch_cfg |= (ddr3_start_address & 0xfffffffc); //set start_addr[31:2]
-        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
 
     void
     link::enableDdr3DataReplayChannel()
     {
-        uint32_t ch_cfg = packetizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
         ch_cfg |= (1<<1) | // continuous
             (1<<0); //enable
-        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
     void
     link::disableDdr3DataReplayChannel()
     {
-        uint32_t ch_cfg = packetizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
         ch_cfg &= ~(1<<0); //disable
-        setPacketizer(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
 }

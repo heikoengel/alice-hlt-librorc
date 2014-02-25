@@ -188,7 +188,7 @@ int main
 
         cout << "Writing event to DDR3..." << endl;
         try {
-            sm->data_replay_write_event(
+            sm->ddr3DataReplayEventToRam(
                     event,
                     (fd_in_stat.st_size>>2), // num_dws
                     ch_start_addr, // ddr3 start address
@@ -207,17 +207,12 @@ int main
         if ( channel_enable_val )
         {
             link->setDataSourceDdr3DataReplay();
-            //link->enableDdl();
-            //link->enableFcf();
-            // configure and start data replay channel
             link->configureDdr3DataReplayChannel(ch_start_addr);
             link->enableDdr3DataReplayChannel();
         }
         else
         {
             link->disableDdr3DataReplayChannel();
-            //link->disableFcf();
-            //link->disableDdl();
         }
     }
 
@@ -225,9 +220,9 @@ int main
     {
         // enable/disable data replay globally
         if ( global_enable_val )
-        { bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x80000000); }
+        { sm->enableDdr3DataReplay(); }
         else
-        { bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000); }
+        { sm->disableDdr3DataReplay(); }
     }
 
     delete link;

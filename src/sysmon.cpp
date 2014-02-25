@@ -715,7 +715,7 @@ namespace LIBRARY_NAME
 
 
     uint32_t
-    sysmon::data_replay_write_event
+    sysmon::ddr3DataReplayEventToRam
     (
          uint32_t *event_data,
          uint32_t num_dws,
@@ -741,7 +741,7 @@ namespace LIBRARY_NAME
                 }
             }
 
-            data_replay_write_block( addr, dataptr, mask, channel, flags);
+            ddr3DataReplayBlockToRam( addr, dataptr, mask, channel, flags);
             addr += 0x40;
             dataptr += 15;
             num_dws = (num_dws<15) ? 0 : (num_dws-15);
@@ -749,13 +749,25 @@ namespace LIBRARY_NAME
         return addr;
     }
 
+    void
+    sysmon::disableDdr3DataReplay()
+    {
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000);
+    }
 
+    void
+    sysmon::enableDdr3DataReplay()
+    {
+        uint32_t drcfg =  m_bar->get32(RORC_REG_DATA_REPLAY_CTRL);
+        drcfg |= (1<<31);
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drcfg);
+    }
 
 
     /** Protected ***** ***********************************************/
 
     void
-    sysmon::data_replay_write_block
+    sysmon::ddr3DataReplayBlockToRam
     (
         uint32_t start_addr,
         uint32_t *data,

@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: f09f824754befe27bc934f1c898195e22fcccd84
-// short hash: f09f824
+// hash: 6d254e619ac327843e6d23fedb79ebf8b17993ea
+// short hash: 6d254e6
 //
 
-#define RORC_REVISION 0xf09f824
-#define RORC_BUILD_DATE 0x20140221
+#define RORC_REVISION 0x6d254e6
+#define RORC_BUILD_DATE 0x20140224
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -67,7 +67,6 @@
 #define RORC_REG_DMA_ELFIFO 22
 #define RORC_REG_DMA_PKT_SIZE 23
 #define RORC_REG_GTX_DRP_CTRL 24
-#define RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL 25
 #define RORC_REG_GTX_CTRL 0
 #define RORC_REG_GTX_RXDFE 1
 #define RORC_REG_GTX_DISPERR_CNT 2
@@ -93,6 +92,7 @@
 #define RORC_REG_FCF_RAM_CTRL 23
 #define RORC_REG_DDL_FILTER_CTRL 24
 #define RORC_REG_DDL_DMA_DEADTIME 25
+#define RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL 26
 #define RORC_DMA_CMP_SEL 13
 #define RORC_CFG_PROJECT_hlt_in 0
 #define RORC_CFG_PROJECT_hlt_out 1

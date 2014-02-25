@@ -357,7 +357,7 @@ namespace LIBRARY_NAME
              * @return returns ddr3_address for next event
              * */
             uint32_t
-            data_replay_write_event
+            ddr3DataReplayEventToRam
             (
                 uint32_t *event_data,
                 uint32_t num_dws,
@@ -365,6 +365,21 @@ namespace LIBRARY_NAME
                 uint8_t channel,
                 bool last_event
             );
+
+            /**
+             * enable DDR3 Data Replay globally. The channel configuration
+             * is only evaluated as soon as this is enabled.
+             **/
+            void
+            enableDdr3DataReplay();
+
+
+            /**
+             * disable DDR3 Data Replay globally. This overrides any channel
+             * settings
+             **/
+            void
+            disableDdr3DataReplay();
 
 
             void
@@ -388,7 +403,7 @@ namespace LIBRARY_NAME
              *        DATA_REPLAY_EOE: add EOE-Word after current dataset
              * */
             void
-            data_replay_write_block
+            ddr3DataReplayBlockToRam
             (
                  uint32_t start_addr,
                  uint32_t *data,
