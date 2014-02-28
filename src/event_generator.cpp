@@ -78,18 +78,22 @@ namespace LIBRARY_NAME
         if(length <= 8)
         { throw 0; }
 
+        uint32_t tmp_buffer[length];
+
         /** First 8 DWs are CDH */
-        dest[0] = 0xffffffff;
-        dest[1] = event_id & 0xfff;
-        dest[2] = ((event_id>>12) & 0x00ffffff);
-        dest[3] = 0x00000000; // PGMode / participating subdetectors
-        dest[4] = 0x00000000; // mini event id, error flags, MBZ
-        dest[5] = 0xaffeaffe; // trigger classes low
-        dest[6] = 0x00000000; // trigger classes high, MBZ, ROI
-        dest[7] = 0xdeadbeaf; // ROI high
+        tmp_buffer[0] = 0xffffffff;
+        tmp_buffer[1] = event_id & 0xfff;
+        tmp_buffer[2] = ((event_id>>12) & 0x00ffffff);
+        tmp_buffer[3] = 0x00000000; // PGMode / participating subdetectors
+        tmp_buffer[4] = 0x00000000; // mini event id, error flags, MBZ
+        tmp_buffer[5] = 0xaffeaffe; // trigger classes low
+        tmp_buffer[6] = 0x00000000; // trigger classes high, MBZ, ROI
+        tmp_buffer[7] = 0xdeadbeaf; // ROI high
 
         for(i=0; i<length-8; i++)
-        { dest[8+i] = i; }
+        { tmp_buffer[8+i] = i; }
+
+        memcpy((void*)dest, tmp_buffer, (length*sizeof(uint32_t)) );
     }
 
     uint64_t
@@ -230,4 +234,8 @@ namespace LIBRARY_NAME
             ? (m_event_generation_offset - m_event_buffer->getSize())
             : m_event_generation_offset;
     }
+
+    //----- PACKING API
+
+
 }
