@@ -864,7 +864,6 @@ testDmaChannel
         (
          eventStream->m_eventBuffer,
          opts.channelId,
-         PG_PATTERN_INC,
          sanity_check_mask,
          logdirectory
         );

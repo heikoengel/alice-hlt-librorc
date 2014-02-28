@@ -169,6 +169,8 @@ namespace LIBRARY_NAME
                     !(error_bit_mask & CHK_EOE)     ? 0 : fprintf(m_fd_log, " CHK_EOE");
                     !(error_bit_mask & CHK_ID)      ? 0 : fprintf(m_fd_log, " CHK_ID");
                     !(error_bit_mask & CHK_FILE)    ? 0 : fprintf(m_fd_log, " CHK_FILE");
+                    !(error_bit_mask & CHK_DIU_ERR) ? 0 : fprintf(m_fd_log, " CHK_DIU_ERR");
+                    !(error_bit_mask & CHK_CMPL)    ? 0 : fprintf(m_fd_log, " CHK_CMPL");
                 }
                 fprintf(m_fd_log, "\n\n");
             }
@@ -180,7 +182,7 @@ namespace LIBRARY_NAME
                 buffer                   *event_buffer
             )
             {
-                return report.calc_event_size > (event_buffer->getPhysicalSize() >> 2);
+                return (report.calc_event_size & 0x3fffffff) > (event_buffer->getPhysicalSize() >> 2);
             }
 
             bool
@@ -244,7 +246,7 @@ namespace LIBRARY_NAME
                 for
                 (
                     i = 0;
-                    i < report.calc_event_size;
+                    i < (report.calc_event_size & 0x3fffffff);
                     i++
                 )
                 {
@@ -275,7 +277,7 @@ namespace LIBRARY_NAME
                     (
                             m_raw_event_buffer + (report.offset >> 2),
                             4,
-                            report.calc_event_size,
+                            (report.calc_event_size & 0x3fffffff),
                             m_fd_ddl
                     );
 
@@ -341,7 +343,6 @@ event_sanity_checker::event_sanity_checker
 (
     buffer            *event_buffer,
     uint32_t           channel_id,
-    uint32_t           pattern_mode,
     uint32_t           check_mask,
     char              *log_base_dir
 )
@@ -349,7 +350,6 @@ event_sanity_checker::event_sanity_checker
     m_event_buffer        = event_buffer;
     m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
     m_channel_id          = channel_id;
-    m_pattern_mode        = pattern_mode;
     m_check_mask          = check_mask;
     m_event_index         = 0;
     m_event               = NULL;
@@ -365,7 +365,6 @@ event_sanity_checker::event_sanity_checker
 (
     buffer            *event_buffer,
     uint32_t           channel_id,
-    uint32_t           pattern_mode,
     uint32_t           check_mask,
     char              *log_base_dir,
     char              *ddl_reference_file_path
@@ -374,7 +373,6 @@ event_sanity_checker::event_sanity_checker
     m_event_buffer        = event_buffer;
     m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
     m_channel_id          = channel_id;
-    m_pattern_mode        = pattern_mode;
     m_check_mask          = check_mask;
     m_event_index         = 0;
     m_event               = NULL;
@@ -410,9 +408,13 @@ event_sanity_checker::check
     m_reported_event_size = reportedEventSize(report_pointer);
     m_calc_event_size     = calculatedEventSize(report_pointer);
     m_event_index         = 0;
+    m_error_flag          = errorFlag(report_pointer);
+    m_comletion_status    = completionStatus(report_pointer);
 
     int      error_code   = 0;
     {
+        error_code |= !(m_check_mask & CHK_DIU_ERR) ? 0 : checkDiuError(report_buffer_index);
+        error_code |= !(m_check_mask & CHK_CMPL)    ? 0 : checkCompletion(report_buffer_index);
         error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_pointer, report_buffer_index);
         error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_pointer, report_buffer_index);
         error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
@@ -424,6 +426,7 @@ event_sanity_checker::check
     if(error_code != 0)
     {
         channel_status->error_count++;
+        dumpError(report_pointer, report_buffer_index, error_code);
 
         file_dumper dumper(m_log_base_dir);
 
@@ -491,12 +494,9 @@ event_sanity_checker::dumpReportBufferEntry
     DEBUG_PRINTF
     (
         PDADEBUG_CONTROL_FLOW,
-        "CH%2d - RB[%3ld]: calc_size=%08x\t"
-        "reported_size=%08x\t"
-        "offset=%lx\n",
-        channel_number, index, report_buffer->calc_event_size,
-        report_buffer->reported_event_size,
-        report_buffer->offset
+        "CH%2d - RB[%3ld]: calc_size=%08x reported_size=%08x offset=%lx E:%d S:%d\n",
+        channel_number, index, m_calc_event_size, m_reported_event_size,
+        report_buffer->offset, m_error_flag, m_comletion_status
     );
 }
 
@@ -508,12 +508,12 @@ event_sanity_checker::dumpError
 (
     volatile librorc_event_descriptor *report_buffer,
              uint64_t                  report_buffer_index,
-             int32_t                   check_id
+             int32_t                   error_code
 )
 {
-    dumpEvent(m_raw_event_buffer, dwordOffset(report_buffer), m_reported_event_size);
+    dumpEvent(m_raw_event_buffer, dwordOffset(report_buffer), m_calc_event_size);
     dumpReportBufferEntry(report_buffer, report_buffer_index, m_channel_id);
-    return check_id;
+    return error_code;
 }
 
 
@@ -525,17 +525,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
              uint64_t                  report_buffer_index
 )
 {
-    /** Bit 31 of calc_event_size is read completion timeout flag */
-    uint32_t timeout_flag = (report_buffer->calc_event_size>>31);
-
-    if(timeout_flag)
-    {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] Read Completion Timeout\n",
-                m_channel_id, report_buffer_index);
-        return(CHK_SIZES);
-    }
-    else if(m_calc_event_size != m_reported_event_size)
+    if(m_calc_event_size != m_reported_event_size)
     {
         DEBUG_PRINTF(PDADEBUG_ERROR,
                 "CH%2d ERROR: Event[%ld] sizes do not match: \n"
@@ -544,11 +534,55 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
                 report_buffer_index, m_calc_event_size, m_reported_event_size,
                 report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
-        return(CHK_SIZES);
+        return CHK_SIZES;
     }
 
     return 0;
 }
+
+int
+event_sanity_checker::checkDiuError
+(
+    uint64_t report_buffer_index
+)
+{
+    if( m_error_flag )
+    {
+        DEBUG_PRINTF( PDADEBUG_ERROR, "CH%2d ERROR: DIU Error flag set\n",
+                report_buffer_index);
+        return CHK_DIU_ERR;
+    }
+    return 0;
+}
+
+int
+event_sanity_checker::checkCompletion
+(
+    uint64_t report_buffer_index
+)
+{
+    if( m_error_flag || m_comletion_status)
+    {
+        switch(m_comletion_status)
+        {
+            case 1:
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: CMPL Status Unsupported Request\n", report_buffer_index);
+                break;
+            case 2:
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: CMPL Status Completer Abort\n", report_buffer_index);
+                break;
+            case 3:
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: CMPL Status unknown/reserved\n", report_buffer_index);
+                break;
+            default:
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Completion Timeout\n", report_buffer_index);
+                break;
+        }
+        return CHK_CMPL;
+    }
+    return 0;
+}
+
 
 
 
@@ -566,7 +600,7 @@ event_sanity_checker::checkStartOfEvent
                         "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
                 (uint32_t) * (m_event), report_buffer->offset,
                 report_buffer_index * sizeof(librorc_event_descriptor));
-        return dumpError(report_buffer, report_buffer_index, CHK_SOE);
+        return CHK_SOE;
     }
 
     return 0;
@@ -574,156 +608,25 @@ event_sanity_checker::checkStartOfEvent
 
 
 
-int
-event_sanity_checker::checkPatternInc
+uint32_t
+event_sanity_checker::nextPgWord
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    uint32_t mode,
+    uint32_t cur_word
 )
 {
-    uint32_t base_value = 0;
-
-    uint32_t *event     = (m_event+8);
-    uint64_t  length    = (m_calc_event_size-8);
-    m_event_index       = 8;
-    for(uint32_t i = base_value; i<(length+base_value); i++)
+    switch(mode)
     {
-        if( event[i] != i )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index,
-                m_event_index,
-                m_event_index,
-                event[m_event_index]
-            );
-            m_event_index++;
-            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
-        }
-        m_event_index++;
+        case PG_PATTERN_INC:
+            return cur_word+1;
+        case PG_PATTERN_DEC:
+            return cur_word-1;
+        case PG_PATTERN_SHIFT:
+            return ((cur_word<<1) | (cur_word>>31));
+        default: // PG_PATTERN_TOGGLE:
+            return ~cur_word;
     }
-
-
-
-    return 0;
 }
-
-
-
-int
-event_sanity_checker::checkPatternDec
-(
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
-)
-{
-    uint32_t *event  = (m_event+8);
-    uint64_t  length = (m_calc_event_size-8);
-    m_event_index    = 8;
-    for(uint32_t i=0; i<length; i++)
-    {
-        if( event[i] != ((length-1)-i) )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index,
-                m_event_index,
-                ((length-1)-i),
-                event[m_event_index]
-            );
-            m_event_index++;
-            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
-        }
-        m_event_index++;
-    }
-
-    return 0;
-}
-
-
-
-int
-event_sanity_checker::checkPatternShift
-(
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
-)
-{
-    uint32_t base_value = 0;
-
-    uint32_t *event     = (m_event+8);
-    uint64_t  length    = (m_calc_event_size-8);
-    m_event_index       = 8;
-
-    for(uint32_t i=0; i<length; i++)
-    {
-        if( event[i] != base_value )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index,
-                m_event_index,
-                base_value,
-                event[m_event_index]
-            );
-            m_event_index++;
-            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
-        }
-
-        base_value = (base_value<<1) | (base_value>>31);
-        m_event_index++;
-    }
-
-    return 0;
-}
-
-
-
-int
-event_sanity_checker::checkPatternToggle
-(
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
-)
-{
-    uint32_t base_value    = 0;
-
-    uint32_t *event        = (m_event+8);
-    uint64_t  length       = (m_calc_event_size-8);
-    m_event_index          = 8;
-    uint32_t toggled_value = base_value;
-
-
-    for(uint32_t i=0; i<length; i++)
-    {
-        if( event[i] != toggled_value )
-        {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index,
-                m_event_index,
-                toggled_value,
-                event[m_event_index]
-            );
-            m_event_index++;
-            return dumpError(report_buffer, report_buffer_index, CHK_PATTERN);
-        }
-
-        toggled_value = ~toggled_value;
-        m_event_index++;
-    }
-
-    return 0;
-}
-
 
 
 int
@@ -733,31 +636,36 @@ event_sanity_checker::checkPattern
              uint64_t                  report_buffer_index
 )
 {
-    switch(m_pattern_mode)
+    if( m_calc_event_size<=4 )
+    { return CHK_PATTERN; }
+
+    /** get pattern mode from CDH: Word3, Bits [4:3] */
+    uint32_t pattern_mode = ((m_event[3]>>3) & 0x03);
+    /** get pattern base value from CDH: Word4, Bits [31:0] */
+    uint32_t pattern_base = m_event[4];
+    /** CDH version from Word1, Bits [31:24] */
+    uint32_t cdh_version = m_event[1]>>24;
+    uint32_t expected_value = pattern_base;
+
+    /** CDHv3 has 10 header words, any other has 8 */
+    uint32_t cdh_count = 8;
+    if( cdh_version==3 )
+    { cdh_count = 10; }
+
+    if( m_calc_event_size <= cdh_count )
+    { return CHK_PATTERN; }
+
+    for(uint32_t i=cdh_count; i<m_calc_event_size; i++)
     {
-        case PG_PATTERN_INC:
-        { return( checkPatternInc(report_buffer, report_buffer_index) ); }
-        break;
-
-        case PG_PATTERN_DEC:
-        { return( checkPatternDec(report_buffer, report_buffer_index) ); }
-        break;
-
-        case PG_PATTERN_SHIFT:
-        { return( checkPatternShift(report_buffer, report_buffer_index) ); }
-        break;
-
-        case PG_PATTERN_TOGGLE:
-        { return( checkPatternToggle(report_buffer, report_buffer_index) ); }
-        break;
-
-        default:
+        if( m_event[i] != expected_value)
         {
-            printf("ERROR: specified unknown pattern matching algorithm\n");
+            DEBUG_PRINTF( PDADEBUG_ERROR,
+                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
+                report_buffer_index, i,expected_value, m_event[i] );
             return CHK_PATTERN;
         }
+        expected_value = nextPgWord(pattern_mode, expected_value);
     }
-
     return 0;
 }
 
@@ -784,7 +692,7 @@ event_sanity_checker::compareWithReferenceDdlFile
             ((uint64_t) m_calc_event_size << 2),
             ddl_mapping_size
         );
-        return_value |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
+        return_value |= CHK_FILE;
     }
 
     for(m_event_index = 0; m_event_index<m_calc_event_size; m_event_index++)
@@ -800,10 +708,9 @@ event_sanity_checker::compareWithReferenceDdlFile
                 ddl_mapping[m_event_index],
                 m_event[m_event_index]
             );
-            return_value |= dumpError(report_buffer, report_buffer_index, CHK_FILE);
+            return_value |= CHK_FILE;
         }
     }
-
     return return_value;
 }
 
@@ -816,7 +723,9 @@ event_sanity_checker::checkEndOfEvent
              uint64_t                  report_buffer_index
 )
 {
-    if( (uint32_t) *(m_event + m_calc_event_size) != m_reported_event_size)
+    uint32_t eoeword = (uint32_t) *(m_event + m_calc_event_size);
+    uint32_t eoe_length = (eoeword & 0x7fffffff);
+    if( eoe_length != m_reported_event_size )
     {
         DEBUG_PRINTF
         (
@@ -824,10 +733,10 @@ event_sanity_checker::checkEndOfEvent
             "ERROR: could not find matching reported event size "
             "at Event[%d] expected %08x found %08x\n",
             m_event_index,
-            m_calc_event_size,
-            (uint32_t) * (m_event + m_event_index)
+            m_reported_event_size,
+            eoe_length
         );
-        return dumpError(report_buffer, report_buffer_index, CHK_EOE);
+        return CHK_EOE;
     }
     return 0;
 }
@@ -856,11 +765,10 @@ event_sanity_checker::checkForLostEvents
             "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, current ID: %ld\n",
             m_channel_id, last_id, cur_event_id
         );
-        return dumpError(report_buffer, report_buffer_index, CHK_ID);
+        return CHK_ID;
     }
     return 0;
 }
-
 
 
 uint32_t
@@ -879,6 +787,26 @@ event_sanity_checker::calculatedEventSize
 {
     /** upper two bits are reserved for flags */
     return(report_buffer->calc_event_size & 0x3fffffff);
+}
+
+
+
+uint32_t
+event_sanity_checker::errorFlag
+(volatile librorc_event_descriptor *report_buffer)
+{
+    /** bit 31 of reported_event_size */
+    return(report_buffer->reported_event_size>>31);
+}
+
+
+
+uint32_t
+event_sanity_checker::completionStatus
+(volatile librorc_event_descriptor *report_buffer)
+{
+    /** bits [31:30] of calc_event_size */
+    return(report_buffer->calc_event_size>>30);
 }
 
 
@@ -902,7 +830,7 @@ event_sanity_checker::dwordOffset(volatile librorc_event_descriptor *report_buff
 uint64_t
 event_sanity_checker::getEventIdFromCdh(uint64_t offset)
 {
-
+    /** TODO: check event boundaries before accessing memory! */
     uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
     cur_event_id <<= 12;
     cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;

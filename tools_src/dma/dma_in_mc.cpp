@@ -123,7 +123,6 @@ int main(int argc, char *argv[])
             (
                 eventStream[i]->m_eventBuffer,
                 opts[i].channelId,
-                PG_PATTERN_INC, /** TODO */
                 sanity_check_mask,
                 logdirectory,
                 opts[i].refname
@@ -132,7 +131,6 @@ int main(int argc, char *argv[])
             (
                 eventStream[i]->m_eventBuffer,
                 opts[i].channelId,
-                PG_PATTERN_INC,
                 sanity_check_mask,
                 logdirectory
             ) ;
