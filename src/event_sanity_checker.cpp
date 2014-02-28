@@ -120,7 +120,7 @@ namespace LIBRARY_NAME
                          m_base_dir, channel_status->device, channel_status->channel, file_index);
 
                 m_fd_ddl = fopen(m_ddl_file_name, "w");
-                if(m_fd_ddl < 0)
+                if(m_fd_ddl == NULL)
                 { throw LIBRORC_FILE_DUMPER_ERROR_FILE_OPEN_FAILED; }
 
                 m_fd_log = fopen(m_log_file_name, "w");
