@@ -270,6 +270,12 @@ namespace LIBRARY_NAME
              *********************************************************/
 
             /**
+             * set default datasource
+             **/
+            void
+            setDefaultDataSource();
+
+            /**
              * set DDR3 Data Replay as data source
              **/
             void

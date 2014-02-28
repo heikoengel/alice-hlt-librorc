@@ -271,7 +271,7 @@ printStatusLine
         {
             printf
             (
-                " EventRate: %9.3f kHz/s",
+                " EventRate: %9.3f kHz",
                 (double)(channel_status->n_events - last_events_received)/
                 gettimeofdayDiff(last_time, current_time)/1000.0
             );
@@ -483,7 +483,8 @@ configureDataSource
 {
     eventStream->m_link->waitForGTXDomain();
     eventStream->m_link->enableFlowControl();
-    if( opts.esType==LIBRORC_ES_TO_DEVICE)
+    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
+            opts.datasource != ES_SRC_NONE)
     {
         configureSiu(eventStream, opts);
     }
@@ -499,6 +500,12 @@ configureDataSource
         case ES_SRC_DIU:
             {
                 configureDiu(eventStream, opts);
+            }
+            break;
+
+        case ES_SRC_DMA:
+            {
+                eventStream->m_link->setDefaultDataSource();
             }
             break;
 
@@ -533,7 +540,8 @@ unconfigureDataSource
             break;
     }    
     
-    if( opts.esType==LIBRORC_ES_TO_DEVICE)
+    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
+            opts.datasource != ES_SRC_NONE)
     {
         unconfigureSiu(eventStream, opts);
     }

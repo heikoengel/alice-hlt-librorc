@@ -630,6 +630,14 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
+    void
+    link::setDefaultDataSource()
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(3<<16); // set MUX to 0
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
 
     void
     link::configureDdr3DataReplayChannel

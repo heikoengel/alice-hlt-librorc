@@ -120,47 +120,76 @@ int main( int argc, char *argv[])
     /** wait for RB entry */
     while(!eventStream->m_done)
     {
-        number_of_events = eventGen.fillEventBuffer(opts.eventSize);
-
-        if( number_of_events > 0 )
-        { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
-
-        if(eventStream->handleChannelData(&checker) == 0)
-        { usleep(100); }
-
-        eventStream->m_bar1->gettime(&cur_time, 0);
-
-        // print status line each second
-        if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
+        if( opts.datasource==ES_SRC_DMA)
         {
-            printf("Events OUT: %10ld, Size: %8.3f GB",
-                    eventStream->m_channel_status->n_events,
-                    (double)eventStream->m_channel_status->bytes_received/(double)(1<<30));
+            /** Data is fed via DMA */
+            number_of_events = eventGen.fillEventBuffer(opts.eventSize);
 
-            if(eventStream->m_channel_status->bytes_received-last_bytes_received)
+            if( number_of_events > 0 )
+            { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
+
+            if(eventStream->handleChannelData(&checker) == 0)
+            { usleep(100); }
+
+            eventStream->m_bar1->gettime(&cur_time, 0);
+
+            // print status line each second
+            if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
             {
-                printf(" Rate: %9.3f MB/s",
-                        (double)(eventStream->m_channel_status->bytes_received-last_bytes_received)/
-                        gettimeofdayDiff(last_time, cur_time)/(double)(1<<20));
-            }
-            else
-            { printf(" Rate: -"); }
+                printf("CH%d: Events OUT: %10ld, Size: %8.3f GB",
+                        opts.channelId, eventStream->m_channel_status->n_events,
+                        (double)eventStream->m_channel_status->bytes_received/(double)(1<<30));
 
-            if(eventStream->m_channel_status->n_events - last_events_received)
-            {
-                printf(" (%.3f kHz)",
-                        (double)(eventStream->m_channel_status->n_events-last_events_received)/
-                        gettimeofdayDiff(last_time, cur_time)/1000.0);
-            }
-            else
-            { printf(" ( - )"); }
+                if(eventStream->m_channel_status->bytes_received-last_bytes_received)
+                {
+                    printf(" Rate: %9.3f MB/s",
+                            (double)(eventStream->m_channel_status->bytes_received-last_bytes_received)/
+                            gettimeofdayDiff(last_time, cur_time)/(double)(1<<20));
+                }
+                else
+                { printf(" Rate: -"); }
 
-            printf(" Errors: %ld\n", eventStream->m_channel_status->error_count);
-            last_time = cur_time;
-            last_bytes_received  = eventStream->m_channel_status->bytes_received;
-            last_events_received = eventStream->m_channel_status->n_events;
+                if(eventStream->m_channel_status->n_events - last_events_received)
+                {
+                    printf(" (%.3f kHz)",
+                            (double)(eventStream->m_channel_status->n_events-last_events_received)/
+                            gettimeofdayDiff(last_time, cur_time)/1000.0);
+                }
+                else
+                { printf(" ( - )"); }
+
+                printf(" Errors: %ld\n", eventStream->m_channel_status->error_count);
+                last_time = cur_time;
+                last_bytes_received  = eventStream->m_channel_status->bytes_received;
+                last_events_received = eventStream->m_channel_status->n_events;
+            }
         }
+        else
+        {
+            /** Data is generated from PG */
+            eventStream->m_bar1->gettime(&cur_time, 0);
 
+            // print status line each second
+            if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
+            {
+                eventStream->m_channel_status->n_events = eventStream->m_link->GTX(RORC_REG_DDL_EC);
+                printf("CH%d: Events OUT via PG: %10ld",
+                        opts.channelId, eventStream->m_channel_status->n_events);
+
+                if(eventStream->m_channel_status->n_events - last_events_received)
+                {
+                    printf(" EventRate: %.3f kHz",
+                            (double)(eventStream->m_channel_status->n_events-last_events_received)/
+                            gettimeofdayDiff(last_time, cur_time)/1000.0);
+                }
+                else
+                { printf(" ( - )"); }
+
+                printf("\n");
+                last_time = cur_time;
+                last_events_received = eventStream->m_channel_status->n_events;
+            }
+        }
     }
 
     // EOR

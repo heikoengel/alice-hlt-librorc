@@ -384,7 +384,7 @@ namespace LIBRARY_NAME
         //TODO: make this global
         uint64_t events_processed = 0;
         /** new event received */
-        if( reports[m_channel_status->index].calc_event_size!=0 )
+        if( reports[m_channel_status->index].reported_event_size!=0 )
         {
             // capture index of the first found reportbuffer entry
             uint64_t starting_index       = m_channel_status->index;
@@ -393,7 +393,7 @@ namespace LIBRARY_NAME
             uint64_t report_buffer_offset = 0;
 
             // handle all following entries
-            while( reports[m_channel_status->index].calc_event_size!=0 )
+            while( reports[m_channel_status->index].reported_event_size!=0 )
             {
                 // increment number of events processed in this interation
                 events_processed++;
@@ -402,6 +402,11 @@ namespace LIBRARY_NAME
                       uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
                 const uint32_t                 *event    = getRawEvent(report);
 
+                /**
+                 * TODO: reported_event_size and calc_event_size still contain error/status flags
+                 * at this point. Handle these flags and mask upper two bits for both sizes before
+                 * using them as actual wordcounts.
+                 **/
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
                     : 1;
@@ -415,6 +420,7 @@ namespace LIBRARY_NAME
                 m_channel_status->last_id = event_id;
 
                 // increment the number of bytes received
+                // Note that the upper two status bits are shifted out!
                 m_channel_status->bytes_received +=
                     (reports[m_channel_status->index].calc_event_size<<2);
 
@@ -442,7 +448,7 @@ namespace LIBRARY_NAME
                      PDADEBUG_CONTROL_FLOW,
                      "CH %d - Event, %d DWs\n",
                      m_channel_status->channel,
-                     report.calc_event_size
+                     (report.calc_event_size & 0x7fffffff)
                 );
             }
 
