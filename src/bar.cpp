@@ -61,7 +61,7 @@ rorc_bar::memcopy
 {
     pthread_mutex_lock(&m_mtx);
     memcpy( (unsigned char*)m_bar + (target << 2), source, num);
-    msync( (m_bar + ( (target << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
+    msync( (unsigned char*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
 }
 
@@ -75,6 +75,8 @@ rorc_bar::memcopy
     size_t               num
 )
 {
+    //TODO: this is broken (transfers only allowed in 32B dwords)
+    assert(false);
     pthread_mutex_lock(&m_mtx);
     memcpy( target, (const void*)(m_bar + (source << 2)), num);
     pthread_mutex_unlock(&m_mtx);
