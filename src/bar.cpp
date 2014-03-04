@@ -60,8 +60,8 @@ rorc_bar::memcopy
 )
 {
     pthread_mutex_lock(&m_mtx);
-    memcpy( (unsigned char*)m_bar + (target << 2), source, num);
-    msync( (unsigned char*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
+    memcpy( (uint8_t*)m_bar + (target << 2), source, num);
+    msync( (uint8_t*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
 }
 
