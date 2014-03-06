@@ -30,6 +30,6 @@ do
   PID=/var/run/pgdma_${DEV}_${CH}.pid
   LOG=$LOGPATH/dev${DEV}_ch${CH}
   echo "Starting PatterGenerator DMA on device ${DEV} Channel ${CH}"
-  daemonize -o $LOG.log -e $LOG.err -p $PID -l $PID $BINPATH/dma_in_hwpg --dev $DEV --ch $CH --size $SIZE
+  daemonize -o $LOG.log -e $LOG.err -p $PID -l $PID $BINPATH/dma_in --dev $DEV --ch $CH --size $SIZE --source pg
   sleep 1
 done

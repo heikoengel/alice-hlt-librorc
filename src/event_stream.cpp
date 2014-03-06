@@ -280,6 +280,7 @@ namespace LIBRARY_NAME
         m_channel_status->index = 0;
         m_channel_status->last_id = 0xfffffffff;
         m_channel_status->channel = (unsigned int)m_channelId;
+        m_channel_status->device = m_deviceId;
     }
 
 
