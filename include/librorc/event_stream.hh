@@ -146,6 +146,8 @@ class event_sanity_checker;
                 const uint32_t           **event
             );
 
+            void releaseEvent();
+
             uint64_t handleChannelData(void *user_data);
 
             /** Member Variables */
