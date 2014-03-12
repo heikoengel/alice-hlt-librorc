@@ -470,11 +470,7 @@ namespace LIBRARY_NAME
                 // increment number of events processed in this interation
                 events_processed++;
 
-                uint64_t ret = (m_event_callback != NULL)
-                    ? m_event_callback(user_data, event_id, report, event, m_channel_status)
-                    : 1;
-
-                if(ret != 0)
+                if( 0 != (m_event_callback != NULL) ?  m_event_callback(user_data, event_id, report, event, m_channel_status) : 1 )
                 {
                     cout << "Event Callback is not set!" << endl;
                     abort();
