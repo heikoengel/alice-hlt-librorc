@@ -10,21 +10,13 @@ set( CMAKE_CXX_FLAGS "-Wall -g" )
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
 
-
 #--- Find and check PDA -------------------------------------------------------
 
 include(CMakePda.txt)
 
-
 #--- Setup CPack --------------------------------------------------------------
-#SET(CPACK_GENERATOR "RPM")
-#INCLUDE(CPack)
 
-
-#--- Find libPCI --------------------------------------------------------------
-find_library(PCI pci
-    PATHS ${LD_LIBRARY_PATH})
-
+include(CPack.txt)
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 option(MyOption "SIM" OFF)
@@ -35,6 +27,7 @@ endif(${SIM})
 
 
 #--- Add target for Doxygen ---------------------------------------------------
+
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -47,7 +40,6 @@ endif(DOXYGEN_FOUND)
 
 add_subdirectory(src)
 add_subdirectory(fli)
-
 
 #--- build libraries and tools ------------------------------------------------
 
@@ -70,7 +62,6 @@ add_subdirectory(tools_src)
 
 #--- install -----------------------------------------------------------------
 
-
 FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h*")
 INSTALL(FILES ${files} DESTINATION include)
 
@@ -78,7 +69,6 @@ FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/librorc/*.h*")
 INSTALL(FILES ${files} DESTINATION include/librorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
-
 
 
 
