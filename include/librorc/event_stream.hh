@@ -143,8 +143,7 @@ class event_sanity_checker;
             (
                 librorc_event_descriptor  *report,
                 uint64_t                  *event_id,
-                const uint32_t           **event,
-                librorc_event_descriptor  *reports
+                const uint32_t           **event
             );
 
             uint64_t handleChannelData(void *user_data);
@@ -176,7 +175,7 @@ class event_sanity_checker;
             bool      m_called_with_bar;
 
             volatile uint32_t *m_raw_event_buffer;
-            volatile librorc_event_descriptor *m_reports;
+            librorc_event_descriptor *m_reports;
 
             librorc_event_callback  m_event_callback;
             librorc_status_callback m_status_callback;

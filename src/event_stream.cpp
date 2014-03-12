@@ -434,14 +434,13 @@ namespace LIBRARY_NAME
     (
         librorc_event_descriptor  *report,
         uint64_t                  *event_id,
-        const uint32_t           **event,
-        librorc_event_descriptor  *reports
+        const uint32_t           **event
     )
     {
-        if( reports[m_channel_status->index].calc_event_size==0 )
+        if( m_reports[m_channel_status->index].calc_event_size==0 )
         { return false; }
 
-        *report   = reports[m_channel_status->index];
+        *report   = m_reports[m_channel_status->index];
         *event_id = getEventIdFromCdh(dwordOffset(*report));
         *event    = getRawEvent(*report);
         return true;
@@ -450,9 +449,6 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        librorc_event_descriptor *m_reports
-            = (librorc_event_descriptor*)m_reportBuffer->getMem();
-
         //TODO: make this global
         uint64_t events_processed = 0;
         /** new event received */
@@ -474,7 +470,7 @@ namespace LIBRARY_NAME
                 uint64_t                 event_id = 0;
                 const uint32_t          *event    = 0;
 
-                event_id = getNextEvent(&report, &event_id, &event, m_reports);
+                event_id = getNextEvent(&report, &event_id, &event);
 
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
