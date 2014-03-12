@@ -448,16 +448,11 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        //TODO: make this global
         uint64_t events_processed = 0;
         /** new event received */
         if( m_reports[m_channel_status->index].calc_event_size!=0 )
         {
-            // capture index of the first found reportbuffer entry
-            //uint64_t starting_index       = m_channel_status->index;
             uint64_t events_per_iteration = 0;
-            uint64_t event_buffer_offset  = 0;
-            uint64_t report_buffer_offset = 0;
 
             // handle all following entries
             librorc_event_descriptor report;
@@ -493,10 +488,11 @@ namespace LIBRARY_NAME
                 uint64_t starting_index = m_channel_status->index;
 
                 // save new EBOffset
-                event_buffer_offset = m_reports[m_channel_status->index].offset;
+                uint64_t event_buffer_offset
+                    = m_reports[m_channel_status->index].offset;
 
                 // increment report-buffer offset
-                report_buffer_offset
+                uint64_t report_buffer_offset
                     = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
                     % m_reportBuffer->getPhysicalSize();
 
@@ -510,11 +506,6 @@ namespace LIBRARY_NAME
                 m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
             }
 
-//            // clear processed report-buffer entries
-//            memset(&m_reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
-//            // actually update the offset pointers in the firmware
-//            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
-
 
             // update min/max statistics on how many events have been received
             // in the above while-loop
@@ -526,15 +517,6 @@ namespace LIBRARY_NAME
 
             events_per_iteration = 0;
             m_channel_status->set_offset_count++;
-
-            DEBUG_PRINTF
-            (
-                PDADEBUG_CONTROL_FLOW,
-                "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
-                m_channel_status->channel,
-                report_buffer_offset,
-                event_buffer_offset
-            );
         }
 
         return events_processed;
