@@ -138,6 +138,15 @@ class event_sanity_checker;
             setStatusCallback(librorc_status_callback status_callback)
             { m_status_callback = status_callback; }
 
+            bool
+            getNextEvent
+            (
+                librorc_event_descriptor  *report,
+                uint64_t                  *event_id,
+                const uint32_t           **event,
+                librorc_event_descriptor  *reports
+            );
+
             uint64_t handleChannelData(void *user_data);
 
             /** Member Variables */

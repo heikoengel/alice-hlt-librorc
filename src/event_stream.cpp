@@ -428,7 +428,23 @@ namespace LIBRARY_NAME
         return cur_event_id;
     }
 
+    bool
+    event_stream::getNextEvent
+    (
+        librorc_event_descriptor  *report,
+        uint64_t                  *event_id,
+        const uint32_t           **event,
+        librorc_event_descriptor  *reports
+    )
+    {
+        if( reports[m_channel_status->index].calc_event_size==0 )
+        { return false; }
 
+        *report   = reports[m_channel_status->index];
+        *event_id = getEventIdFromCdh(dwordOffset(*report));
+        *event    = getRawEvent(*report);
+        return true;
+    }
 
     uint64_t
     event_stream::handleChannelData(void *user_data)
@@ -453,9 +469,11 @@ namespace LIBRARY_NAME
                 // increment number of events processed in this interation
                 events_processed++;
 
-                      librorc_event_descriptor  report   = reports[m_channel_status->index];
-                      uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
-                const uint32_t                 *event    = getRawEvent(report);
+                librorc_event_descriptor report;
+                uint64_t                 event_id = 0;
+                const uint32_t          *event    = 0;
+
+                event_id = getNextEvent(&report, &event_id, &event, reports);
 
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
@@ -463,7 +481,7 @@ namespace LIBRARY_NAME
 
                 if(ret != 0)
                 {
-                    cout << "Event Callback is set!" << endl;
+                    cout << "Event Callback is not set!" << endl;
                     abort();
                 }
 
