@@ -454,7 +454,7 @@ namespace LIBRARY_NAME
         if( m_reports[m_channel_status->index].calc_event_size!=0 )
         {
             // capture index of the first found reportbuffer entry
-            uint64_t starting_index       = m_channel_status->index;
+            //uint64_t starting_index       = m_channel_status->index;
             uint64_t events_per_iteration = 0;
             uint64_t event_buffer_offset  = 0;
             uint64_t report_buffer_offset = 0;
@@ -490,6 +490,7 @@ namespace LIBRARY_NAME
                 );
 
                 /** release event **/
+                uint64_t starting_index = m_channel_status->index;
 
                 // save new EBOffset
                 event_buffer_offset = m_reports[m_channel_status->index].offset;
@@ -503,12 +504,16 @@ namespace LIBRARY_NAME
                 m_channel_status->index
                     = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
                     ? (m_channel_status->index+1) : 0;
+
+                // clear processed report-buffer entries
+                memset(&m_reports[starting_index], 0, sizeof(librorc_event_descriptor) );
+                m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
             }
 
-            // clear processed report-buffer entries
-            memset(&m_reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
-            // actually update the offset pointers in the firmware
-            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+//            // clear processed report-buffer entries
+//            memset(&m_reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
+//            // actually update the offset pointers in the firmware
+//            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
 
             // update min/max statistics on how many events have been received
