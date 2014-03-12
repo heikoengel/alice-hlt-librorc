@@ -511,7 +511,6 @@ namespace LIBRARY_NAME
             m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
 
-
             // update min/max statistics on how many events have been received
             // in the above while-loop
             if(events_per_iteration > m_channel_status->max_epi)
