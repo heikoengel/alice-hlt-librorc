@@ -60,6 +60,7 @@ const gtxpll_settings available_configs[] =
     { 10, 5, 2, 1, 1, 3, 250.0}, // 5.000 Gbps with RefClk=250.0 MHz
     {  4, 5, 4, 2, 1, 0, 100.0}, // 2.000 Gbps with RefClk=100.0 MHz
     { 10, 4, 2, 2, 1, 0, 250.0}, // 2.000 Gbps with RefClk=250.0 MHz
+    { 7, 5, 2, 1, 1, 0, 156.25}, // 3.125 Gbps with RefClk=156.25 MHz
 };
 
 
