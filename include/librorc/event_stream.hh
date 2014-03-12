@@ -124,12 +124,31 @@ class event_sanity_checker;
 
             ~event_stream();
 
+            /**
+             * Check the firmware type (in, out, etc.)
+             * @param esType Event stream type (look in defines.h for possible options).
+             */
             void checkFirmware(LibrorcEsType esType);
 
+            /**
+             * Print the current device status.
+             */
             void printDeviceStatus();
 
+            /**
+             * High level interface to read out an event stream. Calls an event_callback
+             * for each new event in the buffer.  setEventCallback must be called before
+             * this one.
+             * @param user_data Free form pointer to some userdata which needs to be used
+             *        inside the callback.
+             */
             uint64_t eventLoop(void *user_data);
 
+            /**
+             * Set event_callback which is called by eventLoop(void *user_data).
+             * @param event_callback Callback function pointer (see event_stream.h
+             *        for the function pointer layout).
+             */
             void
             setEventCallback(librorc_event_callback event_callback)
             { m_event_callback = event_callback; }
