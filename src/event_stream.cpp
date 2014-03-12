@@ -229,6 +229,7 @@ namespace LIBRARY_NAME
             m_done             = false;
             m_event_callback   = NULL;
             m_status_callback  = NULL;
+            m_reports = (librorc_event_descriptor*)m_reportBuffer->getMem();
         }
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
