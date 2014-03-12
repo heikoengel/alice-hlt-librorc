@@ -19,12 +19,12 @@ include(CMakePda.txt)
 include(CPack.txt)
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
+
 option(MyOption "SIM" OFF)
 if(${SIM})
     add_definitions(-DSIM)
     MESSAGE( STATUS "Librorc is going to be compiled in simulation mode!")
 endif(${SIM})
-
 
 #--- Add target for Doxygen ---------------------------------------------------
 
@@ -69,7 +69,5 @@ FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/librorc/*.h*")
 INSTALL(FILES ${files} DESTINATION include/librorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
-
-
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
