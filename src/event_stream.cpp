@@ -465,10 +465,8 @@ namespace LIBRARY_NAME
             uint64_t                 event_id = 0;
             const uint32_t          *event    = 0;
 
-            while( m_reports[m_channel_status->index].calc_event_size!=0 )
+            while( getNextEvent(&report, &event_id, &event) )
             {
-                event_id = getNextEvent(&report, &event_id, &event);
-
                 // increment number of events processed in this interation
                 events_processed++;
 
