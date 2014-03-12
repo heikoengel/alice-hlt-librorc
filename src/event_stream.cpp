@@ -507,6 +507,9 @@ namespace LIBRARY_NAME
 
             // clear processed report-buffer entries
             memset(&m_reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
+            // actually update the offset pointers in the firmware
+            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+
 
 
             // update min/max statistics on how many events have been received
@@ -519,9 +522,6 @@ namespace LIBRARY_NAME
 
             events_per_iteration = 0;
             m_channel_status->set_offset_count++;
-
-            // actually update the offset pointers in the firmware
-            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
 
             DEBUG_PRINTF
             (
