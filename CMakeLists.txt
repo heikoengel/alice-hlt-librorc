@@ -14,10 +14,6 @@ MESSAGE( STATUS "---------------------------------------------------------------
 
 include(CMakePda.txt)
 
-#--- Setup CPack --------------------------------------------------------------
-
-include(CPack.txt)
-
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 
 option(MyOption "SIM" OFF)
@@ -69,5 +65,9 @@ FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/librorc/*.h*")
 INSTALL(FILES ${files} DESTINATION include/librorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
+
+#--- Setup CPack --------------------------------------------------------------
+
+include(CPack.txt)
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
