@@ -461,16 +461,16 @@ namespace LIBRARY_NAME
             uint64_t report_buffer_offset = 0;
 
             // handle all following entries
+            librorc_event_descriptor report;
+            uint64_t                 event_id = 0;
+            const uint32_t          *event    = 0;
+
             while( m_reports[m_channel_status->index].calc_event_size!=0 )
             {
+                event_id = getNextEvent(&report, &event_id, &event);
+
                 // increment number of events processed in this interation
                 events_processed++;
-
-                librorc_event_descriptor report;
-                uint64_t                 event_id = 0;
-                const uint32_t          *event    = 0;
-
-                event_id = getNextEvent(&report, &event_id, &event);
 
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
