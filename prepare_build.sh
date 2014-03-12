@@ -1,7 +1,7 @@
 #!/bin/bash
 
-INSTALL_PATH=/opt/package/librorc/0.0.0/
-
+VERSION=`cat CMakeLists.txt | grep "set(VERSION" | awk '{print $2}' | cut -d")" -f1 | cut -d"\"" -f2`
+INSTALL_PATH="/opt/package/librorc/$VERSION/"
 MODE="SHARED"
 #MODE="STATIC"
 
