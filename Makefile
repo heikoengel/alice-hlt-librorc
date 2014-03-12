@@ -4,6 +4,7 @@ all: $(TARGETS)
 
 $(TARGETS):
 	$(MAKE) -j16 -C build/$@
+	$(MAKE) -j16 -C build/$@ package
 
 doc:
 	$(MAKE) -C build/release/ doc
