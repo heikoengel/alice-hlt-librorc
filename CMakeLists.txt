@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
 
 set( REQUIRED_PDA_VERSION "7:0:1" )
+set(VERSION "0.0.0")
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
