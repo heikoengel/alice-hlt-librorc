@@ -449,13 +449,13 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        librorc_event_descriptor *reports
+        librorc_event_descriptor *m_reports
             = (librorc_event_descriptor*)m_reportBuffer->getMem();
 
         //TODO: make this global
         uint64_t events_processed = 0;
         /** new event received */
-        if( reports[m_channel_status->index].calc_event_size!=0 )
+        if( m_reports[m_channel_status->index].calc_event_size!=0 )
         {
             // capture index of the first found reportbuffer entry
             uint64_t starting_index       = m_channel_status->index;
@@ -464,7 +464,7 @@ namespace LIBRARY_NAME
             uint64_t report_buffer_offset = 0;
 
             // handle all following entries
-            while( reports[m_channel_status->index].calc_event_size!=0 )
+            while( m_reports[m_channel_status->index].calc_event_size!=0 )
             {
                 // increment number of events processed in this interation
                 events_processed++;
@@ -473,7 +473,7 @@ namespace LIBRARY_NAME
                 uint64_t                 event_id = 0;
                 const uint32_t          *event    = 0;
 
-                event_id = getNextEvent(&report, &event_id, &event, reports);
+                event_id = getNextEvent(&report, &event_id, &event, m_reports);
 
                 uint64_t ret = (m_event_callback != NULL)
                     ? m_event_callback(user_data, event_id, report, event, m_channel_status)
@@ -489,10 +489,10 @@ namespace LIBRARY_NAME
 
                 // increment the number of bytes received
                 m_channel_status->bytes_received +=
-                    (reports[m_channel_status->index].calc_event_size<<2);
+                    (m_reports[m_channel_status->index].calc_event_size<<2);
 
                 // save new EBOffset
-                event_buffer_offset = reports[m_channel_status->index].offset;
+                event_buffer_offset = m_reports[m_channel_status->index].offset;
 
                 // increment report-buffer offset
                 report_buffer_offset
@@ -520,7 +520,7 @@ namespace LIBRARY_NAME
             }
 
             // clear processed report-buffer entries
-            memset(&reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
+            memset(&m_reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
 
 
             // update min/max statistics on how many events have been received
