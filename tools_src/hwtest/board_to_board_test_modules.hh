@@ -33,11 +33,14 @@
 
 const gtxpll_settings available_configs[] =
 {
-    //div,n1,n2,d, m, tdcc, refclk
-    {  9, 5, 2, 1, 1, 3, 212.5}, // 4.250 Gbps with RefClk=212.5 MHz
-    { 10, 5, 2, 1, 1, 3, 250.0}, // 5.000 Gbps with RefClk=250.0 MHz
-    {  4, 5, 4, 2, 1, 0, 100.0}, // 2.000 Gbps with RefClk=100.0 MHz
-    {  9, 5, 2, 2, 1, 0, 212.5}, // 2.125 Gbps with RefClk=212.5 MHz
+    //div,n1,n2,d, m, tdcc, cp, refclk
+    {  9, 5, 2, 1, 1, 3, 0x0d, 212.50}, // 4.250 Gbps with RefClk=212.50 MHz
+    { 10, 5, 2, 1, 1, 3, 0x0d, 250.00}, // 5.000 Gbps with RefClk=250.00 MHz
+    {  4, 5, 4, 2, 1, 0, 0x0d, 100.00}, // 2.000 Gbps with RefClk=100.00 MHz
+    //{ 10, 4, 2, 2, 1, 0, 0x0d, 250.00}, // 2.000 Gbps with RefClk=250.00 MHz
+    //{  7, 5, 2, 1, 1, 3, 0x0d, 156.25}, // 3.125 Gbps with RefClk=156.25 MHz
+    //{  5, 5, 5, 1, 2, 3, 0x07, 125.00}, // 3.125 Gbps with RefClk=125.00 MHz
+    {  9, 5, 2, 2, 1, 0, 0x0d, 212.50}, // 2.125 Gbps with RefClk=212.50 MHz
 };
 
 #define BIT_GTXRESET (1<<0)

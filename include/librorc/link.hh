@@ -52,6 +52,7 @@ gtxpll_settings_struct
     uint8_t d;
     uint8_t m;
     uint8_t tx_tdcc_cfg;
+    uint8_t cp_cfg;
     float refclk;
 }gtxpll_settings;
 
@@ -264,7 +265,6 @@ namespace LIBRARY_NAME
             drpSetPllConfig(gtxpll_settings pll);
 
 
-
             /**********************************************************
              *             Data Path Configuration
              *********************************************************/
@@ -359,6 +359,11 @@ namespace LIBRARY_NAME
             void
             disableDdr3DataReplayChannel();
 
+            /**
+             * check link status on GTX level
+             **/
+            bool
+            gtxIsUp();
 
 
         protected:
@@ -394,6 +399,13 @@ namespace LIBRARY_NAME
             );
 
             void drpSetPllConfigCommon(gtxpll_settings pll);
+    
+            void
+            drpSetPllConfigCpCfg
+            (
+                uint8_t addr,
+                uint8_t value
+            );
 
 
 

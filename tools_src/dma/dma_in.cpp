@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
     /** make clear what will be checked*/
     //int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
-    int32_t sanity_check_mask = CHK_SOE|CHK_EOE;
+    int32_t sanity_check_mask = CHK_SIZES|CHK_EOE;
     if(opts.useRefFile)
     { sanity_check_mask |= CHK_FILE; }
     else if ( opts.datasource == ES_SRC_HWPG )

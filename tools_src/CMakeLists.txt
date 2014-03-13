@@ -131,6 +131,11 @@ add_executable( ddlctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/ddlctrl.cpp)
 target_link_libraries( ddlctrl rorc pthread ${EXTRA_LIBS})
 INSTALL(TARGETS ddlctrl RUNTIME DESTINATION bin )
 
+# Build diuctrl
+add_executable( diuctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/diuctrl.cpp)
+target_link_libraries( diuctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS diuctrl RUNTIME DESTINATION bin )
+
 # Build dmactrl
 add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
 target_link_libraries( dmactrl rorc pthread ${EXTRA_LIBS})

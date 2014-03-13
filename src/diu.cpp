@@ -116,10 +116,19 @@ namespace LIBRARY_NAME
         }
         else
         {
-            /** close any open transfer */
-            sendFeeEndOfBlockTransferCmd();
-            /** re-open the link */
-            sendFeeReadyToReceiveCmd();
+            /** check link state before sending commands */
+            if( !m_link->gtxIsUp() )
+            {
+                DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
+                        " will not send DIU commands!\n");
+            }
+            else
+            {
+                /** close any open transfer */
+                sendFeeEndOfBlockTransferCmd();
+                /** re-open the link */
+                sendFeeReadyToReceiveCmd();
+            }
         }
     }
 

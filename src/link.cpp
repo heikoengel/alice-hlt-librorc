@@ -339,6 +339,9 @@ namespace LIBRARY_NAME
         drpdata         = drpRead(0x39);
         pll.tx_tdcc_cfg = (drpdata>>14) & 0x03;
 
+        drpdata         = drpRead(0x1a);
+        pll.cp_cfg      = ((drpdata>>8) & 0xff);
+
         /**Frequency = refclk_freq*gtx_n1*gtx_n2/gtx_m*2/gtx_d; */
         return pll;
     }
@@ -418,6 +421,25 @@ namespace LIBRARY_NAME
         }
     }
 
+    void
+    link::drpSetPllConfigCpCfg
+    (
+        uint8_t addr,
+        uint8_t value
+    )
+    {
+        uint16_t drp_data = 0;
+        uint16_t drp_data_orig = drpRead(addr);
+        drp_data = read_modify_write(drp_data_orig, value, 8, 8);
+        if (drp_data != drp_data_orig )
+        {
+            drpWrite(addr, drp_data);
+            drpRead(0x0);
+        }
+    }
+
+
+
     /**
      * set new PLL configuration
      * @param ch pointer to dma_channel instance
@@ -442,6 +464,9 @@ namespace LIBRARY_NAME
         /** set TX_CLK25_DIVIDER: addr 0x23, bits [14:10] */
         drpSetPllConfigClkDivider(0x23, 10, clkdiv);
 
+        /** set TX_CP_CFG: addr 0x1e, bits[15:8] */
+        drpSetPllConfigCpCfg(0x1e, pll.cp_cfg);
+
         /********************* RXPLL *********************/
 
         drpSetPllConfigA(0x1b, n1_reg, n2_reg, d_reg);
@@ -451,6 +476,9 @@ namespace LIBRARY_NAME
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
         drpSetPllConfigClkDivider(0x17, 5, clkdiv);
+        
+        /** set RX_CP_CFG: addr 0x1a, bits[15:8] */
+        drpSetPllConfigCpCfg(0x1e, pll.cp_cfg);
 
         /********************* Common *********************/
 
@@ -669,4 +697,27 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
+    bool
+    link::gtxIsUp()
+    {
+        /**
+         * TODO: add checks for 
+         * - dfe eye opening?
+         * - error counters?
+         **/
+        uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
+        uint32_t stsmask = (1<<0) | // ready
+            (1<<1) | // enable
+            (1<<5) | // byteisaligned
+            (1<<6) | // lossofsync
+            (1<<9) | // rxbufstatus[2]
+            (1<<11); // txbufstatus[1]
+        uint32_t expected_value = (1<<0) | // ready==1
+            (1<<1) | // enable==1
+            (1<<5) | // byteisaligned==1
+            (0<<6) | // lossofsync==0
+            (0<<9) | // rxbufstatus[2]==0
+            (0<<11); // txbufstatus[1]==0
+        return ((gtxsyncsts & stsmask) == expected_value);
+    }
 }
