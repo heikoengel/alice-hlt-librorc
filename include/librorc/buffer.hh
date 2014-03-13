@@ -160,55 +160,57 @@ class buffer_sglist_programmer;
             getPhysicalSize()
             { return getSize(); }
 
+            /**
+             * Get the actually mapped memory region size.
+             * @return Number of bytes allocated if not overmapped,
+             *         twice the size if overmapped.
+             */
             uint64_t
             getMappingSize()
             {
                 if(isOvermapped() == 1)
-                {
-                    return(2*getSize());
-                }
+                { return(2*getSize()); }
                 return getSize();
             }
 
             /**
-             * get memory buffer
-             * @return pointer to mmap'ed buffer memory
+             * Get raw memory buffer.
+             * @return Pointer to mmap'ed buffer memory.
              **/
-            uint32_t *
+            uint32_t*
             getMem()
-            {
-                return m_mem;
-            }
+            { return m_mem; }
 
             void clear();
 
             /**
              * Get number of scatter-gather entries for the Buffer
-             * @return number of sg-entries
+             * @return Number of sg-entries.
              **/
             uint64_t
             getnSGEntries()
-            {
-                return m_numberOfScatterGatherEntries;
-            }
+            { return m_numberOfScatterGatherEntries; }
 
+            /**
+             * Get the scatter gather list for SG-DMA.
+             * @return Vector of librorc_sg_entry.
+             */
             vector<librorc_sg_entry>
             sgList()
-            {
-                return m_sglist_vector;
-            }
+            { return m_sglist_vector; }
 
             /**
              * Get the maximum number of report buffer entries in the RB
-             * @return maximum number of report buffer entries
+             * @return Maximum number of report buffer entries.
              **/
             uint64_t
             getMaxRBEntries()
-            {
-                return( getSize()/sizeof(librorc_event_descriptor) );
-            }
+            { return( getSize()/sizeof(librorc_event_descriptor) ); }
 
 
+        /**
+         * @internal
+         */
         private:
 
             PciDevice        *m_device;
