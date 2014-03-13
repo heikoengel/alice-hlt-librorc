@@ -59,26 +59,42 @@ typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
 
 
-/**
- * @class librorc::buffer
- * @brief buffer management class
- *
- * This class manages the DMA receive buffers. One instance of this
- * class represents one couple of EventBuffer and ReportBuffer with
- * their corresponding sysfs attributes
- **/
+
 namespace LIBRARY_NAME
 {
 class device;
 class dma_channel;
 class buffer_sglist_programmer;
 
+    /**
+     * @class librorc::buffer
+     * @brief Buffer management class.
+     *        Instances of this class represent DMA buffers (report- and event
+     *        buffer). Buffer IDs are unique and buffers can be mapped into
+     *        different processes. Additionally, a buffer is not freed after
+     *        deleting the related object, but detached from its persistent
+     *        counterpart.
+     **/
     class buffer
     {
         friend class dma_channel;
         friend class buffer_sglist_programmer;
 
         public:
+             /**
+              * Constructor, which allocates a completely new DMA buffer.
+              * @param [in] dev
+              *        Object, which represents the PCI device were the buffer
+              *        is registered to. Please see device.hh for more information.
+              * @param [in] size
+              *        Size of the generated buffer.
+              * @param [in] id
+              *        Index of the buffer. Even IDs are report buffers, odd IDs are
+              *        event buffers.
+              * @param [in] overmap
+              *
+              *
+              */
              buffer
              (
                  device   *dev,
@@ -88,6 +104,16 @@ class buffer_sglist_programmer;
                  int32_t   dma_direction
              );
 
+             /**
+              * Constructor, which attaches to an already allocated persistent DMA
+              * buffer.
+              * @param [in] dev
+              *        Object, which represents the PCI device were the buffer
+              *        is registered to. Please see device.hh for more information.
+              * @param [in] id
+              *        Index of the buffer. Even IDs are report buffers, odd IDs are
+              *        event buffers.
+              */
              buffer
              (
                  device   *dev,
@@ -97,26 +123,23 @@ class buffer_sglist_programmer;
             ~buffer();
 
             /**
-             * Free Buffer: This functions initiates de-allocation of the
-             * attaced DMA buffers
-             * @return 0 on sucess, <0 on error ( use perror() )
+             * Free and release the attached buffer.
+             * @return 0 on success, <0 on error (uses perror() )
              **/
             int32_t
             deallocate();
 
             /**
-             * get Buffer-ID
-             * @return Buffer-ID
+             * Get buffer index.
+             * @return Buffer index.
              **/
             uint64_t
             getID()
-            {
-                return m_id;
-            }
+            { return m_id; }
 
             /**
-             * get the overmapped flag of the buffer
-             * @return 0 if unset, nonzero if set
+             * Get the overmapped flag of the buffer.
+             * @return 0 if mapped normally, nonzero if wrap mapped.
              **/
             int32_t isOvermapped(); // TODO : boolean
 
@@ -124,18 +147,18 @@ class buffer_sglist_programmer;
              * Get physical Buffer size in bytes. Requested buffer
              * size from init() is rounded up to the next PAGE_SIZE
              * boundary.
-             * @return number of bytes allocated as Buffer
+             * @return Number of bytes allocated as buffer.
              **/
             uint64_t getSize()
-            {
-                return m_size;
-            }
+            { return m_size; }
 
+            /**
+             * Get requested buffer size.
+             * @return Number of bytes allocated as Buffer.
+             */
             uint64_t
             getPhysicalSize()
-            {
-                return getSize();
-            }
+            { return getSize(); }
 
             uint64_t
             getMappingSize()
