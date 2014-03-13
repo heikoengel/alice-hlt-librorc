@@ -1,11 +1,13 @@
 TARGETS=release debug sim_release sim_debug
 
 all: $(TARGETS)
-	cp build/release/*.rpm .
 
 $(TARGETS):
 	$(MAKE) -j16 -C build/$@
-	$(MAKE) -j16 -C build/$@ package
+
+rpm:
+	$(MAKE) -j16 -C build/release package
+	cp build/release/*.rpm .
 
 doc:
 	$(MAKE) -C build/release/ doc
