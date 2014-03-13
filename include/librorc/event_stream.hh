@@ -126,7 +126,8 @@ class event_sanity_checker;
 
             /**
              * Check the firmware type (in, out, etc.)
-             * @param esType Event stream type (look in defines.h for possible options).
+             * @param LibrorcEsType esType
+             *        Event stream type (look in defines.h for possible options).
              */
             void checkFirmware(LibrorcEsType esType);
 
@@ -139,24 +140,47 @@ class event_sanity_checker;
              * High level interface to read out an event stream. Calls an event_callback
              * for each new event in the buffer.  setEventCallback must be called before
              * this one.
-             * @param user_data Free form pointer to some userdata which needs to be used
-             *        inside the callback.
+             * @param void *user_data
+             *        Free form pointer to some userdata which needs to be used inside the
+             *        callback.
              */
             uint64_t eventLoop(void *user_data);
 
             /**
-             * Set event_callback which is called by eventLoop(void *user_data).
-             * @param event_callback Callback function pointer (see event_stream.h
-             *        for the function pointer layout).
+             * Set event callback which is called by eventLoop(void *user_data). This callback
+             * is basically called every time when a new event arrives in the event buffer.
+             * @param librorc_event_callback event_callback
+             *        Callback function pointer (see event_stream.hh for the function pointer
+             *        layout).
              */
             void
             setEventCallback(librorc_event_callback event_callback)
             { m_event_callback = event_callback; }
 
+            /**
+             * Set the status callback. This callback is basically used to gather statistics
+             * to the user of the library. The callback does not need to be set (it is optional)
+             * @param librorc_status_callback status_callback
+             *        Callback function pointer (see event_stream.hh for the function pointer
+             *        layout).
+             */
             void
             setStatusCallback(librorc_status_callback status_callback)
             { m_status_callback = status_callback; }
 
+            /**
+             * Get the pointers to the next event in the event buffer. This routine cann be
+             * used if the eventLoop API is to high level. Any event, which was obtained by
+             * this function, needs to be cleared by the releaseEvent() method to release
+             * memory resources. Beware, not clearing an event can lead to a deadlock.
+             * @param librorc_event_descriptor *report
+             *        Pointer to the event descriptor field inside the report buffer. Please
+             *        see buffer.hh for the detailed memory layout.
+             * @param uint64_t *event_id
+             *        Event ID.
+             * @param const uint32_t **event
+             *        Pointer to the event payload.
+             */
             bool
             getNextEvent
             (

@@ -17,6 +17,7 @@ doc:
 
 clean:
 	$(RM) -r build
+	rm -rf *.pdf *.rpm manual.tar*
 
 count:
 	wc -l `find . -iname '*.c' && find . -iname '*.hh' && find . -iname '*.cpp'`
