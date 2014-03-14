@@ -49,6 +49,7 @@ typedef struct
     uint64_t min_epi;
     uint64_t max_epi;
     uint64_t index;
+    uint64_t shadow_index;
     uint64_t set_offset_count;
     uint64_t error_count;
     uint64_t last_id;
@@ -238,7 +239,7 @@ class event_sanity_checker;
             int32_t   m_channelId;
             bool      m_called_with_bar;
 
-            volatile uint32_t *m_raw_event_buffer;
+            volatile uint32_t        *m_raw_event_buffer;
             librorc_event_descriptor *m_reports;
 
             librorc_event_callback  m_event_callback;
@@ -257,6 +258,7 @@ class event_sanity_checker;
             void     deleteParts();
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
+            void     setBufferOffsets();
 
 
             const

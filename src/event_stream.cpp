@@ -333,9 +333,10 @@ namespace LIBRARY_NAME
         m_channel_status = (librorcChannelStatus*)shm;
 
         memset(m_channel_status, 0, sizeof(librorcChannelStatus));
-        m_channel_status->index = 0;
-        m_channel_status->last_id = 0xfffffffff;
-        m_channel_status->channel = (unsigned int)m_channelId;
+        m_channel_status->index        = 0;
+        m_channel_status->shadow_index = 0;
+        m_channel_status->last_id      = 0xfffffffff;
+        m_channel_status->channel      = (unsigned int)m_channelId;
     }
 
 
@@ -447,29 +448,50 @@ namespace LIBRARY_NAME
         return true;
     }
 
+    void
+    event_stream::setBufferOffsets()
+    {
+        while(m_reports[m_channel_status->shadow_index].calc_event_size==0)
+        {
+            m_channel_status->shadow_index
+                = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
+                ? (m_channel_status->shadow_index+1) : 0;
+        }
+
+        uint64_t report_buffer_offset =
+            ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
+                % m_reportBuffer->getPhysicalSize();
+
+        uint64_t event_buffer_offset =
+            m_reports[m_channel_status->shadow_index].offset;
+
+
+        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+    }
 
 
     void
     event_stream::releaseEvent(librorc_event_descriptor *report)
     {
         /** Make local copy and clear processed report-buffer entry */
-        librorc_event_descriptor copy_report = *report;
+//        librorc_event_descriptor copy_report = *report;
         memset(report, 0, sizeof(librorc_event_descriptor) );
+        setBufferOffsets();
 
-        // save new EBOffset
-        uint64_t event_buffer_offset = copy_report.offset;
-
-        /** Increment and wrap report-buffer offset */
-        uint64_t report_buffer_offset
-            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
-            % m_reportBuffer->getPhysicalSize();
-
-        /** Increment and wrap report buffer index if necessary */
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
-
-        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+//        // save new EBOffset
+//        uint64_t event_buffer_offset = copy_report.offset;
+//
+//        /** Increment and wrap report-buffer offset */
+//        uint64_t report_buffer_offset
+//            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
+//            % m_reportBuffer->getPhysicalSize();
+//
+//        /** Increment and wrap report buffer index if necessary */
+//        m_channel_status->index
+//            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+//            ? (m_channel_status->index+1) : 0;
+//
+//        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
 
