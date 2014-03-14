@@ -234,6 +234,9 @@ namespace LIBRARY_NAME
         catch(...)
         { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
 
+        for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
+        { m_release_map[i] = false; }
+
         checkFirmware(esType);
     }
 
