@@ -479,29 +479,29 @@ namespace LIBRARY_NAME
     void
     event_stream::releaseEvent(uint64_t reference)
     {
-//        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
-//        m_release_map[reference] = true;
-//
-//        setBufferOffsets();
-
-        /** Make local copy and clear processed report-buffer entry */
-        librorc_event_descriptor copy_report = m_reports[reference];
         memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
+        m_release_map[reference] = true;
 
-        // save new EBOffset
-        uint64_t event_buffer_offset = copy_report.offset;
+        setBufferOffsets();
 
-        /** Increment and wrap report-buffer offset */
-        uint64_t report_buffer_offset
-            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
-            % m_reportBuffer->getPhysicalSize();
-
-        /** Increment and wrap report buffer index if necessary */
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
-
-        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+//        /** Make local copy and clear processed report-buffer entry */
+//        librorc_event_descriptor copy_report = m_reports[reference];
+//        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
+//
+//        // save new EBOffset
+//        uint64_t event_buffer_offset = copy_report.offset;
+//
+//        /** Increment and wrap report-buffer offset */
+//        uint64_t report_buffer_offset
+//            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
+//            % m_reportBuffer->getPhysicalSize();
+//
+//        /** Increment and wrap report buffer index if necessary */
+//        m_channel_status->index
+//            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+//            ? (m_channel_status->index+1) : 0;
+//
+//        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
 
