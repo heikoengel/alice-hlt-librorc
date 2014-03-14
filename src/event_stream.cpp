@@ -453,12 +453,12 @@ namespace LIBRARY_NAME
     event_stream::releaseEvent(librorc_event_descriptor *report)
     {
         uint64_t starting_index = m_channel_status->index;
+        librorc_event_descriptor copy_report = *report;
 
         // save new EBOffset
-        uint64_t event_buffer_offset
-            = m_reports[m_channel_status->index].offset;
+        uint64_t event_buffer_offset = copy_report.offset;
 
-        // increment report-buffer offset
+        /** Increment and wrap report-buffer offset */
         uint64_t report_buffer_offset
             = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
             % m_reportBuffer->getPhysicalSize();
