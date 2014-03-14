@@ -479,27 +479,29 @@ namespace LIBRARY_NAME
     void
     event_stream::releaseEvent(uint64_t reference)
     {
+//        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
+//        m_release_map[reference] = true;
+//
+//        setBufferOffsets();
+
         /** Make local copy and clear processed report-buffer entry */
-//        librorc_event_descriptor copy_report = *report;
+        librorc_event_descriptor copy_report = *report;
         memset(&m_reports[m_channel_status->index], 0, sizeof(librorc_event_descriptor) );
 
-        m_release_map[reference] = true;
-        setBufferOffsets();
+        // save new EBOffset
+        uint64_t event_buffer_offset = copy_report.offset;
 
-//        // save new EBOffset
-//        uint64_t event_buffer_offset = copy_report.offset;
-//
-//        /** Increment and wrap report-buffer offset */
-//        uint64_t report_buffer_offset
-//            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
-//            % m_reportBuffer->getPhysicalSize();
-//
-//        /** Increment and wrap report buffer index if necessary */
-//        m_channel_status->index
-//            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-//            ? (m_channel_status->index+1) : 0;
-//
-//        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+        /** Increment and wrap report-buffer offset */
+        uint64_t report_buffer_offset
+            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
+            % m_reportBuffer->getPhysicalSize();
+
+        /** Increment and wrap report buffer index if necessary */
+        m_channel_status->index
+            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+            ? (m_channel_status->index+1) : 0;
+
+        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
 
@@ -521,7 +523,7 @@ namespace LIBRARY_NAME
 
             while( getNextEvent(&report, &event_id, &event, &reference) )
             {
-                // increment number of events processed in this interation
+                // increment number of events processed in this iteration
                 events_processed++;
 
                 if( 0 != (m_event_callback != NULL) ?  m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1 )
