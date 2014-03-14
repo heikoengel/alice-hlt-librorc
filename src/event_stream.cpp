@@ -485,8 +485,8 @@ namespace LIBRARY_NAME
 //        setBufferOffsets();
 
         /** Make local copy and clear processed report-buffer entry */
-        librorc_event_descriptor copy_report = *report;
-        memset(&m_reports[m_channel_status->index], 0, sizeof(librorc_event_descriptor) );
+        librorc_event_descriptor copy_report = m_reports[reference];
+        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
 
         // save new EBOffset
         uint64_t event_buffer_offset = copy_report.offset;
