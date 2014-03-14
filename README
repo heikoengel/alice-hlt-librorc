@@ -3,6 +3,7 @@
 Some libraries need to be installed
 - libpci and development header
 - libkmod and development header
+- rpm and rpmbuild
 - PDA in version 7.0.1
 
 Additionally, /bin of the PDA library needs to be in $PATH.
