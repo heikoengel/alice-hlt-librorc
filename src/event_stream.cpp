@@ -454,6 +454,11 @@ namespace LIBRARY_NAME
     {
         uint64_t starting_index = m_channel_status->index;
 
+        /** Increment and wrap report buffer index if necessary */
+        m_channel_status->index
+            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+            ? (m_channel_status->index+1) : 0;
+
         // save new EBOffset
         uint64_t event_buffer_offset
             = m_reports[m_channel_status->index].offset;
@@ -462,11 +467,6 @@ namespace LIBRARY_NAME
         uint64_t report_buffer_offset
             = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
             % m_reportBuffer->getPhysicalSize();
-
-        // wrap RB index if necessary
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
 
         // clear processed report-buffer entries
         memset(&m_reports[starting_index], 0, sizeof(librorc_event_descriptor) );
