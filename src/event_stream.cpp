@@ -452,8 +452,9 @@ namespace LIBRARY_NAME
     void
     event_stream::releaseEvent(librorc_event_descriptor *report)
     {
-        uint64_t starting_index = m_channel_status->index;
+        /** Make local copy and clear processed report-buffer entry */
         librorc_event_descriptor copy_report = *report;
+        memset(report, 0, sizeof(librorc_event_descriptor) );
 
         // save new EBOffset
         uint64_t event_buffer_offset = copy_report.offset;
@@ -468,8 +469,6 @@ namespace LIBRARY_NAME
             = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
             ? (m_channel_status->index+1) : 0;
 
-        // clear processed report-buffer entries
-        memset(&m_reports[starting_index], 0, sizeof(librorc_event_descriptor) );
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
