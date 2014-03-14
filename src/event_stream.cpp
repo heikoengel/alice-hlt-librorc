@@ -441,9 +441,9 @@ namespace LIBRARY_NAME
         if( m_reports[m_channel_status->index].calc_event_size==0 )
         { return false; }
 
-        *report   = m_reports[m_channel_status->index];
-        *event_id = getEventIdFromCdh(dwordOffset(*report));
-        *event    = getRawEvent(*report);
+        report    = &m_reports[m_channel_status->index];
+        *event_id =  getEventIdFromCdh(dwordOffset(*report));
+        *event    =  getRawEvent(*report);
         return true;
     }
 
@@ -485,16 +485,16 @@ namespace LIBRARY_NAME
             uint64_t events_per_iteration = 0;
 
             // handle all following entries
-            librorc_event_descriptor report;
+            librorc_event_descriptor *report;
             uint64_t                 event_id = 0;
             const uint32_t          *event    = 0;
 
-            while( getNextEvent(&report, &event_id, &event) )
+            while( getNextEvent(report, &event_id, &event) )
             {
                 // increment number of events processed in this interation
                 events_processed++;
 
-                if( 0 != (m_event_callback != NULL) ?  m_event_callback(user_data, event_id, report, event, m_channel_status) : 1 )
+                if( 0 != (m_event_callback != NULL) ?  m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1 )
                 {
                     cout << "Event Callback is not set!" << endl;
                     abort();
@@ -511,7 +511,7 @@ namespace LIBRARY_NAME
                      PDADEBUG_CONTROL_FLOW,
                      "CH %d - Event, %d DWs\n",
                      m_channel_status->channel,
-                     report.calc_event_size
+                     report->calc_event_size
                 );
 
                 releaseEvent();
