@@ -456,23 +456,27 @@ namespace LIBRARY_NAME
     void
     event_stream::setBufferOffsets()
     {
+        uint64_t report_buffer_offset;
+        uint64_t event_buffer_offset;
+
         while(m_release_map[m_channel_status->shadow_index])
         {
             m_release_map[m_channel_status->shadow_index] = false;
 
+            report_buffer_offset =
+                ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
+                    % m_reportBuffer->getPhysicalSize();
+
+            event_buffer_offset =
+                m_reports[m_channel_status->shadow_index].offset;
+
             m_channel_status->shadow_index
                 = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
                 ? (m_channel_status->shadow_index+1) : 0;
+
+            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
         }
 
-        uint64_t report_buffer_offset =
-            ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
-                % m_reportBuffer->getPhysicalSize();
-
-        uint64_t event_buffer_offset =
-            m_reports[m_channel_status->shadow_index].offset;
-
-        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
 
