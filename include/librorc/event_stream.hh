@@ -198,15 +198,16 @@ class event_sanity_checker;
             (
                 librorc_event_descriptor **report,
                 uint64_t                  *event_id,
-                const uint32_t           **event
+                const uint32_t           **event,
+                uint64_t                  *reference
             );
 
             /**
              * Release the event which was obtained by getNextEvent().
-             * @param [in] report Pointer to the report entry which was obtained with
+             * @param [in] reference to the report entry which was obtained with
              *        getNextEvent().
              */
-            void releaseEvent(librorc_event_descriptor *report);
+            void releaseEvent(uint64_t reference);
 
             /**
              * @internal

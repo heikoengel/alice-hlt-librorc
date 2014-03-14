@@ -439,23 +439,27 @@ namespace LIBRARY_NAME
     (
         librorc_event_descriptor **report,
         uint64_t                  *event_id,
-        const uint32_t           **event
+        const uint32_t           **event,
+        uint64_t                  *reference
     )
     {
         if( m_reports[m_channel_status->index].calc_event_size==0 )
         { return false; }
 
-        *report   = &m_reports[m_channel_status->index];
-        *event_id =  getEventIdFromCdh(dwordOffset(**report));
-        *event    =  getRawEvent(**report);
+        *reference =  m_channel_status->index;
+        *report    = &m_reports[m_channel_status->index];
+        *event_id  =  getEventIdFromCdh(dwordOffset(**report));
+        *event     =  getRawEvent(**report);
         return true;
     }
 
     void
     event_stream::setBufferOffsets()
     {
-        while(m_reports[m_channel_status->shadow_index].calc_event_size==0)
+        while(m_release_map[m_channel_status->shadow_index])
         {
+            m_release_map[m_channel_status->shadow_index] = false;
+
             m_channel_status->shadow_index
                 = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
                 ? (m_channel_status->shadow_index+1) : 0;
@@ -468,17 +472,18 @@ namespace LIBRARY_NAME
         uint64_t event_buffer_offset =
             m_reports[m_channel_status->shadow_index].offset;
 
-
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
 
     void
-    event_stream::releaseEvent(librorc_event_descriptor *report)
+    event_stream::releaseEvent(uint64_t reference)
     {
         /** Make local copy and clear processed report-buffer entry */
 //        librorc_event_descriptor copy_report = *report;
-        memset(report, 0, sizeof(librorc_event_descriptor) );
+        memset(&m_reports[m_channel_status->index], 0, sizeof(librorc_event_descriptor) );
+
+        m_release_map[reference] = true;
         setBufferOffsets();
 
 //        // save new EBOffset
@@ -509,11 +514,12 @@ namespace LIBRARY_NAME
             uint64_t events_per_iteration = 0;
 
             // handle all following entries
-            librorc_event_descriptor *report   = NULL;
-            uint64_t                  event_id = 0;
-            const uint32_t           *event    = 0;
+            librorc_event_descriptor *report    = NULL;
+            uint64_t                  event_id  = 0;
+            const uint32_t           *event     = 0;
+            uint64_t                  reference = 0;
 
-            while( getNextEvent(&report, &event_id, &event) )
+            while( getNextEvent(&report, &event_id, &event, &reference) )
             {
                 // increment number of events processed in this interation
                 events_processed++;
@@ -538,7 +544,7 @@ namespace LIBRARY_NAME
                      report->calc_event_size
                 );
 
-                releaseEvent(report);
+                releaseEvent(reference);
             }
 
 
