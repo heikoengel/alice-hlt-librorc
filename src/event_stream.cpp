@@ -450,7 +450,7 @@ namespace LIBRARY_NAME
 
 
     void
-    event_stream::releaseEvent()
+    event_stream::releaseEvent(librorc_event_descriptor *report)
     {
         uint64_t starting_index = m_channel_status->index;
 
@@ -514,7 +514,7 @@ namespace LIBRARY_NAME
                      report->calc_event_size
                 );
 
-                releaseEvent();
+                releaseEvent(report);
             }
 
 

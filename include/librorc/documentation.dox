@@ -1,6 +1,6 @@
 /**
  * @mainpage 
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Dominic Eschweiler <dominic.eschweiler@cern.ch>, Heiko Engel <hengel@cern.ch>
  * @date 2014-02-21
  * @brief Librorc is a library to interface to CRORCs
  *

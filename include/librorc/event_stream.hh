@@ -202,8 +202,10 @@ class event_sanity_checker;
 
             /**
              * Release the event which was obtained by getNextEvent().
+             * @param [in] report Pointer to the report entry which was obtained with
+             *        getNextEvent().
              */
-            void releaseEvent();
+            void releaseEvent(librorc_event_descriptor *report);
 
             /**
              * @internal
