@@ -433,7 +433,7 @@ namespace LIBRARY_NAME
     bool
     event_stream::getNextEvent
     (
-        librorc_event_descriptor  *report,
+        librorc_event_descriptor **report,
         uint64_t                  *event_id,
         const uint32_t           **event
     )
@@ -441,9 +441,9 @@ namespace LIBRARY_NAME
         if( m_reports[m_channel_status->index].calc_event_size==0 )
         { return false; }
 
-        report    = &m_reports[m_channel_status->index];
-        *event_id =  getEventIdFromCdh(dwordOffset(*report));
-        *event    =  getRawEvent(*report);
+        *report   = &m_reports[m_channel_status->index];
+        *event_id =  getEventIdFromCdh(dwordOffset(**report));
+        *event    =  getRawEvent(**report);
         return true;
     }
 
@@ -485,11 +485,11 @@ namespace LIBRARY_NAME
             uint64_t events_per_iteration = 0;
 
             // handle all following entries
-            librorc_event_descriptor *report;
-            uint64_t                 event_id = 0;
-            const uint32_t          *event    = 0;
+            librorc_event_descriptor *report   = NULL;
+            uint64_t                  event_id = 0;
+            const uint32_t           *event    = 0;
 
-            while( getNextEvent(report, &event_id, &event) )
+            while( getNextEvent(&report, &event_id, &event) )
             {
                 // increment number of events processed in this interation
                 events_processed++;

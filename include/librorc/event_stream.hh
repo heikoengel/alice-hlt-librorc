@@ -195,7 +195,7 @@ class event_sanity_checker;
             bool
             getNextEvent
             (
-                librorc_event_descriptor  *report,
+                librorc_event_descriptor **report,
                 uint64_t                  *event_id,
                 const uint32_t           **event
             );
