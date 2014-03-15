@@ -463,6 +463,8 @@ namespace LIBRARY_NAME
         {
             m_release_map[m_channel_status->shadow_index] = false;
 
+            memset(&m_reports[m_channel_status->shadow_index], 0, sizeof(librorc_event_descriptor));
+
             event_buffer_offset =
                 m_reports[m_channel_status->shadow_index].offset;
 
@@ -482,7 +484,6 @@ namespace LIBRARY_NAME
     void
     event_stream::releaseEvent(uint64_t reference)
     {
-        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor));
         m_release_map[reference] = true;
         setBufferOffsets();
 
