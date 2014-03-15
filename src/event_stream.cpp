@@ -479,11 +479,10 @@ namespace LIBRARY_NAME
 
     }
 
-
     void
     event_stream::releaseEvent(uint64_t reference)
     {
-        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
+        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor));
         m_release_map[reference] = true;
         setBufferOffsets();
 
