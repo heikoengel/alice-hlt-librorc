@@ -459,16 +459,16 @@ namespace LIBRARY_NAME
         uint64_t report_buffer_offset;
         uint64_t event_buffer_offset;
 
-        while(m_release_map[m_channel_status->shadow_index])
+        while(m_release_map[m_channel_status->shadow_index] == true)
         {
             m_release_map[m_channel_status->shadow_index] = false;
+
+            event_buffer_offset =
+                m_reports[m_channel_status->shadow_index].offset;
 
             report_buffer_offset =
                 ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
                     % m_reportBuffer->getPhysicalSize();
-
-            event_buffer_offset =
-                m_reports[m_channel_status->shadow_index].offset;
 
             m_channel_status->shadow_index
                 = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
@@ -485,7 +485,6 @@ namespace LIBRARY_NAME
     {
         memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
         m_release_map[reference] = true;
-
         setBufferOffsets();
 
 //        /** Make local copy and clear processed report-buffer entry */
