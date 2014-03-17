@@ -46,6 +46,8 @@ add_library( rorc ${LIBMODE} $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
 SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION 0.0.0 SOVERSION 1)
 
+target_link_libraries( rorc pthread pci ${EXTRA_LIBS})
+
 # Build flisock adapter (if SIM is configured)
 IF(${SIM})
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
