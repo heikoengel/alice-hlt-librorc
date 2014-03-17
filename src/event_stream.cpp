@@ -450,6 +450,12 @@ namespace LIBRARY_NAME
         *report    = &m_reports[m_channel_status->index];
         *event_id  =  getEventIdFromCdh(dwordOffset(**report));
         *event     =  getRawEvent(**report);
+
+                /** Increment and wrap report buffer index if necessary */
+                m_channel_status->index
+                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                    ? (m_channel_status->index+1) : 0;
+
         return true;
     }
 
