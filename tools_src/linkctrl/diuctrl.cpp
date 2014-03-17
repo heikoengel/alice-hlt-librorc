@@ -138,9 +138,9 @@ printSiuIfErrors
     ((ifstw>>19)&1) ? printf("Receiver overflow\n") : 0;
     ((ifstw>>18)&1) ? printf("Frame error (incomplete)\n") : 0;
     ((ifstw>>17)&1) ? printf("Protocol error\n") : 0;
-    //((ifstw>>16)&1) ? printf("Front-end Bus loopback enable\n") : 0;
-    //((ifstw>>15)&1) ? printf("FEE bus is not in idle state\n") : 0;
-    //ifstw[14:12]: lmstatus
+    // ifstw[16]:    Front-end Bus loopback enable
+    // ifstw[15]:    FEE bus is not in idle state
+    // ifstw[14:12]: lmstatus
 }
 
 void
@@ -155,10 +155,16 @@ printSiuIfState
     switch( (ifstw>>12)&7 )
     {
         case 0:
-            printf("");
+            printf("Reset");
             break;
         case 1:
             printf("Offline\n");
+            break;
+        case 2:
+            printf("Online\n");
+            break;
+        case 3:
+            printf("Suspend\n");
             break;
         case 4:
             printf("RXnosig\n");
@@ -166,11 +172,8 @@ printSiuIfState
         case 5:
             printf("RXbadsig\n");
             break;
-        case 2:
-            printf("Online\n");
-            break;
-        case 3:
-            printf("Suspend\n");
+        case 6:
+            printf("LowPower\n");
             break;
         default:
             printf("unknown/reserved status\n");
