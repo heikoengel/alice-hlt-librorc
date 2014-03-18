@@ -451,10 +451,9 @@ namespace LIBRARY_NAME
         *event_id  =  getEventIdFromCdh(dwordOffset(**report));
         *event     =  getRawEvent(**report);
 
-                /** Increment and wrap report buffer index if necessary */
-                m_channel_status->index
-                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-                    ? (m_channel_status->index+1) : 0;
+        m_channel_status->index
+            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+            ? (m_channel_status->index+1) : 0;
 
         return true;
     }
@@ -491,25 +490,6 @@ namespace LIBRARY_NAME
     {
         m_release_map[reference] = true;
         setBufferOffsets();
-
-//        /** Make local copy and clear processed report-buffer entry */
-//        librorc_event_descriptor copy_report = m_reports[reference];
-//        memset(&m_reports[reference], 0, sizeof(librorc_event_descriptor) );
-//
-//        // save new EBOffset
-//        uint64_t event_buffer_offset = copy_report.offset;
-//
-//        /** Increment and wrap report-buffer offset */
-//        uint64_t report_buffer_offset
-//            = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
-//            % m_reportBuffer->getPhysicalSize();
-//
-//        /** Increment and wrap report buffer index if necessary */
-//        m_channel_status->index
-//            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-//            ? (m_channel_status->index+1) : 0;
-//
-//        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
     uint64_t
@@ -592,8 +572,6 @@ namespace LIBRARY_NAME
 
             releaseEvent(init_reference);
 
-            // update min/max statistics on how many events have been received
-            // in the above while-loop
             if(events_per_iteration > m_channel_status->max_epi)
             { m_channel_status->max_epi = events_per_iteration; }
 
