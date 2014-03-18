@@ -552,17 +552,28 @@ namespace LIBRARY_NAME
     event_stream::handleChannelData(void *user_data)
     {
         uint64_t events_processed = 0;
-        /** new event received */
-        if( m_reports[m_channel_status->index].calc_event_size!=0 )
+        librorc_event_descriptor *report               = NULL;
+        uint64_t                  event_id             = 0;
+        const uint32_t           *event                = 0;
+        uint64_t                  events_per_iteration = 0;
+        uint64_t                  reference            = 0;
+        uint64_t                  init_reference       = 0;
+
+        /** New event(s) received */
+        if( getNextEvent(&report, &event_id, &event, &init_reference) )
         {
-            uint64_t events_per_iteration = 0;
+            events_processed =
+                handleEvent
+                (
+                    events_processed,
+                    user_data,
+                    event_id,
+                    report,
+                    event,
+                    &events_per_iteration
+                );
 
-            // handle all following entries
-            librorc_event_descriptor *report    = NULL;
-            uint64_t                  event_id  = 0;
-            const uint32_t           *event     = 0;
-            uint64_t                  reference = 0;
-
+            /** handle all following entries */
             while( getNextEvent(&report, &event_id, &event, &reference) )
             {
                 events_processed =
@@ -579,6 +590,7 @@ namespace LIBRARY_NAME
                 releaseEvent(reference);
             }
 
+            releaseEvent(init_reference);
 
             // update min/max statistics on how many events have been received
             // in the above while-loop
