@@ -512,7 +512,41 @@ namespace LIBRARY_NAME
 //        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
+    uint64_t
+    event_stream::handleEvent
+    (
+        uint64_t                  events_processed,
+        void                     *user_data,
+        uint64_t                  event_id,
+        librorc_event_descriptor *report,
+        const uint32_t           *event,
+        uint64_t                 *events_per_iteration
+    )
+    {
 
+        events_processed++;
+
+        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1)
+        {
+            cout << "Event Callback is not set!" << endl;
+            abort();
+        }
+
+        m_channel_status->last_id = event_id;
+
+        m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
+        m_channel_status->n_events++;
+        *events_per_iteration++;
+        DEBUG_PRINTF
+        (
+            PDADEBUG_CONTROL_FLOW,
+            "CH %d - Event, %d DWs\n",
+            m_channel_status->channel,
+            report->calc_event_size
+        );
+
+        return events_processed;
+    }
 
     uint64_t
     event_stream::handleChannelData(void *user_data)
@@ -531,28 +565,16 @@ namespace LIBRARY_NAME
 
             while( getNextEvent(&report, &event_id, &event, &reference) )
             {
-                // increment number of events processed in this iteration
-                events_processed++;
-
-                if( 0 != (m_event_callback != NULL) ?  m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1 )
-                {
-                    cout << "Event Callback is not set!" << endl;
-                    abort();
-                }
-
-                m_channel_status->last_id = event_id;
-                m_channel_status->bytes_received +=
-                    (m_reports[m_channel_status->index].calc_event_size<<2);
-                m_channel_status->n_events++;
-                events_per_iteration++;
-
-                DEBUG_PRINTF
-                (
-                     PDADEBUG_CONTROL_FLOW,
-                     "CH %d - Event, %d DWs\n",
-                     m_channel_status->channel,
-                     report->calc_event_size
-                );
+                events_processed =
+                    handleEvent
+                    (
+                        events_processed,
+                        user_data,
+                        event_id,
+                        report,
+                        event,
+                        &events_per_iteration
+                    );
 
                 releaseEvent(reference);
             }

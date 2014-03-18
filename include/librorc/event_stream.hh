@@ -262,6 +262,16 @@ class event_sanity_checker;
             uint64_t getEventIdFromCdh(uint64_t offset);
             void     setBufferOffsets();
 
+            uint64_t
+            handleEvent
+            (
+                uint64_t                  events_processed,
+                void                     *user_data,
+                uint64_t                  event_id,
+                librorc_event_descriptor *report,
+                const uint32_t           *event,
+                uint64_t                 *events_per_iteration
+            );
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);
