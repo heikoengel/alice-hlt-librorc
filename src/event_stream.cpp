@@ -461,8 +461,13 @@ namespace LIBRARY_NAME
     void
     event_stream::setBufferOffsets()
     {
+        if(m_release_map[m_channel_status->shadow_index] != true)
+        { return; }
+
         uint64_t report_buffer_offset;
         uint64_t event_buffer_offset;
+        uint64_t shadow_index = m_channel_status->shadow_index;
+        uint64_t counter = 0;
 
         while(m_release_map[m_channel_status->shadow_index] == true)
         {
@@ -475,13 +480,21 @@ namespace LIBRARY_NAME
                 ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
                     % m_reportBuffer->getPhysicalSize();
 
-            memset(&m_reports[m_channel_status->shadow_index], 0, sizeof(librorc_event_descriptor));
+            counter++;
 
             m_channel_status->shadow_index
                 = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
                 ? (m_channel_status->shadow_index+1) : 0;
+
+            if(m_channel_status->shadow_index==0)
+            {
+                memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+                counter      = 0;
+                shadow_index = 0;
+            }
         }
 
+        memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
