@@ -763,6 +763,66 @@ namespace LIBRARY_NAME
         m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drcfg);
     }
 
+    uint32_t
+    sysmon::ddr3Bitrate
+    (
+        uint32_t controller
+    )
+    {
+        uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        /** C0: bits [10:9], C1: bits [26:25] */
+        switch( (ddr3ctrl>>(16*(controller&1)+9)) & 3 )
+        {
+            case 1:
+                return 606;
+            case 2:
+                return 800;
+            case 3:
+                return 1066;
+            default: // controller not implemented
+                return 0;
+        }
+    }
+
+
+    bool
+    sysmon::ddr3ModuleInitReady
+    (
+        uint32_t controller
+    )
+    {
+        /** C0 status in bits [15:0], C1 status in bits [31:16] */
+        uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        uint16_t controller_status =
+            ( (ddr3ctrl>>(16*(controller&1))) & 0xffff );
+
+        if( (controller_status & (3<<9)) == 0)
+        {
+            /** bitrate==0 => controller not implemented in firmware */
+            return false;
+        }
+
+        uint16_t checkmask = (1<<0) | // module reset
+            (1<<1) | // PHY init done
+            (1<<2) | // PLL lock
+            (1<<3) | // read levelling started
+            (1<<4) | // read levelling done
+            (1<<5) | // read levelling error
+            (1<<7) | // write levelling done
+            (1<<8); // write levelling error
+        uint16_t expected_value = (0<<0) | // not in reset
+            (1<<1) | // PHY init done
+            (1<<2) | // PLL locked
+            (1<<3) | // read levelling started
+            (1<<4) | // read levelling done
+            (0<<5) | // no read levelling error
+            (1<<7) | // write levelling done
+            (0<<8); // no write levelling error
+
+        return ( (controller_status & checkmask) == expected_value );
+    }
+
+
 
     /** Protected ***** ***********************************************/
 
@@ -790,10 +850,14 @@ namespace LIBRARY_NAME
                 block_buffer[i+1]=data[i];
             }
         }
-        /** set block header */
-        block_buffer[0] = ((uint32_t)mask<<16) | flags | (1<<(channel&7));
 
-        /** copy data to onboard buffer */
+        uint8_t channel_select = (channel>6) ? 
+            (1<<(channel-6)) : (1<<channel);
+
+        /** set block header */
+        block_buffer[0] = ((uint32_t)mask<<16) | flags | channel_select;
+
+        /** copy data to buffer registers */
         m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
                 block_buffer, 16*sizeof(uint32_t));
         /*for (int i=0; i<16; i++)
@@ -809,6 +873,7 @@ namespace LIBRARY_NAME
         else
         { drctrl |= (1<<0); } // write to C0
 
+        /** make the RORC write the buffer to RAM */
         m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drctrl);
 
 

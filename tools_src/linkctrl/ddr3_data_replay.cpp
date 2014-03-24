@@ -27,12 +27,16 @@ using namespace std;
         ddr3_data_replay [parameters] \n\
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
-        -f [path]     Load DDL file(s) for replay, \n\
-                      separate multiple files with \",\" \n\
+        -f [path]     Load DDL file for replay, \n\
+        -s [addr]     DDR3 start address \n\
+        -l            Current event is the last to be replayed \n\
         -e [0/1]      Enable/disable data replay channel \n\
         -g [0/1]      Global enable/disable of data replay engine \n\
+Note: channel enable (-e) and global enable (-g) are applied AFTER \n\
+loading a file with -f. \n\
 "
 
+#define HEX32(x) setw(8) << setfill('0') << hex << x << setfill(' ')
 
 int main
 (
@@ -43,17 +47,21 @@ int main
     
    /** parse command line arguments **/
     int32_t DeviceId  = -1;
+    uint32_t ControllerId;
     int32_t ChannelId = -1;
     uint32_t channel_enable_val = 0;
     uint32_t global_enable_val = 0;
     char *filename = NULL;
+    uint32_t start_addr = 0;
 
     int do_channel_enable = 0;
     int do_global_enable = 0;
     int do_load_file = 0;
+    int start_addr_set = 0;
+    bool is_last_event = false;
     int arg;
      
-    while( (arg = getopt(argc, argv, "hn:c:f:e:g:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:f:e:g:s:l")) != -1 )
     {
         switch(arg)
         {
@@ -91,6 +99,19 @@ int main
             }
             break;
 
+            case 's':
+            {
+                start_addr = strtol(optarg, NULL, 0);
+                start_addr_set = 1;
+            }
+            break;
+
+            case 'l':
+            {
+                is_last_event = true;
+            }
+            break;
+
             default:
             {
                 cout << "Unknown parameter (" << arg << ")!" << endl;
@@ -106,6 +127,34 @@ int main
         cout << "No or invalid device selected: " << DeviceId << endl;
         cout << HELP_TEXT;
         abort();
+    }
+
+    /**
+     * make sure channel start address is provided when loading a
+     * DDL file or enabling a channel
+     **/
+    if( do_load_file || (do_channel_enable && channel_enable_val) )
+    {
+        if( !start_addr_set )
+        {
+            cout << "ERROR: Please provide a channel start address for this operation!" << endl;
+            abort();
+        }
+    }
+
+    /** check channel start address alignment */
+    if( start_addr_set )
+    {
+        if( start_addr & 0x00000003 )
+        {
+            cout << "ERROR: start address must be a 32bit aligned." << endl;
+            abort();
+        }
+        else if( start_addr & 0x000000ff )
+        {
+            cout << "WARNING: start address is not a multiple of 256 byte "
+                 << "- are you sure you know what you're doing?!" << endl;
+        }
     }
 
     /** Instantiate device **/
@@ -152,6 +201,14 @@ int main
         abort();
     }
 
+    /**
+     * get ControllerId from selected channel:
+     * DDLs 0 to 5 are fed from SO-DIMM 0
+     * DDLs 6 to 11 are fed from DO-DIMM 1
+     **/
+    ControllerId = (ChannelId<6) ? 0 : 1;
+
+    /** create link instance */
     librorc::link *link = new librorc::link(bar, ChannelId);
 
 #ifdef SIM
@@ -160,15 +217,20 @@ int main
     { usleep(100); }
 #endif
 
-    /**
-     * TODO: get module size, divide by number of DDLs, set start_addr, ...
-     * TODO: confirm phy_init_done==1
-     **/
-    uint32_t ch_start_addr = 0x00000000;
-    
+    if( !sm->ddr3ModuleInitReady(ControllerId) )
+    {
+        cout << "ERROR: DDR3 Controller " << ControllerId
+             << " is not ready - doing nothing." << endl;
+        abort();
+    }
 
+    /**
+     * TODO: do we want automatic partitioning of available DDR3 space?
+     * -> get module size, divide by number of DDLs, set start_addr, ...
+     **/
     if ( do_load_file )
     {
+        uint32_t next_addr;
         int fd_in = open(filename, O_RDONLY);
         if ( fd_in==-1 )
         {
@@ -186,20 +248,38 @@ int main
             abort();
         }
 
-        cout << "Writing event to DDR3..." << endl;
+        cout << "Writing event to DDR3 SO-DIMM" << ControllerId
+            << ", starting at address 0x"
+            << HEX32(start_addr) << endl;
         try {
-            sm->ddr3DataReplayEventToRam(
+            next_addr = sm->ddr3DataReplayEventToRam(
                     event,
                     (fd_in_stat.st_size>>2), // num_dws
-                    ch_start_addr, // ddr3 start address
-                    0, // channel
-                    true); // last event
+                    start_addr, // ddr3 start address
+                    ChannelId, // channel
+                    is_last_event); // last event
         }
         catch( int e )
         {
             cout << "Exception while writing event: " << e << endl;
             abort();
         }
+
+        cout << "Done." << endl;
+        if( is_last_event )
+        {
+            cout << "Closed channel; "
+                 << "Start address for next channel could be 0x"
+                 << HEX32(next_addr) << endl;
+        }
+        else
+        {
+             cout << "Start address for next event would be 0x"
+             << HEX32(next_addr) << endl;
+        }
+
+        munmap(event, fd_in_stat.st_size);
+        close(fd_in);
     }
 
     if ( do_channel_enable )
@@ -207,7 +287,7 @@ int main
         if ( channel_enable_val )
         {
             link->setDataSourceDdr3DataReplay();
-            link->configureDdr3DataReplayChannel(ch_start_addr);
+            link->configureDdr3DataReplayChannel(start_addr);
             link->enableDdr3DataReplayChannel();
         }
         else
