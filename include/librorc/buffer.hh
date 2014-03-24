@@ -195,7 +195,7 @@ class buffer_sglist_programmer;
              * Get the scatter gather list for SG-DMA.
              * @return Vector of librorc_sg_entry.
              */
-            vector<librorc_sg_entry>
+            std::vector<librorc_sg_entry>
             sgList()
             { return m_sglist_vector; }
 
@@ -217,7 +217,7 @@ class buffer_sglist_programmer;
             DMABuffer        *m_buffer;
             DMABuffer_SGNode *m_sglist;
 
-            vector<librorc_sg_entry> m_sglist_vector;
+            std::vector<librorc_sg_entry> m_sglist_vector;
 
             uint32_t         *m_mem;
             uint64_t          m_id;

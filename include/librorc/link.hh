@@ -667,7 +667,7 @@ class device;
             uint32_t
             fcfHexstringToUint32
             (
-                 string line
+                 std::string line
             );
 
 };

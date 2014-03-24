@@ -27,6 +27,8 @@
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 
+using namespace std;
+
 namespace LIBRARY_NAME
 {
 
@@ -804,7 +806,7 @@ namespace LIBRARY_NAME
 
 
 
-    string*
+    std::string*
     sysmon::qsfp_i2c_string_readout
     (
         uint8_t index,

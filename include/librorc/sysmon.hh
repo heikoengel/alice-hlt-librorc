@@ -175,25 +175,25 @@ class bar;
                 uint8_t reset
             );
 
-            string*
+            std::string*
             qsfpVendorName
             (
                 uint8_t index
             );
 
-            string*
+            std::string*
             qsfpPartNumber
             (
                 uint8_t index
             );
 
-            string*
+            std::string*
             qsfpRevisionNumber
             (
                 uint8_t index
             );
 
-            string*
+            std::string*
             qsfpSerialNumber
             (
                 uint8_t index
@@ -424,7 +424,7 @@ class bar;
 
             uint32_t i2c_wait_for_cmpl();
 
-            string*
+            std::string*
             qsfp_i2c_string_readout
             (
                 uint8_t index,

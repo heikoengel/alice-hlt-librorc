@@ -96,7 +96,7 @@ namespace LIBRARY_NAME
      **/
     uint64_t getBarSize(uint8_t n);
 
-    string* deviceDescription();
+    std::string *deviceDescription();
 
     bool
     DMAChannelIsImplemented
