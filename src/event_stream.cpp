@@ -486,15 +486,15 @@ namespace LIBRARY_NAME
                 = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
                 ? (m_channel_status->shadow_index+1) : 0;
 
-            if(m_channel_status->shadow_index==0)
-            {
-                memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
-                counter      = 0;
-                shadow_index = 0;
-            }
+//            if(m_channel_status->shadow_index==0)
+//            {
+//                memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+//                counter      = 0;
+//                shadow_index = 0;
+//            }
         }
 
-        memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+//        memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
