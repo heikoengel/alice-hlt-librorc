@@ -21,6 +21,7 @@
 #include "boardtest_modules.hh"
 #include "../dma/dma_handling.hh"
 
+using namespace std;
 
 void
 printHeader

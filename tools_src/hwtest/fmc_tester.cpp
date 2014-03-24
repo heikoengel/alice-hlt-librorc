@@ -20,6 +20,8 @@
 
 #include "fmc_tester.hh"
 
+using namespace std;
+
 void
 fmcResetTester
 (

@@ -21,6 +21,8 @@
 #include "board_to_board_test_modules.hh"
 #include "boardtest_modules.hh"
 
+using namespace std;
+
 void
 initLibrorcInstances
 (

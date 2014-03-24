@@ -422,7 +422,7 @@ namespace LIBRARY_NAME
     }
 
 
-
+    //TODO: obsolete
     uint64_t
     event_stream::getEventIdFromCdh(uint64_t offset)
     {

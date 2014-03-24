@@ -22,6 +22,8 @@
 
 #include "crorc-smbus-ctrl.hh"
 
+using namespace std;
+
 void
 checkSmBus
 (

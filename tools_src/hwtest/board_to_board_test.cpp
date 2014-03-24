@@ -30,6 +30,8 @@ Parameters: \n\
 -v              Verbose mode \n\
 "
 
+using namespace std;
+
 /**
  * MAIN
  * */

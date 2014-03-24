@@ -37,7 +37,4 @@
     #define MODELSIM_SERVER "localhost"
 #endif
 
-
-using namespace std;
-
 #endif /** INCLUDE_EXT_H */
