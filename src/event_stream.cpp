@@ -529,7 +529,7 @@ namespace LIBRARY_NAME
 
         m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
         m_channel_status->n_events++;
-        *events_per_iteration++;
+        *events_per_iteration = *events_per_iteration + 1;
         DEBUG_PRINTF
         (
             PDADEBUG_CONTROL_FLOW,
