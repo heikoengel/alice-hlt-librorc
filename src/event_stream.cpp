@@ -450,11 +450,6 @@ namespace LIBRARY_NAME
         *report    = &m_reports[m_channel_status->index];
         *event_id  =  getEventIdFromCdh(dwordOffset(**report));
         *event     =  getRawEvent(**report);
-
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
-
         return true;
     }
 
@@ -566,6 +561,12 @@ namespace LIBRARY_NAME
                     &events_per_iteration
                 );
 
+        m_channel_status->index
+            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+            ? (m_channel_status->index+1) : 0;
+
+
+
             /** handle all following entries */
             while( getNextEvent(&report, &event_id, &event, &reference) )
             {
@@ -581,6 +582,12 @@ namespace LIBRARY_NAME
                     );
 
                 releaseEvent(reference);
+
+        m_channel_status->index
+            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+            ? (m_channel_status->index+1) : 0;
+
+
             }
 
             releaseEvent(init_reference);
