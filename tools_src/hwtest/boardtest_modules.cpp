@@ -157,8 +157,8 @@ getDipSwitch
 )
 {    
     /** get DIP switch setting */
-    uint32_t dipswitch = bar->get32(RORC_REG_UC_CTRL)>>24;
-    return (dipswitch & 0x7f);
+    uint32_t dipswitch = bar->get32(RORC_REG_UC_SPI_CTRL)>>16;
+    return (dipswitch & 0xff);
 }
 
 
@@ -840,7 +840,7 @@ testDmaChannel
     opts.channelId = channel_id;
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
-    opts.esType = LIBRORC_ES_IN_HWPG;
+    opts.esType = LIBRORC_ES_TO_HOST;
 
     char logdirectory[] = "/tmp";
     
@@ -850,6 +850,8 @@ testDmaChannel
     librorc::event_stream *eventStream;
     if( !(eventStream = prepareEventStream(dev, bar, opts)) )
     { exit(-1); }
+
+    configureDataSource(eventStream, opts);
     eventStream->setEventCallback(event_callback);
 
     /** enable EBDM + RBDM + PKT */
@@ -863,7 +865,6 @@ testDmaChannel
         (
          eventStream->m_eventBuffer,
          opts.channelId,
-         PG_PATTERN_INC,
          sanity_check_mask,
          logdirectory
         );

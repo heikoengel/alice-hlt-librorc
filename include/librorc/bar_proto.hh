@@ -1,7 +1,8 @@
 #ifndef LIBRORC_BAR_PROTO_H
 #define LIBRORC_BAR_PROTO_H
 
-#include "librorc/include_ext.hh"
+#include <librorc/include_ext.hh>
+#include <librorc/defines.hh>
 
 #define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED  1
 

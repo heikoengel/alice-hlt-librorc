@@ -22,6 +22,10 @@
 #include <librorc/include_ext.hh>
 #include "defines.hh"
 #include <librorc/buffer.hh>
+#include <librorc/sysmon.hh>
+#include <librorc/diu.hh>
+#include <librorc/siu.hh>
+#include <librorc/patterngenerator.hh>
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
@@ -84,6 +88,9 @@ class bar;
 class buffer;
 class device;
 class event_sanity_checker;
+class patterngenerator;
+class link;
+class diu;
 
     /**
      * @class librorc::event_stream
@@ -105,14 +112,6 @@ class event_sanity_checker;
                 LibrorcEsType esType
              );
 
-             event_stream
-             (
-                int32_t       deviceId,
-                int32_t       channelId,
-                uint32_t      eventSize,
-                LibrorcEsType esType
-             );
-
 #ifdef LIBRORC_INTERNAL
              event_stream
              (
@@ -121,25 +120,19 @@ class event_sanity_checker;
                 int32_t          channelId,
                 LibrorcEsType    esType
              );
-
-             event_stream
-             (
-                librorc::device *dev,
-                librorc::bar    *bar,
-                int32_t          channelId,
-                uint32_t         eventSize,
-                LibrorcEsType    esType
-             );
 #endif
 
             ~event_stream();
+            void initMembers();
 
             /**
-             * Check the firmware type (in, out, etc.)
-             * @param [in] esType
-             *        Event stream type (look in defines.h for possible options).
-             */
-            void checkFirmware(LibrorcEsType esType);
+             * Check if selected channel is available in current
+             * firmware and if selected esType is possible for
+             * this channel.
+             * @param esType event stream type, LIBRORC_ES_xxx
+             * throws exception if check fails.
+             **/
+            void checkFirmwareCompatibility(LibrorcEsType esType);
 
             /**
              * Print the current device status.
@@ -214,12 +207,44 @@ class event_sanity_checker;
              */
             uint64_t handleChannelData(void *user_data);
 
+            void     clearSharedMemory();
+
+            /**
+             * get PatternGenerator instance for current event_stream
+             * @return pointer to instance of patterngenerator when
+             * available, NULL when PatternGenerator not available for
+             * current event_stream
+             **/
+            patterngenerator* getPatternGenerator();
+
+            /**
+             * get DIU instance for current event_stream.
+             * @return pointer to instance of diu when available, NULL
+             * when not available for current event_stream
+             **/
+            diu* getDiu();
+
+
+            /**
+             * get SIU instance for current event_stream.
+             * @return pointer to instance of siu when available, NULL
+             * when not available for current event_stream.
+             **/
+            siu* getSiu();
+
+
             /** Member Variables */
-            device      *m_dev;
+
+            /** TODO: move m_bar1 to protected. ATM still used for gettime()
+             * in boardtest_modules
+             **/
             bar         *m_bar1;
             buffer      *m_eventBuffer;
             buffer      *m_reportBuffer;
+            device      *m_dev;
+            sysmon      *m_sm;
             dma_channel *m_channel;
+            link        *m_link;
 
             bool         m_done;
             uint64_t     m_last_bytes_received;
@@ -232,8 +257,6 @@ class event_sanity_checker;
 
             librorcChannelStatus *m_channel_status;
 
-
-
         protected:
             uint32_t m_eventSize;
             int32_t  m_deviceId;
@@ -244,18 +267,21 @@ class event_sanity_checker;
             volatile uint32_t        *m_raw_event_buffer;
             librorc_event_descriptor *m_reports;
 
+            uint32_t  m_fwtype;
+            uint32_t  m_linktype;
+
             librorc_event_callback  m_event_callback;
             librorc_status_callback m_status_callback;
 
             void
-            generateDMAChannel
+            initializeDmaBuffers
             (
-                int32_t       deviceId,
-                int32_t       channelId,
-                LibrorcEsType esType
+                LibrorcEsType esType,
+                uint64_t eventBufferSize,
+                uint64_t reportBufferSize
             );
 
-            void     chooseDMAChannel(LibrorcEsType esType);
+            void     initializeDmaChannel(LibrorcEsType esType);
             void     prepareSharedMemory();
             void     deleteParts();
             uint64_t dwordOffset(librorc_event_descriptor report_entry);

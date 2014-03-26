@@ -39,7 +39,9 @@
 #define CHK_SOE     (1<<2)
 #define CHK_EOE     (1<<3)
 #define CHK_ID      (1<<4)
+#define CHK_DIU_ERR (1<<5)
 #define CHK_FILE    (1<<8)
+#define CHK_CMPL    (1<<9)
 
 /** TODO :   Konfiguration muss dann auch in dma_channel_pg::configurePatternGenerator mit rein. */
 /*
@@ -48,10 +50,10 @@
  *
  *  Pattern Generator Modes :
  */
-#define PG_PATTERN_INC    (1<<0) /** Increment value by 1 */
-#define PG_PATTERN_DEC    (1<<1) /** Decrement value by 1 */
-#define PG_PATTERN_SHIFT  (1<<2) /** Shifts the value to the left, the leftmost bit is inserted on the right side */
-#define PG_PATTERN_TOGGLE (1<<3) /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
+#define PG_PATTERN_INC    0 /** Increment value by 1 */
+#define PG_PATTERN_DEC    2 /** Decrement value by 1 */
+#define PG_PATTERN_SHIFT  1 /** Shifts the value to the left, the leftmost bit is inserted on the right side */
+#define PG_PATTERN_TOGGLE 3 /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
 
 namespace LIBRARY_NAME
 {
@@ -65,7 +67,6 @@ class ddl_reference_file;
              (
                  buffer            *event_buffer,
                  uint32_t           channel_id,
-                 uint32_t           pattern_mode,
                  uint32_t           check_mask,
                  char              *log_base_dir
              );
@@ -74,7 +75,6 @@ class ddl_reference_file;
              (
                  buffer            *event_buffer,
                  uint32_t           channel_id,
-                 uint32_t           pattern_mode,
                  uint32_t           check_mask,
                  char              *log_base_dir,
                  char              *ddl_reference_file_path
@@ -129,7 +129,6 @@ class ddl_reference_file;
             volatile uint32_t           *m_raw_event_buffer;
                      buffer             *m_event_buffer;
                      uint32_t            m_channel_id;
-                     uint32_t            m_pattern_mode;
                      uint32_t            m_check_mask;
                      ddl_reference_file *m_ddl;
                      char               *m_log_base_dir;
@@ -139,6 +138,8 @@ class ddl_reference_file;
                      uint32_t *m_event;
                      uint32_t  m_reported_event_size;
                      uint32_t  m_calc_event_size;
+                     uint32_t  m_error_flag;
+                     uint32_t  m_comletion_status;
 
             int
             dumpError
@@ -165,32 +166,17 @@ class ddl_reference_file;
                          uint64_t                  report_buffer_index
             );
 
-            int
-            checkPatternInc
+            /**
+             * compute next expected word from pattern generator based on
+             * current word and pattern generator mode
+             * @param cur_word current/last word
+             * @return next word
+             **/
+            uint32_t
+            nextPgWord
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
-            );
-
-            int
-            checkPatternDec
-            (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
-            );
-
-            int
-            checkPatternShift
-            (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
-            );
-
-            int
-            checkPatternToggle
-            (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
+                uint32_t mode,
+                uint32_t cur_word
             );
 
             int
@@ -200,10 +186,23 @@ class ddl_reference_file;
                          uint64_t                  report_buffer_index
             );
 
+
             int
             compareWithReferenceDdlFile
             (
                 volatile librorc_event_descriptor *report_buffer,
+                         uint64_t                  report_buffer_index
+            );
+
+            int
+            checkDiuError
+            (
+                         uint64_t                  report_buffer_index
+            );
+
+            int
+            checkCompletion
+            (
                          uint64_t                  report_buffer_index
             );
 
@@ -235,6 +234,12 @@ class ddl_reference_file;
 
             uint32_t
             reportedEventSize(volatile librorc_event_descriptor *report_buffer);
+
+            uint32_t
+            errorFlag(volatile librorc_event_descriptor *report_buffer);
+
+            uint32_t
+            completionStatus(volatile librorc_event_descriptor *report_buffer);
 
             uint32_t
             calculatedEventSize(volatile librorc_event_descriptor *report_buffer);

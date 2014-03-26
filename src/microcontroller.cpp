@@ -42,10 +42,6 @@ namespace LIBRARY_NAME
     }
 
 
-    /**
-     * Configure FPGA<->uC interface for SPI:
-     * set SCK and MOSI as output, MISO as input
-     * */
     void
     microcontroller::configure_spi()
     {
@@ -54,91 +50,79 @@ namespace LIBRARY_NAME
             throw LIBRORC_UC_SPI_NOT_IMPLEMENTED;
         }
 
-        /** set prescaler */
+        // set prescaler 
         m_bar->set32(RORC_REG_UC_SPI_CTRL, UC_SPI_PRESCALER);
 
-        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
-        /** drive MOSI low from GPIO */
+        /*uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
+        // drive MOSI low from GPIO 
         ucctrl &= ~(1<<5);
-        /** drive SCK low from GPIO */
+        // drive SCK low from GPIO 
         ucctrl &= ~(1<<7);
-        /** drive RESET_N high */
+        // drive RESET_N high 
         ucctrl |= (1<<16);
 
-        /** set SCK as output */
+        // set SCK as output 
         ucctrl &= ~(1<<15);
-        /** set MOSI as output */
+        // set MOSI as output 
         ucctrl &= ~(1<<13);
-        /** set RESET_N as output */
+        // set RESET_N as output 
         ucctrl &= ~(1<<20);
 
-        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);
+        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);*/
     }
 
 
-    
-
-    /**
-     * Set SCK and MOSI IO configuration back to inputs
-     * */
     void
     microcontroller::unconfigure_spi()
     {
-        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
-        /** set all CTRL lines to input */
+        /*uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
+        // set all CTRL lines to input 
         ucctrl |= (0x07<<20);
-        /** set all DAT lines to input */
+        // set all DAT lines to input 
         ucctrl |= (0xff<<8);
 
-        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);
+        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);*/
     }
 
 
-    /**
-     * drive the uC reset line from FPGA
-     * */
     void
     microcontroller::set_reset
     (
         uint32_t rstval
     )
     {
-        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_CTRL);
+        uint32_t ucctrl = m_bar->get32(RORC_REG_UC_SPI_CTRL);
         if ( rstval )
         {
-            /** drive low, assert reset */
-            ucctrl &= ~(1<<16);
+            // drive low, assert reset 
+            ucctrl &= ~(1<<30);
         }
         else
         {
-            /** drive high, deassert reset */
-            ucctrl |= (1<<16);
+            // drive high, deassert reset 
+            ucctrl |= (1<<30);
         }
 
-        m_bar->set32(RORC_REG_UC_CTRL, ucctrl);
+        m_bar->set32(RORC_REG_UC_SPI_CTRL, ucctrl);
 
-        /** wait for at least 20 ms */
+        // wait for at least 20 ms 
         usleep(20000);
     }
 
 
-    /**
-     * Send command via SPI
-     * a command consists of 4 byte. See ATmega324A Userguide for details
-     * */
     uint32_t
     microcontroller::send_command
     (
         uint32_t cmd
     )
     {
-        /** set timeout to 1 sec. */
+        // set timeout to 1 sec. 
         uint32_t timeout = 10000;
 
-        /** send command */
+        // send command 
         m_bar->set32(RORC_REG_UC_SPI_DATA, cmd);
 
-        /** wait for SPI_CE to deassert */
+        // wait for SPI_CE to deassert 
         while ( m_bar->get32(RORC_REG_UC_SPI_CTRL) & (1<<31) )
         {
             if ( timeout == 0 )
@@ -153,14 +137,10 @@ namespace LIBRARY_NAME
         return m_bar->get32(RORC_REG_UC_SPI_DATA);
     }
 
-    
-    /**
-     * Enter Programming Mode
-     * */
+
     void
     microcontroller::enter_prog_mode()
     {
-        /** enter programming mode */
         uint32_t result = send_command(UC_SPI_PROG_ENABLE);
         if ( (result & 0xff00) != 0x5300)
         {
@@ -168,20 +148,10 @@ namespace LIBRARY_NAME
         }
     }
 
-    /**
-     * Read uC device signature
-     * */
+
     uint32_t
     microcontroller::read_device_signature()
     {
-        /**
-         * Device has to be in programming mode to allow signature readout.
-         * There are three signature bytes, selected by address in command
-         * bits [9:8]. Values expected for ATmega324A:
-         * addr 0: 0x1e
-         * addr 1: 0x95
-         * addr 2: 0x15
-         * */
         uint32_t sig = 0;
         for ( int i=0; i<3; i++ )
         {
@@ -192,33 +162,26 @@ namespace LIBRARY_NAME
     }
 
 
-    /**
-     * Erase Chip. This erases uC flash and EEPROM
-     * */
     void
     microcontroller::earse_chip()
     {
-        /** set device in reset */
+        // set device in reset 
         set_reset(1);
 
-        /** enter programming mode */
+        // enter programming mode 
         enter_prog_mode();
 
-        /** send chip ease command */
+        // send chip ease command 
         send_command(UC_SPI_ERASE_CHIP);
 
-        /** wait at least 9 ms */
+        // wait at least 9 ms 
         usleep(9000);
 
-        /** release reset to end the erase */
+        // release reset to end the erase 
         set_reset(0);
     }
 
-    /**
-     * load extended address. This has to be done only for the first page
-     * or when crossing a 64 KWord boundary. The latter never happens for
-     * ATmega324A...
-     * */
+
     void
     microcontroller::load_extended_addr
     (
@@ -230,10 +193,6 @@ namespace LIBRARY_NAME
     }
 
 
-
-    /**
-     * load flash data into page buffer
-     * */
     void
     microcontroller::load_mem_page
     (
@@ -246,10 +205,6 @@ namespace LIBRARY_NAME
     }
 
 
-
-    /**
-     * read flash memory address
-     * */
     uint16_t
     microcontroller::read_mem_page
     (
@@ -262,21 +217,16 @@ namespace LIBRARY_NAME
     }
 
 
-
-    /**
-     * write page buffer into flash. This completes the 
-     * programming of a page.
-     * */
     void
     microcontroller::prog_mem_page
     (
         uint32_t addr
     )
     {
-        /** send write page command */
+        // send write page command 
         send_command(UC_SPI_WRITE_PAGE | (addr<<8));
 
-        /** wait at least 4.5 ms */
+        // wait at least 4.5 ms 
         usleep(4500);
     }
 
@@ -287,7 +237,7 @@ namespace LIBRARY_NAME
         char *filename
     )
     {
-        /** open file */
+        // open file 
         int fd = open(filename, O_RDONLY);
         if ( fd < 0 )
         {
@@ -311,26 +261,26 @@ namespace LIBRARY_NAME
             throw LIBRORC_UC_FILE_ERROR;
         }
 
-        /** configure FPGA IOs for SPI */
+        // configure FPGA IOs for SPI 
         configure_spi();
 
-        /** erase flash */
+        // erase flash 
         earse_chip();
 
-        /** enable reset */
+        // enable reset 
         set_reset(1);
 
-        /** enter programming mode */
+        // enter programming mode 
         enter_prog_mode();
 
-        /** set extended address for page 0 */
+        // set extended address for page 0 
         load_extended_addr(0);
 
         uint32_t addr = 0;
         uint32_t nbytes = 0;
         uint16_t page[UC_SPI_PAGESIZE];
 
-        /** read page from file */
+        // read page from file 
         while ( (nbytes = read(fd, &page, UC_SPI_PAGESIZE<<1)) >0 )
         {
             for ( uint32_t i=0; i<(nbytes>>1); i++ )
@@ -341,7 +291,7 @@ namespace LIBRARY_NAME
             addr += UC_SPI_PAGESIZE;
         }
 
-        /** release reset */
+        // release reset 
         set_reset(0);
 
         close(fd);

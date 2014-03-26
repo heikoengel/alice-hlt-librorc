@@ -1,0 +1,43 @@
+Bus 2, Slot 0, Func 0
+CRORC FPGA
+Firmware Rev. :  1bae0ca
+Firmware Date : 20131008
+CH6 Events IN:       1621, Size:    0.396 GB  DataRate:   405.203 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH6 Events IN:       3242, Size:    0.792 GB  DataRate:   405.238 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH6 Events IN:       4768, Size:    1.164 GB  DataRate:   381.442 MB/s EventRate:     1.526 kHz/s Errors: 1
+CH6 Events IN:       6095, Size:    1.488 GB  DataRate:   331.726 MB/s EventRate:     1.327 kHz/s Errors: 1
+CH6 Events IN:       7250, Size:    1.770 GB  DataRate:   288.694 MB/s EventRate:     1.155 kHz/s Errors: 1
+CH6 Events IN:       8402, Size:    2.051 GB  DataRate:   287.955 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:       9555, Size:    2.333 GB  DataRate:   288.246 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      10707, Size:    2.614 GB  DataRate:   287.931 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      11859, Size:    2.895 GB  DataRate:   287.955 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      13012, Size:    3.177 GB  DataRate:   288.239 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      14165, Size:    3.458 GB  DataRate:   288.141 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      15317, Size:    3.740 GB  DataRate:   287.984 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      16469, Size:    4.021 GB  DataRate:   287.969 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      17621, Size:    4.302 GB  DataRate:   287.937 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      18774, Size:    4.583 GB  DataRate:   288.213 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      19926, Size:    4.865 GB  DataRate:   287.956 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      21079, Size:    5.146 GB  DataRate:   288.187 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      22231, Size:    5.427 GB  DataRate:   287.948 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      23384, Size:    5.709 GB  DataRate:   288.216 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      24536, Size:    5.990 GB  DataRate:   287.980 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      25689, Size:    6.272 GB  DataRate:   288.176 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      26842, Size:    6.553 GB  DataRate:   288.098 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      27994, Size:    6.834 GB  DataRate:   287.805 MB/s EventRate:     1.151 kHz/s Errors: 1
+CH6 Events IN:      29147, Size:    7.116 GB  DataRate:   288.223 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      30299, Size:    7.397 GB  DataRate:   287.928 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      31452, Size:    7.679 GB  DataRate:   288.224 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      32604, Size:    7.960 GB  DataRate:   287.976 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      33756, Size:    8.241 GB  DataRate:   287.953 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      34908, Size:    8.522 GB  DataRate:   287.993 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      36061, Size:    8.804 GB  DataRate:   288.187 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      37213, Size:    9.085 GB  DataRate:   287.939 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      38366, Size:    9.367 GB  DataRate:   288.179 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH6 Events IN:      39518, Size:    9.648 GB  DataRate:   287.898 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      40671, Size:    9.929 GB  DataRate:   288.116 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      41823, Size:   10.211 GB  DataRate:   287.968 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH6 Events IN:      42976, Size:   10.492 GB  DataRate:   288.219 MB/s EventRate:     1.153 kHz/s Errors: 1
+Caught signal 2
+11528306688 Byte / 43977 events in 36.86 sec -> 298.3 MB/s.
+CH6: Events 43977, max_epi=36, min_epi=0, avg_epi=1, set_offset_count=42627

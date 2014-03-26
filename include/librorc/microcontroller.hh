@@ -58,47 +58,107 @@
 
 namespace LIBRARY_NAME
 {
-class bar;
+    class bar;
 
+    /**
+     * @brief Interface class for onboard microcontroller
+     *
+     * This class provides the possibility to update the
+     * microcontroller firmware.
+     **/
     class microcontroller
     {
         public:
             microcontroller(bar *parent_bar);
             ~microcontroller();
 
+
+            /**
+             * Configure FPGA<->uC interface for SPI:
+             * set SCK and MOSI as output, MISO as input
+             * */
             void
             configure_spi();
 
+
+            /**
+             * Set SCK and MOSI IO configuration back to inputs
+             * */
             void
             unconfigure_spi();
 
+
+            /**
+             * set microcontroller reset
+             * @param rstval reset value, can be 0 or 1
+             **/
             void
             set_reset
             (
                 uint32_t rstval
             );
 
+
+            /**
+             * send SPI command to microcontroller. A command consists
+             * of 4 byte. See ATmega324A Userguide for details.
+             * @param cmd command
+             * @return data returned from MISO. If successful,
+             * result[15:8] is the same as command[23:16].
+             **/
             uint32_t
             send_command
             (
                 uint32_t cmd
             );
             
+
+            /**
+             * Enter programming mode
+             **/
             void
             enter_prog_mode();
 
+
+            /**
+             * Read device signature. Device has to be in programming
+             * mode to allow signature readout.
+             * There are three signature bytes, selected by address 
+             * in command bits [9:8]. Values expected for ATmega324A:
+             * addr 0: 0x1e
+             * addr 1: 0x95
+             * addr 2: 0x15
+             * @return signature
+             **/
             uint32_t
             read_device_signature();
             
+
+            /**
+             * Erase Chip. This erases uC flash and EEPROM
+             * */
             void
             earse_chip();
 
+
+            /**
+             * load extended address. This has to be done only for the
+             * first page or when crossing a 64 KWord boundary. 
+             * The latter never happens for ATmega324A...
+             * @param addr address
+             **/
             void
             load_extended_addr
             (
                 uint32_t addr
             );
 
+
+            /**
+             * load flash data into page buffer
+             * @param addr page address
+             * @param data data to be written
+             * */
             void
             load_mem_page
             (
@@ -106,18 +166,35 @@ class bar;
                 uint16_t data
             );
 
+
+            /**
+             * read flash memory address
+             * @param addr page address
+             * @return page content
+             * */
             uint16_t
             read_mem_page
             (
                 uint32_t addr
             );
-
+  
+            
+            /**
+             * write page buffer into flash. This completes the 
+             * programming of a page.
+             * @param addr page address
+             * */
             void
             prog_mem_page
             (
                 uint32_t addr
             );
 
+
+            /**
+             * wrapper call to flash a file to the microcontroller.
+             * @param filename char* filename to be flashed
+             **/
             void programFromFile
             (
                 char *filename

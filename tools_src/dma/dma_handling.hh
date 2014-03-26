@@ -6,6 +6,11 @@
 #include <getopt.h>
 #include <librorc.h>
 
+#define ES_SRC_NONE 0
+#define ES_SRC_HWPG 1
+#define ES_SRC_DIU 2
+#define ES_SRC_DMA 3
+#define ES_SRC_DDR3 4
 
 /** Help text, that is displayed when -h is used */
 #define HELP_TEXT "%s usage:                                 \n\
@@ -13,6 +18,9 @@
 parameters:                                                  \n\
         --device [0..255] Source device ID                   \n\
         --channel [0..11] Source DMA channel                 \n\
+        --source [name]   use specific datasource.           \n\
+                          available options:                 \n\
+                          none,pg,ddr3,diu,dma               \n\
         --size [value]    PatternGenerator event size in DWs \n\
         --file [filename] DDL reference file                 \n\
         --help            Show this text                     \n"
@@ -43,6 +51,7 @@ typedef struct
     int32_t       channelId;
     uint32_t      eventSize;
     char          refname[4096];
+    uint32_t      datasource;
     bool          useRefFile;
     LibrorcEsType esType;
 } DMAOptions;
@@ -88,4 +97,18 @@ printFinalStatusLine
     timeval               end_time
 );
 
+
+void
+configureDataSource
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+);
+
+void
+unconfigureDataSource
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+);
 #endif /** DMA_HANDLING_H */

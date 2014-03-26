@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     char logdirectory[] = "/tmp";
     DMAOptions opts;
     opts = evaluateArguments(argc, argv);
-    opts.esType = LIBRORC_ES_IN_GENERIC;
+    opts.esType = LIBRORC_ES_TO_HOST;
 
     DMA_ABORT_HANDLER_REGISTER
 
@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
 
 #ifndef SIM
     /** in simulation FCF RAM is loaded by Modelsim */
-    cout << "Writing mapping file to FCF_RAM..." << endl;
-    link->fcfLoadMappingRam(MAPPING_FILE);
+    //cout << "Writing mapping file to FCF_RAM..." << endl;
+    //link->fcfLoadMappingRam(MAPPING_FILE);
 #endif
 
     /** wait until DDL is up */
@@ -129,29 +129,37 @@ int main(int argc, char *argv[])
 
     //-----------------------------------------------------//
 
-    /** 
-     * Option1: 
-     * configure datastream: from DIU through FCF 
+    /**
+     * Option1:
+     * configure datastream: from DIU through FCF
      **/
-    link->setDataSourceDdl();
+    /*link->setDataSourceDdl();
     link->enableDdl();
     link->enableFcf();
-    link->prepareDiuForFeeData();
+    link->prepareDiuForFeeData(); */
 
     //-----------------------------------------------------//
 
     /**
      * Option 2:
-     * configure datastream: from DDR3 through FCF 
+     * configure datastream: from DDR3 through FCF
      **/
-    /*cout << "Waiting for phy_init_done..." << endl;
-    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
+    //link->setDataSourceDdr3DataReplay();
+    //link->enableFcf();
+    //link->enableDdl();
+
+    // disable Data Replay
+    sm->disableDdr3DataReplay();
+    link->disableDdr3DataReplayChannel();
+
+    cout << "Waiting for phy_init_done..." << endl;
+    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
     { usleep(100); }
 
     uint32_t ch_start_addr = 0x00000000;
     cout << "Writing event to DDR3..." << endl;
     try {
-    sm->data_replay_write_event(
+    sm->ddr3DataReplayEventToRam(
             event,
             (fd_in_stat.st_size>>2), // num_dws
             ch_start_addr, // ddr3 start address
@@ -164,15 +172,7 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    link->setDataSourceDdr3DataReplay();
-    link->enableDdl();
-    link->enableFcf();
-    // configure and start data replay channel
-    link->configureDdr3DataReplayChannel(ch_start_addr);
 
-    // enable data replay globally
-    bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x80000000);
-*/
     //-----------------------------------------------------//
 
 
@@ -191,8 +191,16 @@ int main(int argc, char *argv[])
     eventStream->printDeviceStatus();
 
     /** enable EBDM + RBDM + PKT */
-    link->setPacketizer(RORC_REG_DMA_CTRL, 
-            (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+    //link->setPacketizer(RORC_REG_DMA_CTRL,
+    //        (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+
+    link->setDataSourceDdr3DataReplay();
+    link->enableFlowControl();
+    link->configureDdr3DataReplayChannel(ch_start_addr);
+    link->enableDdr3DataReplayChannel();
+
+    // enable data replay globally
+    sm->enableDdr3DataReplay();
 
 
     /** make clear what will be checked*/
@@ -208,12 +216,11 @@ int main(int argc, char *argv[])
 
     cout << "Event Loop Start" << endl;
 
-    librorc::event_sanity_checker checker = 
+    librorc::event_sanity_checker checker =
         librorc::event_sanity_checker
         (
          eventStream->m_eventBuffer,
          opts.channelId,
-         PG_PATTERN_INC, /** TODO */
          sanity_check_mask,
          logdirectory,
          opts.refname
@@ -251,8 +258,8 @@ int main(int argc, char *argv[])
 
             last_bytes_received  = eventStream->m_channel_status->bytes_received;
             last_events_received = eventStream->m_channel_status->n_events;
+            last_time = current_time;
         }
-        last_time = current_time;
     }
 
     timeval end_time;

@@ -1,0 +1,1 @@
+/usr/bin/c++   -Wall -g -Wall -O0 -g -DDEBUG    CMakeFiles/rorctl.dir/rorctl/rorctl.cpp.o  -o rorctl -rdynamic ../librorc.so.1.0.1 /opt/packages/pda/7.0.1/lib/libpda.so -lpthread -lpci /opt/packages/pda/7.0.1/lib/libpda.so -Wl,-rpath,/mnt/data/005_git/crorc-driver-dma/build/sim_debug:/opt/packages/pda/7.0.1/lib: 

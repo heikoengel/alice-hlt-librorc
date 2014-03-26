@@ -62,6 +62,7 @@ typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
 namespace LIBRARY_NAME
 {
+
 class device;
 class dma_channel;
 class buffer_sglist_programmer;

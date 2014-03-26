@@ -28,6 +28,7 @@ using namespace std;
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
         -e [0,1]      DDLIF Enable \n\
+        -r [0,1]      Set DDL Reset \n\
         -p [0,1]      PG Enable \n\
         -m [0..3]     PG Mode \n\
         -P [0,1]      PRBS EventSize mode enable \n\
@@ -102,8 +103,10 @@ int main
     int set_prbssize = 0;
     int set_waittime = 0;
     int set_pattern = 0;
+    int set_reset = 0;
 
     uint32_t enable = 0;
+    uint32_t reset = 0;
     uint32_t pgenable = 0;
     uint32_t pgsize = 0;
     uint32_t fc = 0;
@@ -120,7 +123,7 @@ int main
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:w:W:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:w:W:r:")) != -1 )
     {
         switch(arg)
         {
@@ -146,6 +149,13 @@ int main
             {
                 enable = strtol(optarg, NULL, 0);
                 set_enable = 1;
+            }
+            break;
+
+            case 'r':
+            {
+                reset = strtol(optarg, NULL, 0);
+                set_reset = 1;
             }
             break;
 
@@ -329,6 +339,13 @@ int main
             ddlctrl |= (enable&1);
         }
 
+        /** enable/disable DDL Component */
+        if ( set_reset)
+        {
+            ddlctrl &= ~(1<<31);
+            ddlctrl |= ((reset&1)<<31);
+        }
+
         /** enable/disable PatternGenerator */
         if ( set_pgenable )
         {
@@ -426,7 +443,7 @@ int main
         }
 
         if ( set_fc || set_enable || set_pgmode || set_pgenable ||
-                set_pgnevents || set_prbssize || set_mux )
+                set_pgnevents || set_prbssize || set_mux || set_reset )
         {
             current_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
         }

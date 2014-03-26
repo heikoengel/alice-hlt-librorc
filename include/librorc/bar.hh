@@ -27,23 +27,21 @@
 #include <librorc/defines.hh>
 #include <librorc/bar_proto.hh>
 
-/**
- * @class rorc_bar
- * @brief Represents a Base Address Register (BAR) file
- * mapping of the RORCs PCIe address space
- *
- * Create a new crorc_bar object after initializing your
- * librorc::device instance. <br>Once your rorc_bar instance is
- * initialized (with init()) you can use get() and set() to
- * read from and/or write to the device.
- */
 
 namespace LIBRARY_NAME
 {
-class device;
-class dma_channel;
+    class device;
+    class dma_channel;
 
-
+    /**
+     * @brief Represents a Base Address Register (BAR) file
+     * mapping of the RORCs PCIe address space
+     *
+     * Create a new crorc_bar object after initializing your
+     * librorc::device instance. <br>Once your rorc_bar instance is
+     * initialized (with init()) you can use get() and set() to
+     * read from and/or write to the device.
+     */
     class rorc_bar : public bar
     {
         public:

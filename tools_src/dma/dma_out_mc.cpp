@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     opts[0] = evaluateArguments(argc, argv);
     int32_t nChannels = opts[0].channelId;
     opts[0].channelId = 0;
-    opts[0].esType = LIBRORC_ES_OUT_SWPG;
+    opts[0].esType = LIBRORC_ES_TO_DEVICE;
 
     int i;
 
@@ -132,12 +132,11 @@ int main(int argc, char *argv[])
     for(i=0; i<nChannels; i++)
     {
         checkers[i] =
-            (opts[i].esType==LIBRORC_ES_IN_DDL) /** is DDL reference file enabled? */
+            (opts[i].useRefFile) /** is DDL reference file enabled? */
             ?   librorc::event_sanity_checker
             (
              eventStream[i]->m_eventBuffer,
              opts[i].channelId,
-             PG_PATTERN_INC, /** TODO */
              sanity_check_mask,
              logdirectory,
              opts[i].refname
@@ -146,7 +145,6 @@ int main(int argc, char *argv[])
             (
              eventStream[i]->m_eventBuffer,
              opts[i].channelId,
-             PG_PATTERN_INC,
              sanity_check_mask,
              logdirectory
             );

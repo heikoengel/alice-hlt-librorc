@@ -26,10 +26,9 @@
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 #include <librorc/sysmon.hh>
+#include <librorc/link.hh>
 
 #include <librorc/dma_channel.hh>
-#include <librorc/dma_channel_ddl.hh>
-#include <librorc/dma_channel_pg.hh>
 #include <librorc/event_sanity_checker.hh>
 
 using namespace std;
@@ -44,29 +43,15 @@ namespace LIBRARY_NAME
         LibrorcEsType esType
     )
     {
-        m_deviceId = deviceId;
-        m_called_with_bar = false;
-        generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
-        prepareSharedMemory();
-    }
-
-
-
-    event_stream::event_stream
-    (
-        int32_t       deviceId,
-        int32_t       channelId,
-        uint32_t      eventSize,
-        LibrorcEsType esType
-    )
-    {
         m_deviceId        = deviceId;
-        m_eventSize       = eventSize;
         m_called_with_bar = false;
-        generateDMAChannel(m_deviceId, channelId, esType);
+        m_channelId       = channelId;
+
+        initMembers();
+        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaChannel(esType);
         prepareSharedMemory();
     }
-
 
 
     event_stream::event_stream
@@ -81,29 +66,41 @@ namespace LIBRARY_NAME
         m_bar1            = bar;
         m_deviceId        = dev->getDeviceId();
         m_called_with_bar = true;
-        generateDMAChannel(m_deviceId, channelId, LIBRORC_ES_IN_GENERIC);
+        m_channelId       = channelId;
+
+        initMembers();
+        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaChannel(esType);
         prepareSharedMemory();
     }
 
 
-
-    event_stream::event_stream
-    (
-        librorc::device *dev,
-        librorc::bar    *bar,
-        int32_t          channelId,
-        uint32_t         eventSize,
-        LibrorcEsType    esType
-    )
+    void
+    event_stream::initMembers()
     {
-        m_dev             = dev;
-        m_bar1            = bar;
-        m_eventSize       = eventSize;
-        m_deviceId        = dev->getDeviceId();
-        m_called_with_bar = true;
+        m_done             = false;
+        m_event_callback   = NULL;
+        m_status_callback  = NULL;
+        m_raw_event_buffer = NULL;
+        try
+        {
+            if( !m_called_with_bar )
+            {
+                m_dev = new librorc::device(m_deviceId);
+                #ifdef SIM
+                    m_bar1 = new librorc::sim_bar(m_dev, 1);
+                #else
+                    m_bar1 = new librorc::rorc_bar(m_dev, 1);
+                #endif
+            }
+        }
+        catch(...)
+        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
 
-        generateDMAChannel(m_deviceId, channelId, esType);
-        prepareSharedMemory();
+        m_link     = new librorc::link(m_bar1, m_channelId);
+        m_sm       = new librorc::sysmon(m_bar1);
+        m_fwtype   = m_sm->firmwareType();
+        m_linktype = m_link->linkType();
     }
 
 
@@ -114,13 +111,14 @@ namespace LIBRARY_NAME
     }
 
 
-
     void
     event_stream::deleteParts()
     {
+        delete m_sm;
         delete m_channel;
         delete m_eventBuffer;
         delete m_reportBuffer;
+        delete m_link;
         if ( !m_called_with_bar )
         {
             delete m_bar1;
@@ -129,101 +127,86 @@ namespace LIBRARY_NAME
     }
 
     void
-    event_stream::checkFirmware(LibrorcEsType esType)
+    event_stream::checkFirmwareCompatibility(LibrorcEsType esType)
     {
-        sysmon monitor(m_bar1);
-
-        if
-        (
-            esType == LIBRORC_ES_IN_GENERIC ||
-            esType == LIBRORC_ES_IN_DDL     ||
-            esType == LIBRORC_ES_IN_HWPG
-        )
+        int32_t availDmaChannels = m_sm->numberOfChannels();
+        if( m_channelId >= availDmaChannels )
         {
-            if( !monitor.firmwareIsHltIn() &&
-                    !monitor.firmwareIsHltHardwareTest() &&
-                    !monitor.firmwareIsHltInFcf())
-            {
-                cout << "Wrong device firmware loaded [out] instead [in]" << endl;
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-            }
+            cout << "ERROR: Requsted channel " << m_channelId
+                 << " is not implemented in firmware "
+                 << "- exiting" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-        if
-        (
-            esType == LIBRORC_ES_OUT_GENERIC ||
-            esType == LIBRORC_ES_OUT_SWPG ||
-            esType == LIBRORC_ES_OUT_FILE
-        )
+        bool fwOK;
+        switch(esType)
         {
-            if( !monitor.firmwareIsHltOut() )
-            {
-                cout << "Wrong device firmware loaded [in] instead [out]" << endl;
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-            }
+            case LIBRORC_ES_TO_HOST:
+                fwOK = m_sm->firmwareIsHltHardwareTest() |
+                    m_sm->firmwareIsHltIn() |
+                    m_sm->firmwareIsHltInFcf();
+                break;
+            case LIBRORC_ES_TO_DEVICE:
+                fwOK = m_sm->firmwareIsHltOut();
+                break;
+            default:
+                fwOK = false;
+                break;
+        }
+
+        if( !fwOK )
+        {
+            cout << "ERROR: Wrong or unknown firmware loaded!"
+                 << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
     }
 
     void
-    event_stream::generateDMAChannel
+    event_stream::initializeDmaBuffers
     (
-        int32_t       deviceId,
-        int32_t       channelId,
-        LibrorcEsType esType
+        LibrorcEsType esType,
+        uint64_t eventBufferSize,
+        uint64_t reportBufferSize
     )
     {
-        m_channelId = channelId;
+        /** make sure requested channel is available for selected esType */
+        checkFirmwareCompatibility(esType);
 
-        /** TODO : remove this */
+        /** TODO : remove this? */
         /** set EventBuffer DMA direction according to EventStream type */
         int32_t dma_direction;
         switch (esType)
         {
-            case LIBRORC_ES_IN_GENERIC:
-            case LIBRORC_ES_IN_DDL:
-            case LIBRORC_ES_IN_HWPG:
-            {
-                dma_direction = LIBRORC_DMA_FROM_DEVICE;
-            }
-            break;
-
-            case LIBRORC_ES_OUT_GENERIC:
-            case LIBRORC_ES_OUT_SWPG:
-            case LIBRORC_ES_OUT_FILE:
+            case LIBRORC_ES_TO_DEVICE:
             {
                 dma_direction = LIBRORC_DMA_TO_DEVICE;
             }
             break;
             default:
-            { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+            {
+                dma_direction = LIBRORC_DMA_FROM_DEVICE;
+            }
+            break;
         }
 
         try
         {
-            if( !m_called_with_bar )
-            {
-                m_dev = new librorc::device(deviceId);
-                #ifdef SIM
-                    m_bar1 = new librorc::sim_bar(m_dev, 1);
-                #else
-                    m_bar1 = new librorc::rorc_bar(m_dev, 1);
-                #endif
-            }
+            /**
+             * TODO: this simply connects to an unknown buffer
+             * if a buffer with the given ID already exists.
+             * => Check if buffer of requested size already exists:
+             * YES: connect to existing buffer
+             * NO : check if dma_channel is already active
+             *      (e.g. another process is already using
+             *      these buffers). only re-allocate with
+             *      requested size if not active!
+             **/
+            m_eventBuffer = new librorc::buffer(m_dev, eventBufferSize,
+                        (2*m_channelId), 1, dma_direction);
+            m_reportBuffer = new librorc::buffer(m_dev, reportBufferSize,
+                        (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
-            if( !m_dev->DMAChannelIsImplemented(channelId) )
-            {
-                printf("ERROR: Requsted channel %d is not implemented in "
-                       "firmware - exiting\n", channelId);
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-            }
-
-
-            m_eventBuffer
-                = new librorc::buffer(m_dev, EBUFSIZE, (2*channelId), 1, dma_direction);
-            m_reportBuffer
-                = new librorc::buffer(m_dev, RBUFSIZE, (2*channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
-
-            chooseDMAChannel(esType);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done             = false;
@@ -237,84 +220,39 @@ namespace LIBRARY_NAME
         for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
 
-        checkFirmware(esType);
+        checkFirmwareCompatibility(esType);
     }
 
 
 
     void
-    event_stream::chooseDMAChannel(LibrorcEsType esType)
+    event_stream::initializeDmaChannel(LibrorcEsType esType)
     {
-        switch ( esType )
+        /*
+         * TODO: get MaxPayload/MaxReadReq sizes from PDA!
+         **/
+        uint32_t max_pkt_size = 0;
+        if( esType == LIBRORC_ES_TO_HOST )
         {
-            case LIBRORC_ES_IN_GENERIC:
-            {
-                m_channel =
-                new librorc::dma_channel
-                (
-                     m_channelId,
-                     MAX_PAYLOAD,
-                     m_dev,
-                     m_bar1,
-                     m_eventBuffer,
-                     m_reportBuffer
-                 );
-            }
-            break;
-
-            case LIBRORC_ES_IN_DDL:
-            {
-                m_channel =
-                new librorc::dma_channel_ddl
-                (
-                    m_channelId,
-                    MAX_PAYLOAD,
-                    m_dev,
-                    m_bar1,
-                    m_eventBuffer,
-                    m_reportBuffer
-                );
-            }
-            break;
-
-            case LIBRORC_ES_IN_HWPG:
-            {
-                m_channel =
-                new librorc::dma_channel_pg
-                (
-                    m_channelId,
-                    MAX_PAYLOAD,
-                    m_dev,
-                    m_bar1,
-                    m_eventBuffer,
-                    m_reportBuffer,
-                    m_eventSize
-                );
-            }
-            break;
-
-            case LIBRORC_ES_OUT_SWPG:
-            {
-                m_channel =
-                new librorc::dma_channel
-                (
-                     m_channelId,
-                     128,
-                     m_dev,
-                     m_bar1,
-                     m_eventBuffer,
-                     m_reportBuffer
-                 );
-
-                 //m_bar1->simSetPacketSize(32);
-                 m_channel->enable();
-            }
-            break;
-
-        default:
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            max_pkt_size = MAX_PAYLOAD;
         }
+        else
+        {
+            max_pkt_size = 128;
+        }
+
+        m_channel = new librorc::dma_channel(
+                m_channelId,
+                max_pkt_size,
+                m_dev,
+                m_bar1,
+                m_eventBuffer,
+                m_reportBuffer);
+
+        //m_bar1->simSetPacketSize(32);
+        m_channel->enable();
     }
+
 
 
     void
@@ -335,11 +273,27 @@ namespace LIBRARY_NAME
 
         m_channel_status = (librorcChannelStatus*)shm;
 
+        /*memset(m_channel_status, 0, sizeof(librorcChannelStatus));
+        m_channel_status->index = 0;
+        m_channel_status->last_id = 0xfffffffff;
+        m_channel_status->channel = (unsigned int)m_channelId;*/
+    }
+
+
+
+    void
+    event_stream::clearSharedMemory()
+    {
+        if(m_channel_status==NULL)
+        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+
         memset(m_channel_status, 0, sizeof(librorcChannelStatus));
+
         m_channel_status->index        = 0;
         m_channel_status->shadow_index = 0;
         m_channel_status->last_id      = 0xfffffffff;
         m_channel_status->channel      = (unsigned int)m_channelId;
+        m_channel_status->device = m_deviceId;
     }
 
 
@@ -353,11 +307,9 @@ namespace LIBRARY_NAME
 
         try
         {
-            librorc::sysmon *sm = new librorc::sysmon(m_bar1);
             cout << "CRORC FPGA" << endl
-                 << "Firmware Rev. : " << hex << setw(8) << sm->FwRevision()  << dec << endl
-                 << "Firmware Date : " << hex << setw(8) << sm->FwBuildDate() << dec << endl;
-            delete sm;
+                 << "Firmware Rev. : " << hex << setw(8) << m_sm->FwRevision()  << dec << endl
+                 << "Firmware Date : " << hex << setw(8) << m_sm->FwBuildDate() << dec << endl;
         }
         catch(...)
         { cout << "Firmware Rev. and Date not available!" << endl; }
@@ -453,6 +405,7 @@ namespace LIBRARY_NAME
         return true;
     }
 
+
     void
     event_stream::setBufferOffsets()
     {
@@ -467,6 +420,24 @@ namespace LIBRARY_NAME
         while(m_release_map[m_channel_status->shadow_index] == true)
         {
             m_release_map[m_channel_status->shadow_index] = false;
+//=======
+//        //TODO: make this global
+//        uint64_t events_processed = 0;
+//        /** new event received */
+//        if( reports[m_channel_status->index].reported_event_size!=0 )
+//        {
+//            // capture index of the first found reportbuffer entry
+//            uint64_t starting_index       = m_channel_status->index;
+//            uint64_t events_per_iteration = 0;
+//            uint64_t event_buffer_offset  = 0;
+//            uint64_t report_buffer_offset = 0;
+//
+//            // handle all following entries
+//            while( reports[m_channel_status->index].reported_event_size!=0 )
+//            {
+//                // increment number of events processed in this interation
+//                events_processed++;
+//>>>>>>> master
 
             event_buffer_offset =
                 m_reports[m_channel_status->shadow_index].offset;
@@ -474,6 +445,16 @@ namespace LIBRARY_NAME
             report_buffer_offset =
                 ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
                     % m_reportBuffer->getPhysicalSize();
+//=======
+//                /**
+//                 * TODO: reported_event_size and calc_event_size still contain error/status flags
+//                 * at this point. Handle these flags and mask upper two bits for both sizes before
+//                 * using them as actual wordcounts.
+//                 **/
+//                uint64_t ret = (m_event_callback != NULL)
+//                    ? m_event_callback(user_data, event_id, report, event, m_channel_status)
+//                    : 1;
+//>>>>>>> master
 
             counter++;
 
@@ -488,6 +469,12 @@ namespace LIBRARY_NAME
                 shadow_index = 0;
             }
         }
+//=======
+//                // increment the number of bytes received
+//                // Note that the upper two status bits are shifted out!
+//                m_channel_status->bytes_received +=
+//                    (reports[m_channel_status->index].calc_event_size<<2);
+//>>>>>>> master
 
         memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
@@ -610,5 +597,56 @@ namespace LIBRARY_NAME
     {
         return (const uint32_t*)&m_raw_event_buffer[report.offset/4];
     }
+
+
+    patterngenerator*
+    event_stream::getPatternGenerator()
+    {
+        if(m_fwtype==RORC_CFG_PROJECT_hlt_in ||
+                m_fwtype==RORC_CFG_PROJECT_hlt_out || 
+                m_fwtype==RORC_CFG_PROJECT_hwtest)
+        {
+            return new patterngenerator(m_link);
+        }
+        else
+        {
+            // TODO: log message: getPatternGenerator failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
+
+    diu*
+    event_stream::getDiu()
+    {
+        if(m_linktype==RORC_CFG_LINK_TYPE_DIU)
+        {
+            return new diu(m_link);
+        }
+        else
+        {
+            // TODO: log message: getDiu failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
+
+    siu*
+    event_stream::getSiu()
+    {
+        if(m_linktype==RORC_CFG_LINK_TYPE_SIU)
+        {
+            return new siu(m_link);
+        }
+        else
+        {
+            // TODO: log message: getSiu failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
 
 }

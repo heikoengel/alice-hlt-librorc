@@ -150,6 +150,13 @@ namespace LIBRARY_NAME
     }
 
 
+    uint32_t
+    sysmon::numberOfChannels()
+    {
+        return(m_bar->get32(RORC_REG_TYPE_CHANNELS) & 0xffff);
+    }
+
+
 
     /** SYSTEM Monitoring *********************************************/
 
@@ -583,6 +590,31 @@ namespace LIBRARY_NAME
 
 
 
+    /** Error Counters ***************************************************/
+
+    void
+    sysmon::clearSysmonErrorCounters()
+    {
+        /** reset SC Request Canceled counter */
+        m_bar->set32(RORC_REG_SC_REQ_CANCELED, 0);
+
+        /** reset DMA TX Timeout counter */
+        m_bar->set32(RORC_REG_DMA_TX_TIMEOUT, 0);
+
+        /** reset Illegal Request counter */
+        m_bar->set32(RORC_REG_ILLEGAL_REQ, 0);
+
+        /** reset Multi-DW Read counter */
+        m_bar->set32(RORC_REG_MULTIDWREAD, 0);
+
+        /** reset PCIe Destination Busy counter */
+        m_bar->set32(RORC_REG_PCIE_DST_BUSY, 0);
+
+        /** reset PCIe TErr Drop counter */
+        m_bar->set32(RORC_REG_PCIE_TERR_DROP, 0);
+    }
+
+
 
 
 
@@ -685,7 +717,7 @@ namespace LIBRARY_NAME
 
 
     uint32_t
-    sysmon::data_replay_write_event
+    sysmon::ddr3DataReplayEventToRam
     (
          uint32_t *event_data,
          uint32_t num_dws,
@@ -711,7 +743,7 @@ namespace LIBRARY_NAME
                 }
             }
 
-            data_replay_write_block( addr, dataptr, mask, channel, flags);
+            ddr3DataReplayBlockToRam( addr, dataptr, mask, channel, flags);
             addr += 0x40;
             dataptr += 15;
             num_dws = (num_dws<15) ? 0 : (num_dws-15);
@@ -719,13 +751,85 @@ namespace LIBRARY_NAME
         return addr;
     }
 
+    void
+    sysmon::disableDdr3DataReplay()
+    {
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000);
+    }
+
+    void
+    sysmon::enableDdr3DataReplay()
+    {
+        uint32_t drcfg =  m_bar->get32(RORC_REG_DATA_REPLAY_CTRL);
+        drcfg |= (1<<31);
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drcfg);
+    }
+
+    uint32_t
+    sysmon::ddr3Bitrate
+    (
+        uint32_t controller
+    )
+    {
+        uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        /** C0: bits [10:9], C1: bits [26:25] */
+        switch( (ddr3ctrl>>(16*(controller&1)+9)) & 3 )
+        {
+            case 1:
+                return 606;
+            case 2:
+                return 800;
+            case 3:
+                return 1066;
+            default: // controller not implemented
+                return 0;
+        }
+    }
+
+
+    bool
+    sysmon::ddr3ModuleInitReady
+    (
+        uint32_t controller
+    )
+    {
+        /** C0 status in bits [15:0], C1 status in bits [31:16] */
+        uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        uint16_t controller_status =
+            ( (ddr3ctrl>>(16*(controller&1))) & 0xffff );
+
+        if( (controller_status & (3<<9)) == 0)
+        {
+            /** bitrate==0 => controller not implemented in firmware */
+            return false;
+        }
+
+        uint16_t checkmask = (1<<0) | // module reset
+            (1<<1) | // PHY init done
+            (1<<2) | // PLL lock
+            (1<<3) | // read levelling started
+            (1<<4) | // read levelling done
+            (1<<5) | // read levelling error
+            (1<<7) | // write levelling done
+            (1<<8); // write levelling error
+        uint16_t expected_value = (0<<0) | // not in reset
+            (1<<1) | // PHY init done
+            (1<<2) | // PLL locked
+            (1<<3) | // read levelling started
+            (1<<4) | // read levelling done
+            (0<<5) | // no read levelling error
+            (1<<7) | // write levelling done
+            (0<<8); // no write levelling error
+
+        return ( (controller_status & checkmask) == expected_value );
+    }
 
 
 
     /** Protected ***** ***********************************************/
 
     void
-    sysmon::data_replay_write_block
+    sysmon::ddr3DataReplayBlockToRam
     (
         uint32_t start_addr,
         uint32_t *data,
@@ -734,13 +838,10 @@ namespace LIBRARY_NAME
         uint32_t flags
     )
     {
-        if ( channel>7 )
+        if ( channel>11 )
         {
             throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID;
         }
-
-        /** set start address */
-        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, start_addr);
 
         /** copy valid data to block bufffer */
         uint32_t block_buffer[16];
@@ -751,17 +852,31 @@ namespace LIBRARY_NAME
                 block_buffer[i+1]=data[i];
             }
         }
-        /** set block header */
-        block_buffer[0] = ((uint32_t)mask<<16) | flags | (1<<channel);
 
-        /** copy data to onboard buffer */
-        /*m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
-                block_buffer, 16*sizeof(uint32_t));*/
-        for (int i=0; i<16; i++)
+        uint8_t channel_select = (channel>6) ? 
+            (1<<(channel-6)) : (1<<channel);
+
+        /** set block header */
+        block_buffer[0] = ((uint32_t)mask<<16) | flags | channel_select;
+
+        /** copy data to buffer registers */
+        m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
+                block_buffer, 16*sizeof(uint32_t));
+        /*for (int i=0; i<16; i++)
         {
             m_bar->set32(RORC_REG_DATA_REPLAY_PAYLOAD_BASE+i,
                     block_buffer[i]);
-        }
+        }*/
+
+        /** set start address */
+        uint32_t drctrl = (start_addr & 0x7ffffffc);
+        if( channel>6 )
+        { drctrl |= (1<<1); } // write to C1
+        else
+        { drctrl |= (1<<0); } // write to C0
+
+        /** make the RORC write the buffer to RAM */
+        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drctrl);
 
 
         /** wait for write_done */

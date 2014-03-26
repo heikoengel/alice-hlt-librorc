@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
     if
     (
-        (opts.esType == LIBRORC_ES_IN_HWPG) &&
+        (opts.datasource == ES_SRC_HWPG) &&
         !checkEventSize(opts.eventSize, argv[0])
     )
     { exit(-1); }
@@ -55,16 +55,19 @@ int main(int argc, char *argv[])
     if( !eventStream )
     { exit(-1); }
 
+    configureDataSource(eventStream, opts);
+
     eventStream->printDeviceStatus();
 
     eventStream->setEventCallback(eventCallBack);
     eventStream->setStatusCallback(printStatusLine);
 
     /** make clear what will be checked*/
-    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    //int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    int32_t sanity_check_mask = CHK_SIZES|CHK_EOE;
     if(opts.useRefFile)
     { sanity_check_mask |= CHK_FILE; }
-    else
+    else if ( opts.datasource == ES_SRC_HWPG )
     { sanity_check_mask |= (CHK_PATTERN|CHK_ID); }
 
 
@@ -74,7 +77,6 @@ int main(int argc, char *argv[])
             (
                 eventStream->m_eventBuffer,
                 opts.channelId,
-                PG_PATTERN_INC, /** TODO */
                 sanity_check_mask,
                 logdirectory,
                 opts.refname
@@ -83,12 +85,13 @@ int main(int argc, char *argv[])
             (
                 eventStream->m_eventBuffer,
                 opts.channelId,
-                PG_PATTERN_INC,
                 sanity_check_mask,
                 logdirectory
             ) ;
 
     uint64_t result = eventStream->eventLoop((void*)&checker);
+
+    unconfigureDataSource(eventStream, opts);
 
     printFinalStatusLine
     (

@@ -6,6 +6,12 @@ add_executable( rorctl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rorctl.cpp)
 target_link_libraries( rorctl rorc ${EXTRA_LIBS})
 INSTALL(TARGETS rorctl RUNTIME DESTINATION bin )
 
+# Build board_reset
+add_executable( board_reset
+  ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/board_reset.cpp)
+target_link_libraries( board_reset rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS board_reset RUNTIME DESTINATION bin )
+
 # Build ucctrl
 add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
 target_link_libraries( ucctrl rorc ${EXTRA_LIBS})
@@ -51,12 +57,12 @@ target_link_libraries( dma_in_ddl rorc ${EXTRA_LIBS})
 INSTALL(TARGETS dma_in_ddl RUNTIME DESTINATION bin )
 
 # Build DMA test pure backend
-add_executable( dma_in_generic
+add_executable( dma_in
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
 )
-target_link_libraries( dma_in_generic rorc ${EXTRA_LIBS})
-INSTALL(TARGETS dma_in_generic RUNTIME DESTINATION bin )
+target_link_libraries( dma_in rorc ${EXTRA_LIBS})
+INSTALL(TARGETS dma_in RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------
 
@@ -125,6 +131,11 @@ add_executable( ddlctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/ddlctrl.cpp)
 target_link_libraries( ddlctrl rorc ${EXTRA_LIBS})
 INSTALL(TARGETS ddlctrl RUNTIME DESTINATION bin )
 
+# Build diuctrl
+add_executable( diuctrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/diuctrl.cpp)
+target_link_libraries( diuctrl rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS diuctrl RUNTIME DESTINATION bin )
+
 # Build dmactrl
 add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
 target_link_libraries( dmactrl rorc ${EXTRA_LIBS})
@@ -134,6 +145,12 @@ INSTALL(TARGETS dmactrl RUNTIME DESTINATION bin )
 add_executable( channeldump ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/channeldump.cpp)
 target_link_libraries( channeldump rorc ${EXTRA_LIBS})
 INSTALL(TARGETS channeldump RUNTIME DESTINATION bin )
+
+# Build ddr3_data_replay 
+add_executable( ddr3_data_replay
+  ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/ddr3_data_replay.cpp)
+target_link_libraries( ddr3_data_replay rorc pthread ${EXTRA_LIBS})
+INSTALL(TARGETS ddr3_data_replay RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------
 

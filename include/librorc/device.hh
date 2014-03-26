@@ -39,20 +39,18 @@ typedef struct PciDevice_struct PciDevice;
     #define librorc_debug(fmt, args ...)
 #endif
 
-/**
- * @class librorc::device
- * @brief represents a RORC PCIe device
- *
- * The librorc::device class is the base class for all device
- * IO. Create a librorc::device instance and initialize
- * (via init(int n)) with the device you want to bind to.
- * Once the device is sucessfully initialized you can attach
- * instances of librorc::bar.
- **/
 
 namespace LIBRARY_NAME
 {
-
+    /**
+     * @brief represents a RORC PCIe device
+     *
+     * The librorc::device class is the base class for all device
+     * IO. Create a librorc::device instance and initialize
+     * (via init(int n)) with the device you want to bind to.
+     * Once the device is sucessfully initialized you can attach
+     * instances of librorc::bar.
+     **/
     class device
     {
     friend class buffer;

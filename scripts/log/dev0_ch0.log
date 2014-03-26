@@ -1,0 +1,49 @@
+Bus 2, Slot 0, Func 0
+CRORC FPGA
+Firmware Rev. :  1bae0ca
+Firmware Date : 20131008
+CH0 Events IN:       1621, Size:    0.396 GB  DataRate:   405.208 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:       3243, Size:    0.792 GB  DataRate:   405.419 MB/s EventRate:     1.622 kHz/s Errors: 1
+CH0 Events IN:       4864, Size:    1.188 GB  DataRate:   405.239 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:       6485, Size:    1.583 GB  DataRate:   405.208 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:       8106, Size:    1.979 GB  DataRate:   405.220 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:       9728, Size:    2.375 GB  DataRate:   405.347 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:      11349, Size:    2.771 GB  DataRate:   405.180 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:      12971, Size:    3.167 GB  DataRate:   405.343 MB/s EventRate:     1.621 kHz/s Errors: 1
+CH0 Events IN:      14500, Size:    3.540 GB  DataRate:   382.196 MB/s EventRate:     1.529 kHz/s Errors: 1
+CH0 Events IN:      15833, Size:    3.865 GB  DataRate:   333.150 MB/s EventRate:     1.333 kHz/s Errors: 1
+CH0 Events IN:      16993, Size:    4.149 GB  DataRate:   289.937 MB/s EventRate:     1.160 kHz/s Errors: 1
+CH0 Events IN:      18145, Size:    4.430 GB  DataRate:   287.994 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      19298, Size:    4.711 GB  DataRate:   288.213 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      20450, Size:    4.993 GB  DataRate:   287.979 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      21603, Size:    5.274 GB  DataRate:   288.145 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      22755, Size:    5.555 GB  DataRate:   287.986 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      23907, Size:    5.837 GB  DataRate:   287.957 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      25060, Size:    6.118 GB  DataRate:   288.238 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      26212, Size:    6.399 GB  DataRate:   287.978 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      27366, Size:    6.681 GB  DataRate:   288.044 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      28518, Size:    6.962 GB  DataRate:   287.993 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      29671, Size:    7.244 GB  DataRate:   288.175 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      30823, Size:    7.525 GB  DataRate:   287.933 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      31976, Size:    7.807 GB  DataRate:   288.171 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      33128, Size:    8.088 GB  DataRate:   287.939 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      34281, Size:    8.369 GB  DataRate:   288.205 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      35434, Size:    8.651 GB  DataRate:   288.059 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      36587, Size:    8.932 GB  DataRate:   288.131 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      37739, Size:    9.214 GB  DataRate:   287.954 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      38892, Size:    9.495 GB  DataRate:   288.116 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      40045, Size:    9.777 GB  DataRate:   288.099 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      41197, Size:   10.058 GB  DataRate:   287.979 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      42349, Size:   10.339 GB  DataRate:   287.964 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      43501, Size:   10.620 GB  DataRate:   287.995 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      44654, Size:   10.902 GB  DataRate:   288.192 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      45806, Size:   11.183 GB  DataRate:   287.962 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      46959, Size:   11.465 GB  DataRate:   288.182 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      48111, Size:   11.746 GB  DataRate:   287.955 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      49264, Size:   12.027 GB  DataRate:   288.132 MB/s EventRate:     1.153 kHz/s Errors: 1
+CH0 Events IN:      50416, Size:   12.309 GB  DataRate:   287.995 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      51568, Size:   12.590 GB  DataRate:   287.978 MB/s EventRate:     1.152 kHz/s Errors: 1
+CH0 Events IN:      52721, Size:   12.871 GB  DataRate:   288.158 MB/s EventRate:     1.153 kHz/s Errors: 1
+Caught signal 2
+14070579200 Byte / 53675 events in 42.84 sec -> 313.2 MB/s.
+CH0: Events 53675, max_epi=35, min_epi=0, avg_epi=1, set_offset_count=52455

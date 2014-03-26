@@ -22,6 +22,7 @@ evaluateArguments(int argc, char *argv[])
         {"channel", required_argument, 0, 'c'},
         {"file", required_argument, 0, 'f'},
         {"size", required_argument, 0, 's'},
+        {"source", required_argument, 0, 'r'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -37,20 +38,15 @@ evaluateArguments(int argc, char *argv[])
 
     argv[0] = app_name;
 
-    ret.esType = LIBRORC_ES_IN_GENERIC;
-    if( 0 == strcmp(app_name, "dma_in_hwpg") )
-    { ret.esType = LIBRORC_ES_IN_HWPG; }
-
-    if( 0 == strcmp(app_name, "dma_in_ddl") )
-    { ret.esType = LIBRORC_ES_IN_DDL; }
+    /** dma_in defaults **/
+    ret.esType = LIBRORC_ES_TO_HOST;
+    ret.datasource = ES_SRC_NONE;
 
     if( 0 == strcmp(app_name, "dma_out") )
-    { ret.esType = LIBRORC_ES_OUT_SWPG; }
-
-    /*if(ret.esType == LIBRORC_ES_IN_GENERIC)
     {
-        return ret;
-    }*/
+        ret.esType = LIBRORC_ES_TO_DEVICE;
+        ret.datasource = ES_SRC_NONE;
+    }
 
     /** Parse command line arguments **/
     while(1)
@@ -77,6 +73,32 @@ evaluateArguments(int argc, char *argv[])
             {
                 strcpy(ret.refname, optarg);
                 ret.useRefFile = true;
+            }
+            break;
+
+            case 'r':
+            {
+                if( 0 == strcmp(optarg, "pg") )
+                { ret.datasource = ES_SRC_HWPG; break; }
+                else if( 0 == strcmp(optarg, "diu") &&
+                        ret.esType!=LIBRORC_ES_TO_DEVICE )
+                { ret.datasource = ES_SRC_DIU; break; }
+                else if( 0 == strcmp(optarg, "ddr3") &&
+                        ret.esType!=LIBRORC_ES_TO_DEVICE)
+                { ret.datasource = ES_SRC_DDR3; break; }
+                else if( 0 == strcmp(optarg, "none") )
+                { ret.datasource = ES_SRC_NONE; break; }
+                else if( 0 == strcmp(optarg, "dma") &&
+                        ret.esType!=LIBRORC_ES_TO_HOST)
+                { ret.datasource = ES_SRC_DMA; break; }
+                else
+                {
+                    cout << "Invalid data source selected!"
+                        << endl
+                        << HELP_TEXT
+                        << endl;
+                    exit(0);
+                }
             }
             break;
 
@@ -154,12 +176,15 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.eventSize, opts.esType); }
+    { eventStream = new librorc::event_stream(opts.deviceId,
+            opts.channelId, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
         return(NULL);
     }
+
+    eventStream->clearSharedMemory();
 
     return(eventStream);
 }
@@ -177,12 +202,14 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.eventSize, opts.esType); }
+    { eventStream = new librorc::event_stream(dev, bar,
+            opts.channelId, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
         return(NULL);
     }
+    eventStream->clearSharedMemory();
 
     return(eventStream);
 }
@@ -244,7 +271,7 @@ printStatusLine
         {
             printf
             (
-                " EventRate: %9.3f kHz/s",
+                " EventRate: %9.3f kHz",
                 (double)(channel_status->n_events - last_events_received)/
                 gettimeofdayDiff(last_time, current_time)/1000.0
             );
@@ -294,4 +321,228 @@ printFinalStatusLine
         );
     }
 
+}
+
+
+void
+configurePatternGenerator
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+    )
+{
+    librorc::patterngenerator *pg =
+        eventStream->getPatternGenerator();
+    if( pg )
+    {
+        pg->configureMode(
+                PG_PATTERN_INC, // patternMode
+                0x00000000,     // initialPattern
+                0);             // numberOfEvents -> continuous
+        pg->setStaticEventSize(opts.eventSize);
+        pg->useAsDataSource();
+        pg->enable();
+    }
+    else
+    {
+        cout << "PatternGenerator not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete pg;
+}
+
+
+void
+unconfigurePatternGenerator
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+    )
+{
+    librorc::patterngenerator *pg =
+        eventStream->getPatternGenerator();
+    if( pg )
+    {
+        pg->disable();
+    }
+    else
+    {
+        cout << "PatternGenerator not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete pg;
+}
+
+
+void
+configureDiu
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::diu *diu =
+        eventStream->getDiu();
+    if( diu )
+    {
+        diu->useAsDataSource();
+        diu->enableInterface();
+        diu->prepareForFeeData();
+    }
+    else
+    {
+        cout << "DIU not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete diu;
+}
+
+
+void
+unconfigureDiu
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+    )
+{
+    librorc::diu *diu =
+        eventStream->getDiu();
+    if( diu )
+    {
+        if(diu->linkUp())
+        { diu->sendFeeEndOfBlockTransferCmd(); }
+        diu->disableInterface();
+    }
+    else
+    {
+        cout << "DIU not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete diu;
+}
+
+
+void
+configureSiu
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::siu *siu =
+        eventStream->getSiu();
+    if( siu )
+    {
+        siu->setReset(0);
+        siu->enableInterface();
+    }
+    else
+    {
+        cout << "SIU not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete siu;
+}
+
+
+void
+unconfigureSiu
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::siu *siu =
+        eventStream->getSiu();
+    if( siu )
+    {
+        siu->disableInterface();
+    }
+    else
+    {
+        cout << "SIU not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete siu;
+}
+
+
+
+void
+configureDataSource
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    eventStream->m_link->waitForGTXDomain();
+    eventStream->m_link->enableFlowControl();
+    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
+            opts.datasource != ES_SRC_NONE)
+    {
+        configureSiu(eventStream, opts);
+    }
+
+    switch(opts.datasource)
+    {
+        case ES_SRC_HWPG:
+            {
+                configurePatternGenerator(eventStream, opts);
+            }
+            break;
+
+        case ES_SRC_DIU:
+            {
+                configureDiu(eventStream, opts);
+            }
+            break;
+
+        case ES_SRC_DMA:
+            {
+                eventStream->m_link->setDefaultDataSource();
+            }
+            break;
+
+        default: // "none" or invalid or unspecified
+            break;
+    }
+
+}
+
+void
+unconfigureDataSource
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    switch(opts.datasource)
+    {
+        case ES_SRC_HWPG:
+            {
+                unconfigurePatternGenerator(eventStream, opts);
+            }
+            break;
+
+        case ES_SRC_DIU:
+            {
+                unconfigureDiu(eventStream, opts);
+            }
+            break;
+
+        default: // "none" or invalid or unspecified
+            break;
+    }    
+    
+    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
+            opts.datasource != ES_SRC_NONE)
+    {
+        unconfigureSiu(eventStream, opts);
+    }
 }

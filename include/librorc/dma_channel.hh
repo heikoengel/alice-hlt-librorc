@@ -44,28 +44,27 @@
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
 
-
-/**
- * @class dma_channel
- * @brief DMA channel management class
- *
- * Initialize DMA channel with init() before using any other member
- * function. Initialization sets the parent BAR and the channel offset
- * within the BAR (via dma_base). Use prepareEB() and prepareRB() to
- * fill the buffer descriptor memories, then configure Buffer-Enable
- * and -Continuous flags (setRBDMEnable(), setEBDMEnable(),
- * setRBDMContinuous(), setEBDMContinuous() ).
- * No DMA transfer will start unless setDMAEnable() has been called
- * with enable=1.
- **/
 namespace LIBRARY_NAME
 {
-class bar;
-class buffer;
-class device;
-class link;
-class dma_channel_configurator;
+    class bar;
+    class buffer;
+    class device;
+    class link;
+    class dma_channel_configurator;
 
+
+    /**
+     * @brief DMA channel management class
+     *
+     * Initialize DMA channel with init() before using any other member
+     * function. Initialization sets the parent BAR and the channel offset
+     * within the BAR (via dma_base). Use prepareEB() and prepareRB() to
+     * fill the buffer descriptor memories, then configure Buffer-Enable
+     * and -Continuous flags (setRBDMEnable(), setEBDMEnable(),
+     * setRBDMContinuous(), setEBDMContinuous() ).
+     * No DMA transfer will start unless setDMAEnable() has been called
+     * with enable=1.
+     **/
     class dma_channel
     {
         friend class dma_channel_configurator;
@@ -391,6 +390,25 @@ class dma_channel_configurator;
              * @return DMA Packetizer Configuration and Status
              **/
             uint32_t DMAConfig();
+
+
+            /**
+             * set DMA engine suspend
+             * @param value suspend value to be set. set to 1 before
+             * disabling DMA engine, set to 0 before starting DMA engine.
+             * getDMABusy() can only be non-zero is suspend is set to 1.
+             **/
+            void setSuspend
+            (
+                 uint32_t value
+            );
+
+
+            /**
+             * get current suspend value
+             * @return suspend bit [0/1]
+             **/
+            uint32_t getSuspend();
 
     };
 
