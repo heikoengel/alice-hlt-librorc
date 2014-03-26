@@ -67,6 +67,18 @@ namespace LIBRARY_NAME
         }
     }
 
+    void
+    patterngenerator::resetEventId()
+    {
+        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        // set eventid_rst
+        ddlctrl |= (1<<9);
+        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        // release eventid_rst
+        ddlctrl &= ~(1<<9);
+        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
 
     void
     patterngenerator::setStaticEventSize

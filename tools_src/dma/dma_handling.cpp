@@ -339,6 +339,7 @@ configurePatternGenerator
                 PG_PATTERN_INC, // patternMode
                 0x00000000,     // initialPattern
                 0);             // numberOfEvents -> continuous
+        pg->resetEventId();
         pg->setStaticEventSize(opts.eventSize);
         pg->useAsDataSource();
         pg->enable();
