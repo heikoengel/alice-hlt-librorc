@@ -511,6 +511,12 @@ configureDataSource
             }
             break;
 
+        case ES_SRC_DDR3:
+            {
+                eventStream->m_link->setDataSourceDdr3DataReplay();
+            }
+            break;
+
         default: // "none" or invalid or unspecified
             break;
     }
@@ -540,7 +546,7 @@ unconfigureDataSource
 
         default: // "none" or invalid or unspecified
             break;
-    }    
+    }
     
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
