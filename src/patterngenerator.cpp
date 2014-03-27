@@ -163,4 +163,13 @@ namespace LIBRARY_NAME
         m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
+    void
+    patterngenerator::setWaitTime
+    (
+        uint32_t waitTime
+    )
+    {
+        m_link->setGTX(RORC_REG_DDL_PG_WAIT_TIME, waitTime);
+    }
+
 }
