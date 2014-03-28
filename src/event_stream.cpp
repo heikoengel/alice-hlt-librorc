@@ -239,13 +239,9 @@ namespace LIBRARY_NAME
          **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
-        {
-            max_pkt_size = MAX_PAYLOAD;
-        }
+        { max_pkt_size = MAX_PAYLOAD; }
         else
-        {
-            max_pkt_size = 128;
-        }
+        { max_pkt_size = 128; }
 
         m_channel = new librorc::dma_channel(
                 m_channelId,
@@ -255,7 +251,6 @@ namespace LIBRARY_NAME
                 m_eventBuffer,
                 m_reportBuffer);
 
-        //m_bar1->simSetPacketSize(32);
         m_channel->enable();
     }
 
@@ -284,11 +279,6 @@ namespace LIBRARY_NAME
         }
 
         m_channel_status = (librorcChannelStatus*)shm;
-
-        /*memset(m_channel_status, 0, sizeof(librorcChannelStatus));
-        m_channel_status->index = 0;
-        m_channel_status->last_id = 0xfffffffff;
-        m_channel_status->channel = (unsigned int)m_channelId;*/
     }
 
 
@@ -582,11 +572,9 @@ namespace LIBRARY_NAME
 
                 releaseEvent(reference);
 
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
-
-
+                m_channel_status->index
+                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                    ? (m_channel_status->index+1) : 0;
             }
 
             releaseEvent(init_reference);
