@@ -266,7 +266,7 @@ namespace LIBRARY_NAME
                 sizeof(librorcChannelStatus), IPC_CREAT | 0666);
         if(shID==-1)
         {
-            cout << "prepareSharedMemory failed!" << endl;
+            cout << "prepareSharedMemory failed (1)!" << endl;
             throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
         }
 
@@ -274,7 +274,7 @@ namespace LIBRARY_NAME
         char *shm = (char*)shmat(shID, 0, 0);
         if(shm==(char*)-1)
         {
-            cout << "prepareSharedMemory failed!" << endl;
+            cout << "prepareSharedMemory failed (2)!" << endl;
             throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
         }
 
@@ -422,24 +422,6 @@ namespace LIBRARY_NAME
         while(m_release_map[m_channel_status->shadow_index] == true)
         {
             m_release_map[m_channel_status->shadow_index] = false;
-//=======
-//        //TODO: make this global
-//        uint64_t events_processed = 0;
-//        /** new event received */
-//        if( reports[m_channel_status->index].reported_event_size!=0 )
-//        {
-//            // capture index of the first found reportbuffer entry
-//            uint64_t starting_index       = m_channel_status->index;
-//            uint64_t events_per_iteration = 0;
-//            uint64_t event_buffer_offset  = 0;
-//            uint64_t report_buffer_offset = 0;
-//
-//            // handle all following entries
-//            while( reports[m_channel_status->index].reported_event_size!=0 )
-//            {
-//                // increment number of events processed in this interation
-//                events_processed++;
-//>>>>>>> master
 
             event_buffer_offset =
                 m_reports[m_channel_status->shadow_index].offset;
@@ -447,16 +429,6 @@ namespace LIBRARY_NAME
             report_buffer_offset =
                 ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
                     % m_reportBuffer->getPhysicalSize();
-//=======
-//                /**
-//                 * TODO: reported_event_size and calc_event_size still contain error/status flags
-//                 * at this point. Handle these flags and mask upper two bits for both sizes before
-//                 * using them as actual wordcounts.
-//                 **/
-//                uint64_t ret = (m_event_callback != NULL)
-//                    ? m_event_callback(user_data, event_id, report, event, m_channel_status)
-//                    : 1;
-//>>>>>>> master
 
             counter++;
 
@@ -471,12 +443,6 @@ namespace LIBRARY_NAME
                 shadow_index = 0;
             }
         }
-//=======
-//                // increment the number of bytes received
-//                // Note that the upper two status bits are shifted out!
-//                m_channel_status->bytes_received +=
-//                    (reports[m_channel_status->index].calc_event_size<<2);
-//>>>>>>> master
 
         memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
@@ -553,8 +519,6 @@ namespace LIBRARY_NAME
         m_channel_status->index
             = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
             ? (m_channel_status->index+1) : 0;
-
-
 
             /** handle all following entries */
             while( getNextEvent(&report, &event_id, &event, &reference) )
