@@ -1,3 +1,0 @@
-PDA_WARNING : The PDA library has debug support (current debug mask is 0).
-PDA_WARNING : Please use the environment variable PDA_DEBUG to change the debug mask!
-PDA_WARNING : Please set PDA_DEBUG to the value 255 to get all debug output!
