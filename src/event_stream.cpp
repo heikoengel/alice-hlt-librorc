@@ -494,7 +494,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        uint64_t events_processed = 0;
+        uint64_t events_processed                      = 0;
         librorc_event_descriptor *report               = NULL;
         uint64_t                  event_id             = 0;
         const uint32_t           *event                = 0;

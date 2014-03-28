@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
 
 set( REQUIRED_PDA_VERSION "7:0:1" )
-set(VERSION "1.0.0")
+set(VERSION "1.0.1")
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
@@ -44,7 +44,7 @@ OPTION(MyOption "LIBMODE" SHARED)
 # Build librorc
 add_library( rorc ${LIBMODE} $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
-SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION 1.0.1 SOVERSION 0)
+SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION ${VERSION} SOVERSION 0)
 
 target_link_libraries( rorc pthread pci ${EXTRA_LIBS})
 
