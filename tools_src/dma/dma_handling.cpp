@@ -342,7 +342,7 @@ configurePatternGenerator
         pg->resetEventId();
         pg->setStaticEventSize(opts.eventSize);
         pg->useAsDataSource();
-        pg->setWaitTime(opts.eventSize<<2);
+        pg->setWaitTime(0);
         pg->enable();
     }
     else
