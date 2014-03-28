@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall -g -Wall -O0 -g -DDEBUG    CMakeFiles/board_reset.dir/rorctl/board_reset.cpp.o  -o board_reset -rdynamic ../librorc.so.1.0.1 -lpthread /opt/packages/pda/7.0.1/lib/libpda.so -lpci /opt/packages/pda/7.0.1/lib/libpda.so -Wl,-rpath,/mnt/data/005_git/crorc-driver-dma/build/debug:/opt/packages/pda/7.0.1/lib: 

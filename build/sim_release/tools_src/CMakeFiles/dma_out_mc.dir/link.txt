@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall -g -O3 -DNDEBUG    CMakeFiles/dma_out_mc.dir/dma/dma_out_mc.cpp.o CMakeFiles/dma_out_mc.dir/dma/dma_handling.cpp.o  -o dma_out_mc -rdynamic ../librorc.so.1.0.1 /opt/packages/pda/7.0.1/lib/libpda.so -lpthread -lpci /opt/packages/pda/7.0.1/lib/libpda.so -Wl,-rpath,/mnt/data/005_git/crorc-driver-dma/build/sim_release:/opt/packages/pda/7.0.1/lib: 

@@ -95,7 +95,10 @@ namespace LIBRARY_NAME
             }
         }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+        {
+            cout << "initMembers failed!" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
 
         m_link     = new librorc::link(m_bar1, m_channelId);
         m_sm       = new librorc::sysmon(m_bar1);
@@ -215,7 +218,10 @@ namespace LIBRARY_NAME
             m_reports = (librorc_event_descriptor*)m_reportBuffer->getMem();
         }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+        {
+            cout << "initializeDmaBuffers failed" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
 
         for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
@@ -264,12 +270,18 @@ namespace LIBRARY_NAME
             shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
                 sizeof(librorcChannelStatus), IPC_CREAT | 0666);
         if(shID==-1)
-        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+        {
+            cout << "prepareSharedMemory failed!" << endl;
+            throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+        }
 
         /** attach to shared memory */
         char *shm = (char*)shmat(shID, 0, 0);
         if(shm==(char*)-1)
-        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+        {
+            cout << "prepareSharedMemory failed!" << endl;
+            throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+        }
 
         m_channel_status = (librorcChannelStatus*)shm;
 

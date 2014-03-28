@@ -1,1 +1,0 @@
-/usr/bin/cc  -fPIC -g   -shared -Wl,-soname,fli.so -o fli.so fli/CMakeFiles/FLI_OBJECTS.dir/flisock.c.o 
