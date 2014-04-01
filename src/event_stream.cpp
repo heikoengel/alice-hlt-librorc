@@ -107,9 +107,6 @@ namespace LIBRARY_NAME
 
         pthread_mutex_init(&m_releaseEnable, NULL);
         pthread_mutex_init(&m_getEventEnable, NULL);
-
-//        pthread_mutex_unlock(&m_releaseEnable);
-//        pthread_mutex_unlock(&m_getEventEnable);
     }
 
 
