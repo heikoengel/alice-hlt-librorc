@@ -104,6 +104,12 @@ namespace LIBRARY_NAME
         m_sm       = new librorc::sysmon(m_bar1);
         m_fwtype   = m_sm->firmwareType();
         m_linktype = m_link->linkType();
+
+        pthread_mutex_init(&m_releaseEnable, NULL);
+        pthread_mutex_init(&m_getEventEnable, NULL);
+
+        pthread_mutex_unlock(&m_releaseEnable);
+        pthread_mutex_unlock(&m_getEventEnable);
     }
 
 
@@ -397,13 +403,15 @@ namespace LIBRARY_NAME
         uint64_t                  *reference
     )
     {
-        if( m_reports[m_channel_status->index].calc_event_size==0 )
-        { return false; }
+        pthread_mutex_lock(&m_getEventEnable);
+            if( m_reports[m_channel_status->index].calc_event_size==0 )
+            { return false; }
 
-        *reference =  m_channel_status->index;
-        *report    = &m_reports[m_channel_status->index];
-        *event_id  =  getEventIdFromCdh(dwordOffset(**report));
-        *event     =  getRawEvent(**report);
+            *reference =  m_channel_status->index;
+            *report    = &m_reports[m_channel_status->index];
+            *event_id  =  getEventIdFromCdh(dwordOffset(**report));
+            *event     =  getRawEvent(**report);
+        pthread_mutex_unlock(&m_getEventEnable);
         return true;
     }
 
@@ -451,8 +459,10 @@ namespace LIBRARY_NAME
     void
     event_stream::releaseEvent(uint64_t reference)
     {
-        m_release_map[reference] = true;
-        setBufferOffsets();
+        pthread_mutex_lock(&m_releaseEnable);
+            m_release_map[reference] = true;
+            setBufferOffsets();
+        pthread_mutex_unlock(&m_releaseEnable);
     }
 
     uint64_t
