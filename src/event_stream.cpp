@@ -108,8 +108,8 @@ namespace LIBRARY_NAME
         pthread_mutex_init(&m_releaseEnable, NULL);
         pthread_mutex_init(&m_getEventEnable, NULL);
 
-        pthread_mutex_unlock(&m_releaseEnable);
-        pthread_mutex_unlock(&m_getEventEnable);
+//        pthread_mutex_unlock(&m_releaseEnable);
+//        pthread_mutex_unlock(&m_getEventEnable);
     }
 
 
@@ -117,6 +117,9 @@ namespace LIBRARY_NAME
     {
         deleteParts();
         shmdt(m_channel_status);
+
+        pthread_mutex_destroy(&m_releaseEnable);
+        pthread_mutex_destroy(&m_getEventEnable);
     }
 
 
