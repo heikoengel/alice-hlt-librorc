@@ -408,7 +408,10 @@ namespace LIBRARY_NAME
     {
         pthread_mutex_lock(&m_getEventEnable);
             if( m_reports[m_channel_status->index].calc_event_size==0 )
-            { return false; }
+            {
+                pthread_mutex_unlock(&m_getEventEnable);
+                return false;
+            }
 
             *reference =  m_channel_status->index;
             *report    = &m_reports[m_channel_status->index];
@@ -529,9 +532,9 @@ namespace LIBRARY_NAME
                     &events_per_iteration
                 );
 
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
+            m_channel_status->index
+                = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                ? (m_channel_status->index+1) : 0;
 
             /** handle all following entries */
             while( getNextEvent(&report, &event_id, &event, &reference) )
