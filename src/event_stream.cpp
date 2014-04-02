@@ -411,7 +411,7 @@ namespace LIBRARY_NAME
 
             *reference                =  m_channel_status->index;
             *report                   = &m_reports[m_channel_status->index];
-            m_channel_status->last_id = getEventIdFromCdh(dwordOffset(**report));
+            m_channel_status->last_id =  getEventIdFromCdh(dwordOffset(**report));
             *event                    =  getRawEvent(**report);
         pthread_mutex_unlock(&m_getEventEnable);
         return true;
