@@ -403,7 +403,7 @@ event_sanity_checker::check
 {
     uint64_t                  report_buffer_index =  channel_status->index;
     librorc_event_descriptor *report_pointer      =  &report;
-    int64_t                   last_id             =  channel_status->last_id;
+    //int64_t                   last_id             =  channel_status->last_id;
 
     m_event               = rawEventPointer(report_pointer);
     m_reported_event_size = reportedEventSize(report_pointer);
