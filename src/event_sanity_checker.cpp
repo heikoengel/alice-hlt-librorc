@@ -443,17 +443,16 @@ event_sanity_checker::check
 }
 
 
-//TODO: legacy code
+
 uint64_t
 event_sanity_checker::check
 (
-    librorc_event_descriptor *reports,
+    librorc_event_descriptor  report,
     librorcChannelStatus     *channel_status
 )
 {
-    librorc_event_descriptor *report_entry = &reports[channel_status->index];
-    uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
-    check(reports[channel_status->index], channel_status, event_id);
+    uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));
+    check(report, channel_status, event_id);
     return event_id;
 }
 

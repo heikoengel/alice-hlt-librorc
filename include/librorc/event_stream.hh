@@ -64,7 +64,6 @@ typedef struct
 typedef uint64_t (*librorc_event_callback)
 (
     void*,
-    uint64_t,
     librorc_event_descriptor,
     const uint32_t*,
     librorcChannelStatus*
@@ -179,10 +178,9 @@ class diu;
              * @param [out] report
              *        Pointer to the event descriptor field inside the report buffer. Please
              *        see buffer.hh for the detailed memory layout.
-             * @param [out] event_id
-             *        Event ID.
              * @param [out] event
              *        Pointer to the event payload.
+             * @param [out] Reference to the returned event. Used releaseEvent ...
              *
              * @return true if there was a new event and false if the buffer was empty
              */
@@ -190,7 +188,6 @@ class diu;
             getNextEvent
             (
                 librorc_event_descriptor **report,
-                uint64_t                  *event_id,
                 const uint32_t           **event,
                 uint64_t                  *reference
             );
@@ -207,7 +204,7 @@ class diu;
              */
             uint64_t handleChannelData(void *user_data);
 
-            void     clearSharedMemory();
+            void clearSharedMemory();
 
             /**
              * get PatternGenerator instance for current event_stream
@@ -295,7 +292,6 @@ class diu;
             (
                 uint64_t                  events_processed,
                 void                     *user_data,
-                uint64_t                  event_id,
                 librorc_event_descriptor *report,
                 const uint32_t           *event,
                 uint64_t                 *events_per_iteration

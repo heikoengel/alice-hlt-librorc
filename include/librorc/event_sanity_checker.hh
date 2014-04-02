@@ -93,7 +93,7 @@ class ddl_reference_file;
             uint64_t
             check
             (
-                librorc_event_descriptor *reports,
+                librorc_event_descriptor  report,
                 librorcChannelStatus     *channel_status
             );
 

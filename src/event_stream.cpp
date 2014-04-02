@@ -382,7 +382,7 @@ namespace LIBRARY_NAME
     }
 
 
-    //TODO: obsolete
+
     uint64_t
     event_stream::getEventIdFromCdh(uint64_t offset)
     {
@@ -398,7 +398,6 @@ namespace LIBRARY_NAME
     event_stream::getNextEvent
     (
         librorc_event_descriptor **report,
-        uint64_t                  *event_id,
         const uint32_t           **event,
         uint64_t                  *reference
     )
@@ -412,7 +411,7 @@ namespace LIBRARY_NAME
 
             *reference =  m_channel_status->index;
             *report    = &m_reports[m_channel_status->index];
-            *event_id  =  getEventIdFromCdh(dwordOffset(**report));
+            //*event_id  =  getEventIdFromCdh(dwordOffset(**report));
             *event     =  getRawEvent(**report);
         pthread_mutex_unlock(&m_getEventEnable);
         return true;
@@ -473,7 +472,6 @@ namespace LIBRARY_NAME
     (
         uint64_t                  events_processed,
         void                     *user_data,
-        uint64_t                  event_id,
         librorc_event_descriptor *report,
         const uint32_t           *event,
         uint64_t                 *events_per_iteration
@@ -482,13 +480,13 @@ namespace LIBRARY_NAME
 
         events_processed++;
 
-        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1)
+        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, *report, event, m_channel_status) : 1)
         {
             cout << "Event Callback is not set!" << endl;
             abort();
         }
 
-        m_channel_status->last_id = event_id;
+        //m_channel_status->last_id = event_id;
 
         m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
         m_channel_status->n_events++;
@@ -507,23 +505,21 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        uint64_t events_processed                      = 0;
+        uint64_t                  events_processed     = 0;
         librorc_event_descriptor *report               = NULL;
-        uint64_t                  event_id             = 0;
         const uint32_t           *event                = 0;
         uint64_t                  events_per_iteration = 0;
         uint64_t                  reference            = 0;
         uint64_t                  init_reference       = 0;
 
         /** New event(s) received */
-        if( getNextEvent(&report, &event_id, &event, &init_reference) )
+        if( getNextEvent(&report, &event, &init_reference) )
         {
             events_processed =
                 handleEvent
                 (
                     events_processed,
                     user_data,
-                    event_id,
                     report,
                     event,
                     &events_per_iteration
@@ -534,14 +530,13 @@ namespace LIBRARY_NAME
                 ? (m_channel_status->index+1) : 0;
 
             /** handle all following entries */
-            while( getNextEvent(&report, &event_id, &event, &reference) )
+            while( getNextEvent(&report, &event, &reference) )
             {
                 events_processed =
                     handleEvent
                     (
                         events_processed,
                         user_data,
-                        event_id,
                         report,
                         event,
                         &events_per_iteration
