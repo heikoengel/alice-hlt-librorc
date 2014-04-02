@@ -409,10 +409,10 @@ namespace LIBRARY_NAME
                 return false;
             }
 
-            *reference =  m_channel_status->index;
-            *report    = &m_reports[m_channel_status->index];
-            //*event_id  =  getEventIdFromCdh(dwordOffset(**report));
-            *event     =  getRawEvent(**report);
+            *reference                =  m_channel_status->index;
+            *report                   = &m_reports[m_channel_status->index];
+            m_channel_status->last_id = getEventIdFromCdh(dwordOffset(**report));
+            *event                    =  getRawEvent(**report);
         pthread_mutex_unlock(&m_getEventEnable);
         return true;
     }
@@ -485,8 +485,6 @@ namespace LIBRARY_NAME
             cout << "Event Callback is not set!" << endl;
             abort();
         }
-
-        //m_channel_status->last_id = event_id;
 
         m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
         m_channel_status->n_events++;
