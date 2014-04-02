@@ -1,10 +1,8 @@
 1.0 INSTALLATION
 1.1 Prerequisites
 Some libraries need to be installed
-- libpci and development header
-- libkmod and development header
 - rpm and rpmbuild
-- PDA in version 7.0.1
+- PDA in version 7.2.1
 
 Additionally, /bin of the PDA library needs to be in $PATH.
 
@@ -41,3 +39,9 @@ IOMMU Hardware Support  --->
 Second, you can disable IOMMU support via kernel parameter:
 
 amd_iommu=off intel_iommu=off
+
+3.0 Changelog
+
+R 0.0.0
+  - Removed CDH event ID from redout interface
+  - get- and releaseEvent() are now thread save (pthreads)
