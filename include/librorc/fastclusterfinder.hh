@@ -57,6 +57,24 @@ namespace LIBRARY_NAME
             bool
             isEnabled();
 
+            /**
+             * set or release reset
+             * @param value 1 or 0
+             **/
+            void
+            setReset
+            (
+                uint32_t value
+            );
+
+
+            /**
+             * get reset state
+             * @return 1 when in reset, else 0
+             **/
+            uint32_t
+            reset();
+
 
             /**
              * enable/disable Single Pad Suppression. If enabled, clusters
@@ -66,14 +84,14 @@ namespace LIBRARY_NAME
             void
             setSinglePadSuppression
             (
-                int spSupprValue
+                uint32_t spSupprValue
             );
 
             /**
              * get current value for Single Pad Suppression
              * @return Single Pad Suppression value
              **/
-            int
+            uint32_t
             singlePadSuppression();
 
             /**
@@ -85,14 +103,14 @@ namespace LIBRARY_NAME
             void
             setBypassMerger
             (
-                int bypassValue
+                uint32_t bypassValue
             );
 
             /**
              * get current Merger Bypass value
              * @return 1 if merger is bypassed, else 0
              **/
-            int
+            uint32_t
             bypassMerger();
 
 
@@ -104,14 +122,14 @@ namespace LIBRARY_NAME
             void
             setDeconvPad
             (
-                int deconvValue
+                uint32_t deconvValue
             );
 
             /**
              * get current deconvolution setting
              * @return 1 if deconvolution is enabled, 0 if disabled.
              **/
-            int
+            uint32_t
             deconvPad();
 
             /**
@@ -182,25 +200,25 @@ namespace LIBRARY_NAME
 
             /**
              * set Merger Algorithm Mode
-             * @param bFollow when set to true, the merger takes the 
+             * @param mode when set to 1, the merger takes the 
              * timestamp of the current cluster candidate as a reference
-             * for the distance check to the next. When set to false, the
+             * for the distance check to the next. When set to 0, the
              * merger uses the timestamp of the first candidate as a
              * reference for all following candidates.
              **/
             void
-            setMergerAlgorithmFollow
+            setMergerAlgorithm
             (
-                bool bFollow
+                uint32_t mode
             );
 
             /**
              * get current Merger Algorithm Mode setting.
-             * @return true when mode is set to 'follow', false if mode
+             * @return 1 when mode is set to 'follow', 0 if mode
              * is set to 'keep'
              **/
-            bool
-            mergerAlgorithmFollow();
+            uint32_t
+            mergerAlgorithm();
 
             /**
              * set charge tolerance threshold for peak finder.

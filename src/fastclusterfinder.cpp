@@ -38,23 +38,43 @@ namespace LIBRARY_NAME
     void
     fastclusterfinder::enable()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<8);
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl |= (1<<0);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     void
     fastclusterfinder::disable()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<8);
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<0);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     bool
     fastclusterfinder::isEnabled()
     {
-        return (((m_link->GTX(RORC_REG_DDL_CTRL)>>8) & 1) != 0);
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        return ((fcfctrl & 0x80000001) == 0x80000001);
+    }
+
+    void
+    fastclusterfinder::setReset
+    (
+        uint32_t value
+    )
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<31); // clear bit
+        fcfctrl |= ((value&1)<<31);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    uint32_t
+    fastclusterfinder::reset()
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        return (fcfctrl>>31);
     }
 
 
@@ -64,9 +84,154 @@ namespace LIBRARY_NAME
     void
     fastclusterfinder::setSinglePadSuppression
     (
-        int spSupprValue
+        uint32_t spSupprValue
     )
     {
-        /** TODO **/
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<8);
+        fcfctrl |= ((spSupprValue&1)<<8);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
     }
+
+    uint32_t
+    fastclusterfinder::singlePadSuppression()
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        return ((fcfctrl>>8)&1);
+    }
+
+
+    void
+    fastclusterfinder::setBypassMerger
+    (
+        uint32_t bypassValue
+    )
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<9);
+        fcfctrl |= ((bypassValue&1)<<9);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    uint32_t
+    fastclusterfinder::bypassMerger()
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        return ((fcfctrl>>9)&1);
+    }
+
+    void
+    fastclusterfinder::setDeconvPad
+    (
+        uint32_t deconvValue
+    )
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<10);
+        fcfctrl |= ((deconvValue&1)<<10);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    uint32_t
+    fastclusterfinder::deconvPad()
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        return ((fcfctrl>>10)&1);
+    }
+
+    void
+    fastclusterfinder::setSingleSeqLimit
+    (
+        uint8_t limit
+    )
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        limits &= ~(0xff<<16);
+        limits |= ((limit&0xff)<<16);
+        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+    }
+
+    uint8_t
+    fastclusterfinder::singleSeqLimit()
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        return ((limits>>16) & 0xff);
+    }
+
+    void
+    fastclusterfinder::setClusterLowerLimit
+    (
+        uint16_t limit
+    )
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        limits &= ~(0x0000ffff);
+        limits |= (limit&0xffff);
+        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+    }
+
+    uint16_t
+    fastclusterfinder::clusterLowerLimit()
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        return (limits & 0xffff);
+    }
+
+    void
+    fastclusterfinder::setMergerDistance
+    (
+        uint8_t match_distance
+    )
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        limits &= ~(0x0f<<24);
+        limits |= ((limits&0x0f)>>24);
+        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+    }
+
+    uint8_t
+    fastclusterfinder::mergerDistance()
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        return (limits>>24 & 0x0f);
+    }
+
+    void
+    fastclusterfinder::setMergerAlgorithm
+    (
+        uint32_t mode
+    )
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<11);
+        fcfctrl |= ((mode&1)<<11);
+        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    uint32_t
+    fastclusterfinder::mergerAlgorithm()
+    {
+        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        return ((fcfctrl>>11)&1);
+    }
+
+    void
+    fastclusterfinder::setChargeTolerance
+    (
+        uint8_t charge_tolerance
+    )
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        limits &= ~(0x0f<<28);
+        limits |= ((charge_tolerance&0x0f)>>28);
+        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+    }
+
+    uint8_t
+    fastclusterfinder::chargeTolerance()
+    {
+        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        return (limits>>28 & 0x0f);
+    }
+
 }
