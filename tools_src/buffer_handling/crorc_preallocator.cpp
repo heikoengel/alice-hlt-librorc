@@ -25,7 +25,9 @@
 
 #include <librorc.h>
 
+#ifndef UINT16_MAX
 #define UINT16_MAX 65535
+#endif
 
 using namespace std;
 

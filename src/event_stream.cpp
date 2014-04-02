@@ -31,7 +31,7 @@
 #include <librorc/dma_channel.hh>
 #include <librorc/event_sanity_checker.hh>
 
-
+using namespace std;
 
 namespace LIBRARY_NAME
 {
@@ -95,7 +95,10 @@ namespace LIBRARY_NAME
             }
         }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+        {
+            cout << "initMembers failed!" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
 
         m_link     = new librorc::link(m_bar1, m_channelId);
         m_sm       = new librorc::sysmon(m_bar1);
@@ -209,11 +212,23 @@ namespace LIBRARY_NAME
 
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+            m_done             = false;
+            m_event_callback   = NULL;
+            m_status_callback  = NULL;
+            m_reports = (librorc_event_descriptor*)m_reportBuffer->getMem();
         }
         catch(...)
-        { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+        {
+            cout << "initializeDmaBuffers failed" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
 
+        for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
+        { m_release_map[i] = false; }
+
+        checkFirmwareCompatibility(esType);
     }
+
 
 
     void
@@ -224,13 +239,9 @@ namespace LIBRARY_NAME
          **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
-        {
-            max_pkt_size = MAX_PAYLOAD;
-        }
+        { max_pkt_size = MAX_PAYLOAD; }
         else
-        {
-            max_pkt_size = 128;
-        }
+        { max_pkt_size = 128; }
 
         m_channel = new librorc::dma_channel(
                 m_channelId,
@@ -240,9 +251,9 @@ namespace LIBRARY_NAME
                 m_eventBuffer,
                 m_reportBuffer);
 
-        //m_bar1->simSetPacketSize(32);
         m_channel->enable();
     }
+
 
 
     void
@@ -254,20 +265,22 @@ namespace LIBRARY_NAME
             shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
                 sizeof(librorcChannelStatus), IPC_CREAT | 0666);
         if(shID==-1)
-        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+        {
+            cout << "prepareSharedMemory failed (1)!" << endl;
+            throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+        }
 
         /** attach to shared memory */
         char *shm = (char*)shmat(shID, 0, 0);
         if(shm==(char*)-1)
-        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+        {
+            cout << "prepareSharedMemory failed (2)!" << endl;
+            throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+        }
 
         m_channel_status = (librorcChannelStatus*)shm;
-
-        /*memset(m_channel_status, 0, sizeof(librorcChannelStatus));
-        m_channel_status->index = 0;
-        m_channel_status->last_id = 0xfffffffff;
-        m_channel_status->channel = (unsigned int)m_channelId;*/
     }
+
 
 
     void
@@ -277,13 +290,13 @@ namespace LIBRARY_NAME
         { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
 
         memset(m_channel_status, 0, sizeof(librorcChannelStatus));
-        m_channel_status->index = 0;
-        m_channel_status->last_id = 0xfffffffff;
-        m_channel_status->channel = (unsigned int)m_channelId;
+
+        m_channel_status->index        = 0;
+        m_channel_status->shadow_index = 0;
+        m_channel_status->last_id      = 0xfffffffff;
+        m_channel_status->channel      = (unsigned int)m_channelId;
         m_channel_status->device = m_deviceId;
     }
-
-
 
 
 
@@ -363,11 +376,10 @@ namespace LIBRARY_NAME
     }
 
 
-
+    //TODO: obsolete
     uint64_t
     event_stream::getEventIdFromCdh(uint64_t offset)
     {
-
         uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
         cur_event_id <<= 12;
         cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
@@ -376,89 +388,161 @@ namespace LIBRARY_NAME
 
 
 
+    bool
+    event_stream::getNextEvent
+    (
+        librorc_event_descriptor **report,
+        uint64_t                  *event_id,
+        const uint32_t           **event,
+        uint64_t                  *reference
+    )
+    {
+        if( m_reports[m_channel_status->index].calc_event_size==0 )
+        { return false; }
+
+        *reference =  m_channel_status->index;
+        *report    = &m_reports[m_channel_status->index];
+        *event_id  =  getEventIdFromCdh(dwordOffset(**report));
+        *event     =  getRawEvent(**report);
+        return true;
+    }
+
+
+    void
+    event_stream::setBufferOffsets()
+    {
+        if(m_release_map[m_channel_status->shadow_index] != true)
+        { return; }
+
+        uint64_t report_buffer_offset;
+        uint64_t event_buffer_offset;
+        uint64_t shadow_index = m_channel_status->shadow_index;
+        uint64_t counter = 0;
+
+        while(m_release_map[m_channel_status->shadow_index] == true)
+        {
+            m_release_map[m_channel_status->shadow_index] = false;
+
+            event_buffer_offset =
+                m_reports[m_channel_status->shadow_index].offset;
+
+            report_buffer_offset =
+                ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
+                    % m_reportBuffer->getPhysicalSize();
+
+            counter++;
+
+            m_channel_status->shadow_index
+                = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
+                ? (m_channel_status->shadow_index+1) : 0;
+
+            if(m_channel_status->shadow_index==0)
+            {
+                memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+                counter      = 0;
+                shadow_index = 0;
+            }
+        }
+
+        memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+        m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+    }
+
+    void
+    event_stream::releaseEvent(uint64_t reference)
+    {
+        m_release_map[reference] = true;
+        setBufferOffsets();
+    }
+
+    uint64_t
+    event_stream::handleEvent
+    (
+        uint64_t                  events_processed,
+        void                     *user_data,
+        uint64_t                  event_id,
+        librorc_event_descriptor *report,
+        const uint32_t           *event,
+        uint64_t                 *events_per_iteration
+    )
+    {
+
+        events_processed++;
+
+        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1)
+        {
+            cout << "Event Callback is not set!" << endl;
+            abort();
+        }
+
+        m_channel_status->last_id = event_id;
+
+        m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
+        m_channel_status->n_events++;
+        *events_per_iteration = *events_per_iteration + 1;
+        DEBUG_PRINTF
+        (
+            PDADEBUG_CONTROL_FLOW,
+            "CH %d - Event, %d DWs\n",
+            m_channel_status->channel,
+            report->calc_event_size
+        );
+
+        return events_processed;
+    }
+
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        librorc_event_descriptor *reports
-            = (librorc_event_descriptor*)m_reportBuffer->getMem();
+        uint64_t events_processed                      = 0;
+        librorc_event_descriptor *report               = NULL;
+        uint64_t                  event_id             = 0;
+        const uint32_t           *event                = 0;
+        uint64_t                  events_per_iteration = 0;
+        uint64_t                  reference            = 0;
+        uint64_t                  init_reference       = 0;
 
-        //TODO: make this global
-        uint64_t events_processed = 0;
-        /** new event received */
-        if( reports[m_channel_status->index].reported_event_size!=0 )
+        /** New event(s) received */
+        if( getNextEvent(&report, &event_id, &event, &init_reference) )
         {
-            // capture index of the first found reportbuffer entry
-            uint64_t starting_index       = m_channel_status->index;
-            uint64_t events_per_iteration = 0;
-            uint64_t event_buffer_offset  = 0;
-            uint64_t report_buffer_offset = 0;
+            events_processed =
+                handleEvent
+                (
+                    events_processed,
+                    user_data,
+                    event_id,
+                    report,
+                    event,
+                    &events_per_iteration
+                );
 
-            // handle all following entries
-            while( reports[m_channel_status->index].reported_event_size!=0 )
+        m_channel_status->index
+            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+            ? (m_channel_status->index+1) : 0;
+
+            /** handle all following entries */
+            while( getNextEvent(&report, &event_id, &event, &reference) )
             {
-                // increment number of events processed in this interation
-                events_processed++;
+                events_processed =
+                    handleEvent
+                    (
+                        events_processed,
+                        user_data,
+                        event_id,
+                        report,
+                        event,
+                        &events_per_iteration
+                    );
 
-                      librorc_event_descriptor  report   = reports[m_channel_status->index];
-                      uint64_t                  event_id = getEventIdFromCdh(dwordOffset(report));
-                const uint32_t                 *event    = getRawEvent(report);
+                releaseEvent(reference);
 
-                /**
-                 * TODO: reported_event_size and calc_event_size still contain error/status flags
-                 * at this point. Handle these flags and mask upper two bits for both sizes before
-                 * using them as actual wordcounts.
-                 **/
-                uint64_t ret = (m_event_callback != NULL)
-                    ? m_event_callback(user_data, event_id, report, event, m_channel_status)
-                    : 1;
-
-                if(ret != 0)
-                {
-                    cout << "Event Callback is set!" << endl;
-                    abort();
-                }
-
-                m_channel_status->last_id = event_id;
-
-                // increment the number of bytes received
-                // Note that the upper two status bits are shifted out!
-                m_channel_status->bytes_received +=
-                    (reports[m_channel_status->index].calc_event_size<<2);
-
-                // save new EBOffset
-                event_buffer_offset = reports[m_channel_status->index].offset;
-
-                // increment report-buffer offset
-                report_buffer_offset
-                    = ((m_channel_status->index)*sizeof(librorc_event_descriptor))
-                    % m_reportBuffer->getPhysicalSize();
-
-                // wrap RB index if necessary
                 m_channel_status->index
                     = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
                     ? (m_channel_status->index+1) : 0;
-
-                //increment total number of events received
-                m_channel_status->n_events++;
-
-                //increment number of events processed in this while-loop
-                events_per_iteration++;
-
-                DEBUG_PRINTF
-                (
-                     PDADEBUG_CONTROL_FLOW,
-                     "CH %d - Event, %d DWs\n",
-                     m_channel_status->channel,
-                     (report.calc_event_size & 0x7fffffff)
-                );
             }
 
-            // clear processed report-buffer entries
-            memset(&reports[starting_index], 0, events_per_iteration*sizeof(librorc_event_descriptor) );
+            releaseEvent(init_reference);
 
-
-            // update min/max statistics on how many events have been received
-            // in the above while-loop
             if(events_per_iteration > m_channel_status->max_epi)
             { m_channel_status->max_epi = events_per_iteration; }
 
@@ -467,18 +551,6 @@ namespace LIBRARY_NAME
 
             events_per_iteration = 0;
             m_channel_status->set_offset_count++;
-
-            // actually update the offset pointers in the firmware
-            m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
-
-            DEBUG_PRINTF
-            (
-                PDADEBUG_CONTROL_FLOW,
-                "CH %d - Setting swptrs: RBDM=%016lx EBDM=%016lx\n",
-                m_channel_status->channel,
-                report_buffer_offset,
-                event_buffer_offset
-            );
         }
 
         return events_processed;

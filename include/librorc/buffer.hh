@@ -62,17 +62,19 @@ typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
 namespace LIBRARY_NAME
 {
-    class device;
-    class dma_channel;
-    class buffer_sglist_programmer;
 
+class device;
+class dma_channel;
+class buffer_sglist_programmer;
 
     /**
-     * @brief buffer management class
-     *
-     * This class manages the DMA receive buffers. One instance of this
-     * class represents one couple of EventBuffer and ReportBuffer with
-     * their corresponding sysfs attributes
+     * @class librorc::buffer
+     * @brief Buffer management class.
+     *        Instances of this class represent DMA buffers (report- and event
+     *        buffer). Buffer IDs are unique and buffers can be mapped into
+     *        different processes. Additionally, a buffer is not freed after
+     *        deleting the related object, but detached from its persistent
+     *        counterpart.
      **/
     class buffer
     {
@@ -80,6 +82,20 @@ namespace LIBRARY_NAME
         friend class buffer_sglist_programmer;
 
         public:
+             /**
+              * Constructor, which allocates a completely new DMA buffer.
+              * @param [in] dev
+              *        Object, which represents the PCI device were the buffer
+              *        is registered to. Please see device.hh for more information.
+              * @param [in] size
+              *        Size of the generated buffer.
+              * @param [in] id
+              *        Index of the buffer. Even IDs are report buffers, odd IDs are
+              *        event buffers.
+              * @param [in] overmap
+              *
+              *
+              */
              buffer
              (
                  device   *dev,
@@ -89,6 +105,16 @@ namespace LIBRARY_NAME
                  int32_t   dma_direction
              );
 
+             /**
+              * Constructor, which attaches to an already allocated persistent DMA
+              * buffer.
+              * @param [in] dev
+              *        Object, which represents the PCI device were the buffer
+              *        is registered to. Please see device.hh for more information.
+              * @param [in] id
+              *        Index of the buffer. Even IDs are report buffers, odd IDs are
+              *        event buffers.
+              */
              buffer
              (
                  device   *dev,
@@ -98,26 +124,23 @@ namespace LIBRARY_NAME
             ~buffer();
 
             /**
-             * Free Buffer: This functions initiates de-allocation of the
-             * attaced DMA buffers
-             * @return 0 on sucess, <0 on error ( use perror() )
+             * Free and release the attached buffer.
+             * @return 0 on success, <0 on error (uses perror() )
              **/
             int32_t
             deallocate();
 
             /**
-             * get Buffer-ID
-             * @return Buffer-ID
+             * Get buffer index.
+             * @return Buffer index.
              **/
             uint64_t
             getID()
-            {
-                return m_id;
-            }
+            { return m_id; }
 
             /**
-             * get the overmapped flag of the buffer
-             * @return 0 if unset, nonzero if set
+             * Get the overmapped flag of the buffer.
+             * @return 0 if mapped normally, nonzero if wrap mapped.
              **/
             int32_t isOvermapped(); // TODO : boolean
 
@@ -125,75 +148,77 @@ namespace LIBRARY_NAME
              * Get physical Buffer size in bytes. Requested buffer
              * size from init() is rounded up to the next PAGE_SIZE
              * boundary.
-             * @return number of bytes allocated as Buffer
+             * @return Number of bytes allocated as buffer.
              **/
             uint64_t getSize()
-            {
-                return m_size;
-            }
+            { return m_size; }
 
+            /**
+             * Get requested buffer size.
+             * @return Number of bytes allocated as Buffer.
+             */
             uint64_t
             getPhysicalSize()
-            {
-                return getSize();
-            }
+            { return getSize(); }
 
+            /**
+             * Get the actually mapped memory region size.
+             * @return Number of bytes allocated if not overmapped,
+             *         twice the size if overmapped.
+             */
             uint64_t
             getMappingSize()
             {
                 if(isOvermapped() == 1)
-                {
-                    return(2*getSize());
-                }
+                { return(2*getSize()); }
                 return getSize();
             }
 
             /**
-             * get memory buffer
-             * @return pointer to mmap'ed buffer memory
+             * Get raw memory buffer.
+             * @return Pointer to mmap'ed buffer memory.
              **/
-            uint32_t *
+            uint32_t*
             getMem()
-            {
-                return m_mem;
-            }
+            { return m_mem; }
 
             void clear();
 
             /**
              * Get number of scatter-gather entries for the Buffer
-             * @return number of sg-entries
+             * @return Number of sg-entries.
              **/
             uint64_t
             getnSGEntries()
-            {
-                return m_numberOfScatterGatherEntries;
-            }
+            { return m_numberOfScatterGatherEntries; }
 
-            vector<librorc_sg_entry>
+            /**
+             * Get the scatter gather list for SG-DMA.
+             * @return Vector of librorc_sg_entry.
+             */
+            std::vector<librorc_sg_entry>
             sgList()
-            {
-                return m_sglist_vector;
-            }
+            { return m_sglist_vector; }
 
             /**
              * Get the maximum number of report buffer entries in the RB
-             * @return maximum number of report buffer entries
+             * @return Maximum number of report buffer entries.
              **/
             uint64_t
             getMaxRBEntries()
-            {
-                return( getSize()/sizeof(librorc_event_descriptor) );
-            }
+            { return( getSize()/sizeof(librorc_event_descriptor) ); }
 
 
+        /**
+         * @internal
+         */
         private:
 
             PciDevice        *m_device;
             DMABuffer        *m_buffer;
             DMABuffer_SGNode *m_sglist;
 
-            vector<librorc_sg_entry> m_sglist_vector;
+            std::vector<librorc_sg_entry> m_sglist_vector;
 
             uint32_t         *m_mem;
             uint64_t          m_id;

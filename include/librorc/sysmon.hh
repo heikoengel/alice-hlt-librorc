@@ -177,25 +177,25 @@ namespace LIBRARY_NAME
                 uint8_t reset
             );
 
-            string*
+            std::string*
             qsfpVendorName
             (
                 uint8_t index
             );
 
-            string*
+            std::string*
             qsfpPartNumber
             (
                 uint8_t index
             );
 
-            string*
+            std::string*
             qsfpRevisionNumber
             (
                 uint8_t index
             );
 
-            string*
+            std::string*
             qsfpSerialNumber
             (
                 uint8_t index
@@ -461,7 +461,7 @@ namespace LIBRARY_NAME
              * @param end end address
              * @return string
              **/
-            string*
+            std::string*
             qsfp_i2c_string_readout
             (
                 uint8_t index,

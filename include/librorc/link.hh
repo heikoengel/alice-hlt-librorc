@@ -432,7 +432,7 @@ namespace LIBRARY_NAME
             uint32_t
             fcfHexstringToUint32
             (
-                 string line
+                 std::string line
             );
 
 };

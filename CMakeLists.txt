@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
 
-set( REQUIRED_PDA_VERSION "7:0:1" )
+set( REQUIRED_PDA_VERSION "7:2:1" )
+set(VERSION "2.0.2")
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
@@ -9,31 +10,20 @@ set( CMAKE_CXX_FLAGS "-Wall -g" )
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
 
-
 #--- Find and check PDA -------------------------------------------------------
 
 include(CMakePda.txt)
 
-
-#--- Setup CPack --------------------------------------------------------------
-#SET(CPACK_GENERATOR "RPM")
-#INCLUDE(CPack)
-
-
-#--- Find libPCI --------------------------------------------------------------
-find_library(PCI pci
-    PATHS ${LD_LIBRARY_PATH})
-
-
 #--- Compile LibRORC in Simulation mode ---------------------------------------
+
 option(MyOption "SIM" OFF)
 if(${SIM})
     add_definitions(-DSIM)
     MESSAGE( STATUS "Librorc is going to be compiled in simulation mode!")
 endif(${SIM})
 
-
 #--- Add target for Doxygen ---------------------------------------------------
+
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
@@ -47,7 +37,6 @@ endif(DOXYGEN_FOUND)
 add_subdirectory(src)
 add_subdirectory(fli)
 
-
 #--- build libraries and tools ------------------------------------------------
 
 OPTION(MyOption "LIBMODE" SHARED)
@@ -55,7 +44,9 @@ OPTION(MyOption "LIBMODE" SHARED)
 # Build librorc
 add_library( rorc ${LIBMODE} $<TARGET_OBJECTS:LIBRORC_OBJECTS> )
 
-SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION 1.0.1 SOVERSION 0)
+SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION ${VERSION} SOVERSION 0)
+
+target_link_libraries( rorc pthread pci ${EXTRA_LIBS})
 
 # Build flisock adapter (if SIM is configured)
 IF(${SIM})
@@ -69,7 +60,6 @@ add_subdirectory(tools_src)
 
 #--- install -----------------------------------------------------------------
 
-
 FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h*")
 INSTALL(FILES ${files} DESTINATION include)
 
@@ -78,7 +68,8 @@ INSTALL(FILES ${files} DESTINATION include/librorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
 
+#--- Setup CPack --------------------------------------------------------------
 
-
+include(CPack.txt)
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")

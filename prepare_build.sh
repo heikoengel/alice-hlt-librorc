@@ -1,7 +1,7 @@
 #!/bin/bash
 
-INSTALL_PATH=/home/weiler/opt/librorc/
-
+VERSION=`cat CMakeLists.txt | grep "set(VERSION" | awk '{print $2}' | cut -d")" -f1 | cut -d"\"" -f2`
+INSTALL_PATH="/opt/package/librorc/$VERSION/"
 MODE="SHARED"
 #MODE="STATIC"
 
@@ -18,12 +18,12 @@ cd $BASEDIR/build/release
 cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/debug
-cmake -DCMAKE_BUILD_TYPE=Debug -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/sim_release
-cmake -DCMAKE_BUILD_TYPE=Release -DSIM=ON -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DSIM=ON -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/sim_debug
-cmake -DCMAKE_BUILD_TYPE=Debug -DSIM=ON -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DSIM=ON -DLIBMODE=$MODE ../../
 
 cd $BASEDIR

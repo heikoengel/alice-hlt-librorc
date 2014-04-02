@@ -1,3 +1,10 @@
+#--- Find libPCI --------------------------------------------------------------
+
+find_library(PCI pci
+    PATHS ${LD_LIBRARY_PATH})
+
+#--- Find PDA -----------------------------------------------------------------
+
 EXECUTE_PROCESS(
   COMMAND pda-config --include
   RESULT_VARIABLE PDA_RETURN

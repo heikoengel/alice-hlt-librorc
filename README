@@ -1,7 +1,25 @@
 1.0 INSTALLATION
+1.1 Prerequisites
+Some libraries need to be installed
+- libpci and development header
+- libkmod and development header
+- rpm and rpmbuild
+- PDA in version 7.0.1
+
+Additionally, /bin of the PDA library needs to be in $PATH.
+
+1.2 Compile
+The librorc build system is Cmake based. However, there are two additional scrip-
+ts to make life easier. First the script ./prepare_build should be called. It se-
+ts up Cmake build folders for all three librorc flavours. Afterwards, the builds
+can be found in ./build (release or debug is the preferable flavour for users).
+
+Make can now be called to compile the library and tools. Calling make with "rpm"
+generates an RPM archive for the current system. The "doc" directive generates a
+doxygen based documentation as PDF or HTML (tar.gz).
+
 
 2.0 KNOWN ISSUES
-
 2.1 DMA Remapping Errors
 Remapping errors can be related to a faulty IOMMU driver. Such errors usually 
 happen during the boot phase. They can be found by typing
@@ -21,15 +39,5 @@ IOMMU Hardware Support  --->
 [ ]     Enable Intel DMA Remapping Devices by default
 
 Second, you can disable IOMMU support via kernel parameter:
-
-amd_iommu=off intel_iommu=off
-
-
-2.2 Link Slowdown
-Currently there are several reason known for a link slowdown. This basically 
-means that the dma_in_pg test application shows a much lower datarate than 
-404 MB/s if just one channel is active.
-
-Try to disable IOMMU support via kernel parameter:
 
 amd_iommu=off intel_iommu=off

@@ -25,7 +25,7 @@
 
 #include <pda.h>
 
-
+using namespace std;
 
 /** Conversions between PLL values and their register representations */
 static inline

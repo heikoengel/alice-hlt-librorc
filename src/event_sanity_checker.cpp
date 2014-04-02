@@ -22,6 +22,7 @@
 
 #include <librorc/event_sanity_checker.hh>
 
+using namespace std;
 
 namespace LIBRARY_NAME
 {

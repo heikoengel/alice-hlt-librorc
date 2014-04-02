@@ -5,6 +5,10 @@ all: $(TARGETS)
 $(TARGETS):
 	$(MAKE) -j16 -C build/$@
 
+rpm:
+	$(MAKE) -j16 -C build/release package
+	cp build/release/*.rpm .
+
 doc:
 	$(MAKE) -C build/release/ doc
 	$(MAKE) -C build/release/doxygen/latex/
@@ -15,6 +19,7 @@ doc:
 
 clean:
 	$(RM) -r build
+	rm -rf *.pdf *.rpm manual.tar*
 
 count:
 	wc -l `find . -iname '*.c' && find . -iname '*.hh' && find . -iname '*.cpp'`
