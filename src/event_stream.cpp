@@ -297,11 +297,11 @@ namespace LIBRARY_NAME
 
         memset(m_channel_status, 0, sizeof(librorcChannelStatus));
 
-        m_channel_status->index        = 0;
+        m_channel_status->index        = 0xffffffffffffffff;
         m_channel_status->shadow_index = 0;
-        m_channel_status->last_id      = 0xfffffffff;
+        m_channel_status->last_id      = 0xffffffffffffffff;
         m_channel_status->channel      = (unsigned int)m_channelId;
-        m_channel_status->device = m_deviceId;
+        m_channel_status->device       = m_deviceId;
     }
 
 
@@ -403,12 +403,24 @@ namespace LIBRARY_NAME
     )
     {
         pthread_mutex_lock(&m_getEventEnable);
-            if( m_reports[m_channel_status->index].calc_event_size==0 )
+
+            uint64_t tmp_index = 0;
+            if(m_channel_status->index == 0xffffffffffffffff)
+            { tmp_index = 0; }
+            else
+            {
+                tmp_index
+                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                    ? (m_channel_status->index+1) : 0;
+            }
+
+            if( m_reports[tmp_index].calc_event_size==0 )
             {
                 pthread_mutex_unlock(&m_getEventEnable);
                 return false;
             }
 
+            m_channel_status->index   =  tmp_index;
             *reference                =  m_channel_status->index;
             *report                   = &m_reports[m_channel_status->index];
             m_channel_status->last_id =  getEventIdFromCdh(dwordOffset(**report));
@@ -523,9 +535,9 @@ namespace LIBRARY_NAME
                     &events_per_iteration
                 );
 
-            m_channel_status->index
-                = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-                ? (m_channel_status->index+1) : 0;
+//            m_channel_status->index
+//                = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+//                ? (m_channel_status->index+1) : 0;
 
             /** handle all following entries */
             while( getNextEvent(&report, &event, &reference) )
@@ -542,9 +554,9 @@ namespace LIBRARY_NAME
 
                 releaseEvent(reference);
 
-                m_channel_status->index
-                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-                    ? (m_channel_status->index+1) : 0;
+//                m_channel_status->index
+//                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+//                    ? (m_channel_status->index+1) : 0;
             }
 
             releaseEvent(init_reference);
