@@ -795,8 +795,8 @@ uint32_t
 event_sanity_checker::errorFlag
 (volatile librorc_event_descriptor *report_buffer)
 {
-    /** bit 31 of reported_event_size */
-    return(report_buffer->reported_event_size>>31);
+    /** bit 30 of reported_event_size */
+    return( (report_buffer->reported_event_size>>30)&1 );
 }
 
 
