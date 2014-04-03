@@ -1,4 +1,5 @@
 1.0 INSTALLATION
+
 1.1 Prerequisites
 Some libraries need to be installed
 - rpm and rpmbuild
@@ -16,33 +17,11 @@ Make can now be called to compile the library and tools. Calling make with "rpm"
 generates an RPM archive for the current system. The "doc" directive generates a
 doxygen based documentation as PDF or HTML (tar.gz).
 
-
 2.0 KNOWN ISSUES
-2.1 DMA Remapping Errors
-Remapping errors can be related to a faulty IOMMU driver. Such errors usually 
-happen during the boot phase. They can be found by typing
-
-$dmesg
-
-[  266.950947] DRHD: handling fault status reg 2
-[  266.950956] DMAR:[DMA Write] Request device [85:00.0] fault addr fffff000 
-[  266.950958] DMAR:[fault reason 05] PTE Write access is not set
-
-There are two options to fix this problem. First, you can disable the remapping
-feature in the kernel configuration:
-
-Device Drivers ---> 
-IOMMU Hardware Support  --->
-[*]   Support for Intel IOMMU using DMA Remapping Devices
-[ ]     Enable Intel DMA Remapping Devices by default
-
-Second, you can disable IOMMU support via kernel parameter:
-
-amd_iommu=off intel_iommu=off
 
 3.0 Changelog
 
-R 0.0.0
+R 3.0.2
   - Removed CDH event ID from redout interface
   - Get- and releaseEvent() are now thread save (pthreads)
   - Index iteration is entirely done by the library now
