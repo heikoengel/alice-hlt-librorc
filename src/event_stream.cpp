@@ -297,9 +297,9 @@ namespace LIBRARY_NAME
 
         memset(m_channel_status, 0, sizeof(librorcChannelStatus));
 
-        m_channel_status->index        = 0xffffffffffffffff;
+        m_channel_status->index        = EVENT_INDEX_UNDEFINED;
         m_channel_status->shadow_index = 0;
-        m_channel_status->last_id      = 0xffffffffffffffff;
+        m_channel_status->last_id      = EVENT_INDEX_UNDEFINED;
         m_channel_status->channel      = (unsigned int)m_channelId;
         m_channel_status->device       = m_deviceId;
     }
@@ -405,7 +405,7 @@ namespace LIBRARY_NAME
         pthread_mutex_lock(&m_getEventEnable);
 
             uint64_t tmp_index = 0;
-            if(m_channel_status->index == 0xffffffffffffffff)
+            if(m_channel_status->index == EVENT_INDEX_UNDEFINED)
             { tmp_index = 0; }
             else
             {
@@ -535,10 +535,6 @@ namespace LIBRARY_NAME
                     &events_per_iteration
                 );
 
-//            m_channel_status->index
-//                = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-//                ? (m_channel_status->index+1) : 0;
-
             /** handle all following entries */
             while( getNextEvent(&report, &event, &reference) )
             {
@@ -553,10 +549,6 @@ namespace LIBRARY_NAME
                     );
 
                 releaseEvent(reference);
-
-//                m_channel_status->index
-//                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-//                    ? (m_channel_status->index+1) : 0;
             }
 
             releaseEvent(init_reference);

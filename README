@@ -44,4 +44,5 @@ amd_iommu=off intel_iommu=off
 
 R 0.0.0
   - Removed CDH event ID from redout interface
-  - get- and releaseEvent() are now thread save (pthreads)
+  - Get- and releaseEvent() are now thread save (pthreads)
+  - Index iteration is entirely done by the library now

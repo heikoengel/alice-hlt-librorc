@@ -46,6 +46,8 @@
 /** Shared mem device offset **/
 #define SHM_DEV_OFFSET 32
 
+#define EVENT_INDEX_UNDEFINED 0xffffffffffffffff
+
 typedef struct
 {
     uint64_t n_events;
