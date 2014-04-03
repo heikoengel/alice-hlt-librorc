@@ -403,7 +403,7 @@ event_sanity_checker::check
 {
     uint64_t                  report_buffer_index =  channel_status->index;
     librorc_event_descriptor *report_pointer      =  &report;
-    int64_t                   last_id             =  channel_status->last_id;
+    //int64_t                   last_id             =  channel_status->last_id;
 
     m_event               = rawEventPointer(report_pointer);
     m_reported_event_size = reportedEventSize(report_pointer);
@@ -421,7 +421,7 @@ event_sanity_checker::check
         error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
         error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_pointer, report_buffer_index);
         error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_pointer, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
+        //error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
     }
 
     if(error_code != 0)
@@ -443,17 +443,16 @@ event_sanity_checker::check
 }
 
 
-//TODO: legacy code
+
 uint64_t
 event_sanity_checker::check
 (
-    librorc_event_descriptor *reports,
+    librorc_event_descriptor  report,
     librorcChannelStatus     *channel_status
 )
 {
-    librorc_event_descriptor *report_entry = &reports[channel_status->index];
-    uint64_t event_id = getEventIdFromCdh(dwordOffset(report_entry));
-    check(reports[channel_status->index], channel_status, event_id);
+    uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));
+    check(report, channel_status, event_id);
     return event_id;
 }
 

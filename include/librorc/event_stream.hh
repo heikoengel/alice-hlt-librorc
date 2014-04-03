@@ -46,6 +46,8 @@
 /** Shared mem device offset **/
 #define SHM_DEV_OFFSET 32
 
+#define EVENT_INDEX_UNDEFINED 0xffffffffffffffff
+
 typedef struct
 {
     uint64_t n_events;
@@ -64,7 +66,6 @@ typedef struct
 typedef uint64_t (*librorc_event_callback)
 (
     void*,
-    uint64_t,
     librorc_event_descriptor,
     const uint32_t*,
     librorcChannelStatus*
@@ -179,10 +180,9 @@ class diu;
              * @param [out] report
              *        Pointer to the event descriptor field inside the report buffer. Please
              *        see buffer.hh for the detailed memory layout.
-             * @param [out] event_id
-             *        Event ID.
              * @param [out] event
              *        Pointer to the event payload.
+             * @param [out] Reference to the returned event. Used releaseEvent ...
              *
              * @return true if there was a new event and false if the buffer was empty
              */
@@ -190,7 +190,6 @@ class diu;
             getNextEvent
             (
                 librorc_event_descriptor **report,
-                uint64_t                  *event_id,
                 const uint32_t           **event,
                 uint64_t                  *reference
             );
@@ -207,7 +206,7 @@ class diu;
              */
             uint64_t handleChannelData(void *user_data);
 
-            void     clearSharedMemory();
+            void clearSharedMemory();
 
             /**
              * get PatternGenerator instance for current event_stream
@@ -258,11 +257,13 @@ class diu;
             librorcChannelStatus *m_channel_status;
 
         protected:
-            uint32_t m_eventSize;
-            int32_t  m_deviceId;
-            int32_t  m_channelId;
-            bool     m_called_with_bar;
-            bool     m_release_map[RBUFSIZE/sizeof(librorc_event_descriptor)];
+            uint32_t        m_eventSize;
+            int32_t         m_deviceId;
+            int32_t         m_channelId;
+            bool            m_called_with_bar;
+            bool            m_release_map[RBUFSIZE/sizeof(librorc_event_descriptor)];
+            pthread_mutex_t m_releaseEnable;
+            pthread_mutex_t m_getEventEnable;
 
             volatile uint32_t        *m_raw_event_buffer;
             librorc_event_descriptor *m_reports;
@@ -293,7 +294,6 @@ class diu;
             (
                 uint64_t                  events_processed,
                 void                     *user_data,
-                uint64_t                  event_id,
                 librorc_event_descriptor *report,
                 const uint32_t           *event,
                 uint64_t                 *events_per_iteration

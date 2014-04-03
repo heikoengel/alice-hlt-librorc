@@ -104,6 +104,9 @@ namespace LIBRARY_NAME
         m_sm       = new librorc::sysmon(m_bar1);
         m_fwtype   = m_sm->firmwareType();
         m_linktype = m_link->linkType();
+
+        pthread_mutex_init(&m_releaseEnable, NULL);
+        pthread_mutex_init(&m_getEventEnable, NULL);
     }
 
 
@@ -111,6 +114,9 @@ namespace LIBRARY_NAME
     {
         deleteParts();
         shmdt(m_channel_status);
+
+        pthread_mutex_destroy(&m_releaseEnable);
+        pthread_mutex_destroy(&m_getEventEnable);
     }
 
 
@@ -291,11 +297,11 @@ namespace LIBRARY_NAME
 
         memset(m_channel_status, 0, sizeof(librorcChannelStatus));
 
-        m_channel_status->index        = 0;
+        m_channel_status->index        = EVENT_INDEX_UNDEFINED;
         m_channel_status->shadow_index = 0;
-        m_channel_status->last_id      = 0xfffffffff;
+        m_channel_status->last_id      = EVENT_INDEX_UNDEFINED;
         m_channel_status->channel      = (unsigned int)m_channelId;
-        m_channel_status->device = m_deviceId;
+        m_channel_status->device       = m_deviceId;
     }
 
 
@@ -376,7 +382,7 @@ namespace LIBRARY_NAME
     }
 
 
-    //TODO: obsolete
+
     uint64_t
     event_stream::getEventIdFromCdh(uint64_t offset)
     {
@@ -392,18 +398,34 @@ namespace LIBRARY_NAME
     event_stream::getNextEvent
     (
         librorc_event_descriptor **report,
-        uint64_t                  *event_id,
         const uint32_t           **event,
         uint64_t                  *reference
     )
     {
-        if( m_reports[m_channel_status->index].calc_event_size==0 )
-        { return false; }
+        pthread_mutex_lock(&m_getEventEnable);
 
-        *reference =  m_channel_status->index;
-        *report    = &m_reports[m_channel_status->index];
-        *event_id  =  getEventIdFromCdh(dwordOffset(**report));
-        *event     =  getRawEvent(**report);
+            uint64_t tmp_index = 0;
+            if(m_channel_status->index == EVENT_INDEX_UNDEFINED)
+            { tmp_index = 0; }
+            else
+            {
+                tmp_index
+                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                    ? (m_channel_status->index+1) : 0;
+            }
+
+            if( m_reports[tmp_index].calc_event_size==0 )
+            {
+                pthread_mutex_unlock(&m_getEventEnable);
+                return false;
+            }
+
+            m_channel_status->index   =  tmp_index;
+            *reference                =  m_channel_status->index;
+            *report                   = &m_reports[m_channel_status->index];
+            m_channel_status->last_id =  getEventIdFromCdh(dwordOffset(**report));
+            *event                    =  getRawEvent(**report);
+        pthread_mutex_unlock(&m_getEventEnable);
         return true;
     }
 
@@ -451,8 +473,10 @@ namespace LIBRARY_NAME
     void
     event_stream::releaseEvent(uint64_t reference)
     {
-        m_release_map[reference] = true;
-        setBufferOffsets();
+        pthread_mutex_lock(&m_releaseEnable);
+            m_release_map[reference] = true;
+            setBufferOffsets();
+        pthread_mutex_unlock(&m_releaseEnable);
     }
 
     uint64_t
@@ -460,7 +484,6 @@ namespace LIBRARY_NAME
     (
         uint64_t                  events_processed,
         void                     *user_data,
-        uint64_t                  event_id,
         librorc_event_descriptor *report,
         const uint32_t           *event,
         uint64_t                 *events_per_iteration
@@ -469,13 +492,11 @@ namespace LIBRARY_NAME
 
         events_processed++;
 
-        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, event_id, *report, event, m_channel_status) : 1)
+        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, *report, event, m_channel_status) : 1)
         {
             cout << "Event Callback is not set!" << endl;
             abort();
         }
-
-        m_channel_status->last_id = event_id;
 
         m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
         m_channel_status->n_events++;
@@ -494,51 +515,40 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::handleChannelData(void *user_data)
     {
-        uint64_t events_processed                      = 0;
+        uint64_t                  events_processed     = 0;
         librorc_event_descriptor *report               = NULL;
-        uint64_t                  event_id             = 0;
         const uint32_t           *event                = 0;
         uint64_t                  events_per_iteration = 0;
         uint64_t                  reference            = 0;
         uint64_t                  init_reference       = 0;
 
         /** New event(s) received */
-        if( getNextEvent(&report, &event_id, &event, &init_reference) )
+        if( getNextEvent(&report, &event, &init_reference) )
         {
             events_processed =
                 handleEvent
                 (
                     events_processed,
                     user_data,
-                    event_id,
                     report,
                     event,
                     &events_per_iteration
                 );
 
-        m_channel_status->index
-            = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-            ? (m_channel_status->index+1) : 0;
-
             /** handle all following entries */
-            while( getNextEvent(&report, &event_id, &event, &reference) )
+            while( getNextEvent(&report, &event, &reference) )
             {
                 events_processed =
                     handleEvent
                     (
                         events_processed,
                         user_data,
-                        event_id,
                         report,
                         event,
                         &events_per_iteration
                     );
 
                 releaseEvent(reference);
-
-                m_channel_status->index
-                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
-                    ? (m_channel_status->index+1) : 0;
             }
 
             releaseEvent(init_reference);

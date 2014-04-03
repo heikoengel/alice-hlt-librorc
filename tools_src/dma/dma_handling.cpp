@@ -220,7 +220,6 @@ uint64_t
 eventCallBack
 (
     void                     *userdata,
-    uint64_t                  event_id,
     librorc_event_descriptor  report,
     const uint32_t           *event,
     librorcChannelStatus     *channel_status
@@ -228,7 +227,7 @@ eventCallBack
 {
     librorc::event_sanity_checker *checker = (librorc::event_sanity_checker*)userdata;
 
-    try{ checker->check(report, channel_status, event_id); }
+    try{ checker->check(report, channel_status); }
     catch(...){ abort(); }
     return 0;
 }

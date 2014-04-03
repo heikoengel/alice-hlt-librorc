@@ -32,6 +32,7 @@
 #include <cstring>
 #include <iomanip>
 #include <vector>
+#include <pthread.h>
 
 #ifndef MODELSIM_SERVER
     #define MODELSIM_SERVER "localhost"
