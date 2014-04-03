@@ -14,6 +14,7 @@ evaluateArguments(int argc, char *argv[])
     ret.channelId = -1;
     ret.eventSize = 0;
     ret.useRefFile = false;
+    ret.useFcf = false;
 
     /** command line arguments */
     static struct option long_options[] =
@@ -23,6 +24,7 @@ evaluateArguments(int argc, char *argv[])
         {"file", required_argument, 0, 'f'},
         {"size", required_argument, 0, 's'},
         {"source", required_argument, 0, 'r'},
+        {"fcf", no_argument, 0, 'F'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -105,6 +107,18 @@ evaluateArguments(int argc, char *argv[])
             case 's':
             {
                 ret.eventSize = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'F':
+            {
+                if( ret.esType!=LIBRORC_ES_TO_HOST )
+                {
+                    cout << "FCF is not available for this datastream"
+                         << endl;
+                    exit(0);
+                }
+                ret.useFcf = true;
             }
             break;
 
@@ -473,6 +487,38 @@ unconfigureSiu
     delete siu;
 }
 
+void
+configureFcf
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::fastclusterfinder *fcf =
+        eventStream->getFastClusterFinder();
+    if( !fcf )
+    {
+        cout << "Clusterfinder not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+
+    fcf->setState(1, 0); // reset, not enabled
+    // TODO: load mapping file
+    fcf->setSinglePadSuppression(0);
+    fcf->setBypassMerger(0);
+    fcf->setDeconvPad(1);
+    fcf->setSingleSeqLimit(0);
+    fcf->setClusterLowerLimit(10);
+    fcf->setMergerDistance(4);
+    fcf->setMergerAlgorithm(1);
+    fcf->setChargeTolerance(0);
+
+    fcf->setState(0, 1);// not reset, enabled
+
+    delete fcf;
+}
+
 
 
 void
@@ -488,6 +534,11 @@ configureDataSource
             opts.datasource != ES_SRC_NONE)
     {
         configureSiu(eventStream, opts);
+    }
+
+    if( opts.useFcf )
+    {
+        configureFcf(eventStream, opts);
     }
 
     switch(opts.datasource)
@@ -519,7 +570,6 @@ configureDataSource
         default: // "none" or invalid or unspecified
             break;
     }
-
 }
 
 void

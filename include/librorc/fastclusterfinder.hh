@@ -39,42 +39,38 @@ namespace LIBRARY_NAME
             ~fastclusterfinder();
 
             /**
-             * enable FastClusterFinder
+             * set clusterfinder state
+             * When 'reset' is asserted, the clusterfinder will not process
+             * any data: input is ignored, thus no output. This overrides
+             * ant 'enable' setting.
+             * When 'reset' is deasserted, 'enable' controls the behavior:
+             * enable==1: activates the processing,
+             *            raw input -> processed output
+             * enable==0: push any data through without processing it,
+             *            output==input
+             * @param reset set clusterfinder reset to 1 or 0
+             * @param enable set clusterfinder enable to 1 or 0
              **/
             void
-            enable();
+            setState
+            (
+                uint32_t reset,
+                uint32_t enable
+            );
 
             /**
-             * disable FastClusterFinder
-             **/
-            void
-            disable();
-
-            /**
-             * get current state
+             * get current enable state
              * @return true if enabled, false if disabled
              **/
             bool
             isEnabled();
 
             /**
-             * set or release reset
-             * @param value 1 or 0
+             * get current reset state
+             * @return true if in reset, otherwise false
              **/
-            void
-            setReset
-            (
-                uint32_t value
-            );
-
-
-            /**
-             * get reset state
-             * @return 1 when in reset, else 0
-             **/
-            uint32_t
-            reset();
-
+            bool
+            isInReset();
 
             /**
              * enable/disable Single Pad Suppression. If enabled, clusters
@@ -142,7 +138,7 @@ namespace LIBRARY_NAME
             void
             setSingleSeqLimit
             (
-                uint8_t limit
+                uint8_t singe_seq_limit
             );
 
             /**
@@ -164,7 +160,7 @@ namespace LIBRARY_NAME
             void
             setClusterLowerLimit
             (
-                uint16_t limit
+                uint16_t cluster_low_limit
             );
 
             /**
@@ -200,7 +196,7 @@ namespace LIBRARY_NAME
 
             /**
              * set Merger Algorithm Mode
-             * @param mode when set to 1, the merger takes the 
+             * @param mode when set to 1, the merger takes the
              * timestamp of the current cluster candidate as a reference
              * for the distance check to the next. When set to 0, the
              * merger uses the timestamp of the first candidate as a
@@ -245,6 +241,40 @@ namespace LIBRARY_NAME
              **/
             uint8_t
             chargeTolerance();
+
+            /**
+             * write an entry to the mapping RAM
+             * @param addr target RCU channel address
+             * @param data:
+             *        [28:16]: gain
+             *        [15]   : channel active
+             *        [14]   : first or last pad in row
+             *        [13:8] : row
+             *        [7:0]  : pad
+             **/
+            void
+            writeMappingRamEntry
+            (
+                uint32_t addr,
+                uint32_t data
+            );
+
+            /**
+             * read an entry from the mapping RAM
+             * @param addr target RCU channel address
+             * @return data:
+             *        [28:16]: gain
+             *        [15]   : channel active
+             *        [14]   : first or last pad in row
+             *        [13:8] : row
+             *        [7:0]  : pad
+             **/
+            uint32_t
+            readMappingRamEntry
+            (
+                uint32_t addr
+            );
+
 
         protected:
             link *m_link;

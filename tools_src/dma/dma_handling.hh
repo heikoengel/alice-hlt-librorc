@@ -53,6 +53,7 @@ typedef struct
     char          refname[4096];
     uint32_t      datasource;
     bool          useRefFile;
+    bool          useFcf;
     LibrorcEsType esType;
 } DMAOptions;
 
