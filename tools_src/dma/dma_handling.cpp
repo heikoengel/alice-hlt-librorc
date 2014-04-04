@@ -564,6 +564,11 @@ configureDataSource
         case ES_SRC_DDR3:
             {
                 eventStream->m_link->setDataSourceDdr3DataReplay();
+                if(eventStream->m_link->ddr3DataReplayChannelIsInReset())
+                {
+                    eventStream->m_link->disableDdr3DataReplayChannel();
+                    eventStream->m_link->setDdr3DataReplayChannelReset(0);
+                }
             }
             break;
 
@@ -596,7 +601,7 @@ unconfigureDataSource
         default: // "none" or invalid or unspecified
             break;
     }
-    
+
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {

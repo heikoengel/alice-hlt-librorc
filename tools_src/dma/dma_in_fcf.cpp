@@ -149,8 +149,7 @@ int main(int argc, char *argv[])
     //link->enableDdl();
 
     // disable Data Replay
-    sm->disableDdr3DataReplay();
-    link->disableDdr3DataReplayChannel();
+    link->setDdr3DataReplayChannelReset(1);
 
     cout << "Waiting for phy_init_done..." << endl;
     while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
@@ -196,11 +195,9 @@ int main(int argc, char *argv[])
 
     link->setDataSourceDdr3DataReplay();
     link->enableFlowControl();
-    link->configureDdr3DataReplayChannel(ch_start_addr);
+    link->setDdr3DataReplayChannelReset(0);
+    link->setDdr3DataReplayChannelStartAddress(ch_start_addr);
     link->enableDdr3DataReplayChannel();
-
-    // enable data replay globally
-    sm->enableDdr3DataReplay();
 
 
     /** make clear what will be checked*/

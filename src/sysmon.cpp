@@ -751,20 +751,6 @@ namespace LIBRARY_NAME
         return addr;
     }
 
-    void
-    sysmon::disableDdr3DataReplay()
-    {
-        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000);
-    }
-
-    void
-    sysmon::enableDdr3DataReplay()
-    {
-        uint32_t drcfg =  m_bar->get32(RORC_REG_DATA_REPLAY_CTRL);
-        drcfg |= (1<<31);
-        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drcfg);
-    }
-
     uint32_t
     sysmon::ddr3Bitrate
     (

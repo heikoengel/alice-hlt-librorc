@@ -476,7 +476,7 @@ namespace LIBRARY_NAME
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
         drpSetPllConfigClkDivider(0x17, 5, clkdiv);
-        
+
         /** set RX_CP_CFG: addr 0x1a, bits[15:8] */
         drpSetPllConfigCpCfg(0x1e, pll.cp_cfg);
 
@@ -613,7 +613,7 @@ namespace LIBRARY_NAME
 
 
     void
-    link::configureDdr3DataReplayChannel
+    link::setDdr3DataReplayChannelStartAddress
     (
         uint32_t ddr3_start_address
     )
@@ -622,6 +622,18 @@ namespace LIBRARY_NAME
         ch_cfg &= ~(0xfffffff8); // clear [31:6]
         ch_cfg |= (ddr3_start_address & 0xfffffff8); //set start_addr[31:6]
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+    uint32_t
+    link::ddr3DataReplayChannelStartAddress()
+    {
+        return (GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & 0xfffffff8);
+    }
+
+    uint32_t
+    link::ddr3DataReplayChannelLastAddress()
+    {
+        return (GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & 0xfffffff8);
     }
 
 
@@ -650,6 +662,18 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
+    void
+    link::setDdr3DataReplayChannelReset
+    (
+        uint32_t resetval
+    )
+    {
+        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        ch_cfg &= ~(1<<3);
+        ch_cfg |= ((resetval&1)<<3);
+        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
 
     void
     link::enableDdr3DataReplayChannel()
@@ -668,10 +692,34 @@ namespace LIBRARY_NAME
     }
 
     bool
+    link::ddr3DataReplayChannelIsInReset()
+    {
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & (1<<3)) != 0);
+    }
+
+    bool
+    link::ddr3DataReplayChannelIsEnabled()
+    {
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & (1<<0)) != 0);
+    }
+
+    bool
+    link::ddr3DataReplayChannelIsWaiting()
+    {
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & (1<<1)) != 0);
+    }
+
+    bool
+    link::ddr3DataReplayChannelIsDone()
+    {
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & (1<<0)) != 0);
+    }
+
+    bool
     link::gtxIsUp()
     {
         /**
-         * TODO: add checks for 
+         * TODO: add checks for
          * - dfe eye opening?
          * - error counters?
          **/

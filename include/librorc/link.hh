@@ -220,7 +220,7 @@ namespace LIBRARY_NAME
 
             /**
              * get link type
-             * @return link type. Possible values are 
+             * @return link type. Possible values are
              * RORC_CFG_LINK_TYPE_XYZ, where XYZ can be
              * DIU, SIU, VIRTUAL or LINKTEST
              **/
@@ -293,8 +293,8 @@ namespace LIBRARY_NAME
 
             /**
              * Disable Flow Control
-             * The datapath from source to DMA engine ignores any full 
-             * FIFOs and will never send XOFF to DAQ. This also means 
+             * The datapath from source to DMA engine ignores any full
+             * FIFOs and will never send XOFF to DAQ. This also means
              * that DMA'ed events may be incomplete.
              **/
             void
@@ -342,11 +342,23 @@ namespace LIBRARY_NAME
              * @param ddr3_start_address replay data start address
              **/
             void
-            configureDdr3DataReplayChannel
+            setDdr3DataReplayChannelStartAddress
             (
                  uint32_t ddr3_start_address
             );
-    
+
+            /**
+             * get data replay start address of current channel
+             **/
+            uint32_t
+            ddr3DataReplayChannelStartAddress();
+
+            /**
+             * get last address used by data replay channel
+             **/
+            uint32_t
+            ddr3DataReplayChannelLastAddress();
+
             /**
              * enable/disable oneshot replay mode
              **/
@@ -355,7 +367,7 @@ namespace LIBRARY_NAME
             (
                 uint32_t oneshotval
             );
-    
+
             /**
              * enable/disable continuous replay mode
              **/
@@ -363,6 +375,15 @@ namespace LIBRARY_NAME
             setDdr3DataReplayChannelContinuous
             (
                 uint32_t continuousval
+            );
+
+            /**
+             * set/release data replay channel reset
+             **/
+            void
+            setDdr3DataReplayChannelReset
+            (
+                uint32_t resetval
             );
 
             /**
@@ -376,6 +397,30 @@ namespace LIBRARY_NAME
              **/
             void
             disableDdr3DataReplayChannel();
+
+            /**
+             * @return true if in reset, else false
+             **/
+            bool
+            ddr3DataReplayChannelIsInReset();
+
+            /**
+             * @return true if enabled, else false
+             **/
+            bool
+            ddr3DataReplayChannelIsEnabled();
+
+            /**
+             * @return true if waiting for data from DDR3, else false
+             **/
+            bool
+            ddr3DataReplayChannelIsWaiting();
+
+            /**
+             * @return true if replay is done, else false
+             **/
+            bool
+            ddr3DataReplayChannelIsDone();
 
             /**
              * check link status on GTX level
@@ -417,7 +462,7 @@ namespace LIBRARY_NAME
             );
 
             void drpSetPllConfigCommon(gtxpll_settings pll);
-    
+
             void
             drpSetPllConfigCpCfg
             (

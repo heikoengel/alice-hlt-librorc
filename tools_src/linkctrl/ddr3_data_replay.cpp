@@ -34,7 +34,6 @@ using namespace std;
         -o [0/1]      Set One-Shot replay mode \n\
         -C [0/1]      Enable/disable continuous replay mode \n\
         -r [0/1]      Enable/disable channel reset\n\
-        -g [0/1]      Global enable/disable of data replay engine \n\
 Note: channel enable (-e) and global enable (-g) are applied AFTER \n\
 loading a file with -f. \n\
 "
@@ -53,12 +52,10 @@ int main
     uint32_t ControllerId;
     int32_t ChannelId = -1;
     uint32_t channel_enable_val = 0;
-    uint32_t global_enable_val = 0;
     char *filename = NULL;
     uint32_t start_addr = 0;
 
     int do_channel_enable = 0;
-    int do_global_enable = 0;
     int do_load_file = 0;
     int start_addr_set = 0;
     bool is_last_event = false;
@@ -70,7 +67,7 @@ int main
     uint32_t channel_reset = 0;
     int arg;
      
-    while( (arg = getopt(argc, argv, "hn:c:f:e:g:s:lo:C:r:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:f:e:s:lo:C:r:")) != -1 )
     {
         switch(arg)
         {
@@ -90,13 +87,6 @@ int main
             {
                 channel_enable_val = strtol(optarg, NULL, 0);
                 do_channel_enable = 1;
-            }
-            break;
-
-            case 'g':
-            {
-                global_enable_val = strtol(optarg, NULL, 0);
-                do_global_enable = 1;
             }
             break;
 
@@ -160,10 +150,9 @@ int main
     }
 
     /**
-     * make sure channel start address is provided when loading a
-     * DDL file or enabling a channel
+     * make sure channel start address is provided when loading a DDL file
      **/
-    if( do_load_file || (do_channel_enable && channel_enable_val) )
+    if( do_load_file )
     {
         if( !start_addr_set )
         {
@@ -220,7 +209,8 @@ int main
 
     if ( !sm->firmwareIsHltInFcf() && !sm->firmwareIsHltIn() )
     {
-        cout << "ERROR: no HLT_IN_FCF firmware with DataReplay capabilities detected!" << endl;
+        cout << "ERROR: no firmware with DataReplay capabilities detected!"
+             << endl;
         abort();
     }
 
@@ -240,6 +230,14 @@ int main
 
     /** create link instance */
     librorc::link *link = new librorc::link(bar, ChannelId);
+
+    /** make sure the link is no virtual readout channel */
+    if( link->linkType() != RORC_CFG_LINK_TYPE_DIU )
+    {
+        cout << "ERROR: Cannot control replay on a non-DIU channel!"
+             << endl;
+        abort();
+    }
 
 #ifdef SIM
     /** wait for phy_init_done */
@@ -314,7 +312,7 @@ int main
 
     if( start_addr_set )
     {
-        link->configureDdr3DataReplayChannel(start_addr);
+        link->setDdr3DataReplayChannelStartAddress(start_addr);
     }
 
     if( set_oneshot )
@@ -344,14 +342,20 @@ int main
         }
     }
 
-    if ( do_global_enable )
-    {
-        // enable/disable data replay globally
-        if ( global_enable_val )
-        { sm->enableDdr3DataReplay(); }
-        else
-        { sm->disableDdr3DataReplay(); }
-    }
+    /**
+     * print status
+     **/
+    cout << "Channel " << ChannelId << " Config:" << endl
+         << "\tStart Address: " << hex
+         << link->ddr3DataReplayChannelStartAddress() << dec << endl
+         << "\tReset: " << link->ddr3DataReplayChannelIsInReset() << endl
+         << "\tEnabled: " << link->ddr3DataReplayChannelIsEnabled() << endl;
+
+    cout << "Channel " << ChannelId << " Status:" << endl
+         << "\tLast Address: " << hex
+         << link->ddr3DataReplayChannelLastAddress() << dec << endl
+         << "\tWaiting: " << link->ddr3DataReplayChannelIsWaiting() << endl
+         << "\tDone: " << link->ddr3DataReplayChannelIsDone() << endl;
 
     delete link;
     delete sm;

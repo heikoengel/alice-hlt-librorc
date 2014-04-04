@@ -367,21 +367,6 @@ namespace LIBRARY_NAME
             );
 
             /**
-             * enable DDR3 Data Replay globally. The channel configuration
-             * is only evaluated as soon as this is enabled.
-             **/
-            void
-            enableDdr3DataReplay();
-
-
-            /**
-             * disable DDR3 Data Replay globally. This overrides any channel
-             * settings
-             **/
-            void
-            disableDdr3DataReplay();
-
-            /**
              * check if DDR3 controller and module are ready to be used
              * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
              * @return true if ready, false if not ready or not implemented
