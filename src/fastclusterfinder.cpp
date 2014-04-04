@@ -243,4 +243,66 @@ namespace LIBRARY_NAME
         m_link->setGTX(RORC_REG_FCF_RAM_CTRL, addr);
         return m_link->GTX(RORC_REG_FCF_RAM_DATA);
     }
+
+
+    /****************************************************
+     * temporary functions to fill mapping RAM
+     * TODO: parameters from framework instead of text file
+     ***************************************************/
+    uint32_t
+    fastclusterfinder::hexstringToUint32
+    (
+        std::string line
+    )
+    {
+        uint32_t hexval;
+        std::stringstream ss;
+        ss << std::hex << line;
+        ss >> hexval;
+        return hexval;
+    }
+
+
+
+    void
+    fastclusterfinder::loadMappingRam
+    (
+        const char *fname
+    )
+    {
+        std::ifstream memfile(fname);
+        if ( !memfile.is_open() )
+        {
+            std::cout << "Failed to open mapping file" << std::endl;
+            abort();
+        }
+
+        std::string line;
+        uint32_t i = 0;
+
+        while ( getline(memfile, line) )
+        {
+            if ( i>4095 )
+            {
+                DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has more " \
+                        "than 4096 entries - skipping remaining lines");
+                break;
+            }
+
+            uint32_t hexval = hexstringToUint32(line);
+            writeMappingRamEntry(i, hexval);
+            i++;
+        }
+
+        if ( i<4096 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has less " \
+                    "than 4096 entries - filling remaining lines");
+            while( i<4096 )
+            {
+                writeMappingRamEntry(i, 0);
+                i++;
+            }
+        }
+    }
 }

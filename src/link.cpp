@@ -544,7 +544,7 @@ namespace LIBRARY_NAME
      * *******************************************************/
 
     // protected
-    void
+    /*void
     link::fcfWriteMappingRamEntry
     (
         uint32_t addr,
@@ -553,66 +553,11 @@ namespace LIBRARY_NAME
     {
         setGTX(RORC_REG_FCF_RAM_DATA, data);
         setGTX(RORC_REG_FCF_RAM_CTRL, addr);
-    }
+    }*/
 
 
     // protected
-    uint32_t
-    link::fcfHexstringToUint32
-    (
-        string line
-    )
-    {
-        uint32_t hexval;
-        stringstream ss;
-        ss << hex << line;
-        ss >> hexval;
-        return hexval;
-    }
 
-
-
-    void
-    link::fcfLoadMappingRam
-    (
-        const char *fname
-    )
-    {
-        ifstream memfile(fname);
-        if ( !memfile.is_open() )
-        {
-            cout << "Failed to open mapping file" << endl;
-            abort();
-        }
-
-        string line;
-        uint32_t i = 0;
-
-        while ( getline(memfile, line) )
-        {
-            if ( i>4095 )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has more " \
-                        "than 4096 entries - skipping remaining lines");
-                break;
-            }
-
-            uint32_t hexval = fcfHexstringToUint32(line);
-            fcfWriteMappingRamEntry(i, hexval);
-            i++;
-        }
-
-        if ( i<4096 )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has less " \
-                    "than 4096 entries - filling remaining lines");
-            while( i<4096 )
-            {
-                fcfWriteMappingRamEntry(i, 0);
-                i++;
-            }
-        }
-    }
 
     void
     link::enableFlowControl()
@@ -674,8 +619,34 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg &= ~(0xfffffffc); // clear [31:2]
-        ch_cfg |= (ddr3_start_address & 0xfffffffc); //set start_addr[31:2]
+        ch_cfg &= ~(0xfffffff8); // clear [31:6]
+        ch_cfg |= (ddr3_start_address & 0xfffffff8); //set start_addr[31:6]
+        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+
+    void
+    link::setDdr3DataReplayChannelOneshot
+    (
+        uint32_t oneshotval
+    )
+    {
+        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        ch_cfg &= ~(1<<2);
+        ch_cfg |= ((oneshotval&1)<<2);
+        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
+    }
+
+
+    void
+    link::setDdr3DataReplayChannelContinuous
+    (
+        uint32_t continuousval
+    )
+    {
+        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
+        ch_cfg &= ~(1<<1);
+        ch_cfg |= ((continuousval&1)<<1);
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
@@ -684,8 +655,7 @@ namespace LIBRARY_NAME
     link::enableDdr3DataReplayChannel()
     {
         uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg |= (1<<1) | // continuous
-            (1<<0); //enable
+        ch_cfg |= (1<<0); //enable
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 

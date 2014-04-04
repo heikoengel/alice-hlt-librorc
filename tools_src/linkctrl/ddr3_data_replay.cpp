@@ -31,6 +31,9 @@ using namespace std;
         -s [addr]     DDR3 start address \n\
         -l            Current event is the last to be replayed \n\
         -e [0/1]      Enable/disable data replay channel \n\
+        -o [0/1]      Set One-Shot replay mode \n\
+        -C [0/1]      Enable/disable continuous replay mode \n\
+        -r [0/1]      Enable/disable channel reset\n\
         -g [0/1]      Global enable/disable of data replay engine \n\
 Note: channel enable (-e) and global enable (-g) are applied AFTER \n\
 loading a file with -f. \n\
@@ -59,9 +62,15 @@ int main
     int do_load_file = 0;
     int start_addr_set = 0;
     bool is_last_event = false;
+    bool set_oneshot = false;
+    uint32_t oneshot = 0;
+    bool set_continuous = false;
+    uint32_t continuous = 0;
+    bool set_channel_reset = false;
+    uint32_t channel_reset = 0;
     int arg;
      
-    while( (arg = getopt(argc, argv, "hn:c:f:e:g:s:l")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:f:e:g:s:lo:C:r:")) != -1 )
     {
         switch(arg)
         {
@@ -103,6 +112,27 @@ int main
             {
                 start_addr = strtol(optarg, NULL, 0);
                 start_addr_set = 1;
+            }
+            break;
+
+            case 'o':
+            {
+                oneshot = strtol(optarg, NULL, 0);
+                set_oneshot = true;
+            }
+            break;
+
+            case 'r':
+            {
+                channel_reset = strtol(optarg, NULL, 0);
+                set_channel_reset = true;
+            }
+            break;
+
+            case 'C':
+            {
+                continuous = strtol(optarg, NULL, 0);
+                set_continuous = true;
             }
             break;
 
@@ -282,12 +312,30 @@ int main
         close(fd_in);
     }
 
+    if( start_addr_set )
+    {
+        link->configureDdr3DataReplayChannel(start_addr);
+    }
+
+    if( set_oneshot )
+    {
+        link->setDdr3DataReplayChannelOneshot(oneshot);
+    }
+
+    if( set_channel_reset )
+    {
+        link->setDdr3DataReplayChannelReset(channel_reset);
+    }
+
+    if( set_continuous )
+    {
+        link->setDdr3DataReplayChannelContinuous(continuous);
+    }
+
     if ( do_channel_enable )
     {
         if ( channel_enable_val )
         {
-            link->setDataSourceDdr3DataReplay();
-            link->configureDdr3DataReplayChannel(start_addr);
             link->enableDdr3DataReplayChannel();
         }
         else

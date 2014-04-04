@@ -346,6 +346,24 @@ namespace LIBRARY_NAME
             (
                  uint32_t ddr3_start_address
             );
+    
+            /**
+             * enable/disable oneshot replay mode
+             **/
+            void
+            setDdr3DataReplayChannelOneshot
+            (
+                uint32_t oneshotval
+            );
+    
+            /**
+             * enable/disable continuous replay mode
+             **/
+            void
+            setDdr3DataReplayChannelContinuous
+            (
+                uint32_t continuousval
+            );
 
             /**
              * enable DDR3 data replay channel
@@ -417,23 +435,23 @@ namespace LIBRARY_NAME
              * @param addr mapping RAM addr
              * @param data data to be written
              **/
-            void
+            /*void
             fcfWriteMappingRamEntry
             (
                  uint32_t addr,
                  uint32_t data
-            );
+            );*/
 
             /**
              * convert hex string to uint32_t
              * @param line input string
              * @return line as uint32_t
              **/
-            uint32_t
+            /*uint32_t
             fcfHexstringToUint32
             (
                  std::string line
-            );
+            );*/
 
 };
 
