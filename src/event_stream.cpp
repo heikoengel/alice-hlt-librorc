@@ -151,16 +151,21 @@ namespace LIBRARY_NAME
         switch(esType)
         {
             case LIBRORC_ES_TO_HOST:
-                fwOK = m_sm->firmwareIsHltHardwareTest() |
-                    m_sm->firmwareIsHltIn() |
-                    m_sm->firmwareIsHltInFcf();
-                break;
+            {
+                fwOK =
+                      m_sm->firmwareIsHltHardwareTest()
+                    | m_sm->firmwareIsHltIn()
+                    | m_sm->firmwareIsHltInFcf();
+            }
+            break;
+
             case LIBRORC_ES_TO_DEVICE:
-                fwOK = m_sm->firmwareIsHltOut();
-                break;
+            { fwOK = m_sm->firmwareIsHltOut(); }
+            break;
+
             default:
-                fwOK = false;
-                break;
+            { fwOK = false; }
+            break;
         }
 
         if( !fwOK )
@@ -188,14 +193,11 @@ namespace LIBRARY_NAME
         switch (esType)
         {
             case LIBRORC_ES_TO_DEVICE:
-            {
-                dma_direction = LIBRORC_DMA_TO_DEVICE;
-            }
+            { dma_direction = LIBRORC_DMA_TO_DEVICE; }
             break;
+
             default:
-            {
-                dma_direction = LIBRORC_DMA_FROM_DEVICE;
-            }
+            { dma_direction = LIBRORC_DMA_FROM_DEVICE; }
             break;
         }
 
@@ -249,13 +251,15 @@ namespace LIBRARY_NAME
         else
         { max_pkt_size = 128; }
 
-        m_channel = new librorc::dma_channel(
-                m_channelId,
-                max_pkt_size,
-                m_dev,
-                m_bar1,
-                m_eventBuffer,
-                m_reportBuffer);
+        m_channel = new librorc::dma_channel
+        (
+            m_channelId,
+            max_pkt_size,
+            m_dev,
+            m_bar1,
+            m_eventBuffer,
+            m_reportBuffer
+        );
 
         m_channel->enable();
     }
@@ -576,12 +580,13 @@ namespace LIBRARY_NAME
     patterngenerator*
     event_stream::getPatternGenerator()
     {
-        if(m_fwtype==RORC_CFG_PROJECT_hlt_in ||
-                m_fwtype==RORC_CFG_PROJECT_hlt_out || 
-                m_fwtype==RORC_CFG_PROJECT_hwtest)
-        {
-            return new patterngenerator(m_link);
-        }
+        if
+        (
+               m_fwtype==RORC_CFG_PROJECT_hlt_in
+            || m_fwtype==RORC_CFG_PROJECT_hlt_out
+            || m_fwtype==RORC_CFG_PROJECT_hwtest
+        )
+        { return new patterngenerator(m_link); }
         else
         {
             // TODO: log message: getPatternGenerator failed,
@@ -595,9 +600,7 @@ namespace LIBRARY_NAME
     event_stream::getDiu()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_DIU)
-        {
-            return new diu(m_link);
-        }
+        { return new diu(m_link); }
         else
         {
             // TODO: log message: getDiu failed,
@@ -611,9 +614,7 @@ namespace LIBRARY_NAME
     event_stream::getSiu()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_SIU)
-        {
-            return new siu(m_link);
-        }
+        { return new siu(m_link); }
         else
         {
             // TODO: log message: getSiu failed,
@@ -621,6 +622,9 @@ namespace LIBRARY_NAME
             return NULL;
         }
     }
+
+/** HLT out API ---------------------------------------------------------------*/
+
 
 
 }
