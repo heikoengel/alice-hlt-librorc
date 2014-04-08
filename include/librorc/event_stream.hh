@@ -30,6 +30,8 @@
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
 
+#define MAX_EVENTS_PER_ITERATION 0x0
+
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
     #define EBUFSIZE (((uint64_t)1) << 28)
@@ -232,11 +234,18 @@ class diu;
             siu* getSiu();
 
 
+            void
+            packEventIntoBuffer
+            (
+                uint32_t *event,
+                uint32_t  event_size
+            );
+
+            uint64_t numberOfEvents(uint32_t event_size);
+
             /** Member Variables */
 
-            /** TODO: move m_bar1 to protected. ATM still used for gettime()
-             * in boardtest_modules
-             **/
+
             bar         *m_bar1;
             buffer      *m_eventBuffer;
             buffer      *m_reportBuffer;
@@ -274,6 +283,9 @@ class diu;
             librorc_event_callback  m_event_callback;
             librorc_status_callback m_status_callback;
 
+            uint64_t        m_event_generation_offset;
+            uint64_t        m_last_event_buffer_offset;
+
             void
             initializeDmaBuffers
             (
@@ -301,6 +313,25 @@ class diu;
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);
+
+            /** out */
+            uint64_t availableBufferSpace();
+            void     pushEventSizeIntoELFifo(uint32_t event_size);
+            void     iterateEventBufferFillState(uint32_t event_size);
+            void     wrapFillStateIfNecessary();
+            uint32_t fragmentSize(uint32_t event_size);
+            bool     isSufficientFifoSpaceAvailable();
+
+            uint64_t
+            numberOfEventsThatFitIntoBuffer
+            (
+                uint64_t available_buffer_space,
+                uint32_t event_size,
+                uint32_t fragment_size
+            );
+
+            uint64_t maximumElfifoCanHandle(uint64_t number_of_events);
+            uint64_t reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
 
     };
 
