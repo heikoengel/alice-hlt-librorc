@@ -330,10 +330,7 @@ namespace LIBRARY_NAME
 
 
     uint64_t
-    event_stream::eventLoop
-    (
-        void *user_data
-    )
+    event_stream::eventLoop(void *user_data)
     {
         m_last_bytes_received  = 0;
         m_last_events_received = 0;
@@ -588,11 +585,8 @@ namespace LIBRARY_NAME
         )
         { return new patterngenerator(m_link); }
         else
-        {
-            // TODO: log message: getPatternGenerator failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
+        // TODO: log message: getPatternGenerator failed, Firmware, channelId
     }
 
 
@@ -602,11 +596,8 @@ namespace LIBRARY_NAME
         if(m_linktype==RORC_CFG_LINK_TYPE_DIU)
         { return new diu(m_link); }
         else
-        {
-            // TODO: log message: getDiu failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
+        // TODO: log message: getDiu failed, Firmware, channelId
     }
 
 
@@ -616,11 +607,8 @@ namespace LIBRARY_NAME
         if(m_linktype==RORC_CFG_LINK_TYPE_SIU)
         { return new siu(m_link); }
         else
-        {
-            // TODO: log message: getSiu failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
+        // TODO: log message: getSiu failed, Firmware, channelId
     }
 
 /** HLT out API ---------------------------------------------------------------*/
