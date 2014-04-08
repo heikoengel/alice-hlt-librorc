@@ -128,7 +128,7 @@ namespace LIBRARY_NAME
         delete m_eventBuffer;
         delete m_reportBuffer;
         delete m_link;
-        if ( !m_called_with_bar )
+        if( !m_called_with_bar )
         {
             delete m_bar1;
             delete m_dev;

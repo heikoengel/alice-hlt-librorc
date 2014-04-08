@@ -27,6 +27,7 @@ namespace LIBRARY_NAME
 {
 class buffer;
 class dma_channel;
+class event_stream;
 
     class event_generator
     {
@@ -35,12 +36,7 @@ class dma_channel;
             event_generator()
             { }
 
-            event_generator
-            (
-                librorc::buffer      *report_buffer,
-                librorc::buffer      *event_buffer,
-                librorc::dma_channel *channel
-            );
+            event_generator(event_stream *eventStream );
 
             ~event_generator()
             { }
@@ -107,25 +103,26 @@ class dma_channel;
             uint32_t fragmentSize(uint32_t event_size);
 
             uint64_t numberOfEvents(uint32_t event_size);
-                bool isSufficientFifoSpaceAvailable();
 
-                uint64_t
-                numberOfEventsThatFitIntoBuffer
-                (
-                    uint64_t available_buffer_space,
-                    uint32_t event_size,
-                    uint32_t fragment_size
-                );
+            bool isSufficientFifoSpaceAvailable();
 
-                /**
-                 * reduce the number of events to the maximum the
-                 * EL_FIFO can handle a.t.m.
-                 */
-                uint64_t
-                maximumElfifoCanHandle(uint64_t number_of_events);
+            uint64_t
+            numberOfEventsThatFitIntoBuffer
+            (
+                uint64_t available_buffer_space,
+                uint32_t event_size,
+                uint32_t fragment_size
+            );
 
-                uint64_t
-                reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
+            /**
+             * reduce the number of events to the maximum the
+             * EL_FIFO can handle a.t.m.
+             */
+            uint64_t
+            maximumElfifoCanHandle(uint64_t number_of_events);
+
+            uint64_t
+            reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
     };
 
 }

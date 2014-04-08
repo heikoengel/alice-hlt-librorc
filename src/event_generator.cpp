@@ -22,6 +22,7 @@
 
 #include <librorc/buffer.hh>
 #include <librorc/dma_channel.hh>
+#include <librorc/event_stream.hh>
 #include <librorc/registers.h>
 
 #include <pda.h>
@@ -30,16 +31,12 @@ using namespace std;
 
 namespace LIBRARY_NAME
 {
-    event_generator::event_generator
-    (
-        librorc::buffer      *report_buffer,
-        librorc::buffer      *event_buffer,
-        librorc::dma_channel *channel
-    )
+    event_generator::event_generator(event_stream *eventStream)
     {
-        m_report_buffer           = report_buffer;
-        m_event_buffer            = event_buffer;
-        m_channel                 = channel;
+        m_report_buffer           = eventStream->m_reportBuffer;
+        m_event_buffer            = eventStream->m_eventBuffer;
+        m_channel                 = eventStream->m_channel;
+
         m_event_generation_offset = 0;
         m_event_id                = 0;
     }
@@ -50,11 +47,7 @@ namespace LIBRARY_NAME
         uint64_t number_of_events
             = numberOfEvents( event_size );
 
-        packEventsIntoMemory
-        (
-            number_of_events,
-            event_size
-        );
+        packEventsIntoMemory(number_of_events, event_size);
 
         return number_of_events;
     }

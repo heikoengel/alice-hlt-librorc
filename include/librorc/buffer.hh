@@ -93,8 +93,6 @@ class buffer_sglist_programmer;
               *        Index of the buffer. Even IDs are report buffers, odd IDs are
               *        event buffers.
               * @param [in] overmap
-              *
-              *
               */
              buffer
              (

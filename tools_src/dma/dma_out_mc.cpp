@@ -118,15 +118,7 @@ int main(int argc, char *argv[])
 
     librorc::event_generator generators[MAX_CHANNELS];
     for(i=0; i<nChannels; i++)
-    {
-        generators[i] =
-            librorc::event_generator
-            (
-                eventStream[i]->m_reportBuffer,
-                eventStream[i]->m_eventBuffer,
-                eventStream[i]->m_channel
-            );
-    }
+    { generators[i] = librorc::event_generator(eventStream[i]); }
 
     librorc::event_sanity_checker checkers[MAX_CHANNELS];
     for(i=0; i<nChannels; i++)

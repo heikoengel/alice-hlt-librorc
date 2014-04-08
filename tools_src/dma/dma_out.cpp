@@ -76,13 +76,7 @@ int main( int argc, char *argv[])
     { sanity_check_mask |= CHK_PATTERN | CHK_ID; }
 
 
-    librorc::event_generator
-    eventGen
-    (
-        eventStream->m_reportBuffer,
-        eventStream->m_eventBuffer,
-        eventStream->m_channel
-    );
+    librorc::event_generator eventGen(eventStream);
 
     librorc::event_sanity_checker checker =
         (opts.useRefFile)
