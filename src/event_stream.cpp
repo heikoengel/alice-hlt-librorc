@@ -231,8 +231,6 @@ namespace LIBRARY_NAME
 
         for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
-
-        checkFirmwareCompatibility(esType);
     }
 
 
