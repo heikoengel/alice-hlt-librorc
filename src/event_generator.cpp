@@ -160,10 +160,7 @@ namespace LIBRARY_NAME
     }
 
     uint32_t
-    event_generator::fragmentSize
-    (
-         uint32_t event_size
-    )
+    event_generator::fragmentSize(uint32_t event_size)
     {
         uint32_t max_read_req = m_channel->pciePacketSize();
 

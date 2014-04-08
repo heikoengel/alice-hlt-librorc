@@ -33,13 +33,11 @@ class event_stream;
     {
         public:
 
-            event_generator()
-            { }
+            event_generator(){ }
 
             event_generator(event_stream *eventStream );
 
-            ~event_generator()
-            { }
+            ~event_generator(){ }
 
             uint64_t fillEventBuffer(uint32_t event_size);
 
