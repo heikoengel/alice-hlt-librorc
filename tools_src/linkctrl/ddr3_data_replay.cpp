@@ -40,19 +40,19 @@ loading a file with -f. \n\
 
 #define HEX32(x) setw(8) << setfill('0') << hex << x << setfill(' ')
 
-uint32_t
+uint64_t
 getDdr3ModuleCapacity
 (
     librorc::sysmon *sm,
     uint8_t module_number
 )
 {
-    uint32_t total_cap = 0;
+    uint64_t total_cap = 0;
     try
     {
         uint8_t density = sm->ddr3SpdRead(module_number, 0x04);
         /** lower 4 bit: 0000->256 Mbit, ..., 0110->16 Gbit */
-        uint32_t sd_cap = (256<<(20+(density&0xf)));
+        uint64_t sd_cap = ((uint64_t)256<<(20+(density&0xf)));
         uint8_t mod_org = sm->ddr3SpdRead(module_number, 0x07);
         uint8_t n_ranks = ((mod_org>>3)&0x7) + 1;
         uint8_t dev_width = 4*(1<<(mod_org&0x07));
@@ -82,7 +82,7 @@ int main
     int32_t ChannelId = -1;
     uint32_t channel_enable_val = 0;
     char *filename = NULL;
-    uint32_t module_size = 0;
+    uint64_t module_size = 0;
     uint32_t start_addr = 0;
     uint32_t start_addr_ovrd = 0;
 
