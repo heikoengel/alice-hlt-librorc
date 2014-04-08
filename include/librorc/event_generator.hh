@@ -62,16 +62,14 @@ class event_stream;
 
             /**
              * Create an event
-             * @param dest  pointer to destination memory
              * @param Event ID
              * @param event length
             **/
             void
             createEvent
             (
-                volatile uint32_t *dest,
-                uint64_t           event_id,
-                uint32_t           event_size
+                uint64_t event_id,
+                uint32_t event_size
             );
 
 //-----------------------------------

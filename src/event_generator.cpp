@@ -59,15 +59,10 @@ namespace LIBRARY_NAME
         uint32_t event_size
     )
     {
-        volatile uint32_t* eventbuffer = m_event_buffer->getMem();
+        //volatile uint32_t* eventbuffer = m_event_buffer->getMem();
         for(uint64_t i = 0; i < number_of_events; i++)
         {
-            createEvent
-            (
-                (eventbuffer + (m_event_generation_offset >> 2)),
-                m_event_id,
-                event_size
-            );
+            createEvent(m_event_id, event_size);
 
             DEBUG_PRINTF
             (
@@ -84,12 +79,12 @@ namespace LIBRARY_NAME
     void
     event_generator::createEvent
     (
-        volatile uint32_t *dest,
-        uint64_t           event_id,
-        uint32_t           event_size
+        uint64_t event_id,
+        uint32_t event_size
     )
     {
         uint32_t i;
+        volatile uint32_t *dest = (m_event_buffer->getMem() + (m_event_generation_offset >> 2));
 
         if(event_size <= 8)
         { throw 0; }
