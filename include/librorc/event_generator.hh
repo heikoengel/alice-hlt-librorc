@@ -80,9 +80,8 @@ class event_stream;
             void
             packEventIntoBuffer
             (
-                uint32_t          *tmp_buffer,
-                uint32_t           event_size,
-                volatile uint32_t *dest
+                uint32_t *tmp_buffer,
+                uint32_t  event_size
             );
 
             void pushEventSizeIntoELFifo(uint32_t event_size);

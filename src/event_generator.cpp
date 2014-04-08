@@ -59,7 +59,6 @@ namespace LIBRARY_NAME
         uint32_t event_size
     )
     {
-        //volatile uint32_t* eventbuffer = m_event_buffer->getMem();
         for(uint64_t i = 0; i < number_of_events; i++)
         {
             createEvent(m_event_id, event_size);
@@ -84,7 +83,6 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t i;
-        volatile uint32_t *dest = (m_event_buffer->getMem() + (m_event_generation_offset >> 2));
 
         if(event_size <= 8)
         { throw 0; }
@@ -104,7 +102,7 @@ namespace LIBRARY_NAME
         for(i=0; i<event_size-8; i++)
         { tmp_buffer[8+i] = i; }
 
-        packEventIntoBuffer(tmp_buffer, event_size, dest);
+        packEventIntoBuffer(tmp_buffer, event_size);
     }
 
 
@@ -126,11 +124,12 @@ namespace LIBRARY_NAME
     void
     event_generator::packEventIntoBuffer
     (
-        uint32_t          *event,
-        uint32_t           event_size,
-        volatile uint32_t *dest
+        uint32_t *event,
+        uint32_t  event_size
     )
     {
+        uint32_t *dest = (m_event_buffer->getMem() + (m_event_generation_offset >> 2));
+
         memcpy((void*) (dest), event, (event_size * sizeof(uint32_t)));
         pushEventSizeIntoELFifo(event_size);
         iterateEventBufferFillState(event_size);
