@@ -33,14 +33,8 @@ namespace LIBRARY_NAME
 {
     event_generator::event_generator(event_stream *eventStream)
     {
-        m_report_buffer           = eventStream->m_reportBuffer;
-        m_event_buffer            = eventStream->m_eventBuffer;
-        m_channel                 = eventStream->m_channel;
-
         m_event_stream = eventStream;
-
-        //m_event_generation_offset = 0;
-        m_event_id                = 0;
+        m_event_id     = 0;
     }
 
     uint64_t

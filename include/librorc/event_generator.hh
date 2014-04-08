@@ -40,14 +40,7 @@ class event_stream;
             uint64_t fillEventBuffer(uint32_t event_size);
 
         protected:
-
-//            uint64_t     m_last_event_buffer_offset;
-//            uint64_t     m_event_generation_offset;
-            uint64_t     m_event_id;
-            buffer      *m_report_buffer;
-            buffer      *m_event_buffer;
-            dma_channel *m_channel;
-
+            uint64_t      m_event_id;
             event_stream *m_event_stream;
 
             void
