@@ -811,6 +811,22 @@ namespace LIBRARY_NAME
     }
 
 
+    uint8_t
+    sysmon::ddr3SpdRead
+    (
+        uint8_t module,
+        uint8_t address
+    )
+    {
+        uint8_t rdval = i2c_read_mem(
+                3, // DDR3 is chain 3
+                DDR3_SPD_SLVADDR + (module&1),
+                address);
+        return rdval;
+    }
+
+
+
 
     /** Protected ***** ***********************************************/
 

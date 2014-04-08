@@ -28,7 +28,7 @@ using namespace std;
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
         -f [path]     Load DDL file for replay, \n\
-        -s [addr]     DDR3 start address \n\
+        -s [addr]     override default DDR3 start address \n\
         -l            Current event is the last to be replayed \n\
         -e [0/1]      Enable/disable data replay channel \n\
         -o [0/1]      Set One-Shot replay mode \n\
@@ -39,6 +39,35 @@ loading a file with -f. \n\
 "
 
 #define HEX32(x) setw(8) << setfill('0') << hex << x << setfill(' ')
+
+uint32_t
+getDdr3ModuleCapacity
+(
+    librorc::sysmon *sm,
+    uint8_t module_number
+)
+{
+    uint32_t total_cap = 0;
+    try
+    {
+        uint8_t density = sm->ddr3SpdRead(module_number, 0x04);
+        /** lower 4 bit: 0000->256 Mbit, ..., 0110->16 Gbit */
+        uint32_t sd_cap = (256<<(20+(density&0xf)));
+        uint8_t mod_org = sm->ddr3SpdRead(module_number, 0x07);
+        uint8_t n_ranks = ((mod_org>>3)&0x7) + 1;
+        uint8_t dev_width = 4*(1<<(mod_org&0x07));
+        uint8_t mod_width = sm->ddr3SpdRead(module_number, 0x08);
+        uint8_t pb_width = 8*(1<<(mod_width&0x7));
+        total_cap = sd_cap / 8 * pb_width / dev_width * n_ranks;
+    } catch(...)
+    {
+        cout << "ERROR: Failed to read from DDR3 SPD on SO-DIMM "
+             << module_number << endl;
+        abort();
+    }
+    return total_cap;
+}
+
 
 int main
 (
@@ -53,11 +82,13 @@ int main
     int32_t ChannelId = -1;
     uint32_t channel_enable_val = 0;
     char *filename = NULL;
+    uint32_t module_size = 0;
     uint32_t start_addr = 0;
+    uint32_t start_addr_ovrd = 0;
 
     int do_channel_enable = 0;
     int do_load_file = 0;
-    int start_addr_set = 0;
+    int start_addr_ovrd_set = 0;
     bool is_last_event = false;
     bool set_oneshot = false;
     uint32_t oneshot = 0;
@@ -100,8 +131,8 @@ int main
 
             case 's':
             {
-                start_addr = strtol(optarg, NULL, 0);
-                start_addr_set = 1;
+                start_addr_ovrd = strtol(optarg, NULL, 0);
+                start_addr_ovrd_set = 1;
             }
             break;
 
@@ -154,7 +185,7 @@ int main
      **/
     if( do_load_file )
     {
-        if( !start_addr_set )
+        if( !start_addr_ovrd_set )
         {
             cout << "ERROR: Please provide a channel start address for this operation!" << endl;
             abort();
@@ -162,14 +193,14 @@ int main
     }
 
     /** check channel start address alignment */
-    if( start_addr_set )
+    if( start_addr_ovrd_set )
     {
-        if( start_addr & 0x00000003 )
+        if( start_addr_ovrd & 0x00000003 )
         {
             cout << "ERROR: start address must be a 32bit aligned." << endl;
             abort();
         }
-        else if( start_addr & 0x000000ff )
+        else if( start_addr_ovrd & 0x000000ff )
         {
             cout << "WARNING: start address is not a multiple of 256 byte "
                  << "- are you sure you know what you're doing?!" << endl;
@@ -228,6 +259,22 @@ int main
      **/
     ControllerId = (ChannelId<6) ? 0 : 1;
 
+
+    if( start_addr_ovrd_set )
+    {
+        /** override default start address with provided value */
+        start_addr = start_addr_ovrd;
+    }
+    else
+    {
+         /** get size of RAM module */
+        module_size = getDdr3ModuleCapacity(sm, ControllerId);
+        /** divide module size by 8. We can have up to 6 channels per
+         * module, so dividing by 6 is also fine here, but /8 gives
+         * the nicer boundaries.*/
+        start_addr = ChannelId*(module_size>>3);
+    }
+
     /** create link instance */
     librorc::link *link = new librorc::link(bar, ChannelId);
 
@@ -252,10 +299,6 @@ int main
         abort();
     }
 
-    /**
-     * TODO: do we want automatic partitioning of available DDR3 space?
-     * -> get module size, divide by number of DDLs, set start_addr, ...
-     **/
     if ( do_load_file )
     {
         uint32_t next_addr;
@@ -310,7 +353,7 @@ int main
         close(fd_in);
     }
 
-    if( start_addr_set )
+    if( start_addr_ovrd_set )
     {
         link->setDdr3DataReplayChannelStartAddress(start_addr);
     }
@@ -345,10 +388,15 @@ int main
     /**
      * print status
      **/
+    cout << "SO-DIMM " << ControllerId << endl
+         << "\tCapacity: " << (module_size>>20) << " MB" << endl;
+
     cout << "Channel " << ChannelId << " Config:" << endl
          << "\tStart Address: " << hex
          << link->ddr3DataReplayChannelStartAddress() << dec << endl
          << "\tReset: " << link->ddr3DataReplayChannelIsInReset() << endl
+         << "\tContinuous: " << link->ddr3DataReplayChannelModeIsContinuous() << endl
+         << "\tOneshot: " << link->ddr3DataReplayChannelModeIsOneshot() << endl
          << "\tEnabled: " << link->ddr3DataReplayChannelIsEnabled() << endl;
 
     cout << "Channel " << ChannelId << " Status:" << endl

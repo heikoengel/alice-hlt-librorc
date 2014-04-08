@@ -411,6 +411,18 @@ namespace LIBRARY_NAME
             ddr3DataReplayChannelIsEnabled();
 
             /**
+             * @return true if continuous mode is enabled, else false
+             **/
+            bool
+            ddr3DataReplayChannelModeIsContinuous();
+
+            /**
+             * @return true if oneshot mode is enabled, else false
+             **/
+            bool
+            ddr3DataReplayChannelModeIsOneshot();
+
+            /**
              * @return true if waiting for data from DDR3, else false
              **/
             bool

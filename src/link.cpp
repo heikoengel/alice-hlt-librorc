@@ -704,6 +704,18 @@ namespace LIBRARY_NAME
     }
 
     bool
+    link::ddr3DataReplayChannelModeIsContinuous()
+    {
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & (1<<1)) != 0);
+    }
+
+    bool
+    link::ddr3DataReplayChannelModeIsOneshot()
+    {
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & (1<<2)) != 0);
+    }
+
+    bool
     link::ddr3DataReplayChannelIsWaiting()
     {
         return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & (1<<1)) != 0);
