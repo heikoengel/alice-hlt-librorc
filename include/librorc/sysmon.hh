@@ -390,6 +390,17 @@ namespace LIBRARY_NAME
                 uint32_t controller
             );
 
+            /**
+             * get maximum module size supported by firmware controller
+             * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
+             * @return modules size in bytes
+             **/
+            uint32_t
+            ddr3ControllerMaxModuleSize
+            (
+                 uint32_t controller
+            );
+
 
             /**
              * read from DDR3 SPD monitor

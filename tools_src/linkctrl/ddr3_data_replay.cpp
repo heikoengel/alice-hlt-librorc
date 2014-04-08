@@ -83,6 +83,8 @@ int main
     uint32_t channel_enable_val = 0;
     char *filename = NULL;
     uint64_t module_size = 0;
+    uint64_t max_ctrl_size = 0;
+    uint64_t default_start_addr = 0;
     uint32_t start_addr = 0;
     uint32_t start_addr_ovrd = 0;
 
@@ -259,21 +261,23 @@ int main
      **/
     ControllerId = (ChannelId<6) ? 0 : 1;
 
-
-    if( start_addr_ovrd_set )
-    {
-        /** override default start address with provided value */
-        start_addr = start_addr_ovrd;
-    }
+    /** get size of RAM module */
+    module_size = getDdr3ModuleCapacity(sm, ControllerId);
+    max_ctrl_size = sm->ddr3ControllerMaxModuleSize(ControllerId);
+    /** divide module size by 8*4. We can have up to 6 channels per
+     * module, so dividing by 6*4 is also fine here, but /(8*4) gives
+     * the nicer boundaries. Additional factor 4 comes from word-addressing
+     * instead of byte-addressing of the controller. */
+    if(max_ctrl_size>=module_size)
+    { default_start_addr = ChannelId*(module_size>>5); }
     else
-    {
-         /** get size of RAM module */
-        module_size = getDdr3ModuleCapacity(sm, ControllerId);
-        /** divide module size by 8. We can have up to 6 channels per
-         * module, so dividing by 6 is also fine here, but /8 gives
-         * the nicer boundaries.*/
-        start_addr = ChannelId*(module_size>>3);
-    }
+    { default_start_addr = ChannelId*(max_ctrl_size>>5); }
+
+    /** override default start address with provided value */
+    if( start_addr_ovrd_set )
+    { start_addr = start_addr_ovrd; }
+    else
+    { start_addr = default_start_addr; }
 
     /** create link instance */
     librorc::link *link = new librorc::link(bar, ChannelId);
@@ -389,7 +393,10 @@ int main
      * print status
      **/
     cout << "SO-DIMM " << ControllerId << endl
-         << "\tCapacity: " << (module_size>>20) << " MB" << endl;
+         << "\tModule Capacity: " << (module_size>>20) << " MB" << endl
+         << "\tMax. Controller Capacity: " << (max_ctrl_size>>20) << " MB" << endl
+         << "\tDefault Start Address: 0x"
+         << HEX32(default_start_addr) << endl;
 
     cout << "Channel " << ChannelId << " Config:" << endl
          << "\tStart Address: " << hex

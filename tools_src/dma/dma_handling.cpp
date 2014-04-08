@@ -533,7 +533,7 @@ configureDataSource
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {
-        configureSiu(eventStream, opts);
+        //configureSiu(eventStream, opts);
     }
 
     if( opts.useFcf )
@@ -605,6 +605,6 @@ unconfigureDataSource
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {
-        unconfigureSiu(eventStream, opts);
+        //unconfigureSiu(eventStream, opts);
     }
 }

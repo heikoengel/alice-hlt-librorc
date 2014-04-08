@@ -772,6 +772,19 @@ namespace LIBRARY_NAME
         }
     }
 
+    uint32_t
+    sysmon::ddr3ControllerMaxModuleSize
+    (
+        uint32_t controller
+    )
+    {
+        uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        /** C0: bits [13:11], C1: bits [29:27] */
+        uint32_t addr_width = (32-((ddr3ctrl>>(16*(controller&1)+11)) & 0x7));
+        return (4<<addr_width);
+    }
+
+
 
     bool
     sysmon::ddr3ModuleInitReady
