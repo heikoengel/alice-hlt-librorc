@@ -50,11 +50,6 @@ class event_stream;
                 uint32_t event_size
             );
 
-            /**
-             * Create an event
-             * @param Event ID
-             * @param event length
-            **/
             void
             createEvent
             (
