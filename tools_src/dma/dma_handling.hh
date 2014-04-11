@@ -51,6 +51,7 @@ typedef struct
     int32_t       channelId;
     uint32_t      eventSize;
     char          refname[4096];
+    char          fcfmappingname[4096];
     uint32_t      datasource;
     bool          useRefFile;
     bool          useFcf;

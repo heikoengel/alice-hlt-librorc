@@ -24,7 +24,7 @@ evaluateArguments(int argc, char *argv[])
         {"file", required_argument, 0, 'f'},
         {"size", required_argument, 0, 's'},
         {"source", required_argument, 0, 'r'},
-        {"fcf", no_argument, 0, 'F'},
+        {"fcfmapping", required_argument, 0, 'm'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -110,7 +110,7 @@ evaluateArguments(int argc, char *argv[])
             }
             break;
 
-            case 'F':
+            case 'm':
             {
                 if( ret.esType!=LIBRORC_ES_TO_HOST )
                 {
@@ -118,6 +118,7 @@ evaluateArguments(int argc, char *argv[])
                          << endl;
                     exit(0);
                 }
+                strcpy(ret.fcfmappingname, optarg);
                 ret.useFcf = true;
             }
             break;
@@ -504,7 +505,9 @@ configureFcf
     }
 
     fcf->setState(1, 0); // reset, not enabled
-    // TODO: load mapping file
+#ifndef SIM
+    fcf->loadMappingRam(opts.fcfmappingname);
+#endif
     fcf->setSinglePadSuppression(0);
     fcf->setBypassMerger(0);
     fcf->setDeconvPad(1);
