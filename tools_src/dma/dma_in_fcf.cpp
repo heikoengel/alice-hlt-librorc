@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
     //        (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
 
     link->setDataSourceDdr3DataReplay();
-    link->enableFlowControl();
+    link->setFlowControlEnable(1);
     link->setDdr3DataReplayChannelReset(0);
     link->setDdr3DataReplayChannelContinuous(0);
     link->setDdr3DataReplayChannelOneshot(0);

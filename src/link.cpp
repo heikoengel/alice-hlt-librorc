@@ -192,8 +192,20 @@ namespace LIBRARY_NAME
     bool
     link::isGtxDomainReady()
     {
-        uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
-        return( (gtxasynccfg & 0x00000134) == 0x00000034 );
+        uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
+        uint32_t stsmask = (1<<0) | // PHY is ready
+            (1<<1) | // PHY is enabled enable
+            (1<<5) | // GTX byteisaligned
+            (1<<6) | // GTX lossofsync
+            (1<<9) | // GTX rxbufstatus[2]
+            (1<<11); // GTX txbufstatus[1]
+        uint32_t expected_value = (1<<0) | // ready==1
+            (1<<1) | // enable==1
+            (1<<5) | // byteisaligned==1
+            (0<<6) | // lossofsync==0
+            (0<<9) | // rxbufstatus[2]==0
+            (0<<11); // txbufstatus[1]==0
+        return ((gtxsyncsts & stsmask) == expected_value);
     }
 
     void
@@ -526,77 +538,51 @@ namespace LIBRARY_NAME
     link::waitForGTXDomain()
     {
         /**
-         * poll asynchronous GTX status
-         * wait for rxresetdone & txresetdone & rxplllkdet &
-         * txplllkdet & !gtx_in_rst
-         *
          * TODO:
          * - add timeout
          * - return/handle/report timeout error
          * */
-        while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x134) != 0x034 )
+        while( !isGtxDomainReady() )
         { usleep(100); }
     }
 
 
-    /**********************************************************
-     *             Fast Cluster Finder Interfacing
-     * *******************************************************/
-
-    // protected
-    /*void
-    link::fcfWriteMappingRamEntry
+    void
+    link::setFlowControlEnable
     (
-        uint32_t addr,
-        uint32_t data
+        uint32_t enable
     )
     {
-        setGTX(RORC_REG_FCF_RAM_DATA, data);
-        setGTX(RORC_REG_FCF_RAM_CTRL, addr);
-    }*/
-
-
-    // protected
-
-
-    void
-    link::enableFlowControl()
-    {
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<1); // enable flow control
+        ddlctrl &= ~(1<<1); // clear bit
+        ddlctrl |= ((enable & 1)<<1); // set new value
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
-    void
-    link::disableFlowControl()
+    bool
+    link::flowControlIsEnabled()
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<1); // disable flow control
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<1)) != 0 );
     }
 
-    void
-    link::enableFcf()
+
+    bool
+    link::patternGeneratorAvailable()
     {
-        // enable FCF (same bit as PG_ENABLE)
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<8); // enable PatternGenerator
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<15)) != 0 );
     }
 
-    void
-    link::disableFcf()
+
+    bool
+    link::ddr3DataReplayAvailable()
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<8); // disable FCF (same bit as PG_ENABLE)
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
     }
 
     void
     link::setDataSourceDdr3DataReplay()
     {
         // set MUX to DDR3 DataReplay:
-        // same as PatternGenerator for HLT_IN & HWTEST
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16);
         ddlctrl |= (1<<16); // set MUX to 1
@@ -725,29 +711,5 @@ namespace LIBRARY_NAME
     link::ddr3DataReplayChannelIsDone()
     {
         return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & (1<<0)) != 0);
-    }
-
-    bool
-    link::gtxIsUp()
-    {
-        /**
-         * TODO: add checks for
-         * - dfe eye opening?
-         * - error counters?
-         **/
-        uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
-        uint32_t stsmask = (1<<0) | // ready
-            (1<<1) | // enable
-            (1<<5) | // byteisaligned
-            (1<<6) | // lossofsync
-            (1<<9) | // rxbufstatus[2]
-            (1<<11); // txbufstatus[1]
-        uint32_t expected_value = (1<<0) | // ready==1
-            (1<<1) | // enable==1
-            (1<<5) | // byteisaligned==1
-            (0<<6) | // lossofsync==0
-            (0<<9) | // rxbufstatus[2]==0
-            (0<<11); // txbufstatus[1]==0
-        return ((gtxsyncsts & stsmask) == expected_value);
     }
 }

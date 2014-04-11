@@ -353,7 +353,7 @@ int main
             if ( pgnevents )
             {
                 ddlctrl &= ~(1<<10); //clear continuous-bit
-            } 
+            }
             else
             {
                 ddlctrl |= (1<<10); //set continuous-bit
@@ -416,10 +416,8 @@ int main
         /** set flow control */
         if ( set_fc )
         {
-            if(fc)
-            { current_link->enableFlowControl(); }
-            else
-            { current_link->disableFlowControl(); }
+            ddlctrl &= ~(1<<1); // clear flow control bit
+            ddlctrl |= ((fc&1)<<1);
         }
 
         if ( set_fc || set_enable || set_pgmode || set_pgenable ||

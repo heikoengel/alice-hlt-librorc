@@ -549,7 +549,7 @@ configureDataSource
 )
 {
     eventStream->m_link->waitForGTXDomain();
-    eventStream->m_link->enableFlowControl();
+    eventStream->m_link->setFlowControlEnable(1);
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {

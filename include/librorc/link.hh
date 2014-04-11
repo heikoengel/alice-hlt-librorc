@@ -137,7 +137,7 @@ namespace LIBRARY_NAME
 
             /**
              * get GTX clock domain status
-             * @return TRUE is up and running, FALSE if down
+             * @return TRUE if up and running, FALSE if down
              * */
             bool isGtxDomainReady();
 
@@ -283,52 +283,46 @@ namespace LIBRARY_NAME
 
 
             /**
-             * Enable Flow Control
+             * Enable/disable Flow Control
              * With flow control enabled the datapath respects full FIFOs
              * and throttles the data flow from source. No XOFF is sent
              * to DAQ as long as this is not enabled.
+             * With flow control enabled the datapath from source
+             * to DMA engine ignores any full FIFOs and will never
+             * send XOFF to DAQ. This also means that DMA'ed events
+             * may be incomplete.
+             * @param enable 1 to enable, 0 to disable
              **/
             void
-            enableFlowControl();
-
-            /**
-             * Disable Flow Control
-             * The datapath from source to DMA engine ignores any full
-             * FIFOs and will never send XOFF to DAQ. This also means
-             * that DMA'ed events may be incomplete.
-             **/
-            void
-            disableFlowControl();
-
-
-            /**********************************************************
-             *             Fast Cluster Finder Interfacing
-             *********************************************************/
-
-            /**
-             * load mapping file into FCF mapping RAM
-             * @param fname path to mapping file. The mapping file
-             *        is a plain-text file with one 32bit hex string
-             *        per line, e.g.
-             *        "0x1000801f"
-             **/
-            void
-            fcfLoadMappingRam
+            setFlowControlEnable
             (
-                 const char *fname
+                uint32_t enable
             );
 
             /**
-             * enable FastClusterFinder processing
+             * check if Flow Control is enabled
+             * @return true if enabled, false if disabled
              **/
-            void
-            enableFcf();
+            bool
+            flowControlIsEnabled();
+
 
             /**
-             * disable FastClusterFinder processing
+             * check if current firmware has a pattern genertor
+             * implemented
+             * @return true if available, else false
              **/
-            void
-            disableFcf();
+            bool
+            patternGeneratorAvailable();
+
+
+            /**
+             * check if current firmware has DDR3 Data Replay
+             * implemented for current link.
+             * @return true if available, else false
+             **/
+            bool
+            ddr3DataReplayAvailable();
 
 
 
@@ -434,12 +428,6 @@ namespace LIBRARY_NAME
             bool
             ddr3DataReplayChannelIsDone();
 
-            /**
-             * check link status on GTX level
-             **/
-            bool
-            gtxIsUp();
-
 
         protected:
             bar      *m_bar;
@@ -481,35 +469,6 @@ namespace LIBRARY_NAME
                 uint8_t addr,
                 uint8_t value
             );
-
-
-
-            /**********************************************************
-             *             Fast Cluster Finder Interfacing
-             *********************************************************/
-
-            /** write entry into FCF mapping RAM
-             * @param addr mapping RAM addr
-             * @param data data to be written
-             **/
-            /*void
-            fcfWriteMappingRamEntry
-            (
-                 uint32_t addr,
-                 uint32_t data
-            );*/
-
-            /**
-             * convert hex string to uint32_t
-             * @param line input string
-             * @return line as uint32_t
-             **/
-            /*uint32_t
-            fcfHexstringToUint32
-            (
-                 std::string line
-            );*/
-
 };
 
 }
