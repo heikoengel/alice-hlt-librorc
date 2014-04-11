@@ -519,6 +519,26 @@ configureFcf
     delete fcf;
 }
 
+void
+unconfigureFcf
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::fastclusterfinder *fcf =
+        eventStream->getFastClusterFinder();
+    if( !fcf )
+    {
+        cout << "Clusterfinder not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+
+    fcf->setState(1, 0); // reset, not enabled
+    delete fcf;
+}
+
 
 
 void
@@ -564,11 +584,11 @@ configureDataSource
         case ES_SRC_DDR3:
             {
                 eventStream->m_link->setDataSourceDdr3DataReplay();
-                if(eventStream->m_link->ddr3DataReplayChannelIsInReset())
+                /*if(eventStream->m_link->ddr3DataReplayChannelIsInReset())
                 {
                     eventStream->m_link->disableDdr3DataReplayChannel();
                     eventStream->m_link->setDdr3DataReplayChannelReset(0);
-                }
+                }*/
             }
             break;
 
@@ -584,6 +604,12 @@ unconfigureDataSource
     DMAOptions opts
 )
 {
+
+    if( opts.useFcf )
+    {
+        unconfigureFcf(eventStream, opts);
+    }
+
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:

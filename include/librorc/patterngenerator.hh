@@ -128,12 +128,6 @@ namespace LIBRARY_NAME
                 uint32_t numberOfEvents
             );
 
-            void
-            setWaitTime
-            (
-                uint32_t waitTime
-            );
-
 
             /**
              * configure datapath to use PatternGenerator as data source.

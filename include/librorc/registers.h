@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: 6c0f19912843158e4707dded044c126b86c92fee
-// short hash: 6c0f199
+// hash: be17539135868462db9c713153f804d6d7456000
+// short hash: be17539
 //
 
-#define RORC_REVISION 0x6c0f199
-#define RORC_BUILD_DATE 0x20140402
+#define RORC_REVISION 0xbe17539
+#define RORC_BUILD_DATE 0x20140411
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -70,6 +70,7 @@
 #define RORC_REG_GTX_DRP_CTRL 24
 #define RORC_REG_EBDM_PTR_MATCH_CNT 25
 #define RORC_REG_RBDM_PTR_MATCH_CNT 26
+#define RORC_REG_DMA_RATE_LIMITER_WAITTIME 27
 #define RORC_REG_GTX_CTRL 0
 #define RORC_REG_GTX_RXDFE 1
 #define RORC_REG_GTX_DISPERR_CNT 2
@@ -81,7 +82,6 @@
 #define RORC_REG_DDL_PG_EVENT_LENGTH 9
 #define RORC_REG_DDL_PG_PATTERN 10
 #define RORC_REG_DDL_PG_NUM_EVENTS 11
-#define RORC_REG_DDL_PG_WAIT_TIME 12
 #define RORC_REG_DDL_CMD 13
 #define RORC_REG_DDL_CLR_EL 14
 #define RORC_REG_DDL_CONFIG 15

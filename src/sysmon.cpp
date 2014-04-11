@@ -744,7 +744,7 @@ namespace LIBRARY_NAME
             }
 
             ddr3DataReplayBlockToRam( addr, dataptr, mask, channel, flags);
-            addr += 0x40;
+            addr += 8;
             dataptr += 15;
             num_dws = (num_dws<15) ? 0 : (num_dws-15);
         }
@@ -778,10 +778,30 @@ namespace LIBRARY_NAME
         uint32_t controller
     )
     {
+        uint32_t i = (controller&1);
         uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
-        /** C0: bits [13:11], C1: bits [29:27] */
-        uint32_t addr_width = (32-((ddr3ctrl>>(16*(controller&1)+11)) & 0x7));
-        return (4<<addr_width);
+
+        /**
+         * get controller address width encoded as (32-width)
+         * C0: bits [13:11], C1: bits [29:27]
+         **/
+        uint32_t addr_width = (32-((ddr3ctrl>>(16*i+11)) & 0x7));
+
+        /**
+         * number of ranks:
+         * C0: bit[14], C1: bit[30]
+         * 0 => single ranked, 1 => dual ranked
+         **/
+        uint32_t nranks = (((ddr3ctrl>>(14+16*i))&1)+1);
+
+        /**
+         * highest address bit cannot be counted on single
+         * ranked modules
+         **/
+        if( nranks==1 )
+        { addr_width -= 1; }
+
+        return 8*(1<<addr_width);
     }
 
 
@@ -873,6 +893,9 @@ namespace LIBRARY_NAME
 
         /** set block header */
         block_buffer[0] = ((uint32_t)mask<<16) | flags | channel_select;
+
+        std::cout << hex << setw(8) << setfill('0') << block_buffer[0]
+             << endl;
 
         /** copy data to buffer registers */
         m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,

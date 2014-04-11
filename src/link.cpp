@@ -619,21 +619,21 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg &= ~(0xfffffff8); // clear [31:6]
-        ch_cfg |= (ddr3_start_address & 0xfffffff8); //set start_addr[31:6]
+        ch_cfg &= ~(0x7ffffff8); // clear [30:3]
+        ch_cfg |= (ddr3_start_address & 0x7ffffff8); //set start_addr[30:3]
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
     uint32_t
     link::ddr3DataReplayChannelStartAddress()
     {
-        return (GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & 0xfffffff8);
+        return (GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & 0x7ffffff8);
     }
 
     uint32_t
     link::ddr3DataReplayChannelLastAddress()
     {
-        return (GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & 0xfffffff8);
+        return (GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_STS) & 0x7ffffff8);
     }
 
 
@@ -669,8 +669,8 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg &= ~(1<<3);
-        ch_cfg |= ((resetval&1)<<3);
+        ch_cfg &= ~(1<<31);
+        ch_cfg |= ((resetval&1)<<31);
         setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
@@ -694,7 +694,7 @@ namespace LIBRARY_NAME
     bool
     link::ddr3DataReplayChannelIsInReset()
     {
-        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & (1<<3)) != 0);
+        return ((GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL) & (1<<31)) != 0);
     }
 
     bool

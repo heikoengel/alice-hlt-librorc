@@ -19,6 +19,7 @@
  * */
 
 #include <librorc.h>
+#include <vector>
 
 using namespace std;
 
@@ -75,13 +76,15 @@ int main
     char *argv[]
 )
 {
-    
+
    /** parse command line arguments **/
     int32_t DeviceId  = -1;
     uint32_t ControllerId;
     int32_t ChannelId = -1;
     uint32_t channel_enable_val = 0;
-    char *filename = NULL;
+    //char *filename = NULL;
+    vector<string> list_of_filenames;
+    vector<string>::iterator iter;
     uint64_t module_size = 0;
     uint64_t max_ctrl_size = 0;
     uint64_t default_start_addr = 0;
@@ -89,9 +92,8 @@ int main
     uint32_t start_addr_ovrd = 0;
 
     int do_channel_enable = 0;
-    int do_load_file = 0;
+    bool do_load_file = false;
     int start_addr_ovrd_set = 0;
-    bool is_last_event = false;
     bool set_oneshot = false;
     uint32_t oneshot = 0;
     bool set_continuous = false;
@@ -99,8 +101,8 @@ int main
     bool set_channel_reset = false;
     uint32_t channel_reset = 0;
     int arg;
-     
-    while( (arg = getopt(argc, argv, "hn:c:f:e:s:lo:C:r:")) != -1 )
+
+    while( (arg = getopt(argc, argv, "hn:c:f:e:s:o:C:r:")) != -1 )
     {
         switch(arg)
         {
@@ -125,9 +127,11 @@ int main
 
             case 'f':
             {
-                filename = (char *)malloc(strlen(optarg)+2);
-                sprintf(filename, "%s", optarg);
-                do_load_file = 1;
+                /** add filename to list */
+                list_of_filenames.push_back(optarg);
+                /*filename = (char *)malloc(strlen(optarg)+2);
+                sprintf(filename, "%s", optarg);*/
+                do_load_file = true;
             }
             break;
 
@@ -159,12 +163,6 @@ int main
             }
             break;
 
-            case 'l':
-            {
-                is_last_event = true;
-            }
-            break;
-
             default:
             {
                 cout << "Unknown parameter (" << arg << ")!" << endl;
@@ -182,30 +180,13 @@ int main
         abort();
     }
 
-    /**
-     * make sure channel start address is provided when loading a DDL file
-     **/
-    if( do_load_file )
-    {
-        if( !start_addr_ovrd_set )
-        {
-            cout << "ERROR: Please provide a channel start address for this operation!" << endl;
-            abort();
-        }
-    }
-
     /** check channel start address alignment */
     if( start_addr_ovrd_set )
     {
-        if( start_addr_ovrd & 0x00000003 )
+        if( start_addr_ovrd & 0x00000007 )
         {
-            cout << "ERROR: start address must be a 32bit aligned." << endl;
+            cout << "ERROR: start address must be a multiple of 8." << endl;
             abort();
-        }
-        else if( start_addr_ovrd & 0x000000ff )
-        {
-            cout << "WARNING: start address is not a multiple of 256 byte "
-                 << "- are you sure you know what you're doing?!" << endl;
         }
     }
 
@@ -216,7 +197,7 @@ int main
     }
     catch(...)
     {
-        cout << "Failed to intialize device " << DeviceId 
+        cout << "Failed to intialize device " << DeviceId
             << endl;
         return -1;
     }
@@ -264,14 +245,14 @@ int main
     /** get size of RAM module */
     module_size = getDdr3ModuleCapacity(sm, ControllerId);
     max_ctrl_size = sm->ddr3ControllerMaxModuleSize(ControllerId);
-    /** divide module size by 8*4. We can have up to 6 channels per
-     * module, so dividing by 6*4 is also fine here, but /(8*4) gives
+    /** divide module size by 8*8. We can have up to 6 channels per
+     * module, so dividing by 6*8 is also fine here, but /(8*8) gives
      * the nicer boundaries. Additional factor 4 comes from word-addressing
      * instead of byte-addressing of the controller. */
     if(max_ctrl_size>=module_size)
-    { default_start_addr = ChannelId*(module_size>>5); }
+    { default_start_addr = ChannelId*(module_size>>6); }
     else
-    { default_start_addr = ChannelId*(max_ctrl_size>>5); }
+    { default_start_addr = ChannelId*(max_ctrl_size>>6); }
 
     /** override default start address with provided value */
     if( start_addr_ovrd_set )
@@ -305,56 +286,64 @@ int main
 
     if ( do_load_file )
     {
-        uint32_t next_addr;
-        int fd_in = open(filename, O_RDONLY);
-        if ( fd_in==-1 )
-        {
-            cout << "ERROR: Failed to open input file" << endl;
-            abort();
-        }
-        struct stat fd_in_stat;
-        fstat(fd_in, &fd_in_stat);
+        uint32_t next_addr = start_addr;
+        bool is_last_event = false;
 
-        uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size,
-                PROT_READ, MAP_SHARED, fd_in, 0);
-        if ( event == MAP_FAILED )
+        for(
+                iter = list_of_filenames.begin();
+                iter != list_of_filenames.end();
+                iter++
+           )
         {
-            cout << "ERROR: failed to mmap input file" << endl;
-            abort();
-        }
+            if( iter == (list_of_filenames.end()-1) )
+            { is_last_event = true; }
 
-        cout << "Writing event to DDR3 SO-DIMM" << ControllerId
-            << ", starting at address 0x"
-            << HEX32(start_addr) << endl;
-        try {
-            next_addr = sm->ddr3DataReplayEventToRam(
-                    event,
-                    (fd_in_stat.st_size>>2), // num_dws
-                    start_addr, // ddr3 start address
-                    ChannelId, // channel
-                    is_last_event); // last event
-        }
-        catch( int e )
-        {
-            cout << "Exception while writing event: " << e << endl;
-            abort();
+            const char *filename = (*iter).c_str();
+
+            int fd_in = open(filename, O_RDONLY);
+            if ( fd_in==-1 )
+            {
+                cout << "ERROR: Failed to open input file" << endl;
+                abort();
+            }
+            struct stat fd_in_stat;
+            fstat(fd_in, &fd_in_stat);
+
+            uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size,
+                    PROT_READ, MAP_SHARED, fd_in, 0);
+            if ( event == MAP_FAILED )
+            {
+                cout << "ERROR: failed to mmap input file" << endl;
+                abort();
+            }
+
+            cout << "Writing " << (*iter) << " ("
+                << dec << fd_in_stat.st_size
+                << " B) to DDR3 SO-DIMM"
+                << ControllerId << ", starting at address 0x"
+                << HEX32(next_addr) << endl;
+            try {
+                next_addr = sm->ddr3DataReplayEventToRam(
+                        event,
+                        (fd_in_stat.st_size>>2), // num_dws
+                        next_addr, // ddr3 start address
+                        ChannelId, // channel
+                        is_last_event); // last event
+            }
+            catch( int e )
+            {
+                cout << "Exception while writing event: " << e << endl;
+                abort();
+            }
+
+            munmap(event, fd_in_stat.st_size);
+            close(fd_in);
         }
 
         cout << "Done." << endl;
-        if( is_last_event )
-        {
-            cout << "Closed channel; "
-                 << "Start address for next channel could be 0x"
-                 << HEX32(next_addr) << endl;
-        }
-        else
-        {
-             cout << "Start address for next event would be 0x"
+        cout << "Closed channel; "
+             << "Start address for next channel could be 0x"
              << HEX32(next_addr) << endl;
-        }
-
-        munmap(event, fd_in_stat.st_size);
-        close(fd_in);
     }
 
     if( start_addr_ovrd_set )
@@ -393,8 +382,10 @@ int main
      * print status
      **/
     cout << "SO-DIMM " << ControllerId << endl
-         << "\tModule Capacity: " << (module_size>>20) << " MB" << endl
-         << "\tMax. Controller Capacity: " << (max_ctrl_size>>20) << " MB" << endl
+         << "\tModule Capacity: " << dec
+         << (module_size>>20) << " MB" << endl
+         << "\tMax. Controller Capacity: " << dec
+         << (max_ctrl_size>>20) << " MB" << endl
          << "\tDefault Start Address: 0x"
          << HEX32(default_start_addr) << endl;
 

@@ -34,7 +34,8 @@ using namespace std;
 
 #define MAX_CHANNELS 12
 #define MAPPING_FILE "/build/ddl_data/FCF_Mapping/FCF_Mapping_Patch0.data"
-#define INPUT_FILE "/build/ddl_data/raw28/TPC_768.ddl"
+#define INPUT_FILE "/build/ddl_data/raw28/TPC_962.ddl"
+#define INPUT_FILE2 "/build/ddl_data/raw28/TPC_959.ddl"
 
 bool done = false;
 void abort_handler( int s )
@@ -45,6 +46,56 @@ void abort_handler( int s )
     else
     { done = true; }
 }
+
+
+
+uint32_t fileToRam
+(
+ librorc::sysmon *sm,
+ const char* filename,
+ uint32_t chId,
+ uint32_t addr,
+ bool last_event
+)
+{
+    int fd_in = open(filename, O_RDONLY);
+    uint32_t next_addr = 0;
+    if ( fd_in==-1 )
+    {
+        cout << "ERROR: Failed to open input file" << endl;
+        abort();
+    }
+    struct stat fd_in_stat;
+    fstat(fd_in, &fd_in_stat);
+
+    uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size,
+            PROT_READ, MAP_SHARED, fd_in, 0);
+    if ( event == MAP_FAILED )
+    {
+        cout << "ERROR: failed to mmap input file" << endl;
+        abort();
+    }
+    cout << "Writing " << filename << " to DDR3..." << endl;
+    try {
+        next_addr = sm->ddr3DataReplayEventToRam(
+                event,
+                (fd_in_stat.st_size>>2), // num_dws
+                addr, // ddr3 start address
+                chId, // channel
+                last_event); // last event
+    }
+    catch( int e )
+    {
+        cout << "Exception while writing event: " << e << endl;
+        abort();
+    }
+
+    munmap(event, fd_in_stat.st_size);
+    close(fd_in);
+
+    return next_addr;
+}
+
 
 
 
@@ -82,21 +133,7 @@ int main(int argc, char *argv[])
 
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
-    int fd_in = open(INPUT_FILE, O_RDONLY);
-    if ( fd_in==-1 )
-    {
-        cout << "ERROR: Failed to open input file" << endl;
-        abort();
-    }
-    struct stat fd_in_stat;
-    fstat(fd_in, &fd_in_stat);
 
-    uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size, PROT_READ, MAP_SHARED, fd_in, 0);
-    if ( event == MAP_FAILED )
-    {
-        cout << "ERROR: failed to mmap input file" << endl;
-        abort();
-    }
 
     /** wait until GTX domain is up */
     cout << "Waiting for GTX domain..." << endl;
@@ -154,23 +191,13 @@ int main(int argc, char *argv[])
     cout << "Waiting for phy_init_done..." << endl;
     while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
     { usleep(100); }
+    
 
-    uint32_t ch_start_addr = 0x00000000;
-    cout << "Writing event to DDR3..." << endl;
-    try {
-    sm->ddr3DataReplayEventToRam(
-            event,
-            (fd_in_stat.st_size>>2), // num_dws
-            ch_start_addr, // ddr3 start address
-            0, // channel
-            true); // last event
-    }
-    catch( int e )
-    {
-        cout << "Exception while writing event: " << e << endl;
-        abort();
-    }
-
+    uint32_t ch_start_addr = 0;
+    uint32_t next_addr = fileToRam(sm, INPUT_FILE, opts.channelId,
+            ch_start_addr, false);
+    next_addr = fileToRam(sm, INPUT_FILE2, opts.channelId,
+            next_addr, true);
 
     //-----------------------------------------------------//
 
@@ -196,6 +223,8 @@ int main(int argc, char *argv[])
     link->setDataSourceDdr3DataReplay();
     link->enableFlowControl();
     link->setDdr3DataReplayChannelReset(0);
+    link->setDdr3DataReplayChannelContinuous(0);
+    link->setDdr3DataReplayChannelOneshot(0);
     link->setDdr3DataReplayChannelStartAddress(ch_start_addr);
     link->enableDdr3DataReplayChannel();
 
@@ -214,15 +243,22 @@ int main(int argc, char *argv[])
     cout << "Event Loop Start" << endl;
 
     librorc::event_sanity_checker checker =
-        librorc::event_sanity_checker
-        (
-         eventStream->m_eventBuffer,
-         opts.channelId,
-         sanity_check_mask,
-         logdirectory,
-         opts.refname
-        );
-
+        (opts.useRefFile)
+        ?   librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                opts.channelId,
+                sanity_check_mask,
+                logdirectory,
+                opts.refname
+            )
+        :   librorc::event_sanity_checker
+            (
+                eventStream->m_eventBuffer,
+                opts.channelId,
+                sanity_check_mask,
+                logdirectory
+            ) ;
 
     /** Create event stream */
     uint64_t result = 0;
@@ -238,6 +274,12 @@ int main(int argc, char *argv[])
     while( !done )
     {
         result = eventStream->handleChannelData( (void*)&(checker) );
+
+        if( result )
+        {
+            if ( link->ddr3DataReplayChannelIsDone() )
+                link->enableDdr3DataReplayChannel();
+        }
 
         eventStream->m_bar1->gettime(&current_time, 0);
 
