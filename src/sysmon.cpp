@@ -894,9 +894,6 @@ namespace LIBRARY_NAME
         /** set block header */
         block_buffer[0] = ((uint32_t)mask<<16) | flags | channel_select;
 
-        std::cout << hex << setw(8) << setfill('0') << block_buffer[0]
-             << endl;
-
         /** copy data to buffer registers */
         m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
                 block_buffer, 16*sizeof(uint32_t));

@@ -245,10 +245,16 @@ int main
     /** get size of RAM module */
     module_size = getDdr3ModuleCapacity(sm, ControllerId);
     max_ctrl_size = sm->ddr3ControllerMaxModuleSize(ControllerId);
-    /** divide module size by 8*8. We can have up to 6 channels per
-     * module, so dividing by 6*8 is also fine here, but /(8*8) gives
-     * the nicer boundaries. Additional factor 4 comes from word-addressing
-     * instead of byte-addressing of the controller. */
+
+    /**
+     * get start address:
+     * divide module size into 8 partitions. We can have up to 6
+     * channels per module, so dividing by 6 is also fine here,
+     * but /8 gives the nicer boundaries.
+     * The additional factor 8 comes from the data width of the
+     * DDR3 interface: 64bit = 8 byte for each address.
+     * 1/(8*8) = 2^(-6) => shift right by 6 bit
+     **/
     if(max_ctrl_size>=module_size)
     { default_start_addr = ChannelId*(module_size>>6); }
     else
