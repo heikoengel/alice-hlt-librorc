@@ -221,7 +221,10 @@ int main(int argc, char *argv[])
 
     fcf->setState(1, 0); // reset, not enabled
 #ifndef SIM
-    fcf->loadMappingRam(opts.fcfmappingname);
+    if( opts.loadFcfMappingRam )
+    {
+        fcf->loadMappingRam(opts.fcfmappingfile);
+    }
 #endif
     fcf->setSinglePadSuppression(0);
     fcf->setBypassMerger(0);

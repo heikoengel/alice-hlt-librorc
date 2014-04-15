@@ -581,6 +581,25 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
+
+    void
+    link::setChannelActive
+    (
+        uint32_t active
+    )
+    {
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<3); // clear bit
+        ddlctrl |= ((active & 1)<<3); // set new value
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    bool
+    link::channelIsActive()
+    {
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
+    }
+
     bool
     link::flowControlIsEnabled()
     {

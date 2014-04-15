@@ -305,12 +305,34 @@ namespace LIBRARY_NAME
                 uint32_t enable
             );
 
+
             /**
              * check if Flow Control is enabled
              * @return true if enabled, false if disabled
              **/
             bool
             flowControlIsEnabled();
+
+
+            /**
+             * set channel-active flag. Only an active channel can
+             * push data into the DMA engine. A passive channel is
+             * discarding all incoming data.
+             * @param active 0 or 1
+             **/
+            void
+            setChannelActive
+            (
+                uint32_t active
+            );
+
+
+            /**
+             * check if channel is active
+             * @return true if active, false if passive
+             **/
+            bool
+            channelIsActive();
 
 
             /**

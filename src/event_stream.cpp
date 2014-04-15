@@ -574,9 +574,7 @@ namespace LIBRARY_NAME
     patterngenerator*
     event_stream::getPatternGenerator()
     {
-        if(m_fwtype==RORC_CFG_PROJECT_hlt_in ||
-                m_fwtype==RORC_CFG_PROJECT_hlt_out || 
-                m_fwtype==RORC_CFG_PROJECT_hwtest)
+        if( m_link->patternGeneratorAvailable() )
         {
             return new patterngenerator(m_link);
         }
@@ -635,4 +633,20 @@ namespace LIBRARY_NAME
             return NULL;
         }
     }
+
+    ddl*
+    event_stream::getRawReadout()
+    {
+        if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
+        {
+            return new ddl(m_link);
+        }
+        else
+        {
+            // TODO: log message: getRawReadout failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
 }

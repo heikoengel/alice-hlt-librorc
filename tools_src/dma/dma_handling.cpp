@@ -14,7 +14,7 @@ evaluateArguments(int argc, char *argv[])
     ret.channelId = -1;
     ret.eventSize = 0;
     ret.useRefFile = false;
-    ret.useFcf = false;
+    ret.loadFcfMappingRam = false;
 
     /** command line arguments */
     static struct option long_options[] =
@@ -93,6 +93,9 @@ evaluateArguments(int argc, char *argv[])
                 else if( 0 == strcmp(optarg, "dma") &&
                         ret.esType!=LIBRORC_ES_TO_HOST)
                 { ret.datasource = ES_SRC_DMA; break; }
+                else if( 0 == strcmp(optarg, "raw") &&
+                        ret.esType!=LIBRORC_ES_TO_HOST)
+                { ret.datasource = ES_SRC_RAW; break; }
                 else
                 {
                     cout << "Invalid data source selected!"
@@ -118,8 +121,8 @@ evaluateArguments(int argc, char *argv[])
                          << endl;
                     exit(0);
                 }
-                strcpy(ret.fcfmappingname, optarg);
-                ret.useFcf = true;
+                strcpy(ret.fcfmappingfile, optarg);
+                ret.loadFcfMappingRam = true;
             }
             break;
 
@@ -443,6 +446,53 @@ unconfigureDiu
 
 
 void
+configureRawReadout
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::ddl *rawddl =
+        eventStream->getRawReadout();
+    if( rawddl )
+    {
+        rawddl->enableInterface();
+    }
+    else
+    {
+        cout << "Raw readout not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete rawddl;
+}
+
+
+void
+unconfigureRawReadout
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::ddl *rawddl =
+        eventStream->getRawReadout();
+    if( rawddl )
+    {
+        rawddl->disableInterface();
+    }
+    else
+    {
+        cout << "Raw readout not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete rawddl;
+}
+
+
+
+void
 configureSiu
 (
     librorc::event_stream *eventStream,
@@ -488,6 +538,10 @@ unconfigureSiu
     delete siu;
 }
 
+
+/**
+ * configure FCF if available for current eventStream
+ **/
 void
 configureFcf
 (
@@ -497,29 +551,28 @@ configureFcf
 {
     librorc::fastclusterfinder *fcf =
         eventStream->getFastClusterFinder();
-    if( !fcf )
+    if( fcf )
     {
-        cout << "Clusterfinder not available for this FW/Channel!"
-             << endl;
-        abort();
-    }
-
-    fcf->setState(1, 0); // reset, not enabled
+        fcf->setState(1, 0); // reset, not enabled
 #ifndef SIM
-    fcf->loadMappingRam(opts.fcfmappingname);
+        if( opts.loadFcfMappingRam )
+        {
+            fcf->loadMappingRam(opts.fcfmappingfile);
+        }
 #endif
-    fcf->setSinglePadSuppression(0);
-    fcf->setBypassMerger(0);
-    fcf->setDeconvPad(1);
-    fcf->setSingleSeqLimit(0);
-    fcf->setClusterLowerLimit(10);
-    fcf->setMergerDistance(4);
-    fcf->setMergerAlgorithm(1);
-    fcf->setChargeTolerance(0);
+        fcf->setSinglePadSuppression(0);
+        fcf->setBypassMerger(0);
+        fcf->setDeconvPad(1);
+        fcf->setSingleSeqLimit(0);
+        fcf->setClusterLowerLimit(10);
+        fcf->setMergerDistance(4);
+        fcf->setMergerAlgorithm(1);
+        fcf->setChargeTolerance(0);
 
-    fcf->setState(0, 1);// not reset, enabled
+        fcf->setState(0, 1);// not reset, enabled
 
-    delete fcf;
+        delete fcf;
+    }
 }
 
 void
@@ -531,15 +584,11 @@ unconfigureFcf
 {
     librorc::fastclusterfinder *fcf =
         eventStream->getFastClusterFinder();
-    if( !fcf )
+    if( fcf )
     {
-        cout << "Clusterfinder not available for this FW/Channel!"
-             << endl;
-        abort();
+        fcf->setState(1, 0); // reset, not enabled
+        delete fcf;
     }
-
-    fcf->setState(1, 0); // reset, not enabled
-    delete fcf;
 }
 
 
@@ -553,16 +602,16 @@ configureDataSource
 {
     eventStream->m_link->waitForGTXDomain();
     eventStream->m_link->setFlowControlEnable(1);
+    eventStream->m_link->setChannelActive(1);
+
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {
         //configureSiu(eventStream, opts);
     }
 
-    if( opts.useFcf )
-    {
-        configureFcf(eventStream, opts);
-    }
+    /** configure FCF if available */
+    configureFcf(eventStream, opts);
 
     switch(opts.datasource)
     {
@@ -581,6 +630,12 @@ configureDataSource
         case ES_SRC_DMA:
             {
                 eventStream->m_link->setDefaultDataSource();
+            }
+            break;
+
+        case ES_SRC_RAW:
+            {
+                configureRawReadout(eventStream, opts);
             }
             break;
 
@@ -607,11 +662,9 @@ unconfigureDataSource
     DMAOptions opts
 )
 {
+    eventStream->m_link->setChannelActive(0);
 
-    if( opts.useFcf )
-    {
-        unconfigureFcf(eventStream, opts);
-    }
+    unconfigureFcf(eventStream, opts);
 
     switch(opts.datasource)
     {
@@ -624,6 +677,12 @@ unconfigureDataSource
         case ES_SRC_DIU:
             {
                 unconfigureDiu(eventStream, opts);
+            }
+            break;
+
+        case ES_SRC_RAW:
+            {
+                unconfigureRawReadout(eventStream, opts);
             }
             break;
 

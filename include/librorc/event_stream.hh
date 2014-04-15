@@ -224,6 +224,13 @@ class diu;
              **/
             diu* getDiu();
 
+            /**
+             * get RawReadout instance for current event_stream.
+             * @return pointer to instance of ddl when available, NULL
+             * when not available for current event_stream
+             **/
+            ddl* getRawReadout();
+
 
             /**
              * get SIU instance for current event_stream.
