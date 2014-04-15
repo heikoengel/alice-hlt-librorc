@@ -142,6 +142,12 @@ namespace LIBRARY_NAME
             bool isGtxDomainReady();
 
             /**
+             * get GTX Link Status
+             * @return TRUE if up and running, FALSE if down
+             * */
+            bool isGtxLinkUp();
+
+            /**
              * wait for GTX domain to be ready read asynchronous GTX status
              * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
              * & !gtx_in_rst

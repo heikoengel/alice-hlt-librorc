@@ -192,6 +192,28 @@ namespace LIBRARY_NAME
     bool
     link::isGtxDomainReady()
     {
+        uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
+        uint32_t stsmask = (1<<0) | // GTX reset
+            (1<<1) | // RX Reset
+            (1<<2) | // RX Reset Done
+            (1<<3) | // TX Reset
+            (1<<4) | // TX Reset Done
+            (1<<5) | // RX PLL LKDet
+            (1<<8); // GTX in Reset
+        uint32_t expected_value = (0<<0) | // no GTX reset
+            (0<<1) | // no RX Reset
+            (1<<2) | // RX Reset Done==1
+            (0<<3) | // no RX Reset
+            (1<<4) | // RX Reset Done==1
+            (1<<5) | // RX PLL LKDet
+            (0<<8); // GTX not in Reset
+        return ((gtxasynccfg & stsmask) == expected_value);
+    }
+
+
+    bool
+    link::isGtxLinkUp()
+    {
         uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
         uint32_t stsmask = (1<<0) | // PHY is ready
             (1<<1) | // PHY is enabled enable

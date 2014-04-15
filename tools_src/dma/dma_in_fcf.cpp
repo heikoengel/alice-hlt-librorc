@@ -34,7 +34,8 @@ using namespace std;
 
 #define MAX_CHANNELS 12
 #define MAPPING_FILE "/build/ddl_data/FCF_Mapping/FCF_Mapping_Patch0.data"
-#define INPUT_FILE "/build/ddl_data/raw28/TPC_962.ddl"
+//#define INPUT_FILE "/build/ddl_data/raw28/TPC_962.ddl"
+#define INPUT_FILE "/build/ddl_data/raw28/TPC_768.ddl"
 #define INPUT_FILE2 "/build/ddl_data/raw28/TPC_959.ddl"
 
 bool done = false;
@@ -103,9 +104,21 @@ uint32_t fileToRam
 int main(int argc, char *argv[])
 {
     char logdirectory[] = "/tmp";
-    DMAOptions opts;
-    opts = evaluateArguments(argc, argv);
-    opts.esType = LIBRORC_ES_TO_HOST;
+    DMAOptions opts = evaluateArguments(argc, argv);
+
+    if
+    (!(
+        checkDeviceID(opts.deviceId, argv[0])    &&
+        checkChannelID(opts.channelId, argv[0])
+    ) )
+    { exit(-1); }
+
+    if
+    (
+        (opts.datasource == ES_SRC_HWPG) &&
+        !checkEventSize(opts.eventSize, argv[0])
+    )
+    { exit(-1); }
 
     DMA_ABORT_HANDLER_REGISTER
 
@@ -139,12 +152,6 @@ int main(int argc, char *argv[])
     cout << "Waiting for GTX domain..." << endl;
     link->waitForGTXDomain();
 
-#ifndef SIM
-    /** in simulation FCF RAM is loaded by Modelsim */
-    //cout << "Writing mapping file to FCF_RAM..." << endl;
-    //link->fcfLoadMappingRam(MAPPING_FILE);
-#endif
-
     /** wait until DDL is up */
     /*cout << "Waiting for DIU riLD_N..." << endl;
     while( (link->GTX(RORC_REG_DDL_CTRL) & 0x20) != 0x20)
@@ -164,26 +171,9 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    //-----------------------------------------------------//
-
     /**
-     * Option1:
-     * configure datastream: from DIU through FCF
-     **/
-    /*link->setDataSourceDdl();
-    link->enableDdl();
-    link->enableFcf();
-    link->prepareDiuForFeeData(); */
-
-    //-----------------------------------------------------//
-
-    /**
-     * Option 2:
      * configure datastream: from DDR3 through FCF
      **/
-    //link->setDataSourceDdr3DataReplay();
-    //link->enableFcf();
-    //link->enableDdl();
 
     // disable Data Replay
     link->setDdr3DataReplayChannelReset(1);
@@ -196,8 +186,8 @@ int main(int argc, char *argv[])
     uint32_t ch_start_addr = 0;
     uint32_t next_addr = fileToRam(sm, INPUT_FILE, opts.channelId,
             ch_start_addr, false);
-    next_addr = fileToRam(sm, INPUT_FILE2, opts.channelId,
-            next_addr, true);
+    //next_addr = fileToRam(sm, INPUT_FILE2, opts.channelId,
+    //        next_addr, true);
 
     //-----------------------------------------------------//
 
@@ -207,8 +197,11 @@ int main(int argc, char *argv[])
 
     librorc::event_stream *eventStream;
     cout << "Prepare ES" << endl;
-    if( !(eventStream = prepareEventStream(dev, bar, opts)) )
+
+    eventStream = prepareEventStream(dev, bar, opts);
+    if( !eventStream )
     { exit(-1); }
+
     eventStream->setEventCallback(event_callback);
 
     last_bytes_received = 0;
@@ -216,9 +209,30 @@ int main(int argc, char *argv[])
 
     eventStream->printDeviceStatus();
 
-    /** enable EBDM + RBDM + PKT */
-    //link->setPacketizer(RORC_REG_DMA_CTRL,
-    //        (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+
+    librorc::fastclusterfinder *fcf =
+        eventStream->getFastClusterFinder();
+    if( !fcf )
+    {
+        cout << "Clusterfinder not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+
+    fcf->setState(1, 0); // reset, not enabled
+#ifndef SIM
+    fcf->loadMappingRam(opts.fcfmappingname);
+#endif
+    fcf->setSinglePadSuppression(0);
+    fcf->setBypassMerger(0);
+    fcf->setDeconvPad(1);
+    fcf->setSingleSeqLimit(0);
+    fcf->setClusterLowerLimit(10);
+    fcf->setMergerDistance(4);
+    fcf->setMergerAlgorithm(1);
+    fcf->setChargeTolerance(0);
+    fcf->setState(0, 1);// not reset, enabled
+    delete fcf;
 
     link->setDataSourceDdr3DataReplay();
     link->setFlowControlEnable(1);
@@ -228,19 +242,16 @@ int main(int argc, char *argv[])
     link->setDdr3DataReplayChannelStartAddress(ch_start_addr);
     link->enableDdr3DataReplayChannel();
 
-
     /** make clear what will be checked*/
-    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    //int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
+    int32_t sanity_check_mask = CHK_SIZES|CHK_EOE;
     if(opts.useRefFile)
-    {
-        sanity_check_mask |= CHK_FILE;
-    }
-    else
-    {
-        sanity_check_mask |= CHK_PATTERN | CHK_ID;
-    }
+    { sanity_check_mask |= CHK_FILE; }
+    else if ( opts.datasource == ES_SRC_HWPG )
+    { sanity_check_mask |= (CHK_PATTERN|CHK_ID|CHK_SOE); }
+    else if ( opts.datasource == ES_SRC_DIU)
+    { sanity_check_mask |= (CHK_DIU_ERR); }
 
-    cout << "Event Loop Start" << endl;
 
     librorc::event_sanity_checker checker =
         (opts.useRefFile)
