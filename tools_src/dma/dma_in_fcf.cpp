@@ -174,14 +174,22 @@ int main(int argc, char *argv[])
     /**
      * configure datastream: from DDR3 through FCF
      **/
+    if( opts.datasource==ES_SRC_DDR3 &&
+            !link->ddr3DataReplayAvailable() )
+    {
+        cout << "ERROR: DDR3 Data Replay is not available." << endl;
+        abort();
+    }
 
-    // disable Data Replay
-    link->setDdr3DataReplayChannelReset(1);
+    librorc::datareplaychannel *dr = new librorc::datareplaychannel(link);
+
+    // reset Data Replay
+    dr->setReset(1);
 
     cout << "Waiting for phy_init_done..." << endl;
     while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
     { usleep(100); }
-    
+
 
     uint32_t ch_start_addr = 0;
     uint32_t next_addr = fileToRam(sm, INPUT_FILE, opts.channelId,
@@ -239,11 +247,12 @@ int main(int argc, char *argv[])
 
     link->setDataSourceDdr3DataReplay();
     link->setFlowControlEnable(1);
-    link->setDdr3DataReplayChannelReset(0);
-    link->setDdr3DataReplayChannelContinuous(0);
-    link->setDdr3DataReplayChannelOneshot(0);
-    link->setDdr3DataReplayChannelStartAddress(ch_start_addr);
-    link->enableDdr3DataReplayChannel();
+
+    dr->setReset(0);
+    dr->setModeContinuous(0);
+    dr->setModeOneshot(0);
+    dr->setStartAddress(ch_start_addr);
+    dr->setEnable(1);
 
     /** make clear what will be checked*/
     //int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
@@ -291,8 +300,8 @@ int main(int argc, char *argv[])
 
         if( result )
         {
-            if ( link->ddr3DataReplayChannelIsDone() )
-                link->enableDdr3DataReplayChannel();
+            if ( dr->isDone() )
+                dr->setEnable(1);
         }
 
         eventStream->m_bar1->gettime(&current_time, 0);
@@ -327,6 +336,7 @@ int main(int argc, char *argv[])
     );
 
     /** Cleanup */
+    delete dr;
     delete sm;
     delete link;
     delete eventStream;

@@ -14,6 +14,7 @@ set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/event_sanity_checker.cpp"
 "${LIBRORC_SOURCE_DIR}/src/patterngenerator.cpp"
 "${LIBRORC_SOURCE_DIR}/src/fastclusterfinder.cpp"
+"${LIBRORC_SOURCE_DIR}/src/datareplaychannel.cpp"
 "${LIBRORC_SOURCE_DIR}/src/ddl.cpp"
 "${LIBRORC_SOURCE_DIR}/src/diu.cpp"
 "${LIBRORC_SOURCE_DIR}/src/siu.cpp"

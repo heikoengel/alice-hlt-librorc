@@ -208,7 +208,10 @@ main
             // reset DDR3 Data Replay if available
             if( link->ddr3DataReplayAvailable() )
             {
-                link->setDdr3DataReplayChannelReset(1);
+                librorc::datareplaychannel *dr =
+                    new librorc::datareplaychannel(link);
+                dr->setReset(1);
+                delete dr;
             }
         }
 

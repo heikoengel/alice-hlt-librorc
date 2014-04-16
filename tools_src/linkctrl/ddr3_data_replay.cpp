@@ -221,13 +221,6 @@ int main
 
     librorc::sysmon *sm = new librorc::sysmon(bar);
 
-    if ( !sm->firmwareIsHltInFcf() && !sm->firmwareIsHltIn() )
-    {
-        cout << "ERROR: no firmware with DataReplay capabilities detected!"
-             << endl;
-        abort();
-    }
-
     if ( ChannelId < 0 || ChannelId >= (int)sm->numberOfChannels() )
     {
         cout << "ERROR: no or invalid channel selected: " << ChannelId
@@ -269,13 +262,15 @@ int main
     /** create link instance */
     librorc::link *link = new librorc::link(bar, ChannelId);
 
-    /** make sure the link is no virtual readout channel */
-    if( link->linkType() != RORC_CFG_LINK_TYPE_DIU )
+    if( link->isGtxDomainReady() &&
+            link->ddr3DataReplayAvailable() )
     {
-        cout << "ERROR: Cannot control replay on a non-DIU channel!"
+        cout << "ERROR: Data Replay not available on current channel!"
              << endl;
         abort();
     }
+
+    librorc::datareplaychannel *dr = new librorc::datareplaychannel( link );
 
 #ifdef SIM
     /** wait for phy_init_done */
@@ -354,34 +349,27 @@ int main
 
     if( start_addr_ovrd_set )
     {
-        link->setDdr3DataReplayChannelStartAddress(start_addr);
+        dr->setStartAddress(start_addr);
     }
 
     if( set_oneshot )
     {
-        link->setDdr3DataReplayChannelOneshot(oneshot);
+        dr->setModeOneshot(oneshot);
     }
 
     if( set_channel_reset )
     {
-        link->setDdr3DataReplayChannelReset(channel_reset);
+        dr->setReset(channel_reset);
     }
 
     if( set_continuous )
     {
-        link->setDdr3DataReplayChannelContinuous(continuous);
+        dr->setModeContinuous(continuous);
     }
 
     if ( do_channel_enable )
     {
-        if ( channel_enable_val )
-        {
-            link->enableDdr3DataReplayChannel();
-        }
-        else
-        {
-            link->disableDdr3DataReplayChannel();
-        }
+        dr->setEnable(channel_enable_val);
     }
 
     /**
@@ -397,18 +385,19 @@ int main
 
     cout << "Channel " << ChannelId << " Config:" << endl
          << "\tStart Address: " << hex
-         << link->ddr3DataReplayChannelStartAddress() << dec << endl
-         << "\tReset: " << link->ddr3DataReplayChannelIsInReset() << endl
-         << "\tContinuous: " << link->ddr3DataReplayChannelModeIsContinuous() << endl
-         << "\tOneshot: " << link->ddr3DataReplayChannelModeIsOneshot() << endl
-         << "\tEnabled: " << link->ddr3DataReplayChannelIsEnabled() << endl;
+         << dr->startAddress() << dec << endl
+         << "\tReset: " << dr->isInReset() << endl
+         << "\tContinuous: " << dr->isContinuousEnabled() << endl
+         << "\tOneshot: " << dr->isOneshotEnabled() << endl
+         << "\tEnabled: " << dr->isEnabled() << endl;
 
     cout << "Channel " << ChannelId << " Status:" << endl
-         << "\tLast Address: " << hex
-         << link->ddr3DataReplayChannelLastAddress() << dec << endl
-         << "\tWaiting: " << link->ddr3DataReplayChannelIsWaiting() << endl
-         << "\tDone: " << link->ddr3DataReplayChannelIsDone() << endl;
+         << "\tNext Address: " << hex
+         << dr->nextAddress() << dec << endl
+         << "\tWaiting: " << dr->isWaiting() << endl
+         << "\tDone: " << dr->isDone() << endl;
 
+    delete dr;
     delete link;
     delete sm;
     delete bar;
