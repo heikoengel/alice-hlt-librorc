@@ -274,13 +274,13 @@ namespace LIBRARY_NAME
             (
                 uint32_t addr
             );
-    
+
             uint32_t
             hexstringToUint32
             (
                 std::string line
             );
-    
+
             void
             loadMappingRam
             (

@@ -49,7 +49,7 @@ namespace LIBRARY_NAME
             isDone();
 
             /**
-             * check if channel controller is waiting for data from DDR3. 
+             * check if channel controller is waiting for data from DDR3.
              * If isWaiting() returns true and no data
              * is received this may be a sign of invalid data in the RAM.
              * @return true if waiting, else false
@@ -120,7 +120,7 @@ namespace LIBRARY_NAME
             );
 
             /**
-             * set replay mode parameter for continuous. 
+             * set replay mode parameter for continuous.
              * If continuous is enabled and oneshot is disabled,
              * all data in the channel is continuously read from RAM.
              * If continuous is disabled and oneshot is disabled only
