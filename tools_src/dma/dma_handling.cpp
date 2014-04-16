@@ -94,7 +94,7 @@ evaluateArguments(int argc, char *argv[])
                         ret.esType!=LIBRORC_ES_TO_HOST)
                 { ret.datasource = ES_SRC_DMA; break; }
                 else if( 0 == strcmp(optarg, "raw") &&
-                        ret.esType!=LIBRORC_ES_TO_HOST)
+                        ret.esType!=LIBRORC_ES_TO_DEVICE)
                 { ret.datasource = ES_SRC_RAW; break; }
                 else
                 {
