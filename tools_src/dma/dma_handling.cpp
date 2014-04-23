@@ -527,6 +527,7 @@ unconfigureSiu
         eventStream->getSiu();
     if( siu )
     {
+        /** TODO: send EOBTR? */
         siu->disableInterface();
     }
     else
@@ -607,7 +608,7 @@ configureDataSource
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {
-        //configureSiu(eventStream, opts);
+        configureSiu(eventStream, opts);
     }
 
     /** configure FCF if available */
@@ -642,11 +643,6 @@ configureDataSource
         case ES_SRC_DDR3:
             {
                 eventStream->m_link->setDataSourceDdr3DataReplay();
-                /*if(eventStream->m_link->ddr3DataReplayChannelIsInReset())
-                {
-                    eventStream->m_link->disableDdr3DataReplayChannel();
-                    eventStream->m_link->setDdr3DataReplayChannelReset(0);
-                }*/
             }
             break;
 
@@ -662,6 +658,7 @@ unconfigureDataSource
     DMAOptions opts
 )
 {
+    eventStream->m_link->setFlowControlEnable(0);
     eventStream->m_link->setChannelActive(0);
 
     unconfigureFcf(eventStream, opts);
@@ -693,6 +690,6 @@ unconfigureDataSource
     if( opts.esType==LIBRORC_ES_TO_DEVICE &&
             opts.datasource != ES_SRC_NONE)
     {
-        //unconfigureSiu(eventStream, opts);
+        unconfigureSiu(eventStream, opts);
     }
 }
