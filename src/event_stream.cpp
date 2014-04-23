@@ -412,7 +412,7 @@ namespace LIBRARY_NAME
                     ? (m_channel_status->index+1) : 0;
             }
 
-            if( m_reports[tmp_index].calc_event_size==0 )
+            if( m_reports[tmp_index].reported_event_size==0 )
             {
                 pthread_mutex_unlock(&m_getEventEnable);
                 return false;
