@@ -483,8 +483,8 @@ configureDataSource
     eventStream->m_link->waitForGTXDomain();
     eventStream->m_link->enableFlowControl();
 
-//    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
-//    { configureSiu(eventStream, opts); }
+    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    { configureSiu(eventStream, opts); }
 
     switch(opts.datasource)
     {
@@ -527,6 +527,6 @@ unconfigureDataSource
         break;
     }    
     
-//    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
-//    { unconfigureSiu(eventStream, opts); }
+    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    { unconfigureSiu(eventStream, opts); }
 }
