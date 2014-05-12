@@ -122,10 +122,21 @@ namespace LIBRARY_NAME
     const char*
     sysmon::firmwareDescription()
     {
-        if(firmwareType() >= LIBRORC_NUMBER_OF_FIRMWARE_MODES)
-        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
-
-        return librorc_firmware_mode_descriptions[firmwareType()];
+        switch( firmwareType() )
+        {
+            case RORC_CFG_PROJECT_hlt_in:
+                return "HLT_IN";
+            case RORC_CFG_PROJECT_hlt_out:
+                return "HLT_OUT";
+            case RORC_CFG_PROJECT_hlt_in_fcf:
+                return "HLT_IN_FCF";
+            case RORC_CFG_PROJECT_hwtest:
+                return "HWTEST";
+            case RORC_CFG_PROJECT_ibert:
+                return "IBERT";
+            default:
+                return "UNKNOWN";
+        }
     }
 
 
@@ -782,7 +793,7 @@ namespace LIBRARY_NAME
         uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
 
         /**
-         * get controller address width encoded as (32-width)
+         * get controller address width encoded as (32-regval)
          * C0: bits [13:11], C1: bits [29:27]
          **/
         uint32_t addr_width = (32-((ddr3ctrl>>(16*i+11)) & 0x7));
@@ -878,8 +889,18 @@ namespace LIBRARY_NAME
             throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID;
         }
 
-        /** copy valid data to block bufffer */
+        uint32_t controller_select = (channel>6) ? 1 : 0;
+        uint8_t channel_select = controller_select ?
+            (1<<(channel-6)) : (1<<channel);
+
+        /**
+         * a replay block consists of 16 DWs:
+         * - DW0 is a header
+         * - DW1-DW15 are data words
+         * fill block header, then copy 15 datawords to block buffer
+         **/
         uint32_t block_buffer[16];
+        block_buffer[0] = ((uint32_t)mask<<16) | flags | channel_select;
         for ( int i=0; i<15; i++)
         {
             if ( mask & (1<<i) )
@@ -888,31 +909,17 @@ namespace LIBRARY_NAME
             }
         }
 
-        uint8_t channel_select = (channel>6) ? 
-            (1<<(channel-6)) : (1<<channel);
-
-        /** set block header */
-        block_buffer[0] = ((uint32_t)mask<<16) | flags | channel_select;
-
-        /** copy data to buffer registers */
+        /** copy block_buffer to onboard registers */
         m_bar->memcopy(RORC_REG_DATA_REPLAY_PAYLOAD_BASE,
                 block_buffer, 16*sizeof(uint32_t));
-        /*for (int i=0; i<16; i++)
-        {
-            m_bar->set32(RORC_REG_DATA_REPLAY_PAYLOAD_BASE+i,
-                    block_buffer[i]);
-        }*/
 
-        /** set start address */
+        /**
+         * make the RORC write the onboard buffer to the selected
+         * start address in DDR3 RAM
+         **/
         uint32_t drctrl = (start_addr & 0x7ffffffc);
-        if( channel>6 )
-        { drctrl |= (1<<1); } // write to C1
-        else
-        { drctrl |= (1<<0); } // write to C0
-
-        /** make the RORC write the buffer to RAM */
+        drctrl |= (1<<controller_select); // set destination controller
         m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drctrl);
-
 
         /** wait for write_done */
         uint32_t timeout = LIBRORC_SYSMON_DR_TIMEOUT;
@@ -920,9 +927,7 @@ namespace LIBRARY_NAME
                 LIBRORC_DATA_REPLAY_WRITE_DONE) )
         {
             if (timeout==0)
-            {
-                throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT;
-            }
+            { throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT; }
             timeout--;
             usleep(100);
         }
