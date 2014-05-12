@@ -351,7 +351,7 @@ checkFlash
 
     try
     {
-        flash = new librorc::flash(bar, chip_select, LIBRORC_VERBOSE_OFF);
+        flash = new librorc::flash(bar, chip_select);
     }
     catch(...)
     {

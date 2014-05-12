@@ -394,7 +394,7 @@ init_flash
     {
         flash =
             new librorc::flash
-                (bar, options.chip_select, options.verbose);
+                (bar, options.chip_select);
     }
     catch(int e)
     {

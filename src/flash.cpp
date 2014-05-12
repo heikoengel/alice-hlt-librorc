@@ -30,8 +30,7 @@ namespace LIBRARY_NAME
 flash::flash
 (
     bar                    *flashbar,
-    uint32_t                chip_select,
-    librorc_verbosity_enum  verbose
+    uint32_t                chip_select
 )
 {
     if(flashbar == NULL)
@@ -506,19 +505,14 @@ flash::dump
     if(filep == NULL)
     { return -1; }
 
-    if(verbose == LIBRORC_VERBOSE_ON)
+    for(uint64_t i=0; i<flash_words; i++)
     {
-        for(uint64_t i=0; i<flash_words; i++)
+        flash_buffer[i] = get(i);
+        if(verbose == LIBRORC_VERBOSE_ON)
         {
-            flash_buffer[i] = get(i);
             cout << i << " : "  << hex << setw(4)
                  << flash_buffer[i] << dec << endl;
         }
-    }
-    else
-    {
-        for(uint64_t i=0; i<flash_words; i++)
-        { flash_buffer[i] = get(i); }
     }
 
     if( fwrite(flash_buffer, FLASH_SIZE, 1, filep) != 1 )
@@ -708,11 +702,33 @@ flash::flashWrite
     return 0;
 }
 
+
 uint32_t
 flash::getChipSelect()
 {
     return m_chip_select;
 }
 
+
+int32_t
+flash::findFpgaSyncWord
+(
+    uint32_t startOffset,
+    uint32_t searchLength
+)
+{
+    uint32_t offset = 0;
+    uint32_t cur_word = 0;
+    while( cur_word!=FPGA_SYNCWORD and offset<searchLength )
+    {
+        cur_word = (cur_word<<16) + get(offset>>1);
+        offset += 2;
+    }
+
+    if( cur_word==FPGA_SYNCWORD )
+    { return (offset-2); }
+    else
+    { return -1; }
 }
 
+}

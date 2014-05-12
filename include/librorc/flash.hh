@@ -88,6 +88,10 @@
 /** address bit 23 selects flash chip **/
 #define FLASH_CHIP_SELECT_BIT 23
 
+
+/** FPGA synchronization word in a bit/binfile */
+#define FPGA_SYNCWORD 0x5599aa66
+
 //TODO: check this for packed and volatile
 struct flash_architecture
 {
@@ -122,8 +126,7 @@ namespace LIBRARY_NAME
         flash
         (
             bar                    *flashbar,
-            uint32_t                chip_select,
-            librorc_verbosity_enum  verbose
+            uint32_t                chip_select
         );
 
     /**
@@ -374,6 +377,13 @@ namespace LIBRARY_NAME
 
         uint32_t
         getChipSelect();
+
+        int32_t
+        findFpgaSyncWord
+        (
+            uint32_t startOffset,
+            uint32_t searchLength
+        );
 
     private:
         bar      *m_bar;
