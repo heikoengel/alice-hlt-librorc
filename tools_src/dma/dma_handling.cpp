@@ -482,34 +482,26 @@ configureDataSource
 {
     eventStream->m_link->waitForGTXDomain();
     eventStream->m_link->enableFlowControl();
-    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
-            opts.datasource != ES_SRC_NONE)
-    {
-        configureSiu(eventStream, opts);
-    }
+
+//    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+//    { configureSiu(eventStream, opts); }
 
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
-            {
-                configurePatternGenerator(eventStream, opts);
-            }
-            break;
+        { configurePatternGenerator(eventStream, opts); }
+        break;
 
         case ES_SRC_DIU:
-            {
-                configureDiu(eventStream, opts);
-            }
-            break;
+        { configureDiu(eventStream, opts); }
+        break;
 
         case ES_SRC_DMA:
-            {
-                eventStream->m_link->setDefaultDataSource();
-            }
-            break;
+        { eventStream->m_link->setDefaultDataSource(); }
+        break;
 
         default: // "none" or invalid or unspecified
-            break;
+        break;
     }
 
 }
@@ -524,24 +516,17 @@ unconfigureDataSource
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
-            {
-                unconfigurePatternGenerator(eventStream, opts);
-            }
-            break;
+        { unconfigurePatternGenerator(eventStream, opts); }
+        break;
 
         case ES_SRC_DIU:
-            {
-                unconfigureDiu(eventStream, opts);
-            }
-            break;
+        { unconfigureDiu(eventStream, opts); }
+        break;
 
         default: // "none" or invalid or unspecified
-            break;
+        break;
     }    
     
-    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
-            opts.datasource != ES_SRC_NONE)
-    {
-        unconfigureSiu(eventStream, opts);
-    }
+//    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+//    { unconfigureSiu(eventStream, opts); }
 }
