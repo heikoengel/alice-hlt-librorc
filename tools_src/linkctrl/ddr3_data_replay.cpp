@@ -367,7 +367,7 @@ int main
             cout << "Done." << endl;
         }
 
-        if( start_addr_ovrd_set )
+        if( start_addr_ovrd_set || do_load_file )
         { dr->setStartAddress(start_addr); }
 
         if( set_oneshot )
@@ -418,7 +418,7 @@ getDdr3ModuleCapacity
     } catch(...)
     {
         cout << "WARNING: Failed to read from DDR3 SPD on SO-DIMM "
-             << module_number << endl
+             << (uint32_t)module_number << endl
              << "Is a module installed?" << endl;
         total_cap = 0;
     }
