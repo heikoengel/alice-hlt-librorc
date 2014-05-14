@@ -134,7 +134,7 @@ class diu;
              * @param esType event stream type, LIBRORC_ES_xxx
              * throws exception if check fails.
              **/
-            void checkFirmwareCompatibility(LibrorcEsType esType);
+            void checkLinkTypeCompatibility(LibrorcEsType esType);
 
             /**
              * Print the current device status.

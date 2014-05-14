@@ -100,9 +100,18 @@ namespace LIBRARY_NAME
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-        m_link     = new librorc::link(m_bar1, m_channelId);
-        m_sm       = new librorc::sysmon(m_bar1);
+        /** check if selected channel is available in current FW */
+        m_sm = new librorc::sysmon(m_bar1);
+        if( (uint32_t)m_channelId >= m_sm->numberOfChannels() )
+        {
+            cout << "ERROR: Requsted channel " << m_channelId
+                 << " is not implemented in firmware "
+                 << "- exiting" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
         m_fwtype   = m_sm->firmwareType();
+
+        m_link     = new librorc::link(m_bar1, m_channelId);
         m_linktype = m_link->linkType();
 
         pthread_mutex_init(&m_releaseEnable, NULL);
@@ -136,27 +145,16 @@ namespace LIBRARY_NAME
     }
 
     void
-    event_stream::checkFirmwareCompatibility(LibrorcEsType esType)
+    event_stream::checkLinkTypeCompatibility(LibrorcEsType esType)
     {
-        int32_t availDmaChannels = m_sm->numberOfChannels();
-        if( m_channelId >= availDmaChannels )
-        {
-            cout << "ERROR: Requsted channel " << m_channelId
-                 << " is not implemented in firmware "
-                 << "- exiting" << endl;
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-        }
-
         bool fwOK;
         switch(esType)
         {
             case LIBRORC_ES_TO_HOST:
-                fwOK = m_sm->firmwareIsHltHardwareTest() |
-                    m_sm->firmwareIsHltIn() |
-                    m_sm->firmwareIsHltInFcf();
+                fwOK = (m_linktype!=RORC_CFG_LINK_TYPE_SIU);
                 break;
             case LIBRORC_ES_TO_DEVICE:
-                fwOK = m_sm->firmwareIsHltOut();
+                fwOK = (m_linktype==RORC_CFG_LINK_TYPE_SIU);
                 break;
             default:
                 fwOK = false;
@@ -165,7 +163,8 @@ namespace LIBRARY_NAME
 
         if( !fwOK )
         {
-            cout << "ERROR: Wrong or unknown firmware loaded!"
+            cout << "ERROR: selected event stream type not "
+                 << "available for this channel!"
                  << endl;
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
@@ -180,7 +179,7 @@ namespace LIBRARY_NAME
     )
     {
         /** make sure requested channel is available for selected esType */
-        checkFirmwareCompatibility(esType);
+        checkLinkTypeCompatibility(esType);
 
         /** TODO : remove this? */
         /** set EventBuffer DMA direction according to EventStream type */
