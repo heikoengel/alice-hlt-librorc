@@ -29,47 +29,54 @@ using namespace std;
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
         -f [path]     Load DDL file for replay, \n\
-        -s [addr]     override default DDR3 start address \n\
-        -l            Current event is the last to be replayed \n\
+        -S [addr]     override default DDR3 start address \n\
         -e [0/1]      Enable/disable data replay channel \n\
         -o [0/1]      Set One-Shot replay mode \n\
         -C [0/1]      Enable/disable continuous replay mode \n\
-        -r [0/1]      Enable/disable channel reset\n\
-Note: channel enable (-e) and global enable (-g) are applied AFTER \n\
-loading a file with -f. \n\
+        -r [0/1]      Enable/disable channel reset \n\
+        -s            Show Status \n\
+Note: channel enable (-e) is applied AFTER \n\
+loading a file or setting the mode. \n\
 "
 
 #define HEX32(x) setw(8) << setfill('0') << hex << x << setfill(' ')
 
+
+/********** Prototypes **********/
 uint64_t
 getDdr3ModuleCapacity
 (
     librorc::sysmon *sm,
     uint8_t module_number
-)
-{
-    uint64_t total_cap = 0;
-    try
-    {
-        uint8_t density = sm->ddr3SpdRead(module_number, 0x04);
-        /** lower 4 bit: 0000->256 Mbit, ..., 0110->16 Gbit */
-        uint64_t sd_cap = ((uint64_t)256<<(20+(density&0xf)));
-        uint8_t mod_org = sm->ddr3SpdRead(module_number, 0x07);
-        uint8_t n_ranks = ((mod_org>>3)&0x7) + 1;
-        uint8_t dev_width = 4*(1<<(mod_org&0x07));
-        uint8_t mod_width = sm->ddr3SpdRead(module_number, 0x08);
-        uint8_t pb_width = 8*(1<<(mod_width&0x7));
-        total_cap = sd_cap / 8 * pb_width / dev_width * n_ranks;
-    } catch(...)
-    {
-        cout << "ERROR: Failed to read from DDR3 SPD on SO-DIMM "
-             << module_number << endl;
-        abort();
-    }
-    return total_cap;
-}
+);
 
+void
+print_channel_status
+(
+    uint32_t ChannelId,
+    librorc::datareplaychannel *dr,
+    uint32_t default_start_addr
+);
 
+void
+print_module_status
+(
+    uint32_t ControllerId,
+    uint32_t module_size,
+    uint32_t max_ctrl_size
+);
+
+uint32_t
+fileToRam
+(
+    librorc::sysmon *sm,
+    uint32_t ChannelId,
+    const char *filename,
+    uint32_t start_addr,
+    bool is_last_event
+);
+
+/********** Main **********/
 int main
 (
     int argc,
@@ -79,15 +86,12 @@ int main
 
    /** parse command line arguments **/
     int32_t DeviceId  = -1;
-    uint32_t ControllerId;
-    int32_t ChannelId = -1;
+    int32_t ChannelIdSelect = -1;
     uint32_t channel_enable_val = 0;
     //char *filename = NULL;
     vector<string> list_of_filenames;
-    vector<string>::iterator iter;
-    uint64_t module_size = 0;
-    uint64_t max_ctrl_size = 0;
-    uint64_t default_start_addr = 0;
+    uint64_t module_size[2] = { 0, 0 };
+    uint64_t max_ctrl_size[2] = { 0, 0 };
     uint32_t start_addr = 0;
     uint32_t start_addr_ovrd = 0;
 
@@ -100,9 +104,10 @@ int main
     uint32_t continuous = 0;
     bool set_channel_reset = false;
     uint32_t channel_reset = 0;
+    bool do_show_status = false;
     int arg;
 
-    while( (arg = getopt(argc, argv, "hn:c:f:e:s:o:C:r:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:f:e:S:o:C:r:s")) != -1 )
     {
         switch(arg)
         {
@@ -114,7 +119,7 @@ int main
 
             case 'c':
             {
-                ChannelId = strtol(optarg, NULL, 0);
+                ChannelIdSelect = strtol(optarg, NULL, 0);
             }
             break;
 
@@ -129,13 +134,11 @@ int main
             {
                 /** add filename to list */
                 list_of_filenames.push_back(optarg);
-                /*filename = (char *)malloc(strlen(optarg)+2);
-                sprintf(filename, "%s", optarg);*/
                 do_load_file = true;
             }
             break;
 
-            case 's':
+            case 'S':
             {
                 start_addr_ovrd = strtol(optarg, NULL, 0);
                 start_addr_ovrd_set = 1;
@@ -160,6 +163,12 @@ int main
             {
                 continuous = strtol(optarg, NULL, 0);
                 set_continuous = true;
+            }
+            break;
+
+            case 's':
+            {
+                do_show_status = true;
             }
             break;
 
@@ -220,187 +229,300 @@ int main
     }
 
     librorc::sysmon *sm = new librorc::sysmon(bar);
+    int nchannels = sm->numberOfChannels();
+    uint32_t startChannel, endChannel;
 
-    if ( ChannelId < 0 || ChannelId >= (int)sm->numberOfChannels() )
+    if( ChannelIdSelect >= nchannels )
     {
-        cout << "ERROR: no or invalid channel selected: " << ChannelId
-             << endl;
+        cout << "ERROR: invalid channel selected: "
+             << ChannelIdSelect << endl;
         abort();
     }
-
-    /**
-     * get ControllerId from selected channel:
-     * DDLs 0 to 5 are fed from SO-DIMM 0
-     * DDLs 6 to 11 are fed from DO-DIMM 1
-     **/
-    ControllerId = (ChannelId<6) ? 0 : 1;
-
-    /** get size of RAM module */
-    module_size = getDdr3ModuleCapacity(sm, ControllerId);
-    max_ctrl_size = sm->ddr3ControllerMaxModuleSize(ControllerId);
-
-    /**
-     * get start address:
-     * divide module size into 8 partitions. We can have up to 6
-     * channels per module, so dividing by 6 is also fine here,
-     * but /8 gives the nicer boundaries.
-     * The additional factor 8 comes from the data width of the
-     * DDR3 interface: 64bit = 8 byte for each address.
-     * 1/(8*8) = 2^(-6) => shift right by 6 bit
-     **/
-    if(max_ctrl_size>=module_size)
-    { default_start_addr = ChannelId*(module_size>>6); }
-    else
-    { default_start_addr = ChannelId*(max_ctrl_size>>6); }
-
-    /** override default start address with provided value */
-    if( start_addr_ovrd_set )
-    { start_addr = start_addr_ovrd; }
-    else
-    { start_addr = default_start_addr; }
-
-    /** create link instance */
-    librorc::link *link = new librorc::link(bar, ChannelId);
-
-    if( !link->isGtxDomainReady() ||
-            !link->ddr3DataReplayAvailable() )
+    else if( ChannelIdSelect==-1 )
     {
-        cout << "ERROR: Data Replay not available on current channel!"
-             << endl;
-        abort();
-    }
-
-    librorc::datareplaychannel *dr = new librorc::datareplaychannel( link );
-
-#ifdef SIM
-    /** wait for phy_init_done */
-    while( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
-    { usleep(100); }
-#endif
-
-    if( !sm->ddr3ModuleInitReady(ControllerId) )
-    {
-        cout << "ERROR: DDR3 Controller " << ControllerId
-             << " is not ready - doing nothing." << endl;
-        abort();
-    }
-
-    if ( do_load_file )
-    {
-        uint32_t next_addr = start_addr;
-        bool is_last_event = false;
-
-        for(
-                iter = list_of_filenames.begin();
-                iter != list_of_filenames.end();
-                iter++
-           )
+        /** no specific channel selected, apply options to all channels */
+        if( start_addr_ovrd_set )
         {
-            if( iter == (list_of_filenames.end()-1) )
-            { is_last_event = true; }
-
-            const char *filename = (*iter).c_str();
-
-            int fd_in = open(filename, O_RDONLY);
-            if ( fd_in==-1 )
-            {
-                cout << "ERROR: Failed to open input file" << endl;
-                abort();
-            }
-            struct stat fd_in_stat;
-            fstat(fd_in, &fd_in_stat);
-
-            uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size,
-                    PROT_READ, MAP_SHARED, fd_in, 0);
-            if ( event == MAP_FAILED )
-            {
-                cout << "ERROR: failed to mmap input file" << endl;
-                abort();
-            }
-
-            cout << "Writing " << (*iter) << " ("
-                << dec << fd_in_stat.st_size
-                << " B) to DDR3 SO-DIMM"
-                << ControllerId << ", starting at address 0x"
-                << HEX32(next_addr) << endl;
-            try {
-                next_addr = sm->ddr3DataReplayEventToRam(
-                        event,
-                        (fd_in_stat.st_size>>2), // num_dws
-                        next_addr, // ddr3 start address
-                        ChannelId, // channel
-                        is_last_event); // last event
-            }
-            catch( int e )
-            {
-                cout << "Exception while writing event: " << e << endl;
-                abort();
-            }
-
-            munmap(event, fd_in_stat.st_size);
-            close(fd_in);
+            cout << "ERROR: Start address override is not allowed "
+                 << "without selecting a specific channel." << endl;
+            abort();
         }
 
-        cout << "Done." << endl;
-        cout << "Closed channel; "
-             << "Start address for next channel could be 0x"
-             << HEX32(next_addr) << endl;
+        startChannel = 0;
+        endChannel = nchannels-1;
+    }
+    else
+    {
+        startChannel = ChannelIdSelect;
+        endChannel = ChannelIdSelect;
     }
 
-    if( start_addr_ovrd_set )
+
+    /** get size of RAM modules */
+    if( startChannel<6)
     {
-        dr->setStartAddress(start_addr);
+        module_size[0] = getDdr3ModuleCapacity(sm, 0);
+        max_ctrl_size[0] = sm->ddr3ControllerMaxModuleSize(0);
+        if( do_show_status )
+        { print_module_status(0, module_size[0], max_ctrl_size[0]); }
     }
 
-    if( set_oneshot )
+    if( endChannel>5 )
     {
-        dr->setModeOneshot(oneshot);
+        module_size[1] = getDdr3ModuleCapacity(sm, 1);
+        max_ctrl_size[1] = sm->ddr3ControllerMaxModuleSize(1);
+        if( do_show_status )
+        { print_module_status(1, module_size[1], max_ctrl_size[1]); }
     }
 
-    if( set_channel_reset )
-    {
-        dr->setReset(channel_reset);
-    }
-
-    if( set_continuous )
-    {
-        dr->setModeContinuous(continuous);
-    }
-
-    if ( do_channel_enable )
-    {
-        dr->setEnable(channel_enable_val);
-    }
 
     /**
-     * print status
+     * iterate over all selected DMA channels
      **/
-    cout << "SO-DIMM " << ControllerId << endl
-         << "\tModule Capacity: " << dec
-         << (module_size>>20) << " MB" << endl
-         << "\tMax. Controller Capacity: " << dec
-         << (max_ctrl_size>>20) << " MB" << endl
-         << "\tDefault Start Address: 0x"
-         << HEX32(default_start_addr) << endl;
+    for( uint32_t ChannelId=startChannel;
+            ChannelId<=endChannel;
+            ChannelId++ )
+    {
+        uint64_t default_start_addr = 0;
 
-    cout << "Channel " << ChannelId << " Config:" << endl
-         << "\tStart Address: " << hex
-         << dr->startAddress() << dec << endl
-         << "\tReset: " << dr->isInReset() << endl
-         << "\tContinuous: " << dr->isContinuousEnabled() << endl
-         << "\tOneshot: " << dr->isOneshotEnabled() << endl
-         << "\tEnabled: " << dr->isEnabled() << endl;
+        /**
+         * get ControllerId from selected channel:
+         * DDLs 0 to 5 are fed from SO-DIMM 0
+         * DDLs 6 to 11 are fed from DO-DIMM 1
+         **/
+        uint32_t ControllerId = (ChannelId<6) ? 0 : 1;
 
-    cout << "Channel " << ChannelId << " Status:" << endl
-         << "\tNext Address: " << hex
-         << dr->nextAddress() << dec << endl
-         << "\tWaiting: " << dr->isWaiting() << endl
-         << "\tDone: " << dr->isDone() << endl;
+        /** skip channel if no DDR3 module was detected */
+        if( !module_size[ControllerId] )
+        {
+            continue;
+        }
 
-    delete dr;
-    delete link;
+        /**
+         * set default channel start address:
+         * divide module size into 8 partitions. We can have up to 6
+         * channels per module, so dividing by 6 is also fine here,
+         * but /8 gives the nicer boundaries.
+         * The additional factor 8 comes from the data width of the
+         * DDR3 interface: 64bit = 8 byte for each address.
+         * 1/(8*8) = 2^(-6) => shift right by 6 bit
+         **/
+        if(max_ctrl_size[ControllerId]>=module_size[ControllerId])
+        { default_start_addr = ChannelId*(module_size[ControllerId]>>6); }
+        else
+        { default_start_addr = ChannelId*(max_ctrl_size[ControllerId]>>6); }
+
+        /** override default start address with provided value */
+        if( start_addr_ovrd_set )
+        { start_addr = start_addr_ovrd; }
+        else
+        { start_addr = default_start_addr; }
+
+        /** create link instance */
+        librorc::link *link = new librorc::link(bar, ChannelId);
+
+        if( !link->isGtxDomainReady() ||
+                !link->ddr3DataReplayAvailable() )
+        {
+            cout << "INFO: Data Replay not available on channel "
+                 << ChannelId << " - skipping..." << endl;
+            continue;
+        }
+
+        /** create data replay channel instance */
+        librorc::datareplaychannel *dr =
+            new librorc::datareplaychannel( link );
+
+#ifdef SIM
+        /** wait for phy_init_done in simulation */
+        while( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
+        { usleep(100); }
+#endif
+
+        if( !sm->ddr3ModuleInitReady(ControllerId) )
+        {
+            cout << "ERROR: DDR3 Controller " << ControllerId
+                << " is not ready - doing nothing." << endl;
+            abort();
+        }
+
+        if ( do_load_file )
+        {
+            uint32_t next_addr = start_addr;
+            bool is_last_event = false;
+            vector<string>::iterator iter;
+
+            /** iterate over list of files */
+            for( iter = list_of_filenames.begin();
+                    iter != list_of_filenames.end();
+                    iter++ )
+            {
+                if( iter == (list_of_filenames.end()-1) )
+                { is_last_event = true; }
+
+                const char *filename = (*iter).c_str();
+                next_addr = fileToRam(sm, ChannelId, filename,
+                        next_addr, is_last_event);
+            }
+            cout << "Done." << endl;
+        }
+
+        if( start_addr_ovrd_set )
+        { dr->setStartAddress(start_addr); }
+
+        if( set_oneshot )
+        { dr->setModeOneshot(oneshot); }
+
+        if( set_channel_reset )
+        { dr->setReset(channel_reset); }
+
+        if( set_continuous )
+        { dr->setModeContinuous(continuous); }
+
+        if ( do_channel_enable )
+        { dr->setEnable(channel_enable_val); }
+
+        if( do_show_status )
+        { print_channel_status(ChannelId, dr, default_start_addr); }
+
+        delete dr;
+        delete link;
+    } // for loop: ChannelId
+
     delete sm;
     delete bar;
     delete dev;
     return 0;
+}
+
+
+uint64_t
+getDdr3ModuleCapacity
+(
+    librorc::sysmon *sm,
+    uint8_t module_number
+)
+{
+    uint64_t total_cap = 0;
+    try
+    {
+        uint8_t density = sm->ddr3SpdRead(module_number, 0x04);
+        /** lower 4 bit: 0000->256 Mbit, ..., 0110->16 Gbit */
+        uint64_t sd_cap = ((uint64_t)256<<(20+(density&0xf)));
+        uint8_t mod_org = sm->ddr3SpdRead(module_number, 0x07);
+        uint8_t n_ranks = ((mod_org>>3)&0x7) + 1;
+        uint8_t dev_width = 4*(1<<(mod_org&0x07));
+        uint8_t mod_width = sm->ddr3SpdRead(module_number, 0x08);
+        uint8_t pb_width = 8*(1<<(mod_width&0x7));
+        total_cap = sd_cap / 8 * pb_width / dev_width * n_ranks;
+    } catch(...)
+    {
+        cout << "WARNING: Failed to read from DDR3 SPD on SO-DIMM "
+             << module_number << endl
+             << "Is a module installed?" << endl;
+        total_cap = 0;
+    }
+    return total_cap;
+}
+
+void
+print_channel_status
+(
+    uint32_t ChannelId,
+    librorc::datareplaychannel *dr,
+    uint32_t default_start_addr
+)
+{
+    cout << "Channel " << ChannelId << " Config:" << endl
+        << "\tStart Address: " << hex
+        << dr->startAddress() << dec << endl
+        << "\tDefault Start Address: 0x"
+        << HEX32(default_start_addr) << endl
+        << "\tReset: " << dr->isInReset() << endl
+        << "\tContinuous: " << dr->isContinuousEnabled() << endl
+        << "\tOneshot: " << dr->isOneshotEnabled() << endl
+        << "\tEnabled: " << dr->isEnabled() << endl;
+
+    cout << "Channel " << ChannelId << " Status:" << endl
+        << "\tNext Address: " << hex
+        << dr->nextAddress() << dec << endl
+        << "\tWaiting: " << dr->isWaiting() << endl
+        << "\tDone: " << dr->isDone() << endl;
+}
+
+
+void
+print_module_status
+(
+    uint32_t ControllerId,
+    uint32_t module_size,
+    uint32_t max_ctrl_size
+)
+{
+    if(module_size)
+    {
+        cout << "SO-DIMM " << ControllerId << endl
+             << "\tModule Capacity: " << dec
+             << (module_size>>20) << " MB" << endl
+             << "\tMax. Controller Capacity: " << dec
+             << (max_ctrl_size>>20) << " MB" << endl;
+    }
+    else
+    {
+        cout << "SO-DIMM " << ControllerId
+             << " no module detected" << endl;
+    }
+}
+
+
+uint32_t
+fileToRam
+(
+    librorc::sysmon *sm,
+    uint32_t ChannelId,
+    const char *filename,
+    uint32_t start_addr,
+    bool is_last_event
+)
+{
+    uint32_t next_addr;
+    int fd_in = open(filename, O_RDONLY);
+    if ( fd_in==-1 )
+    {
+        cout << "ERROR: Failed to open input file"
+             << filename << endl;
+        abort();
+    }
+    struct stat fd_in_stat;
+    fstat(fd_in, &fd_in_stat);
+
+    uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size,
+            PROT_READ, MAP_SHARED, fd_in, 0);
+    if ( event == MAP_FAILED )
+    {
+        cout << "ERROR: failed to mmap input file"
+             << filename << endl;
+        abort();
+    }
+
+    try {
+        next_addr = sm->ddr3DataReplayEventToRam(
+                event,
+                (fd_in_stat.st_size>>2), // num_dws
+                start_addr, // ddr3 start address
+                ChannelId, // channel
+                is_last_event); // last event
+    }
+    catch( int e )
+    {
+        cout << "Exception " << e << " while writing event to RAM:" << endl
+             << "File " << filename
+             << " Channel " << ChannelId << " Addr " << hex
+             << start_addr << dec << " LastEvent " << is_last_event << endl;
+        abort();
+    }
+
+    munmap(event, fd_in_stat.st_size);
+    close(fd_in);
+    return next_addr;
 }
