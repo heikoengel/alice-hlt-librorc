@@ -135,18 +135,6 @@ namespace LIBRARY_NAME
         ~flash();
 
     /**
-     * set read state
-     * @param cmd command to be sent
-     * @param addr address
-     **/
-        void
-        sendCommand
-        (
-            uint32_t addr,
-            uint16_t cmd
-        );
-
-    /**
      * read flash status register
      * @param blkaddr block address
      * @return status register
@@ -302,15 +290,6 @@ namespace LIBRARY_NAME
         );
 
     /**
-     * set Configuration Register
-     * */
-        void
-        setConfigReg
-        (
-            uint32_t value
-        );
-
-    /**
      * check if block is empty
      * NOTE: this will only work if VPP=VPPH (~8V)
      * this is not supported on C-RORC
@@ -375,9 +354,23 @@ namespace LIBRARY_NAME
             struct flash_architecture *arch
         );
 
+        /**
+         * get current chip select
+         * @return 0 for flash0, 1 for flash1
+         **/
         uint32_t
         getChipSelect();
 
+        /**
+         * search for FPGA synchronization word in the first
+         * bytes of the flash content starting from an offset.
+         * The synchronization word is an indication for a
+         * valid FPGA configuration in the flash partition
+         * @param startOffset byte offset in the flash to start searching
+         * @param searchLength maximum number of bytes to analyze
+         * @return -1 if no synchronization word was found, else the byte
+         * offset of the beginning of the synchronization word
+         **/
         int32_t
         findFpgaSyncWord
         (
@@ -385,10 +378,42 @@ namespace LIBRARY_NAME
             uint32_t searchLength
         );
 
+        /**
+         * set flash to asynchronous read mode. After power-on the flashes
+         * are in a synchronous read mode for automatic FPGA configuration.
+         * In order to read from or write to the flashes from software they
+         * have to be set in asynchronous read mode. If the flash is already
+         * in asynchronous read mode, this method has no effect.
+         **/
+        void
+        setAsynchronousReadMode();
+
     private:
         bar      *m_bar;
         uint32_t  m_base_addr;
         uint32_t  m_chip_select;
+
+
+    /**
+     * set read state
+     * @param cmd command to be sent
+     * @param addr address
+     **/
+        void
+        sendCommand
+        (
+            uint32_t addr,
+            uint16_t cmd
+        );
+
+    /**
+     * set Configuration Register
+     * */
+        void
+        setConfigReg
+        (
+            uint32_t value
+        );
 
     };
 

@@ -360,7 +360,7 @@ checkFlash
     }
 
     /** set asynchronous read mode */
-    flash->setConfigReg(0xbddf);
+    flash->setAsynchronousReadMode();
 
     uint16_t status = flash->resetChip();
     if ( status )

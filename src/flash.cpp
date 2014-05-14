@@ -717,10 +717,14 @@ flash::findFpgaSyncWord
     uint32_t searchLength
 )
 {
-    uint32_t offset = 0;
+    /** ensure offset and length are even numbers */
+    uint32_t offset = startOffset & ~(0x00000001);
+    uint32_t end_offest = startOffset + (searchLength & ~(0x00000001));
     uint32_t cur_word = 0;
-    while( cur_word!=FPGA_SYNCWORD and offset<searchLength )
+    while( cur_word!=FPGA_SYNCWORD && offset<end_offest)
     {
+        /** 16bit flash interface: 2 bytes per read, so
+         * increment offset by 2 */
         cur_word = (cur_word<<16) + get(offset>>1);
         offset += 2;
     }
@@ -729,6 +733,13 @@ flash::findFpgaSyncWord
     { return (offset-2); }
     else
     { return -1; }
+}
+
+
+void
+flash::setAsynchronousReadMode()
+{
+    setConfigReg(0xbddf);
 }
 
 }
