@@ -117,7 +117,7 @@ namespace LIBRARY_NAME
         else
         {
             /** check link state before sending commands */
-            if( !m_link->gtxIsUp() )
+            if( !m_link->isGtxDomainReady() )
             {
                 DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
                         " will not send DIU commands!\n");

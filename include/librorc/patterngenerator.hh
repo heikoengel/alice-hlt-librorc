@@ -72,6 +72,12 @@ namespace LIBRARY_NAME
             disable();
 
             /**
+             * reset the EventID counter in the pattern generator
+             **/
+            void
+            resetEventId();
+
+            /**
              * configure PatternGenerator to generate events with a
              * fixed size
              * @param eventSize event size in number of DWs including CDH

@@ -193,7 +193,41 @@ namespace LIBRARY_NAME
     link::isGtxDomainReady()
     {
         uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
-        return( (gtxasynccfg & 0x00000134) == 0x00000034 );
+        uint32_t stsmask = (1<<0) | // GTX reset
+            (1<<1) | // RX Reset
+            (1<<2) | // RX Reset Done
+            (1<<3) | // TX Reset
+            (1<<4) | // TX Reset Done
+            (1<<5) | // RX PLL LKDet
+            (1<<8); // GTX in Reset
+        uint32_t expected_value = (0<<0) | // no GTX reset
+            (0<<1) | // no RX Reset
+            (1<<2) | // RX Reset Done==1
+            (0<<3) | // no RX Reset
+            (1<<4) | // RX Reset Done==1
+            (1<<5) | // RX PLL LKDet
+            (0<<8); // GTX not in Reset
+        return ((gtxasynccfg & stsmask) == expected_value);
+    }
+
+
+    bool
+    link::isGtxLinkUp()
+    {
+        uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
+        uint32_t stsmask = (1<<0) | // PHY is ready
+            (1<<1) | // PHY is enabled enable
+            (1<<5) | // GTX byteisaligned
+            (1<<6) | // GTX lossofsync
+            (1<<9) | // GTX rxbufstatus[2]
+            (1<<11); // GTX txbufstatus[1]
+        uint32_t expected_value = (1<<0) | // ready==1
+            (1<<1) | // enable==1
+            (1<<5) | // byteisaligned==1
+            (0<<6) | // lossofsync==0
+            (0<<9) | // rxbufstatus[2]==0
+            (0<<11); // txbufstatus[1]==0
+        return ((gtxsyncsts & stsmask) == expected_value);
     }
 
     void
@@ -476,7 +510,7 @@ namespace LIBRARY_NAME
 
         /** set RX_CLK25_DIVIDER: addr 0x17, bits [9:5] */
         drpSetPllConfigClkDivider(0x17, 5, clkdiv);
-        
+
         /** set RX_CP_CFG: addr 0x1a, bits[15:8] */
         drpSetPllConfigCpCfg(0x1e, pll.cp_cfg);
 
@@ -526,132 +560,70 @@ namespace LIBRARY_NAME
     link::waitForGTXDomain()
     {
         /**
-         * poll asynchronous GTX status
-         * wait for rxresetdone & txresetdone & rxplllkdet &
-         * txplllkdet & !gtx_in_rst
-         *
          * TODO:
          * - add timeout
          * - return/handle/report timeout error
          * */
-        while( (packetizer(RORC_REG_GTX_ASYNC_CFG) & 0x134) != 0x034 )
+        while( !isGtxDomainReady() )
         { usleep(100); }
     }
 
 
-    /**********************************************************
-     *             Fast Cluster Finder Interfacing
-     * *******************************************************/
-
-    // protected
     void
-    link::fcfWriteMappingRamEntry
+    link::setFlowControlEnable
     (
-        uint32_t addr,
-        uint32_t data
+        uint32_t enable
     )
     {
-        setGTX(RORC_REG_FCF_RAM_DATA, data);
-        setGTX(RORC_REG_FCF_RAM_CTRL, addr);
+        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<1); // clear bit
+        ddlctrl |= ((enable & 1)<<1); // set new value
+        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
-    // protected
-    uint32_t
-    link::fcfHexstringToUint32
+    void
+    link::setChannelActive
     (
-        string line
+        uint32_t active
     )
     {
-        uint32_t hexval;
-        stringstream ss;
-        ss << hex << line;
-        ss >> hexval;
-        return hexval;
-    }
-
-
-
-    void
-    link::fcfLoadMappingRam
-    (
-        const char *fname
-    )
-    {
-        ifstream memfile(fname);
-        if ( !memfile.is_open() )
-        {
-            cout << "Failed to open mapping file" << endl;
-            abort();
-        }
-
-        string line;
-        uint32_t i = 0;
-
-        while ( getline(memfile, line) )
-        {
-            if ( i>4095 )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has more " \
-                        "than 4096 entries - skipping remaining lines");
-                break;
-            }
-
-            uint32_t hexval = fcfHexstringToUint32(line);
-            fcfWriteMappingRamEntry(i, hexval);
-            i++;
-        }
-
-        if ( i<4096 )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has less " \
-                    "than 4096 entries - filling remaining lines");
-            while( i<4096 )
-            {
-                fcfWriteMappingRamEntry(i, 0);
-                i++;
-            }
-        }
-    }
-
-    void
-    link::enableFlowControl()
-    {
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<1); // enable flow control
+        ddlctrl &= ~(1<<3); // clear bit
+        ddlctrl |= ((active & 1)<<3); // set new value
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
-    void
-    link::disableFlowControl()
+    bool
+    link::channelIsActive()
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<1); // disable flow control
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
     }
 
-    void
-    link::enableFcf()
+    bool
+    link::flowControlIsEnabled()
     {
-        // enable FCF (same bit as PG_ENABLE)
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<8); // enable PatternGenerator
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<1)) != 0 );
     }
 
-    void
-    link::disableFcf()
+
+    bool
+    link::patternGeneratorAvailable()
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<8); // disable FCF (same bit as PG_ENABLE)
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<15)) != 0 );
+    }
+
+
+    bool
+    link::ddr3DataReplayAvailable()
+    {
+        return( (GTX(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
     }
 
     void
     link::setDataSourceDdr3DataReplay()
     {
         // set MUX to DDR3 DataReplay:
-        // same as PatternGenerator for HLT_IN & HWTEST
         uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16);
         ddlctrl |= (1<<16); // set MUX to 1
@@ -666,58 +638,4 @@ namespace LIBRARY_NAME
         setGTX(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
-
-    void
-    link::configureDdr3DataReplayChannel
-    (
-        uint32_t ddr3_start_address
-    )
-    {
-        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg &= ~(0xfffffffc); // clear [31:2]
-        ch_cfg |= (ddr3_start_address & 0xfffffffc); //set start_addr[31:2]
-        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
-    }
-
-
-    void
-    link::enableDdr3DataReplayChannel()
-    {
-        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg |= (1<<1) | // continuous
-            (1<<0); //enable
-        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
-    }
-
-    void
-    link::disableDdr3DataReplayChannel()
-    {
-        uint32_t ch_cfg = GTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL);
-        ch_cfg &= ~(1<<0); //disable
-        setGTX(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
-    }
-
-    bool
-    link::gtxIsUp()
-    {
-        /**
-         * TODO: add checks for 
-         * - dfe eye opening?
-         * - error counters?
-         **/
-        uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
-        uint32_t stsmask = (1<<0) | // ready
-            (1<<1) | // enable
-            (1<<5) | // byteisaligned
-            (1<<6) | // lossofsync
-            (1<<9) | // rxbufstatus[2]
-            (1<<11); // txbufstatus[1]
-        uint32_t expected_value = (1<<0) | // ready==1
-            (1<<1) | // enable==1
-            (1<<5) | // byteisaligned==1
-            (0<<6) | // lossofsync==0
-            (0<<9) | // rxbufstatus[2]==0
-            (0<<11); // txbufstatus[1]==0
-        return ((gtxsyncsts & stsmask) == expected_value);
-    }
 }

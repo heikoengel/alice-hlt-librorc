@@ -234,8 +234,6 @@ namespace LIBRARY_NAME
 
         for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
-
-        checkFirmwareCompatibility(esType);
     }
 
 
@@ -416,7 +414,7 @@ namespace LIBRARY_NAME
                     ? (m_channel_status->index+1) : 0;
             }
 
-            if( m_reports[tmp_index].calc_event_size==0 )
+            if( m_reports[tmp_index].reported_event_size==0 )
             {
                 pthread_mutex_unlock(&m_getEventEnable);
                 return false;
@@ -578,12 +576,7 @@ namespace LIBRARY_NAME
     patterngenerator*
     event_stream::getPatternGenerator()
     {
-        if
-        (
-               m_fwtype==RORC_CFG_PROJECT_hlt_in
-            || m_fwtype==RORC_CFG_PROJECT_hlt_out
-            || m_fwtype==RORC_CFG_PROJECT_hwtest
-        )
+        if( m_link->patternGeneratorAvailable() )
         { return new patterngenerator(m_link); }
         else
         { return NULL; }
@@ -735,5 +728,35 @@ namespace LIBRARY_NAME
         ? MAX_EVENTS_PER_ITERATION : number_of_events;
     }
 
+    fastclusterfinder*
+    event_stream::getFastClusterFinder()
+    {
+        if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
+                m_linktype==RORC_CFG_LINK_TYPE_DIU)
+        {
+            return new fastclusterfinder(m_link);
+        }
+        else
+        {
+            // TODO: log message: getSiu failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
+    ddl*
+    event_stream::getRawReadout()
+    {
+        if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
+        {
+            return new ddl(m_link);
+        }
+        else
+        {
+            // TODO: log message: getRawReadout failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
 
 }

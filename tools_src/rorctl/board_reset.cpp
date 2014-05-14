@@ -124,9 +124,13 @@ main
         channel_number : 0;
     uint32_t end_channel = sm->numberOfChannels()-1;
 
+    uint32_t firmware_type = sm->firmwareType();
+
     for ( uint32_t i=start_channel; i<=end_channel; i++ )
     {
         librorc::link *link = new librorc::link(bar, i);
+        uint32_t link_type = link->linkType();
+
 
         if ( do_full_reset )
         {
@@ -141,62 +145,73 @@ main
 
         if(link->isGtxDomainReady())
         {
+            link->setFlowControlEnable(0);
             link->clearAllGtxErrorCounters();
 
-            switch( sm->firmwareType() )
+            switch( link_type )
             {
-                case RORC_CFG_PROJECT_hlt_in:
+                case RORC_CFG_LINK_TYPE_DIU:
                     {
                         librorc::diu *diu = new librorc::diu(link);
+                        diu->setReset(1);
                         diu->disableInterface();
+                        diu->clearEventcount();
+                        diu->clearDeadtime();
                         diu->clearAllLastStatusWords();
                         delete diu;
 
-                        librorc::patterngenerator *pg =
-                            new librorc::patterngenerator(link);
-                        pg->disable();
-                        delete pg;
-                    }
-                    break;
-                case RORC_CFG_PROJECT_hwtest:
-                    {
-                        librorc::patterngenerator *pg =
-                            new librorc::patterngenerator(link);
-                        pg->disable();
-                        delete pg;
-                    }
-                    break;
-                case RORC_CFG_PROJECT_hlt_out:
-                    {
-                        librorc::patterngenerator *pg =
-                            new librorc::patterngenerator(link);
-                        pg->disable();
-                        delete pg;
-                    }
-                    break;
-                case RORC_CFG_PROJECT_hlt_in_fcf:
-                    {
-                        // DIU only available on lower 6 channels
-                        if ( i<6 )
+                        if( firmware_type == RORC_CFG_PROJECT_hlt_in_fcf )
                         {
-                            librorc::diu *diu = new librorc::diu(link);
-                            diu->disableInterface();
-                            diu->clearAllLastStatusWords();
-                            delete diu;
-
-                            link->disableDdr3DataReplayChannel();
-                            bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0);
-                            link->disableFcf();
-                        } else {
-                            // TODO: disable raw readout
-                            librorc::diu *diu = new librorc::diu(link);
-                            diu->disableInterface();
-                            delete diu;
+                            librorc::fastclusterfinder *fcf = 
+                                new librorc::fastclusterfinder(link);
+                            fcf->setState(1, 0); // reset, not enabled
+                            delete fcf;
                         }
                     }
                     break;
-                default:
+
+                case RORC_CFG_LINK_TYPE_SIU:
+                    {
+                        librorc::siu *siu = new librorc::siu(link);
+                        siu->setReset(1);
+                        siu->disableInterface();
+                        siu->clearEventcount();
+                        siu->clearDeadtime();
+                        delete siu;
+                    }
                     break;
+
+                case RORC_CFG_LINK_TYPE_VIRTUAL:
+                    {
+                        librorc::ddl *ddlraw = new librorc::ddl(link);
+                        ddlraw->disableInterface();
+                        ddlraw->clearDeadtime();
+                        delete ddlraw;
+                    }
+                    break;
+
+                default: // LINK_TEST, IBERT
+                    {
+                    }
+                    break;
+            }
+
+            // PG on HLT_IN, HLT_OUT, HWTEST
+            if( link->patternGeneratorAvailable() )
+            {
+                librorc::patterngenerator *pg =
+                    new librorc::patterngenerator(link);
+                pg->disable();
+                delete pg;
+            }
+
+            // reset DDR3 Data Replay if available
+            if( link->ddr3DataReplayAvailable() )
+            {
+                librorc::datareplaychannel *dr =
+                    new librorc::datareplaychannel(link);
+                dr->setReset(1);
+                delete dr;
             }
         }
 

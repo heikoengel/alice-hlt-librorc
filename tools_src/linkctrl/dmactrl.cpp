@@ -28,6 +28,7 @@ parameters: \n\
         -n [0...255]  Target device ID \n\
         -c [0...11]   Channel ID \n\
         -x            Clear error counters \n\
+        -R [rate]     Set event rate limit in Hz \n\
         -s            Show link status \n\
         -r            Set DMA channel reset \n\
         -h            Show this text \n\
@@ -44,13 +45,15 @@ int main
     int do_clear = 0;
     int do_status = 0;
     int do_reset = 0;
+    int do_ratelimit = 0;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
+    uint32_t ratelimit = 0;
 
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:xsr")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:xsrR:")) != -1 )
     {
         switch(arg)
         {
@@ -75,6 +78,14 @@ int main
             case 'r':
             {
                 do_reset = 1;
+            }
+            break;
+
+            case 'R':
+            {
+                ratelimit = strtol(optarg, NULL, 0);
+
+                do_ratelimit = 1;
             }
             break;
 
@@ -150,6 +161,15 @@ int main
         abort();
     }
 
+    uint32_t pcie_gen = 1;
+    if( do_ratelimit )
+    {
+        librorc::sysmon *sm = new librorc::sysmon(bar);
+        pcie_gen = sm->pcieGeneration();
+        delete sm;
+    }
+
+
     /** iterate over selected channels */
     for ( uint32_t chID=startChannel; chID<=endChannel; chID++ )
     {
@@ -175,6 +195,21 @@ int main
         if ( do_reset )
         {
             current_link->setPacketizer(RORC_REG_DMA_CTRL, 0x00000002);
+        }
+
+        if ( do_ratelimit )
+        {
+            uint32_t waittime;
+            uint32_t clk_freq = (pcie_gen==2) ? 250000000 : 125000000;
+            if(ratelimit==0)
+            { waittime = 0; }
+            else
+            {
+                double event_period = 1.0/ratelimit;
+                double clock_period = 1.0/clk_freq;
+                waittime = (uint32_t)(event_period/clock_period);
+            }
+            current_link->setPacketizer(RORC_REG_DMA_RATE_LIMITER_WAITTIME, waittime);
         }
 
         delete current_link;

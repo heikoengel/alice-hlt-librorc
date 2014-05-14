@@ -14,6 +14,7 @@ evaluateArguments(int argc, char *argv[])
     ret.channelId = -1;
     ret.eventSize = 0;
     ret.useRefFile = false;
+    ret.loadFcfMappingRam = false;
 
     /** command line arguments */
     static struct option long_options[] =
@@ -23,6 +24,7 @@ evaluateArguments(int argc, char *argv[])
         {"file", required_argument, 0, 'f'},
         {"size", required_argument, 0, 's'},
         {"source", required_argument, 0, 'r'},
+        {"fcfmapping", required_argument, 0, 'm'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -91,6 +93,9 @@ evaluateArguments(int argc, char *argv[])
                 else if( 0 == strcmp(optarg, "dma") &&
                         ret.esType!=LIBRORC_ES_TO_HOST)
                 { ret.datasource = ES_SRC_DMA; break; }
+                else if( 0 == strcmp(optarg, "raw") &&
+                        ret.esType!=LIBRORC_ES_TO_DEVICE)
+                { ret.datasource = ES_SRC_RAW; break; }
                 else
                 {
                     cout << "Invalid data source selected!"
@@ -105,6 +110,19 @@ evaluateArguments(int argc, char *argv[])
             case 's':
             {
                 ret.eventSize = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'm':
+            {
+                if( ret.esType!=LIBRORC_ES_TO_HOST )
+                {
+                    cout << "FCF is not available for this datastream"
+                         << endl;
+                    exit(0);
+                }
+                strcpy(ret.fcfmappingfile, optarg);
+                ret.loadFcfMappingRam = true;
             }
             break;
 
@@ -338,8 +356,10 @@ configurePatternGenerator
                 PG_PATTERN_INC, // patternMode
                 0x00000000,     // initialPattern
                 0);             // numberOfEvents -> continuous
+        pg->resetEventId();
         pg->setStaticEventSize(opts.eventSize);
         pg->useAsDataSource();
+        //pg->setWaitTime(0);
         pg->enable();
     }
     else
@@ -426,6 +446,53 @@ unconfigureDiu
 
 
 void
+configureRawReadout
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::ddl *rawddl =
+        eventStream->getRawReadout();
+    if( rawddl )
+    {
+        rawddl->enableInterface();
+    }
+    else
+    {
+        cout << "Raw readout not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete rawddl;
+}
+
+
+void
+unconfigureRawReadout
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::ddl *rawddl =
+        eventStream->getRawReadout();
+    if( rawddl )
+    {
+        rawddl->disableInterface();
+    }
+    else
+    {
+        cout << "Raw readout not available for this FW/Channel!"
+             << endl;
+        abort();
+    }
+    delete rawddl;
+}
+
+
+
+void
 configureSiu
 (
     librorc::event_stream *eventStream,
@@ -460,6 +527,7 @@ unconfigureSiu
         eventStream->getSiu();
     if( siu )
     {
+        /** TODO: send EOBTR? */
         siu->disableInterface();
     }
     else
@@ -472,6 +540,59 @@ unconfigureSiu
 }
 
 
+/**
+ * configure FCF if available for current eventStream
+ **/
+void
+configureFcf
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::fastclusterfinder *fcf =
+        eventStream->getFastClusterFinder();
+    if( fcf )
+    {
+        fcf->setState(1, 0); // reset, not enabled
+#ifndef SIM
+        if( opts.loadFcfMappingRam )
+        {
+            fcf->loadMappingRam(opts.fcfmappingfile);
+        }
+#endif
+        fcf->setSinglePadSuppression(0);
+        fcf->setBypassMerger(0);
+        fcf->setDeconvPad(1);
+        fcf->setSingleSeqLimit(0);
+        fcf->setClusterLowerLimit(10);
+        fcf->setMergerDistance(4);
+        fcf->setMergerAlgorithm(1);
+        fcf->setChargeTolerance(0);
+
+        fcf->setState(0, 1);// not reset, enabled
+
+        delete fcf;
+    }
+}
+
+void
+unconfigureFcf
+(
+    librorc::event_stream *eventStream,
+    DMAOptions opts
+)
+{
+    librorc::fastclusterfinder *fcf =
+        eventStream->getFastClusterFinder();
+    if( fcf )
+    {
+        fcf->setState(1, 0); // reset, not enabled
+        delete fcf;
+    }
+}
+
+
 
 void
 configureDataSource
@@ -481,10 +602,14 @@ configureDataSource
 )
 {
     eventStream->m_link->waitForGTXDomain();
-    eventStream->m_link->enableFlowControl();
+    eventStream->m_link->setFlowControlEnable(1);
+    eventStream->m_link->setChannelActive(1);
 
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     { configureSiu(eventStream, opts); }
+
+    /** configure FCF if available */
+    configureFcf(eventStream, opts);
 
     switch(opts.datasource)
     {
@@ -500,10 +625,21 @@ configureDataSource
         { eventStream->m_link->setDefaultDataSource(); }
         break;
 
+        case ES_SRC_RAW:
+            {
+                configureRawReadout(eventStream, opts);
+            }
+            break;
+
+        case ES_SRC_DDR3:
+            {
+                eventStream->m_link->setDataSourceDdr3DataReplay();
+            }
+            break;
+
         default: // "none" or invalid or unspecified
         break;
     }
-
 }
 
 void
@@ -513,6 +649,11 @@ unconfigureDataSource
     DMAOptions opts
 )
 {
+    eventStream->m_link->setFlowControlEnable(0);
+    eventStream->m_link->setChannelActive(0);
+
+    unconfigureFcf(eventStream, opts);
+
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
@@ -523,10 +664,17 @@ unconfigureDataSource
         { unconfigureDiu(eventStream, opts); }
         break;
 
+        case ES_SRC_RAW:
+            {
+                unconfigureRawReadout(eventStream, opts);
+            }
+            break;
+
         default: // "none" or invalid or unspecified
         break;
     }    
     
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     { unconfigureSiu(eventStream, opts); }
+
 }

@@ -744,25 +744,11 @@ namespace LIBRARY_NAME
             }
 
             ddr3DataReplayBlockToRam( addr, dataptr, mask, channel, flags);
-            addr += 0x40;
+            addr += 8;
             dataptr += 15;
             num_dws = (num_dws<15) ? 0 : (num_dws-15);
         }
         return addr;
-    }
-
-    void
-    sysmon::disableDdr3DataReplay()
-    {
-        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, 0x00000000);
-    }
-
-    void
-    sysmon::enableDdr3DataReplay()
-    {
-        uint32_t drcfg =  m_bar->get32(RORC_REG_DATA_REPLAY_CTRL);
-        drcfg |= (1<<31);
-        m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drcfg);
     }
 
     uint32_t
@@ -785,6 +771,39 @@ namespace LIBRARY_NAME
                 return 0;
         }
     }
+
+    uint32_t
+    sysmon::ddr3ControllerMaxModuleSize
+    (
+        uint32_t controller
+    )
+    {
+        uint32_t i = (controller&1);
+        uint32_t ddr3ctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+
+        /**
+         * get controller address width encoded as (32-width)
+         * C0: bits [13:11], C1: bits [29:27]
+         **/
+        uint32_t addr_width = (32-((ddr3ctrl>>(16*i+11)) & 0x7));
+
+        /**
+         * number of ranks:
+         * C0: bit[14], C1: bit[30]
+         * 0 => single ranked, 1 => dual ranked
+         **/
+        uint32_t nranks = (((ddr3ctrl>>(14+16*i))&1)+1);
+
+        /**
+         * highest address bit cannot be counted on single
+         * ranked modules
+         **/
+        if( nranks==1 )
+        { addr_width -= 1; }
+
+        return 8*(1<<addr_width);
+    }
+
 
 
     bool
@@ -823,6 +842,22 @@ namespace LIBRARY_NAME
 
         return ( (controller_status & checkmask) == expected_value );
     }
+
+
+    uint8_t
+    sysmon::ddr3SpdRead
+    (
+        uint8_t module,
+        uint8_t address
+    )
+    {
+        uint8_t rdval = i2c_read_mem(
+                3, // DDR3 is chain 3
+                DDR3_SPD_SLVADDR + (module&1),
+                address);
+        return rdval;
+    }
+
 
 
 

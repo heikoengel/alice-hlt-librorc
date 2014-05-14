@@ -7,7 +7,7 @@ if [ -z $DEV ]; then
 fi
 
 
-for CH in {0..7}
+for CH in {0..3}
 do
   PID=/var/run/dma_out_${DEV}_${CH}.pid
   if [ -f $PID ]; then

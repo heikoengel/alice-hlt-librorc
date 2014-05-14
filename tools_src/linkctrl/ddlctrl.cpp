@@ -37,7 +37,6 @@ using namespace std;
         -f [0,1]      FlowControl Enable \n\
         -N [num]      Number of events or 0 for continuous mode\n\
         -M [0,1]      EventStream MUX: 0->DDL, 1->PG \n\
-        -w [waittime] Set WaitTime between events in #CC \n\
         -W [pattern]  Set initial PG pattern word \n\
         -x            Clear counters \n\
 \n\
@@ -47,10 +46,6 @@ In PRBS EventSize mode: \n\
 * {0x0000, prbs_min_size} with logical-OR \n\
 to a 32bit PRBS Event Size value.\n\
 "
-
-//TODO: add RORC_REG_DDL_PG_WAIT_TIME
-//TODO: add RORC_REG_DDL_PG_PATTERN
-
 
 void
 dump_channel_status
@@ -101,7 +96,6 @@ int main
     int set_pgnevents = 0;
     int set_mux = 0;
     int set_prbssize = 0;
-    int set_waittime = 0;
     int set_pattern = 0;
     int set_reset = 0;
 
@@ -115,7 +109,6 @@ int main
     uint32_t pgnevents = 0;
     uint32_t mux = 0;
     uint32_t prbssize = 0;
-    uint32_t waittime = 0;
     uint32_t pattern = 0;
 
 
@@ -123,7 +116,7 @@ int main
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:w:W:r:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:W:r:")) != -1 )
     {
         switch(arg)
         {
@@ -212,13 +205,6 @@ int main
             {
                 mux = strtol(optarg, NULL, 0);
                 set_mux = 1;
-            }
-            break;
-
-            case 'w':
-            {
-                waittime = strtol(optarg, NULL, 0);
-                set_waittime = 1;
             }
             break;
 
@@ -367,7 +353,7 @@ int main
             if ( pgnevents )
             {
                 ddlctrl &= ~(1<<10); //clear continuous-bit
-            } 
+            }
             else
             {
                 ddlctrl |= (1<<10); //set continuous-bit
@@ -409,12 +395,6 @@ int main
             }
         }
 
-        /** set PG waittime between events */
-        if ( set_waittime )
-        {
-            current_link->setGTX(RORC_REG_DDL_PG_WAIT_TIME, waittime);
-        }
-
         /** set initial PG pattern */
         if ( set_pattern )
         {
@@ -438,8 +418,6 @@ int main
         {
             ddlctrl &= ~(1<<1); // clear flow control bit
             ddlctrl |= ((fc&1)<<1);
-            ddlctrl &= ~(1<<9); // clear PG adaptive
-            ddlctrl |= ((fc&1)<<9);
         }
 
         if ( set_fc || set_enable || set_pgmode || set_pgenable ||

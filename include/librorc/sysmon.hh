@@ -37,6 +37,7 @@
 #define LIBRORC_MAX_QSFP        3
 #define I2C_READ                (1<<1)
 #define I2C_WRITE               (1<<2)
+#define DDR3_SPD_SLVADDR        0x50
 
 #define LIBRORC_SYSMON_QSFP_NO_RATE_SELECTION  0
 #define LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION 1
@@ -367,21 +368,6 @@ namespace LIBRARY_NAME
             );
 
             /**
-             * enable DDR3 Data Replay globally. The channel configuration
-             * is only evaluated as soon as this is enabled.
-             **/
-            void
-            enableDdr3DataReplay();
-
-
-            /**
-             * disable DDR3 Data Replay globally. This overrides any channel
-             * settings
-             **/
-            void
-            disableDdr3DataReplay();
-
-            /**
              * check if DDR3 controller and module are ready to be used
              * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
              * @return true if ready, false if not ready or not implemented
@@ -404,6 +390,30 @@ namespace LIBRARY_NAME
                 uint32_t controller
             );
 
+            /**
+             * get maximum module size supported by firmware controller
+             * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
+             * @return modules size in bytes
+             **/
+            uint32_t
+            ddr3ControllerMaxModuleSize
+            (
+                 uint32_t controller
+            );
+
+
+            /**
+             * read from DDR3 SPD monitor
+             * @param module 0 or 1 to select target SO-DIMM module
+             * @param address target address to be read
+             * @return 8 bit value read from SPD
+             **/
+            uint8_t
+            ddr3SpdRead
+            (
+                uint8_t module,
+                uint8_t address
+            );
 
             void
             clearSysmonErrorCounters();

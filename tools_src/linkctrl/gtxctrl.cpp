@@ -37,6 +37,10 @@ parameters: \n\
         -p [number]   Set PLL config from list below \n\
         -P            List available PLL configs \n\
         -h            Show this text \n\
+        -E [0..7]     Set RXEQMIX \n\
+        -D [0..15]    Set TXDIFFCTRL \n\
+        -R [0..15]    Set TXPREEMPH \n\
+        -O [0..15]    Set TXPOSTEMPH \n\
 \n\
 GTX reset consists of 3 bits, MSB to LSB: {TXreset, RXreset, GTXreset}. \n\
 In order to set GTXreset=1, RXreset=0, TXreset=0, do \n\
@@ -79,6 +83,10 @@ int main
     int do_pllcfg = 0;
     int do_dump = 0;
     int show_pllcfgs = 0;
+    int do_rxeqmix = 0;
+    int do_txdiffctrl = 0;
+    int do_txpreemph = 0;
+    int do_txpostemph = 0;
 
     /** parse command line arguments **/
     int32_t DeviceId  = -1;
@@ -86,12 +94,16 @@ int main
     int32_t gtxreset = 0;
     int32_t loopback = 0;
     int32_t pllcfgnum = 0;
+    int32_t rxeqmix = 0;
+    int32_t txdiffctrl = 0;
+    int32_t txpreemph = 0;
+    int32_t txpostemph = 0;
 
     int32_t nconfigs = sizeof(available_configs) /
                        sizeof(gtxpll_settings);
 
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:dP")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:dPE:D:R:O:")) != -1 )
     {
         switch(arg)
         {
@@ -149,6 +161,34 @@ int main
             case 'P':
             {
                 show_pllcfgs = 1;
+            }
+            break;
+
+            case 'E':
+            {
+                do_rxeqmix = 1;
+                rxeqmix = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'D':
+            {
+                do_txdiffctrl= 1;
+                txdiffctrl = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'R':
+            {
+                do_txpreemph = 1;
+                txpreemph = strtol(optarg, NULL, 0);
+            }
+            break;
+
+            case 'O':
+            {
+                do_txpostemph = 1;
+                txpostemph = strtol(optarg, NULL, 0);
             }
             break;
 
@@ -282,6 +322,11 @@ int main
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
                  << " CLK25DIV=" << (int)pll.clk25_div
                  << " TX_TDCC_CFG=" << (int)pll.tx_tdcc_cfg << endl;
+            cout << "\tTxDiffCtrl=" << ((gtxasynccfg>>16)&0xf)
+                 << " TxPreEmph=" << ((gtxasynccfg>>20)&0xf)
+                 << " TxPostEmph=" << ((gtxasynccfg>>24)&0x1f)
+                 << " RxEqMix=" << ((gtxasynccfg>>29)&0x7)
+                 << endl;
 
             /** TODO: also provide error counter values here */
         }
@@ -325,7 +370,32 @@ int main
             gtxasynccfg |= ((loopback&7)<<9);
         }
 
-        if ( do_reset || do_loopback )
+        if( do_rxeqmix )
+        {
+            gtxasynccfg &= ~(7<29);
+            gtxasynccfg |= ((rxeqmix&7)<<29);
+        }
+
+        if( do_txdiffctrl )
+        {
+            gtxasynccfg &= ~(0xf<16);
+            gtxasynccfg |= ((txdiffctrl&0xf)<<16);
+        }
+
+        if( do_txpreemph )
+        {
+            gtxasynccfg &= ~(0xf<20);
+            gtxasynccfg |= ((txpreemph&0xf)<<20);
+        }
+
+        if( do_txpostemph )
+        {
+            gtxasynccfg &= ~(0xf<24);
+            gtxasynccfg |= ((txpostemph&0xf)<<24);
+        }
+
+        if ( do_reset || do_loopback || do_rxeqmix ||
+                do_txdiffctrl || do_txpreemph || do_txpostemph )
         {
             /** write new values to RORC */
             current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);

@@ -26,6 +26,7 @@
 #include <librorc/diu.hh>
 #include <librorc/siu.hh>
 #include <librorc/patterngenerator.hh>
+#include <librorc/fastclusterfinder.hh>
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
@@ -225,6 +226,13 @@ class diu;
              **/
             diu* getDiu();
 
+            /**
+             * get RawReadout instance for current event_stream.
+             * @return pointer to instance of ddl when available, NULL
+             * when not available for current event_stream
+             **/
+            ddl* getRawReadout();
+
 
             /**
              * get SIU instance for current event_stream.
@@ -232,6 +240,13 @@ class diu;
              * when not available for current event_stream.
              **/
             siu* getSiu();
+
+            /**
+             * get fastclusterfinder instance for current event_stream.
+             * @return pointer to instance of fastclusterfinder when
+             * available, NULL when not available for current event_stream.
+             **/
+            fastclusterfinder* getFastClusterFinder();
 
 
             void
