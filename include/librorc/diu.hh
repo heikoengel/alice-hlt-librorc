@@ -53,8 +53,8 @@ namespace LIBRARY_NAME
 
 
             /**
-             * check if DIU link is full
-             * @return true when full, false when not full
+             * check if DIU link is up
+             * @return true when up, false when down
              **/
             bool
             linkUp();
@@ -127,8 +127,9 @@ namespace LIBRARY_NAME
              * a LRST command from the RORC. The DIU shall activate
              * the riLD_N interface line, when it is staying in the
              * off-line state
+             * @return interface status word
              **/
-            void
+            uint32_t
             sendDiuLinkResetCmd();
 
 
@@ -137,8 +138,9 @@ namespace LIBRARY_NAME
              * Start the reset cycle of the SIU. The SIU shall
              * automatically enter into the off-line state at the
              * end of the initialisation
+             * @return interface status word
              * */
-            void
+            uint32_t
             sendSiuResetCmd();
 
 
@@ -146,8 +148,9 @@ namespace LIBRARY_NAME
              * Send Link Initialization Command to DIU.
              * The DIU shall start the link initialisation protocol
              * when it receives a LINIT command from the RORC.
+             * @return interface status word
              * */
-            void
+            uint32_t
             sendDiuLinkInitializationCmd();
 
 
@@ -298,6 +301,14 @@ namespace LIBRARY_NAME
              * */
             int
             waitForInterfaceStatusWord();
+
+            /**
+             * Blocking wait for LD_N='1'
+             * important: clear CTSW before calling this this function!
+             * @return true on sucess, false on timeout
+             **/
+            bool
+            waitForLinkUp();
     };
 }
 #endif

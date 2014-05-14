@@ -98,8 +98,35 @@ namespace LIBRARY_NAME
     }
 
 
-    void
-    diu::prepareForFeeData()
+    uint32_t
+    diu::sendSiuResetCmd()
+    {
+        clearLastInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_SIU_RST); // SRST to SIU
+        return waitForInterfaceStatusWord();
+    }
+
+
+    uint32_t
+    diu::sendDiuLinkInitializationCmd()
+    {
+        clearLastInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_DIU_DIUINIT); // LINIT to DIU
+        return waitForInterfaceStatusWord();
+    }
+
+
+    uint32_t
+    diu::sendDiuLinkResetCmd()
+    {
+        clearLastInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_DIU_DIURST); // SRST to DIU
+        return waitForInterfaceStatusWord();
+    }
+
+
+    bool
+    diu::waitForLinkUp()
     {
         uint32_t timeout = LIBRORC_DIU_TIMEOUT;
         /** wait for LF_N to go high */
@@ -114,21 +141,48 @@ namespace LIBRARY_NAME
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "Timeout waiting for LF_N to deassert\n");
         }
+
+        return (timeout!=0);
+    }
+
+
+    /**
+     * TODO: should this throw/return an error instead of just printing
+     * to PDA_DEBUG?
+     * PRO: it is important to know if data can be received at all or
+     * if further action is required
+     * CON: DIU/SIU state is independent of any DMA/readout channel
+     * and can be changed/controlled while the readout is running. Is
+     * there anything checking the link state periodically?
+     **/
+    void
+    diu::prepareForFeeData()
+    {
+        /** check link state before sending commands */
+        if( !m_link->isGtxDomainReady() )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
+                    " will not send DIU commands!\n");
+        }
         else
         {
-            /** check link state before sending commands */
-            if( !m_link->isGtxDomainReady() )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
-                        " will not send DIU commands!\n");
-            }
-            else
-            {
-                /** close any open transfer */
-                sendFeeEndOfBlockTransferCmd();
-                /** re-open the link */
-                sendFeeReadyToReceiveCmd();
-            }
+            /** reset DIU */
+            setReset(1);
+            setReset(0);
+            waitForLinkUp();
+
+            /** close any open SIU transfers */
+            sendFeeEndOfBlockTransferCmd();
+            /** reset the SIU */
+            sendSiuResetCmd();
+
+            /** reset DIU again */
+            setReset(1);
+            setReset(0);
+            waitForLinkUp();
+
+            /** re-open the link */
+            sendFeeReadyToReceiveCmd();
         }
     }
 
@@ -268,7 +322,7 @@ namespace LIBRARY_NAME
         else
         {
             DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForDiuInterfaceStatusWord: "
+                    "waitForInterfaceStatusWord: "
                     "got IFSTW: %08x\n", result);
         }
         return result;
