@@ -312,7 +312,7 @@ namespace LIBRARY_NAME
     void
     event_stream::printDeviceStatus()
     {
-        printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
+        printf("EventBuffer size: 0x%lx bytes\n", m_eventBuffer->size());
         printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
         printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
 
@@ -630,7 +630,7 @@ namespace LIBRARY_NAME
 
         return   (m_event_generation_offset < m_last_event_buffer_offset)
                ? m_last_event_buffer_offset - m_event_generation_offset
-               : m_last_event_buffer_offset + m_eventBuffer->getSize()
+               : m_last_event_buffer_offset + m_eventBuffer->size()
                - m_event_generation_offset; /** wrap in between */
     }
 
@@ -650,8 +650,8 @@ namespace LIBRARY_NAME
     event_stream::wrapFillStateIfNecessary()
     {
         m_event_generation_offset
-            = (m_event_generation_offset >= m_eventBuffer->getSize())
-            ? (m_event_generation_offset - m_eventBuffer->getSize())
+            = (m_event_generation_offset >= m_eventBuffer->size())
+            ? (m_event_generation_offset - m_eventBuffer->size())
             : m_event_generation_offset;
     }
 

@@ -127,9 +127,7 @@ buffer::connect
 
     m_numberOfScatterGatherEntries = 0;
     for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
-    {
-        m_numberOfScatterGatherEntries++;
-    }
+    { m_numberOfScatterGatherEntries++; }
 
     for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
     {
@@ -155,12 +153,7 @@ buffer::isOvermapped()
     void *map_two = NULL;
 
     if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
-    {
-        if(map_two != NULL)
-        {
-            return 1;
-        }
-    }
+    { if(map_two != NULL){ return 1; } }
 
     return 0;
 }
