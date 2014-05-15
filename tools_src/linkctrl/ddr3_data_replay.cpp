@@ -35,6 +35,7 @@ using namespace std;
         -C [0/1]      Enable/disable continuous replay mode \n\
         -r [0/1]      Enable/disable channel reset \n\
         -s            Show Status \n\
+        -D            Disable replay gracefully \n\
 Note: channel enable (-e) is applied AFTER \n\
 loading a file or setting the mode. \n\
 "
@@ -76,6 +77,12 @@ fileToRam
     bool is_last_event
 );
 
+int
+waitForReplayDone
+(
+    librorc::datareplaychannel *dr
+);
+
 /********** Main **********/
 int main
 (
@@ -105,9 +112,10 @@ int main
     bool set_channel_reset = false;
     uint32_t channel_reset = 0;
     bool do_show_status = false;
+    bool do_disable = false;
     int arg;
 
-    while( (arg = getopt(argc, argv, "hn:c:f:e:S:o:C:r:s")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:f:e:S:o:C:r:sD")) != -1 )
     {
         switch(arg)
         {
@@ -163,6 +171,12 @@ int main
             {
                 continuous = strtol(optarg, NULL, 0);
                 set_continuous = true;
+            }
+            break;
+
+            case 'D':
+            {
+                do_disable = true;
             }
             break;
 
@@ -382,6 +396,46 @@ int main
         if ( do_channel_enable )
         { dr->setEnable(channel_enable_val); }
 
+        if( do_disable )
+        {
+            if( dr->isInReset() )
+            {
+                // already in reset: disable and release reset
+                dr->setEnable(0);
+                dr->setReset(0);
+            }
+            else if( !dr->isEnabled() )
+            {
+                // not in reset, not enabled, this is where we want to end
+                cout << "Channel " << ChannelId
+                     << " is not enabled, skipping" << endl;
+            }
+            else
+            {
+                // enable OneShot if not already enabled
+                if( !dr->isOneshotEnabled() )
+                { dr->setModeOneshot(1); }
+
+                // wait for OneShot replay to complete
+                if( waitForReplayDone(dr)<0 )
+                {
+                    cout << "Timeout waiting for Replay-Done, skipping..."
+                         << endl;
+                }
+                else
+                {
+                    // we are now at the end of an event, so it's safe
+                    // to disable the channel
+                    dr->setEnable(0);
+                    // disable OneShot again
+                    dr->setModeOneshot(0);
+                    // toggle reset
+                    dr->setReset(1);
+                    dr->setReset(0);
+                }
+            }
+        } // do_disable
+
         if( do_show_status )
         { print_channel_status(ChannelId, dr, default_start_addr); }
 
@@ -526,3 +580,19 @@ fileToRam
     close(fd_in);
     return next_addr;
 }
+
+int
+waitForReplayDone
+(
+    librorc::datareplaychannel *dr
+)
+{
+    uint32_t timeout = 10000;
+    while( !dr->isDone() && (timeout>0) )
+    {
+        timeout--;
+        usleep(100);
+    }
+    return (timeout==0) ? (-1) : 0;
+}
+
