@@ -44,6 +44,13 @@ alloc_channel
 
 int main( int argc, char *argv[])
 {
+    uint64_t DefaultSize = EBUFSIZE;
+
+    if(argc == 2)
+    {
+        sscanf(argv[1], "%lu", &DefaultSize);
+        DefaultSize = DefaultSize * 1024 * 1024;
+    }
 
     for(uint16_t DeviceId=0; DeviceId<UINT16_MAX; DeviceId++)
     {
@@ -52,8 +59,7 @@ int main( int argc, char *argv[])
         catch(...){ return(0); }
 
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-        { alloc_channel(ChannelId, Dev, EBUFSIZE); }
-
+        { alloc_channel(ChannelId, Dev, DefaultSize); }
     }
 
     return(0);
@@ -72,7 +78,7 @@ alloc_channel
     if( !(Dev->DMAChannelIsImplemented(ChannelID)) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-            "firmware - exiting\n", ChannelID);
+               "firmware - exiting\n", ChannelID);
         return;
     }
 
