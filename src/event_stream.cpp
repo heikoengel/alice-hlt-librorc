@@ -246,7 +246,7 @@ namespace LIBRARY_NAME
          **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
-        { max_pkt_size = MAX_PAYLOAD; }
+        { max_pkt_size = m_dev->maxPayloadSize(); }
         else
         { max_pkt_size = 128; }
 
