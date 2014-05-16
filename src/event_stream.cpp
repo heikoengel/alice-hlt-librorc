@@ -54,7 +54,6 @@ namespace LIBRARY_NAME
         prepareSharedMemory();
     }
 
-
     event_stream::event_stream
     (
         librorc::device *dev,
@@ -75,7 +74,6 @@ namespace LIBRARY_NAME
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
-
 
     void
     event_stream::initMembers()
@@ -131,6 +129,7 @@ namespace LIBRARY_NAME
         delete m_eventBuffer;
         delete m_reportBuffer;
         delete m_link;
+        delete[] m_release_map;
         if( !m_called_with_bar )
         {
             delete m_bar1;
@@ -231,7 +230,8 @@ namespace LIBRARY_NAME
             m_done             = false;
             m_event_callback   = NULL;
             m_status_callback  = NULL;
-            m_reports = (librorc_event_descriptor*)m_reportBuffer->getMem();
+            m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
+            m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
         }
         catch(...)
         {

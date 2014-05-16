@@ -283,13 +283,14 @@ class diu;
             librorcChannelStatus *m_channel_status;
 
         protected:
-            uint32_t        m_eventSize;
-            int32_t         m_deviceId;
-            int32_t         m_channelId;
-            bool            m_called_with_bar;
-            bool            m_release_map[RBUFSIZE/sizeof(librorc_event_descriptor)];
-            pthread_mutex_t m_releaseEnable;
-            pthread_mutex_t m_getEventEnable;
+            uint32_t         m_eventSize;
+            int32_t          m_deviceId;
+            int32_t          m_channelId;
+            bool             m_called_with_bar;
+            //bool            m_release_map[RBUFSIZE/sizeof(librorc_event_descriptor)];
+            bool            *m_release_map;
+            pthread_mutex_t  m_releaseEnable;
+            pthread_mutex_t  m_getEventEnable;
 
             volatile uint32_t        *m_raw_event_buffer;
             librorc_event_descriptor *m_reports;
@@ -307,8 +308,8 @@ class diu;
             initializeDmaBuffers
             (
                 LibrorcEsType esType,
-                uint64_t eventBufferSize,
-                uint64_t reportBufferSize
+                uint64_t      eventBufferSize,
+                uint64_t      reportBufferSize
             );
 
             void     initializeDmaChannel(LibrorcEsType esType);
