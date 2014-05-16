@@ -49,7 +49,7 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE);
+        initializeDmaBuffers(esType, bufferSize);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
@@ -70,7 +70,7 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE);
+        initializeDmaBuffers(esType, bufferSize);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
