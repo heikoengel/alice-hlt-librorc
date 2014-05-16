@@ -44,10 +44,9 @@ alloc_channel
 
 int main( int argc, char *argv[])
 {
-    /** Iterate all Devices*/
+
     for(uint16_t DeviceId=0; DeviceId<UINT16_MAX; DeviceId++)
     {
-        /** create new device instance */
         librorc::device *Dev;
         try{ Dev = new librorc::device(DeviceId); }
         catch(...){ return(0); }
@@ -70,7 +69,6 @@ alloc_channel
     uint64_t         size
 )
 {
-    /** check if requested channel is implemented in firmware */
     if( !(Dev->DMAChannelIsImplemented(ChannelID)) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
