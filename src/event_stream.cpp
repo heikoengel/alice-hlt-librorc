@@ -49,7 +49,7 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaBuffers(esType, EBUFSIZE);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
@@ -70,7 +70,7 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaBuffers(esType, EBUFSIZE);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
@@ -182,8 +182,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaBuffers
     (
         LibrorcEsType esType,
-        uint64_t eventBufferSize,
-        uint64_t reportBufferSize
+        uint64_t eventBufferSize
     )
     {
         /** make sure requested channel is available for selected esType */
@@ -215,16 +214,13 @@ namespace LIBRARY_NAME
              *      these buffers). only re-allocate with
              *      requested size if not active!
              **/
-            //uint64_t
-            reportBufferSize = eventBufferSize / m_dev->maxPayloadSize();
-
             m_eventBuffer =
                 new librorc::buffer
                     (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
 
             m_reportBuffer =
                 new librorc::buffer
-                    (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+                    (m_dev, (eventBufferSize / m_dev->maxPayloadSize()), (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done             = false;

@@ -307,8 +307,7 @@ class diu;
             initializeDmaBuffers
             (
                 LibrorcEsType esType,
-                uint64_t      eventBufferSize,
-                uint64_t      reportBufferSize
+                uint64_t      eventBufferSize
             );
 
             void     initializeDmaChannel(LibrorcEsType esType);
