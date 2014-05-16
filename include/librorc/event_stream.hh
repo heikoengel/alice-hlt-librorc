@@ -287,7 +287,6 @@ class diu;
             int32_t          m_deviceId;
             int32_t          m_channelId;
             bool             m_called_with_bar;
-            //bool            m_release_map[RBUFSIZE/sizeof(librorc_event_descriptor)];
             bool            *m_release_map;
             pthread_mutex_t  m_releaseEnable;
             pthread_mutex_t  m_getEventEnable;
