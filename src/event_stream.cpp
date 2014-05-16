@@ -216,11 +216,16 @@ namespace LIBRARY_NAME
              *      these buffers). only re-allocate with
              *      requested size if not active!
              **/
-            m_eventBuffer = new librorc::buffer(m_dev, eventBufferSize,
-                        (2*m_channelId), 1, dma_direction);
-            m_reportBuffer = new librorc::buffer(m_dev, reportBufferSize,
-                        (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+            //uint64_t
+            //reportBufferSize = eventBufferSize / m_dev->maxPayloadSize();
 
+            m_eventBuffer =
+                new librorc::buffer
+                    (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
+
+            m_reportBuffer =
+                new librorc::buffer
+                    (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done             = false;
@@ -234,7 +239,7 @@ namespace LIBRARY_NAME
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-        for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
+        for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
     }
 
@@ -735,9 +740,7 @@ namespace LIBRARY_NAME
     {
         if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
                 m_linktype==RORC_CFG_LINK_TYPE_DIU)
-        {
-            return new fastclusterfinder(m_link);
-        }
+        { return new fastclusterfinder(m_link); }
         else
         {
             // TODO: log message: getSiu failed,
@@ -750,9 +753,7 @@ namespace LIBRARY_NAME
     event_stream::getRawReadout()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
-        {
-            return new ddl(m_link);
-        }
+        { return new ddl(m_link); }
         else
         {
             // TODO: log message: getRawReadout failed,
