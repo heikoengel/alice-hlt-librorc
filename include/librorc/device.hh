@@ -39,6 +39,8 @@ typedef struct PciDevice_struct PciDevice;
     #define librorc_debug(fmt, args ...)
 #endif
 
+#define MAX_PAYLOAD  256
+#define MAX_READ_REQ 256
 
 namespace LIBRARY_NAME
 {
@@ -88,6 +90,9 @@ namespace LIBRARY_NAME
      **/
     uint8_t *getBarMap(uint8_t n);
 
+    uint64_t maxPayloadSize();
+    uint64_t maxReadRequestSize();
+
     /**
      * get PCI Bar-Size
      * @return Bar-Size
@@ -96,11 +101,7 @@ namespace LIBRARY_NAME
 
     std::string *deviceDescription();
 
-    bool
-    DMAChannelIsImplemented
-    (
-        int32_t channelId
-    );
+    bool DMAChannelIsImplemented(int32_t channelId);
 
     uint8_t getDeviceId();
 

@@ -68,9 +68,7 @@ device::getDomain()
 {
     uint16_t domain_id;
     if(PciDevice_getDomainID(m_device, &domain_id) == PDA_SUCCESS)
-    {
-        return(domain_id);
-    }
+    { return(domain_id); }
 
     return(0);
 }
@@ -82,9 +80,7 @@ device::getBus()
 {
     uint8_t bus_id;
     if(PciDevice_getBusID(m_device, &bus_id) == PDA_SUCCESS)
-    {
-        return(bus_id);
-    }
+    { return(bus_id); }
 
     return(0);
 }
@@ -96,9 +92,7 @@ device::getSlot()
 {
     uint8_t device_id;
     if(PciDevice_getDeviceID(m_device, &device_id) == PDA_SUCCESS)
-    {
-        return(device_id);
-    }
+    { return(device_id); }
 
     return(0);
 }
@@ -110,9 +104,7 @@ device::getFunc()
 {
     uint8_t function_id;
     if(PciDevice_getFunctionID(m_device, &function_id) == PDA_SUCCESS)
-    {
-        return(function_id);
-    }
+    { return(function_id); }
 
     return(0);
 }
@@ -127,24 +119,17 @@ device::getDeviceId()
 
 
 uint8_t*
-device::getBarMap
-(
-    uint8_t n
-)
+device::getBarMap(uint8_t n)
 {
     uint8_t   *buffer = NULL;
     uint64_t   size;
 
     Bar *bar = NULL;
     if(PciDevice_getBar(m_device, &bar, n) != PDA_SUCCESS)
-    {
-        return(NULL);
-    }
+    { return(NULL); }
 
     if(Bar_getMap(bar, &buffer, &size) != PDA_SUCCESS)
-    {
-        return(NULL);
-    }
+    { return(NULL); }
 
     return(buffer);
 }
@@ -152,26 +137,38 @@ device::getBarMap
 
 
 uint64_t
-device::getBarSize
-(
-    uint8_t n
-)
+device::getBarSize(uint8_t n)
 {
     uint8_t   *buffer = NULL;
     uint64_t   size;
 
     Bar *bar = NULL;
     if(PciDevice_getBar(m_device, &bar, n) != PDA_SUCCESS)
-    {
-        return(0);
-    }
+    { return(0); }
 
     if(Bar_getMap(bar, &buffer, &size) != PDA_SUCCESS)
-    {
-        return(0);
-    }
+    { return(0); }
 
     return(size);
+}
+
+
+
+uint64_t
+device::maxPayloadSize()
+{
+
+    // TODO : get this from PDA
+    return(MAX_PAYLOAD);
+}
+
+
+
+uint64_t
+device::maxReadRequestSize()
+{
+    // TODO : get this from PDA
+    return(MAX_READ_REQ);
 }
 
 
@@ -183,14 +180,8 @@ device::deviceDescription()
     const char *description
         = (const char *)description_buffer;
 
-    if
-    (
-        PciDevice_getDescription(m_device, &description )
-            != PDA_SUCCESS
-    )
-    {
-        return NULL;
-    }
+    if(PciDevice_getDescription(m_device, &description ) != PDA_SUCCESS)
+    { return NULL; }
 
     return( new string(description_buffer) );
 }
@@ -198,10 +189,7 @@ device::deviceDescription()
 
 
 bool
-device::DMAChannelIsImplemented
-(
-    int32_t channelId
-)
+device::DMAChannelIsImplemented(int32_t channelId)
 {
     #ifndef SIM
     bar *bar1 = new rorc_bar(this, 1);

@@ -36,10 +36,6 @@
 
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
-// TODO get this from PDA
-#define MAX_PAYLOAD 256 //was 128 before, but it seemed wrong
-#define MAX_READ_REQ 256
-
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
