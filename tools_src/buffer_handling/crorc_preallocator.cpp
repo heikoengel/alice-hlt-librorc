@@ -38,44 +38,26 @@ void
 alloc_channel
 (
     uint32_t         ChannelID,
-    librorc::bar    *Bar,
-    librorc::device *Dev
+    librorc::device *Dev,
+    uint64_t         size
 );
-
-
 
 int main( int argc, char *argv[])
 {
     /** Iterate all Devices*/
-    for( uint16_t i=0; i<UINT16_MAX; i++)
+    for(uint16_t DeviceId=0; DeviceId<UINT16_MAX; DeviceId++)
     {
         /** create new device instance */
         librorc::device *Dev;
-        try{ Dev = new librorc::device(i); }
-        catch(...){ break; }
-
-        /** bind to BAR1 */
-        librorc::bar *Bar = NULL;
-        try
-        {
-        #ifdef SIM
-            Bar = new librorc::sim_bar(Dev, 1);
-        #else
-            Bar = new librorc::rorc_bar(Dev, 1);
-        #endif
-        }
-        catch(...)
-        {
-            printf("ERROR: failed to initialize BAR1.\n");
-            abort();
-        }
+        try{ Dev = new librorc::device(DeviceId); }
+        catch(...){ return(0); }
 
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-        { alloc_channel(ChannelId, Bar, Dev); }
+        { alloc_channel(ChannelId, Dev, EBUFSIZE); }
 
     }
 
-    return 0;
+    return(0);
 }
 
 
@@ -84,8 +66,8 @@ void
 alloc_channel
 (
     uint32_t         ChannelID,
-    librorc::bar    *Bar,
-    librorc::device *Dev
+    librorc::device *Dev,
+    uint64_t         size
 )
 {
     /** check if requested channel is implemented in firmware */
@@ -101,7 +83,7 @@ alloc_channel
     {
         eventStream =
             new librorc::event_stream
-                (Dev->getDeviceId(), ChannelID, LIBRORC_ES_TO_HOST, EBUFSIZE);
+                (Dev->getDeviceId(), ChannelID, LIBRORC_ES_TO_HOST, size);
     }
     catch( int error )
     {
