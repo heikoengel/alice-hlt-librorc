@@ -34,7 +34,7 @@ using namespace std;
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
-int16_t
+void
 alloc_channel
 (
     uint32_t         ChannelID,
@@ -71,7 +71,7 @@ int main( int argc, char *argv[])
         }
 
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-            { alloc_channel(ChannelId, Bar, Dev); }
+        { alloc_channel(ChannelId, Bar, Dev); }
 
     }
 
@@ -80,7 +80,7 @@ int main( int argc, char *argv[])
 
 
 
-int16_t
+void
 alloc_channel
 (
     uint32_t         ChannelID,
@@ -93,31 +93,46 @@ alloc_channel
     {
         printf("ERROR: Requsted channel %d is not implemented in "
             "firmware - exiting\n", ChannelID);
-        return -1;
+        return;
     }
 
-    /** create a new DMA event buffer */
-    librorc::buffer *ebuf;
+    librorc::event_stream *eventStream = NULL;
     try
-    { ebuf = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
     {
-        perror("ERROR: ebuf->allocate");
-        abort();
+        eventStream =
+            new librorc::event_stream
+                (Dev->getDeviceId(), ChannelID, LIBRORC_ES_TO_HOST, EBUFSIZE);
+    }
+    catch( int error )
+    {
+        cout << "ERROR: failed to initialize event stream. "
+             << "Buffer allocation failed" << endl;
+        return;
     }
 
-    /** create new DMA report buffer */
-    librorc::buffer *rbuf;
-    try
-    { rbuf = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: rbuf->allocate");
-        abort();
-    }
+    delete eventStream;
 
-    delete ebuf;
-    delete rbuf;
+//    /** create a new DMA event buffer */
+//    librorc::buffer *ebuf;
+//    try
+//    { ebuf = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE); }
+//    catch(...)
+//    {
+//        perror("ERROR: ebuf->allocate");
+//        abort();
+//    }
+//
+//    /** create new DMA report buffer */
+//    librorc::buffer *rbuf;
+//    try
+//    { rbuf = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE); }
+//    catch(...)
+//    {
+//        perror("ERROR: rbuf->allocate");
+//        abort();
+//    }
+//
+//    delete ebuf;
+//    delete rbuf;
 
-    return 0;
 }
