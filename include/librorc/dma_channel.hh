@@ -256,8 +256,8 @@ namespace LIBRARY_NAME
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
 
             /**
-             * Set maximum PCIe packet size. This is MAX_PAYLOAD for
-             * hlt_in and MAX_READ_REQ for hlt_out channels.
+             * Set maximum PCIe packet size. This is the maximum payload size for
+             * hlt_in and maximum read request size for hlt_out channels.
              * @param packet_size maximum packet size in bytes
              **/
             void setPciePacketSize(uint32_t packet_size);

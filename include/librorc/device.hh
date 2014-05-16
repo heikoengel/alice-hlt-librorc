@@ -39,9 +39,6 @@ typedef struct PciDevice_struct PciDevice;
     #define librorc_debug(fmt, args ...)
 #endif
 
-#define MAX_PAYLOAD  256
-#define MAX_READ_REQ 256
-
 namespace LIBRARY_NAME
 {
     /**
