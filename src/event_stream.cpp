@@ -40,7 +40,8 @@ namespace LIBRARY_NAME
     (
         int32_t       deviceId,
         int32_t       channelId,
-        LibrorcEsType esType
+        LibrorcEsType esType,
+        uint64_t      bufferSize
     )
     {
         m_deviceId        = deviceId;
@@ -59,7 +60,8 @@ namespace LIBRARY_NAME
         librorc::device *dev,
         librorc::bar    *bar,
         int32_t          channelId,
-        LibrorcEsType    esType
+        LibrorcEsType    esType,
+        uint64_t         bufferSize
     )
     {
         m_dev             = dev;

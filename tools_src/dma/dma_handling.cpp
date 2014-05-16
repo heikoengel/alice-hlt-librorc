@@ -19,13 +19,13 @@ evaluateArguments(int argc, char *argv[])
     /** command line arguments */
     static struct option long_options[] =
     {
-        {"device", required_argument, 0, 'd'},
-        {"channel", required_argument, 0, 'c'},
-        {"file", required_argument, 0, 'f'},
-        {"size", required_argument, 0, 's'},
-        {"source", required_argument, 0, 'r'},
+        {"device"    , required_argument, 0, 'd'},
+        {"channel"   , required_argument, 0, 'c'},
+        {"file"      , required_argument, 0, 'f'},
+        {"size"      , required_argument, 0, 's'},
+        {"source"    , required_argument, 0, 'r'},
         {"fcfmapping", required_argument, 0, 'm'},
-        {"help", no_argument, 0, 'h'},
+        {"help"      , no_argument      , 0, 'h'},
         {0, 0, 0, 0}
     };
 
@@ -194,8 +194,7 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId,
-            opts.channelId, opts.esType); }
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.esType, EBUFSIZE); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
@@ -220,8 +219,7 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(dev, bar,
-            opts.channelId, opts.esType); }
+    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.esType, EBUFSIZE); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;

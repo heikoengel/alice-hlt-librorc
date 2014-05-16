@@ -113,7 +113,8 @@ class diu;
              (
                 int32_t       deviceId,
                 int32_t       channelId,
-                LibrorcEsType esType
+                LibrorcEsType esType,
+                uint64_t      bufferSize
              );
 
 #ifdef LIBRORC_INTERNAL
@@ -122,7 +123,8 @@ class diu;
                 librorc::device *dev,
                 librorc::bar    *bar,
                 int32_t          channelId,
-                LibrorcEsType    esType
+                LibrorcEsType    esType,
+                uint64_t         bufferSize
              );
 #endif
 
