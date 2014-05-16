@@ -42,11 +42,23 @@ buffer::buffer
 {
     m_dmaDirection      = dma_direction;
     m_device            = dev->getPdaPciDevice();
-    bool newAllocNeeded = false;
 
-    m_buffer = NULL;
+    bool newAllocNeeded = false;
+    m_buffer            = NULL;
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     { newAllocNeeded = true; }
+    else
+    {
+        size_t length = 0;
+        if(DMABuffer_getLength(m_buffer, &length) != PDA_SUCCESS)
+        {
+            cout << "Getting buffer length from PDA totally failed!" << endl;
+            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        }
+
+        if(size != length)
+        { newAllocNeeded = true; }
+    }
 
     if(newAllocNeeded)
     {
