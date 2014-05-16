@@ -57,7 +57,14 @@ buffer::buffer
         }
 
         if(size != length)
-        { newAllocNeeded = true; }
+        {
+            if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
+            {
+                cout << "PDA buffer freeing totally failed!" << endl;
+                throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+            }
+            newAllocNeeded = true;
+        }
     }
 
     if(newAllocNeeded)
