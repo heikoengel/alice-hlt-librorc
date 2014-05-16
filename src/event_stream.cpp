@@ -216,7 +216,7 @@ namespace LIBRARY_NAME
              *      requested size if not active!
              **/
             //uint64_t
-            //reportBufferSize = eventBufferSize / m_dev->maxPayloadSize();
+            reportBufferSize = eventBufferSize / m_dev->maxPayloadSize();
 
             m_eventBuffer =
                 new librorc::buffer
