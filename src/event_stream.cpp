@@ -681,6 +681,7 @@ namespace LIBRARY_NAME
                : (event_size << 2);
     }
 
+    /** TODO : this does not work, because the event size in HLT_OUT is usually not fixed*/
     uint64_t
     event_stream::numberOfEvents(uint32_t event_size)
     {
@@ -732,7 +733,7 @@ namespace LIBRARY_NAME
         uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 
         return
-        (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+          (el_fifo_write_limit - el_fifo_write_count < number_of_events)
         ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
     }
 
