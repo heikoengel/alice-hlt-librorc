@@ -218,9 +218,12 @@ namespace LIBRARY_NAME
                 new librorc::buffer
                     (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
 
+            uint64_t reportBufferSize
+                = (eventBufferSize / m_dev->maxPayloadSize())
+                * sizeof(librorc_event_descriptor);
             m_reportBuffer =
                 new librorc::buffer
-                    (m_dev, (eventBufferSize / m_dev->maxPayloadSize()), (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+                    (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done             = false;
