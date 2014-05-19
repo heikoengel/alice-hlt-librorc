@@ -204,16 +204,6 @@ namespace LIBRARY_NAME
 
         try
         {
-            /**
-             * TODO: this simply connects to an unknown buffer
-             * if a buffer with the given ID already exists.
-             * => Check if buffer of requested size already exists:
-             * YES: connect to existing buffer
-             * NO : check if dma_channel is already active
-             *      (e.g. another process is already using
-             *      these buffers). only re-allocate with
-             *      requested size if not active!
-             **/
             m_eventBuffer =
                 new librorc::buffer
                     (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
