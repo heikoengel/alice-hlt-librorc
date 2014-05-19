@@ -38,11 +38,9 @@
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
     #define EBUFSIZE (((uint64_t)1) << 28)
-    #define RBUFSIZE (((uint64_t)1) << 26)
     #define STAT_INTERVAL 1.0
 #else
     #define EBUFSIZE (((uint64_t)1) << 19)
-    #define RBUFSIZE (((uint64_t)1) << 17)
     #define STAT_INTERVAL 0.00001
 #endif
 
