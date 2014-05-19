@@ -237,9 +237,6 @@ namespace LIBRARY_NAME
     void
     event_stream::initializeDmaChannel(LibrorcEsType esType)
     {
-        /*
-         * TODO: get MaxPayload/MaxReadReq sizes from PDA!
-         **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
         { max_pkt_size = m_dev->maxPayloadSize(); }
