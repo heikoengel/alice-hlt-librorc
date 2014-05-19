@@ -40,7 +40,8 @@ namespace LIBRARY_NAME
     (
         int32_t       deviceId,
         int32_t       channelId,
-        LibrorcEsType esType
+        LibrorcEsType esType,
+        uint64_t      bufferSize
     )
     {
         m_deviceId        = deviceId;
@@ -48,18 +49,18 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaBuffers(esType, bufferSize);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
-
 
     event_stream::event_stream
     (
         librorc::device *dev,
         librorc::bar    *bar,
         int32_t          channelId,
-        LibrorcEsType    esType
+        LibrorcEsType    esType,
+        uint64_t         bufferSize
     )
     {
         m_dev             = dev;
@@ -69,11 +70,10 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaBuffers(esType, bufferSize);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
-
 
     void
     event_stream::initMembers()
@@ -129,6 +129,7 @@ namespace LIBRARY_NAME
         delete m_eventBuffer;
         delete m_reportBuffer;
         delete m_link;
+        delete[] m_release_map;
         if( !m_called_with_bar )
         {
             delete m_bar1;
@@ -181,8 +182,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaBuffers
     (
         LibrorcEsType esType,
-        uint64_t eventBufferSize,
-        uint64_t reportBufferSize
+        uint64_t eventBufferSize
     )
     {
         /** make sure requested channel is available for selected esType */
@@ -214,17 +214,20 @@ namespace LIBRARY_NAME
              *      these buffers). only re-allocate with
              *      requested size if not active!
              **/
-            m_eventBuffer = new librorc::buffer(m_dev, eventBufferSize,
-                        (2*m_channelId), 1, dma_direction);
-            m_reportBuffer = new librorc::buffer(m_dev, reportBufferSize,
-                        (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+            m_eventBuffer =
+                new librorc::buffer
+                    (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
 
+            m_reportBuffer =
+                new librorc::buffer
+                    (m_dev, (eventBufferSize / m_dev->maxPayloadSize()), (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
 
             m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
             m_done             = false;
             m_event_callback   = NULL;
             m_status_callback  = NULL;
-            m_reports = (librorc_event_descriptor*)m_reportBuffer->getMem();
+            m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
+            m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
         }
         catch(...)
         {
@@ -232,7 +235,7 @@ namespace LIBRARY_NAME
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-        for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
+        for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
     }
 
@@ -246,7 +249,7 @@ namespace LIBRARY_NAME
          **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
-        { max_pkt_size = MAX_PAYLOAD; }
+        { max_pkt_size = m_dev->maxPayloadSize(); }
         else
         { max_pkt_size = 128; }
 
@@ -313,7 +316,7 @@ namespace LIBRARY_NAME
     event_stream::printDeviceStatus()
     {
         printf("EventBuffer size: 0x%lx bytes\n", m_eventBuffer->size());
-        printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
+        printf("ReportBuffer size: 0x%lx bytes\n", m_reportBuffer->size());
         printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
 
         try
@@ -733,9 +736,7 @@ namespace LIBRARY_NAME
     {
         if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
                 m_linktype==RORC_CFG_LINK_TYPE_DIU)
-        {
-            return new fastclusterfinder(m_link);
-        }
+        { return new fastclusterfinder(m_link); }
         else
         {
             // TODO: log message: getSiu failed,
@@ -748,9 +749,7 @@ namespace LIBRARY_NAME
     event_stream::getRawReadout()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
-        {
-            return new ddl(m_link);
-        }
+        { return new ddl(m_link); }
         else
         {
             // TODO: log message: getRawReadout failed,

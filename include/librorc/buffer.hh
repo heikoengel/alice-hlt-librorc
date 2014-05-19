@@ -125,8 +125,7 @@ class buffer_sglist_programmer;
              * Free and release the attached buffer.
              * @return 0 on success, <0 on error (uses perror() )
              **/
-            int32_t
-            deallocate();
+            int32_t deallocate();
 
             /**
              * Get buffer index.

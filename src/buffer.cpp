@@ -40,14 +40,35 @@ buffer::buffer
     int32_t   dma_direction
 )
 {
-    m_dmaDirection = dma_direction;
-    m_device       = dev->getPdaPciDevice();
+    m_dmaDirection      = dma_direction;
+    m_device            = dev->getPdaPciDevice();
 
-    //TODO: convert direction specifier
-    m_buffer = NULL;
+    bool newAllocNeeded = false;
+    m_buffer            = NULL;
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
+    { newAllocNeeded = true; }
+    else
     {
-	cout << "reallocate : " << size << endl;
+        size_t length = 0;
+        if(DMABuffer_getLength(m_buffer, &length) != PDA_SUCCESS)
+        {
+            cout << "Getting buffer length from PDA totally failed!" << endl;
+            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        }
+
+        if(size != length)
+        {
+            if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
+            {
+                cout << "PDA buffer freeing totally failed!" << endl;
+                throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+            }
+            newAllocNeeded = true;
+        }
+    }
+
+    if(newAllocNeeded)
+    {
         if
         (
             PDA_SUCCESS !=
@@ -60,7 +81,6 @@ buffer::buffer
         }
     }
 
-    /** Wrap map if wanted */
     if(overmap == 1)
     {
         if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
@@ -69,7 +89,6 @@ buffer::buffer
             throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
         }
     }
-
 
     connect(dev, id);
 }
@@ -140,10 +159,7 @@ buffer::connect
 
 
 
-buffer::~buffer()
-{
-
-}
+buffer::~buffer(){}
 
 
 
