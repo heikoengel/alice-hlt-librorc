@@ -119,6 +119,13 @@ class diu;
                 uint64_t      bufferSize
              );
 
+             event_stream
+             (
+                int32_t       deviceId,
+                int32_t       channelId,
+                LibrorcEsType esType
+             );
+
 #ifdef LIBRORC_INTERNAL
              event_stream
              (

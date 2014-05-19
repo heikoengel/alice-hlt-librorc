@@ -56,6 +56,23 @@ namespace LIBRARY_NAME
 
     event_stream::event_stream
     (
+        int32_t       deviceId,
+        int32_t       channelId,
+        LibrorcEsType esType
+    )
+    {
+        m_deviceId        = deviceId;
+        m_called_with_bar = false;
+        m_channelId       = channelId;
+
+        initMembers();
+        initializeDmaBuffers(esType, 0);
+        initializeDmaChannel(esType);
+        prepareSharedMemory();
+    }
+
+    event_stream::event_stream
+    (
         librorc::device *dev,
         librorc::bar    *bar,
         int32_t          channelId,
@@ -182,7 +199,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaBuffers
     (
         LibrorcEsType esType,
-        uint64_t eventBufferSize
+        uint64_t      eventBufferSize
     )
     {
         /** make sure requested channel is available for selected esType */
@@ -204,29 +221,35 @@ namespace LIBRARY_NAME
 
         try
         {
-            m_eventBuffer =
-                new librorc::buffer
-                    (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
+            if(eventBufferSize != 0)
+            {
+                m_eventBuffer =
+                    new librorc::buffer
+                        (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
 
-            uint64_t reportBufferSize
-                = (eventBufferSize / m_dev->maxPayloadSize())
-                * sizeof(librorc_event_descriptor);
-            m_reportBuffer =
-                new librorc::buffer
-                    (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
-
-            m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-            m_done             = false;
-            m_event_callback   = NULL;
-            m_status_callback  = NULL;
-            m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
-            m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
+                uint64_t reportBufferSize
+                    = (eventBufferSize / m_dev->maxPayloadSize())
+                    * sizeof(librorc_event_descriptor);
+                m_reportBuffer =
+                    new librorc::buffer
+                        (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+            } else {
+                m_eventBuffer  = new librorc::buffer(m_dev, (2*m_channelId));
+                m_reportBuffer = new librorc::buffer(m_dev, (2*m_channelId+1));
+            }
         }
         catch(...)
         {
             cout << "initializeDmaBuffers failed" << endl;
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
+
+        m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+        m_done             = false;
+        m_event_callback   = NULL;
+        m_status_callback  = NULL;
+        m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
+        m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
 
         for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
@@ -241,7 +264,7 @@ namespace LIBRARY_NAME
         if( esType == LIBRORC_ES_TO_HOST )
         { max_pkt_size = m_dev->maxPayloadSize(); }
         else
-        { max_pkt_size = 128; }
+        { max_pkt_size = m_dev->maxReadRequestSize(); }
 
         m_channel = new librorc::dma_channel
         (
