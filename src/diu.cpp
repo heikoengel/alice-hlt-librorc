@@ -174,12 +174,12 @@ namespace LIBRARY_NAME
             /** close any open SIU transfers */
             sendFeeEndOfBlockTransferCmd();
             /** reset the SIU */
-            sendSiuResetCmd();
+            //sendSiuResetCmd();
 
             /** reset DIU again */
-            setReset(1);
-            setReset(0);
-            waitForLinkUp();
+            //setReset(1);
+            //setReset(0);
+            //waitForLinkUp();
 
             /** re-open the link */
             sendFeeReadyToReceiveCmd();
