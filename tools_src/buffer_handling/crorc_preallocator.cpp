@@ -34,90 +34,67 @@ using namespace std;
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
-int16_t
+void
 alloc_channel
 (
     uint32_t         ChannelID,
-    librorc::bar    *Bar,
-    librorc::device *Dev
+    librorc::device *Dev,
+    uint64_t         size
 );
-
-
 
 int main( int argc, char *argv[])
 {
-    /** Iterate all Devices*/
-    for( uint16_t i=0; i<UINT16_MAX; i++)
+    uint64_t DefaultSize = EBUFSIZE;
+
+    if(argc == 2)
     {
-        /** create new device instance */
-        librorc::device *Dev;
-        try{ Dev = new librorc::device(i); }
-        catch(...){ break; }
-
-        /** bind to BAR1 */
-        librorc::bar *Bar = NULL;
-        try
-        {
-        #ifdef SIM
-            Bar = new librorc::sim_bar(Dev, 1);
-        #else
-            Bar = new librorc::rorc_bar(Dev, 1);
-        #endif
-        }
-        catch(...)
-        {
-            printf("ERROR: failed to initialize BAR1.\n");
-            abort();
-        }
-
-        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
-            { alloc_channel(ChannelId, Bar, Dev); }
-
+        sscanf(argv[1], "%lu", &DefaultSize);
+        DefaultSize = DefaultSize * 1024 * 1024;
     }
 
-    return 0;
+    for(uint16_t DeviceId=0; DeviceId<UINT16_MAX; DeviceId++)
+    {
+        librorc::device *Dev;
+        try{ Dev = new librorc::device(DeviceId); }
+        catch(...){ return(0); }
+
+        for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
+        { alloc_channel(ChannelId, Dev, DefaultSize); }
+    }
+
+    return(0);
 }
 
 
 
-int16_t
+void
 alloc_channel
 (
     uint32_t         ChannelID,
-    librorc::bar    *Bar,
-    librorc::device *Dev
+    librorc::device *Dev,
+    uint64_t         size
 )
 {
-    /** check if requested channel is implemented in firmware */
     if( !(Dev->DMAChannelIsImplemented(ChannelID)) )
     {
         printf("ERROR: Requsted channel %d is not implemented in "
-            "firmware - exiting\n", ChannelID);
-        return -1;
+               "firmware - exiting\n", ChannelID);
+        return;
     }
 
-    /** create a new DMA event buffer */
-    librorc::buffer *ebuf;
+    librorc::event_stream *eventStream = NULL;
     try
-    { ebuf = new librorc::buffer(Dev, EBUFSIZE, 2*ChannelID, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
     {
-        perror("ERROR: ebuf->allocate");
-        abort();
+        eventStream =
+            new librorc::event_stream
+                (Dev->getDeviceId(), ChannelID, LIBRORC_ES_TO_HOST, size);
+    }
+    catch( int error )
+    {
+        cout << "ERROR: failed to initialize event stream. "
+             << "Buffer allocation failed" << endl;
+        return;
     }
 
-    /** create new DMA report buffer */
-    librorc::buffer *rbuf;
-    try
-    { rbuf = new librorc::buffer(Dev, RBUFSIZE, 2*ChannelID+1, 1, LIBRORC_DMA_FROM_DEVICE); }
-    catch(...)
-    {
-        perror("ERROR: rbuf->allocate");
-        abort();
-    }
-
-    delete ebuf;
-    delete rbuf;
-
-    return 0;
+    delete eventStream;
 }

@@ -36,10 +36,6 @@
 
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
-// TODO get this from PDA
-#define MAX_PAYLOAD 256 //was 128 before, but it seemed wrong
-#define MAX_READ_REQ 256
-
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
@@ -260,8 +256,8 @@ namespace LIBRARY_NAME
 /** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
 
             /**
-             * Set maximum PCIe packet size. This is MAX_PAYLOAD for
-             * hlt_in and MAX_READ_REQ for hlt_out channels.
+             * Set maximum PCIe packet size. This is the maximum payload size for
+             * hlt_in and maximum read request size for hlt_out channels.
              * @param packet_size maximum packet size in bytes
              **/
             void setPciePacketSize(uint32_t packet_size);

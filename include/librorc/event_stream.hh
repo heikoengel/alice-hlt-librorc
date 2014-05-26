@@ -31,14 +31,14 @@
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
 
+#define MAX_EVENTS_PER_ITERATION 0x0
+
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
     #define EBUFSIZE (((uint64_t)1) << 28)
-    #define RBUFSIZE (((uint64_t)1) << 26)
     #define STAT_INTERVAL 1.0
 #else
     #define EBUFSIZE (((uint64_t)1) << 19)
-    #define RBUFSIZE (((uint64_t)1) << 17)
     #define STAT_INTERVAL 0.00001
 #endif
 
@@ -111,6 +111,14 @@ class diu;
              (
                 int32_t       deviceId,
                 int32_t       channelId,
+                LibrorcEsType esType,
+                uint64_t      bufferSize
+             );
+
+             event_stream
+             (
+                int32_t       deviceId,
+                int32_t       channelId,
                 LibrorcEsType esType
              );
 
@@ -120,7 +128,8 @@ class diu;
                 librorc::device *dev,
                 librorc::bar    *bar,
                 int32_t          channelId,
-                LibrorcEsType    esType
+                LibrorcEsType    esType,
+                uint64_t         bufferSize
              );
 #endif
 
@@ -247,11 +256,18 @@ class diu;
             fastclusterfinder* getFastClusterFinder();
 
 
+            void
+            packEventIntoBuffer
+            (
+                uint32_t *event,
+                uint32_t  event_size
+            );
+
+            uint64_t numberOfEvents(uint32_t event_size);
+
             /** Member Variables */
 
-            /** TODO: move m_bar1 to protected. ATM still used for gettime()
-             * in boardtest_modules
-             **/
+
             bar         *m_bar1;
             buffer      *m_eventBuffer;
             buffer      *m_reportBuffer;
@@ -272,13 +288,13 @@ class diu;
             librorcChannelStatus *m_channel_status;
 
         protected:
-            uint32_t        m_eventSize;
-            int32_t         m_deviceId;
-            int32_t         m_channelId;
-            bool            m_called_with_bar;
-            bool            m_release_map[RBUFSIZE/sizeof(librorc_event_descriptor)];
-            pthread_mutex_t m_releaseEnable;
-            pthread_mutex_t m_getEventEnable;
+            uint32_t         m_eventSize;
+            int32_t          m_deviceId;
+            int32_t          m_channelId;
+            bool             m_called_with_bar;
+            bool            *m_release_map;
+            pthread_mutex_t  m_releaseEnable;
+            pthread_mutex_t  m_getEventEnable;
 
             volatile uint32_t        *m_raw_event_buffer;
             librorc_event_descriptor *m_reports;
@@ -289,12 +305,14 @@ class diu;
             librorc_event_callback  m_event_callback;
             librorc_status_callback m_status_callback;
 
+            uint64_t        m_event_generation_offset;
+            uint64_t        m_last_event_buffer_offset;
+
             void
             initializeDmaBuffers
             (
                 LibrorcEsType esType,
-                uint64_t eventBufferSize,
-                uint64_t reportBufferSize
+                uint64_t      eventBufferSize
             );
 
             void     initializeDmaChannel(LibrorcEsType esType);
@@ -316,6 +334,25 @@ class diu;
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);
+
+            /** out */
+            uint64_t availableBufferSpace();
+            void     pushEventSizeIntoELFifo(uint32_t event_size);
+            void     iterateEventBufferFillState(uint32_t event_size);
+            void     wrapFillStateIfNecessary();
+            uint32_t fragmentSize(uint32_t event_size);
+            bool     isSufficientFifoSpaceAvailable();
+
+            uint64_t
+            numberOfEventsThatFitIntoBuffer
+            (
+                uint64_t available_buffer_space,
+                uint32_t event_size,
+                uint32_t fragment_size
+            );
+
+            uint64_t maximumElfifoCanHandle(uint64_t number_of_events);
+            uint64_t reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
 
     };
 

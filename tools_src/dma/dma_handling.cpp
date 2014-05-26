@@ -19,13 +19,13 @@ evaluateArguments(int argc, char *argv[])
     /** command line arguments */
     static struct option long_options[] =
     {
-        {"device", required_argument, 0, 'd'},
-        {"channel", required_argument, 0, 'c'},
-        {"file", required_argument, 0, 'f'},
-        {"size", required_argument, 0, 's'},
-        {"source", required_argument, 0, 'r'},
+        {"device"    , required_argument, 0, 'd'},
+        {"channel"   , required_argument, 0, 'c'},
+        {"file"      , required_argument, 0, 'f'},
+        {"size"      , required_argument, 0, 's'},
+        {"source"    , required_argument, 0, 'r'},
         {"fcfmapping", required_argument, 0, 'm'},
-        {"help", no_argument, 0, 'h'},
+        {"help"      , no_argument      , 0, 'h'},
         {0, 0, 0, 0}
     };
 
@@ -194,8 +194,7 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId,
-            opts.channelId, opts.esType); }
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.esType, EBUFSIZE); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
@@ -220,8 +219,7 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(dev, bar,
-            opts.channelId, opts.esType); }
+    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.esType, EBUFSIZE); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
@@ -605,11 +603,8 @@ configureDataSource
     eventStream->m_link->setFlowControlEnable(1);
     eventStream->m_link->setChannelActive(1);
 
-    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
-            opts.datasource != ES_SRC_NONE)
-    {
-        configureSiu(eventStream, opts);
-    }
+    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    { configureSiu(eventStream, opts); }
 
     /** configure FCF if available */
     configureFcf(eventStream, opts);
@@ -617,22 +612,16 @@ configureDataSource
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
-            {
-                configurePatternGenerator(eventStream, opts);
-            }
-            break;
+        { configurePatternGenerator(eventStream, opts); }
+        break;
 
         case ES_SRC_DIU:
-            {
-                configureDiu(eventStream, opts);
-            }
-            break;
+        { configureDiu(eventStream, opts); }
+        break;
 
         case ES_SRC_DMA:
-            {
-                eventStream->m_link->setDefaultDataSource();
-            }
-            break;
+        { eventStream->m_link->setDefaultDataSource(); }
+        break;
 
         case ES_SRC_RAW:
             {
@@ -647,7 +636,7 @@ configureDataSource
             break;
 
         default: // "none" or invalid or unspecified
-            break;
+        break;
     }
 }
 
@@ -666,16 +655,12 @@ unconfigureDataSource
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
-            {
-                unconfigurePatternGenerator(eventStream, opts);
-            }
-            break;
+        { unconfigurePatternGenerator(eventStream, opts); }
+        break;
 
         case ES_SRC_DIU:
-            {
-                unconfigureDiu(eventStream, opts);
-            }
-            break;
+        { unconfigureDiu(eventStream, opts); }
+        break;
 
         case ES_SRC_RAW:
             {
@@ -684,12 +669,10 @@ unconfigureDataSource
             break;
 
         default: // "none" or invalid or unspecified
-            break;
-    }
+        break;
+    }    
+    
+    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    { unconfigureSiu(eventStream, opts); }
 
-    if( opts.esType==LIBRORC_ES_TO_DEVICE &&
-            opts.datasource != ES_SRC_NONE)
-    {
-        unconfigureSiu(eventStream, opts);
-    }
 }

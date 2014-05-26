@@ -93,8 +93,6 @@ class buffer_sglist_programmer;
               *        Index of the buffer. Even IDs are report buffers, odd IDs are
               *        event buffers.
               * @param [in] overmap
-              *
-              *
               */
              buffer
              (
@@ -127,8 +125,7 @@ class buffer_sglist_programmer;
              * Free and release the attached buffer.
              * @return 0 on success, <0 on error (uses perror() )
              **/
-            int32_t
-            deallocate();
+            int32_t deallocate();
 
             /**
              * Get buffer index.
@@ -150,7 +147,7 @@ class buffer_sglist_programmer;
              * boundary.
              * @return Number of bytes allocated as buffer.
              **/
-            uint64_t getSize()
+            uint64_t size()
             { return m_size; }
 
             /**
@@ -159,7 +156,7 @@ class buffer_sglist_programmer;
              */
             uint64_t
             getPhysicalSize()
-            { return getSize(); }
+            { return size(); }
 
             /**
              * Get the actually mapped memory region size.
@@ -170,8 +167,8 @@ class buffer_sglist_programmer;
             getMappingSize()
             {
                 if(isOvermapped() == 1)
-                { return(2*getSize()); }
-                return getSize();
+                { return(2*size()); }
+                return size();
             }
 
             /**
@@ -206,7 +203,7 @@ class buffer_sglist_programmer;
              **/
             uint64_t
             getMaxRBEntries()
-            { return( getSize()/sizeof(librorc_event_descriptor) ); }
+            { return( size()/sizeof(librorc_event_descriptor) ); }
 
 
         /**

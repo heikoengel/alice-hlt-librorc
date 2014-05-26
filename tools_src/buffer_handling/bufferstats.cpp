@@ -104,8 +104,8 @@ int main( int argc, char *argv[])
     cout << "Device " << DeviceId << ", Buffer " << BufferId << endl;
     cout << "Number of SG Entries: " << buf->getnSGEntries() << endl;
     cout << "Overmapped:           " << buf->isOvermapped() << endl;
-    cout << "Size:                 " << buf->getSize()
-        << " Bytes (" << dec << (buf->getSize()/(1<<20)) << " MB)" << endl;
+    cout << "Size:                 " << buf->size()
+        << " Bytes (" << dec << (buf->size()/(1<<20)) << " MB)" << endl;
 
     if ( verbose )
     {
