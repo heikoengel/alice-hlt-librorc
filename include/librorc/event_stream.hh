@@ -33,8 +33,6 @@
 
 #define MAX_EVENTS_PER_ITERATION 0x0
 
-//#define EVENT_SIZE 256
-
 /** Buffer Sizes (in Bytes) **/
 #ifndef SIM
     #define EBUFSIZE (((uint64_t)1) << 28)
