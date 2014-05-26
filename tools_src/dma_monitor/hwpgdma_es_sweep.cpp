@@ -72,7 +72,7 @@ setEventSize
     
     /** set new EventSize
      *  '-1' because EOE is attached to each event. Without '-1' but 
-     *  EventSizes aligned to MAX_PAYLOAD boundaries a new full
+     *  EventSizes aligned to the max payload size boundaries a new full
      *  packet is sent containing only the EOE word. -> would take
      *  bandwidth but would not appear in number of bytes transferred
      *  */

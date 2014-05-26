@@ -40,6 +40,24 @@ namespace LIBRARY_NAME
     (
         int32_t       deviceId,
         int32_t       channelId,
+        LibrorcEsType esType,
+        uint64_t      bufferSize
+    )
+    {
+        m_deviceId        = deviceId;
+        m_called_with_bar = false;
+        m_channelId       = channelId;
+
+        initMembers();
+        initializeDmaBuffers(esType, bufferSize);
+        initializeDmaChannel(esType);
+        prepareSharedMemory();
+    }
+
+    event_stream::event_stream
+    (
+        int32_t       deviceId,
+        int32_t       channelId,
         LibrorcEsType esType
     )
     {
@@ -48,18 +66,18 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaBuffers(esType, 0);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
-
 
     event_stream::event_stream
     (
         librorc::device *dev,
         librorc::bar    *bar,
         int32_t          channelId,
-        LibrorcEsType    esType
+        LibrorcEsType    esType,
+        uint64_t         bufferSize
     )
     {
         m_dev             = dev;
@@ -69,11 +87,10 @@ namespace LIBRARY_NAME
         m_channelId       = channelId;
 
         initMembers();
-        initializeDmaBuffers(esType, EBUFSIZE, RBUFSIZE);
+        initializeDmaBuffers(esType, bufferSize);
         initializeDmaChannel(esType);
         prepareSharedMemory();
     }
-
 
     void
     event_stream::initMembers()
@@ -109,10 +126,10 @@ namespace LIBRARY_NAME
                  << "- exiting" << endl;
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
-        m_fwtype   = m_sm->firmwareType();
-
-        m_link     = new librorc::link(m_bar1, m_channelId);
-        m_linktype = m_link->linkType();
+        m_fwtype                  = m_sm->firmwareType();
+        m_link                    = new librorc::link(m_bar1, m_channelId);
+        m_linktype                = m_link->linkType();
+        m_event_generation_offset = 0;
 
         pthread_mutex_init(&m_releaseEnable, NULL);
         pthread_mutex_init(&m_getEventEnable, NULL);
@@ -137,7 +154,8 @@ namespace LIBRARY_NAME
         delete m_eventBuffer;
         delete m_reportBuffer;
         delete m_link;
-        if ( !m_called_with_bar )
+        delete[] m_release_map;
+        if( !m_called_with_bar )
         {
             delete m_bar1;
             delete m_dev;
@@ -151,14 +169,14 @@ namespace LIBRARY_NAME
         switch(esType)
         {
             case LIBRORC_ES_TO_HOST:
-                fwOK = (m_linktype!=RORC_CFG_LINK_TYPE_SIU);
-                break;
+            { fwOK = (m_linktype!=RORC_CFG_LINK_TYPE_SIU); }
+            break;
             case LIBRORC_ES_TO_DEVICE:
-                fwOK = (m_linktype==RORC_CFG_LINK_TYPE_SIU);
-                break;
+            { fwOK = (m_linktype==RORC_CFG_LINK_TYPE_SIU); }
+            break;
             default:
-                fwOK = false;
-                break;
+            { fwOK = false; }
+            break;
         }
 
         if( !fwOK )
@@ -174,8 +192,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaBuffers
     (
         LibrorcEsType esType,
-        uint64_t eventBufferSize,
-        uint64_t reportBufferSize
+        uint64_t      eventBufferSize
     )
     {
         /** make sure requested channel is available for selected esType */
@@ -187,40 +204,32 @@ namespace LIBRARY_NAME
         switch (esType)
         {
             case LIBRORC_ES_TO_DEVICE:
-            {
-                dma_direction = LIBRORC_DMA_TO_DEVICE;
-            }
+            { dma_direction = LIBRORC_DMA_TO_DEVICE; }
             break;
+
             default:
-            {
-                dma_direction = LIBRORC_DMA_FROM_DEVICE;
-            }
+            { dma_direction = LIBRORC_DMA_FROM_DEVICE; }
             break;
         }
 
         try
         {
-            /**
-             * TODO: this simply connects to an unknown buffer
-             * if a buffer with the given ID already exists.
-             * => Check if buffer of requested size already exists:
-             * YES: connect to existing buffer
-             * NO : check if dma_channel is already active
-             *      (e.g. another process is already using
-             *      these buffers). only re-allocate with
-             *      requested size if not active!
-             **/
-            m_eventBuffer = new librorc::buffer(m_dev, eventBufferSize,
-                        (2*m_channelId), 1, dma_direction);
-            m_reportBuffer = new librorc::buffer(m_dev, reportBufferSize,
-                        (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+            if(eventBufferSize != 0)
+            {
+                m_eventBuffer =
+                    new librorc::buffer
+                        (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
 
-
-            m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-            m_done             = false;
-            m_event_callback   = NULL;
-            m_status_callback  = NULL;
-            m_reports = (librorc_event_descriptor*)m_reportBuffer->getMem();
+                uint64_t reportBufferSize
+                    = (eventBufferSize / m_dev->maxPayloadSize())
+                    * sizeof(librorc_event_descriptor);
+                m_reportBuffer =
+                    new librorc::buffer
+                        (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+            } else {
+                m_eventBuffer  = new librorc::buffer(m_dev, (2*m_channelId));
+                m_reportBuffer = new librorc::buffer(m_dev, (2*m_channelId+1));
+            }
         }
         catch(...)
         {
@@ -228,7 +237,14 @@ namespace LIBRARY_NAME
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-        for(uint64_t i = 0; i<(RBUFSIZE/sizeof(librorc_event_descriptor)); i++)
+        m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+        m_done             = false;
+        m_event_callback   = NULL;
+        m_status_callback  = NULL;
+        m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
+        m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
+
+        for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
     }
 
@@ -237,22 +253,21 @@ namespace LIBRARY_NAME
     void
     event_stream::initializeDmaChannel(LibrorcEsType esType)
     {
-        /*
-         * TODO: get MaxPayload/MaxReadReq sizes from PDA!
-         **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
-        { max_pkt_size = MAX_PAYLOAD; }
+        { max_pkt_size = m_dev->maxPayloadSize(); }
         else
-        { max_pkt_size = 128; }
+        { max_pkt_size = m_dev->maxReadRequestSize(); }
 
-        m_channel = new librorc::dma_channel(
-                m_channelId,
-                max_pkt_size,
-                m_dev,
-                m_bar1,
-                m_eventBuffer,
-                m_reportBuffer);
+        m_channel = new librorc::dma_channel
+        (
+            m_channelId,
+            max_pkt_size,
+            m_dev,
+            m_bar1,
+            m_eventBuffer,
+            m_reportBuffer
+        );
 
         m_channel->enable();
     }
@@ -306,8 +321,8 @@ namespace LIBRARY_NAME
     void
     event_stream::printDeviceStatus()
     {
-        printf("EventBuffer size: 0x%lx bytes\n", EBUFSIZE);
-        printf("ReportBuffer size: 0x%lx bytes\n", RBUFSIZE);
+        printf("EventBuffer size: 0x%lx bytes\n", m_eventBuffer->size());
+        printf("ReportBuffer size: 0x%lx bytes\n", m_reportBuffer->size());
         printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
 
         try
@@ -323,10 +338,7 @@ namespace LIBRARY_NAME
 
 
     uint64_t
-    event_stream::eventLoop
-    (
-        void *user_data
-    )
+    event_stream::eventLoop(void *user_data)
     {
         m_last_bytes_received  = 0;
         m_last_events_received = 0;
@@ -574,15 +586,10 @@ namespace LIBRARY_NAME
     event_stream::getPatternGenerator()
     {
         if( m_link->patternGeneratorAvailable() )
-        {
-            return new patterngenerator(m_link);
-        }
+        { return new patterngenerator(m_link); }
         else
-        {
-            // TODO: log message: getPatternGenerator failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
+        // TODO: log message: getPatternGenerator failed, Firmware, channelId
     }
 
 
@@ -590,15 +597,10 @@ namespace LIBRARY_NAME
     event_stream::getDiu()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_DIU)
-        {
-            return new diu(m_link);
-        }
+        { return new diu(m_link); }
         else
-        {
-            // TODO: log message: getDiu failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
+        // TODO: log message: getDiu failed, Firmware, channelId
     }
 
 
@@ -606,15 +608,134 @@ namespace LIBRARY_NAME
     event_stream::getSiu()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_SIU)
-        {
-            return new siu(m_link);
-        }
+        { return new siu(m_link); }
         else
-        {
-            // TODO: log message: getSiu failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
+        // TODO: log message: getSiu failed, Firmware, channelId
+    }
+
+/** HLT out API ---------------------------------------------------------------*/
+
+    void
+    event_stream::packEventIntoBuffer
+    (
+        uint32_t *event,
+        uint32_t  event_size
+    )
+    {
+        uint32_t *dest = (m_eventBuffer->getMem() + (m_event_generation_offset >> 2));
+
+        memcpy((void*) (dest), event, (event_size * sizeof(uint32_t)));
+        pushEventSizeIntoELFifo(event_size);
+        iterateEventBufferFillState(event_size);
+        wrapFillStateIfNecessary();
+    }
+
+    uint64_t
+    event_stream::availableBufferSpace()
+    {
+        m_last_event_buffer_offset
+            = m_channel->getLastEBOffset();
+
+        return   (m_event_generation_offset < m_last_event_buffer_offset)
+               ? m_last_event_buffer_offset - m_event_generation_offset
+               : m_last_event_buffer_offset + m_eventBuffer->size()
+               - m_event_generation_offset; /** wrap in between */
+    }
+
+    void
+    event_stream::pushEventSizeIntoELFifo(uint32_t event_size)
+    {
+        m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+    }
+
+    void
+    event_stream::iterateEventBufferFillState(uint32_t event_size)
+    {
+        m_event_generation_offset += fragmentSize(event_size);
+    }
+
+    void
+    event_stream::wrapFillStateIfNecessary()
+    {
+        m_event_generation_offset
+            = (m_event_generation_offset >= m_eventBuffer->size())
+            ? (m_event_generation_offset - m_eventBuffer->size())
+            : m_event_generation_offset;
+    }
+
+    uint32_t
+    event_stream::fragmentSize(uint32_t event_size)
+    {
+        uint32_t max_read_req = m_channel->pciePacketSize();
+
+        return   ((event_size << 2) % max_read_req)
+               ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
+               : (event_size << 2);
+    }
+
+    /** TODO : this does not work, because the event size in HLT_OUT is usually not fixed*/
+    uint64_t
+    event_stream::numberOfEvents(uint32_t event_size)
+    {
+
+        if(!isSufficientFifoSpaceAvailable())
+        { return 0; }
+
+        uint64_t
+        number_of_events
+            = numberOfEventsThatFitIntoBuffer
+                (availableBufferSpace(), event_size, fragmentSize(event_size));
+
+        number_of_events
+            = maximumElfifoCanHandle(number_of_events);
+
+        number_of_events
+            = reduceNumberOfEventsToCustomMaximum(number_of_events);
+
+        return number_of_events;
+    }
+
+    bool
+    event_stream::isSufficientFifoSpaceAvailable()
+    {
+        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+        uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+        uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+        return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
+    }
+
+    uint64_t
+    event_stream::numberOfEventsThatFitIntoBuffer
+    (
+        uint64_t available_buffer_space,
+        uint32_t event_size,
+        uint32_t fragment_size
+    )
+    {
+        return
+        ((available_buffer_space - event_size) <= fragment_size)
+        ? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
+    }
+
+    uint64_t
+    event_stream::maximumElfifoCanHandle(uint64_t number_of_events)
+    {
+        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+        uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
+        uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
+
+        return
+          (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+        ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
+    }
+
+    uint64_t
+    event_stream::reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events)
+    {
+        return
+        (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
+        ? MAX_EVENTS_PER_ITERATION : number_of_events;
     }
 
     fastclusterfinder*
@@ -622,9 +743,7 @@ namespace LIBRARY_NAME
     {
         if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
                 m_linktype==RORC_CFG_LINK_TYPE_DIU)
-        {
-            return new fastclusterfinder(m_link);
-        }
+        { return new fastclusterfinder(m_link); }
         else
         {
             // TODO: log message: getSiu failed,
@@ -637,9 +756,7 @@ namespace LIBRARY_NAME
     event_stream::getRawReadout()
     {
         if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
-        {
-            return new ddl(m_link);
-        }
+        { return new ddl(m_link); }
         else
         {
             // TODO: log message: getRawReadout failed,

@@ -59,21 +59,15 @@ main
                 break;
 
             case 's':
-                {
-                    devnr[0] = strtol(optarg, NULL, 0);
-                }
+                { devnr[0] = strtol(optarg, NULL, 0); }
                 break;
 
             case 'd':
-                {
-                    devnr[1] = strtol(optarg, NULL, 0);
-                }
+                { devnr[1] = strtol(optarg, NULL, 0); }
                 break;
 
             case 'v':
-                {
-                    verbose = 1;
-                }
+                { verbose = 1; }
                 break;
 
             default:
