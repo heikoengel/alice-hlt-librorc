@@ -42,23 +42,23 @@ namespace LIBRARY_NAME
         uint32_t enable
     )
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         fcfctrl &= ~( (1<<0) | (1<<31) );
         fcfctrl |= ( ((reset&1)<<31) | (enable&1) );
-        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     bool
     fastclusterfinder::isEnabled()
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         return ((fcfctrl & 1) == 1);
     }
 
     bool
     fastclusterfinder::isInReset()
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         return ((fcfctrl & 0x80000000) == 0x80000000);
     }
 
@@ -72,16 +72,16 @@ namespace LIBRARY_NAME
         uint32_t spSupprValue
     )
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         fcfctrl &= ~(1<<8);
         fcfctrl |= ((spSupprValue&1)<<8);
-        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     uint32_t
     fastclusterfinder::singlePadSuppression()
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         return ((fcfctrl>>8)&1);
     }
 
@@ -92,16 +92,16 @@ namespace LIBRARY_NAME
         uint32_t bypassValue
     )
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         fcfctrl &= ~(1<<9);
         fcfctrl |= ((bypassValue&1)<<9);
-        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     uint32_t
     fastclusterfinder::bypassMerger()
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         return ((fcfctrl>>9)&1);
     }
 
@@ -111,16 +111,16 @@ namespace LIBRARY_NAME
         uint32_t deconvValue
     )
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         fcfctrl &= ~(1<<10);
         fcfctrl |= ((deconvValue&1)<<10);
-        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     uint32_t
     fastclusterfinder::deconvPad()
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         return ((fcfctrl>>10)&1);
     }
 
@@ -130,16 +130,16 @@ namespace LIBRARY_NAME
         uint8_t singe_seq_limit
     )
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         limits &= ~(0xff<<16);
         limits |= ((singe_seq_limit&0xff)<<16);
-        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+        m_link->setDDL(RORC_REG_FCF_LIMITS, limits);
     }
 
     uint8_t
     fastclusterfinder::singleSeqLimit()
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         return ((limits>>16) & 0xff);
     }
 
@@ -149,16 +149,16 @@ namespace LIBRARY_NAME
         uint16_t cluster_low_limit
     )
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         limits &= ~(0x0000ffff);
         limits |= (cluster_low_limit&0xffff);
-        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+        m_link->setDDL(RORC_REG_FCF_LIMITS, limits);
     }
 
     uint16_t
     fastclusterfinder::clusterLowerLimit()
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         return (limits & 0xffff);
     }
 
@@ -168,16 +168,16 @@ namespace LIBRARY_NAME
         uint8_t match_distance
     )
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         limits &= ~(0x0f<<24);
         limits |= ((match_distance&0x0f)<<24);
-        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+        m_link->setDDL(RORC_REG_FCF_LIMITS, limits);
     }
 
     uint8_t
     fastclusterfinder::mergerDistance()
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         return (limits>>24 & 0x0f);
     }
 
@@ -187,16 +187,16 @@ namespace LIBRARY_NAME
         uint32_t mode
     )
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         fcfctrl &= ~(1<<11);
         fcfctrl |= ((mode&1)<<11);
-        m_link->setGTX(RORC_REG_FCF_CTRL, fcfctrl);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
     uint32_t
     fastclusterfinder::mergerAlgorithm()
     {
-        uint32_t fcfctrl = m_link->GTX(RORC_REG_FCF_CTRL);
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
         return ((fcfctrl>>11)&1);
     }
 
@@ -206,16 +206,16 @@ namespace LIBRARY_NAME
         uint8_t charge_tolerance
     )
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         limits &= ~(0x0f<<28);
         limits |= ((charge_tolerance&0x0f)<<28);
-        m_link->setGTX(RORC_REG_FCF_LIMITS, limits);
+        m_link->setDDL(RORC_REG_FCF_LIMITS, limits);
     }
 
     uint8_t
     fastclusterfinder::chargeTolerance()
     {
-        uint32_t limits = m_link->GTX(RORC_REG_FCF_LIMITS);
+        uint32_t limits = m_link->DDL(RORC_REG_FCF_LIMITS);
         return (limits>>28 & 0x0f);
     }
 
@@ -230,8 +230,8 @@ namespace LIBRARY_NAME
         uint32_t data
     )
     {
-        m_link->setGTX(RORC_REG_FCF_RAM_DATA, data);
-        m_link->setGTX(RORC_REG_FCF_RAM_CTRL, (addr | (1<<31)));
+        m_link->setDDL(RORC_REG_FCF_RAM_DATA, data);
+        m_link->setDDL(RORC_REG_FCF_RAM_CTRL, (addr | (1<<31)));
     }
 
     uint32_t
@@ -240,8 +240,8 @@ namespace LIBRARY_NAME
         uint32_t addr
     )
     {
-        m_link->setGTX(RORC_REG_FCF_RAM_CTRL, addr);
-        return m_link->GTX(RORC_REG_FCF_RAM_DATA);
+        m_link->setDDL(RORC_REG_FCF_RAM_CTRL, addr);
+        return m_link->DDL(RORC_REG_FCF_RAM_DATA);
     }
 
 

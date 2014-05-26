@@ -40,18 +40,18 @@ namespace LIBRARY_NAME
     void
     patterngenerator::enable()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         ddlctrl |= (1<<8); // enable PatternGenerator
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
     void
     patterngenerator::disable()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<8); // disable PatternGenerator
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
 
         uint32_t timeout = LIBRORC_PG_TIMEOUT;
         while(!done() && timeout)
@@ -70,13 +70,13 @@ namespace LIBRARY_NAME
     void
     patterngenerator::resetEventId()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         // set eventid_rst
         ddlctrl |= (1<<9);
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
         // release eventid_rst
         ddlctrl &= ~(1<<9);
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -86,10 +86,10 @@ namespace LIBRARY_NAME
         uint32_t eventSize
     )
     {
-        m_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        m_link->setDDL(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<13); // static event size
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -102,10 +102,10 @@ namespace LIBRARY_NAME
     {
         uint32_t eventSize = (prbs_max_size_mask & 0xffff0000) |
             prbs_min_size;
-        m_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        m_link->setDDL(RORC_REG_DDL_PG_EVENT_LENGTH, eventSize);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         ddlctrl |= (1<<13); // PRBS event size
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -117,7 +117,7 @@ namespace LIBRARY_NAME
         uint32_t numberOfEvents
     )
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         /**
          * allow only implemented PatternGenerator Modes:
          * PG_PATTERN_INC, PG_PATTERN_DEC,
@@ -137,29 +137,29 @@ namespace LIBRARY_NAME
         if(numberOfEvents)
         {
             ddlctrl &= ~(1<<10); // disable continuous mode
-            m_link->setGTX(RORC_REG_DDL_PG_NUM_EVENTS, numberOfEvents);
+            m_link->setDDL(RORC_REG_DDL_PG_NUM_EVENTS, numberOfEvents);
         }
         else
         {
             ddlctrl |= (1<<10); // enable continuous mode
         }
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
     bool
     patterngenerator::done()
     {
-        return (((m_link->GTX(RORC_REG_DDL_CTRL)>>14) & 1) == 1);
+        return (((m_link->DDL(RORC_REG_DDL_CTRL)>>14) & 1) == 1);
     }
 
 
     void
     patterngenerator::useAsDataSource()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16);
         ddlctrl |= (2<<16); // set MUX to 2
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 }

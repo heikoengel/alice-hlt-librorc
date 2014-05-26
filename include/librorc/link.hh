@@ -100,7 +100,7 @@ namespace LIBRARY_NAME
             /**
              * set DW in GTX Domain
              * @param addr address in GTX component
-             * @param data data to be writtem
+             * @param data data to be written
              **/
             void
             setGTX
@@ -112,14 +112,33 @@ namespace LIBRARY_NAME
             /**
              * get DW from GTX Domain
              * @param addr address in GTX component
-             * @return data read from GTX
+             * @return data read from GTX domain
              **/
             uint32_t GTX(uint32_t addr);
 
             /**
+             * set DW in DDL Domain
+             * @param addr address in DDL component
+             * @param data data to be written
+             **/
+            void
+            setDDL
+            (
+                uint32_t addr,
+                uint32_t data
+            );
+
+            /**
+             * get DW from DDL Domain
+             * @param addr address in DDL component
+             * @return data read from DDL domain
+             **/
+            uint32_t DDL(uint32_t addr);
+
+            /**
              * set DW in Packtizer
              * @param addr address in PKT component
-             * @param data data to be writtem
+             * @param data data to be written
              **/
             void
             setPacketizer

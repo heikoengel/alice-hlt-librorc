@@ -37,15 +37,15 @@ namespace LIBRARY_NAME
     bool
     diu::linkUp()
     {
-        return ( (m_link->GTX(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
+        return ( (m_link->DDL(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
     }
 
 
     void
     diu::clearEventSizeCounter()
     {
-        m_link->setGTX(RORC_REG_DDL_CTRL,
-                m_link->GTX(RORC_REG_DDL_CTRL)|(1<<2));
+        m_link->setDDL(RORC_REG_DDL_CTRL,
+                m_link->DDL(RORC_REG_DDL_CTRL)|(1<<2));
     }
 
 
@@ -190,9 +190,9 @@ namespace LIBRARY_NAME
     void
     diu::useAsDataSource()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16); // set MUX to 0
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -205,56 +205,56 @@ namespace LIBRARY_NAME
         uint32_t command
     )
     {
-        m_link->setGTX(RORC_REG_DDL_CMD, command);
+        m_link->setDDL(RORC_REG_DDL_CMD, command);
     }    uint32_t
     diu::lastFrontEndStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_FESTW);
+        return m_link->DDL(RORC_REG_DDL_FESTW);
     }
 
     void
     diu::clearLastFrontEndStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_FESTW, 0);
+        m_link->setDDL(RORC_REG_DDL_FESTW, 0);
     }
 
 
     uint32_t
     diu::lastCommandTransmissionStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_CTSTW);
+        return m_link->DDL(RORC_REG_DDL_CTSTW);
     }
 
     void
     diu::clearLastCommandTransmissionStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_CTSTW, 0);
+        m_link->setDDL(RORC_REG_DDL_CTSTW, 0);
     }
 
 
     uint32_t
     diu::lastDataTransmissionStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_DTSTW);
+        return m_link->DDL(RORC_REG_DDL_DTSTW);
     }
 
     void
     diu::clearLastDataTransmissionStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_DTSTW, 0);
+        m_link->setDDL(RORC_REG_DDL_DTSTW, 0);
     }
 
 
     uint32_t
     diu::lastInterfaceStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_IFSTW);
+        return m_link->DDL(RORC_REG_DDL_IFSTW);
     }
 
     void
     diu::clearLastInterfaceStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_IFSTW, 0);
+        m_link->setDDL(RORC_REG_DDL_IFSTW, 0);
     }
 
 
@@ -267,7 +267,7 @@ namespace LIBRARY_NAME
         uint32_t timeout = LIBRORC_DIU_TIMEOUT;
         uint32_t status;
 
-        while( ((status = m_link->GTX(address)) == 0xffffffff) &&
+        while( ((status = m_link->DDL(address)) == 0xffffffff) &&
                 (timeout!=0) )
         {
             usleep(100);

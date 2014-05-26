@@ -141,7 +141,7 @@ namespace LIBRARY_NAME
         uint32_t data
     )
     {
-        m_bar->set32( m_base+(1<<RORC_DMA_CMP_SEL)+addr, data);
+        m_bar->set32( m_base+(1<<RORC_REGFILE_GTX_SEL)+addr, data);
     }
 
 
@@ -149,7 +149,27 @@ namespace LIBRARY_NAME
     uint32_t
     link::GTX(uint32_t addr)
     {
-        return m_bar->get32(m_base+(1<<RORC_DMA_CMP_SEL)+addr);
+        return m_bar->get32(m_base+(1<<RORC_REGFILE_GTX_SEL)+addr);
+    }
+
+
+
+    void
+    link::setDDL
+    (
+        uint32_t addr,
+        uint32_t data
+    )
+    {
+        m_bar->set32( m_base+(1<<RORC_REGFILE_DDL_SEL)+addr, data);
+    }
+
+
+
+    uint32_t
+    link::DDL(uint32_t addr)
+    {
+        return m_bar->get32(m_base+(1<<RORC_REGFILE_DDL_SEL)+addr);
     }
 
 
@@ -575,10 +595,10 @@ namespace LIBRARY_NAME
         uint32_t enable
     )
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<1); // clear bit
         ddlctrl |= ((enable & 1)<<1); // set new value
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -588,54 +608,54 @@ namespace LIBRARY_NAME
         uint32_t active
     )
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<3); // clear bit
         ddlctrl |= ((active & 1)<<3); // set new value
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     bool
     link::channelIsActive()
     {
-        return( (GTX(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
+        return( (DDL(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
     }
 
     bool
     link::flowControlIsEnabled()
     {
-        return( (GTX(RORC_REG_DDL_CTRL) & (1<<1)) != 0 );
+        return( (DDL(RORC_REG_DDL_CTRL) & (1<<1)) != 0 );
     }
 
 
     bool
     link::patternGeneratorAvailable()
     {
-        return( (GTX(RORC_REG_DDL_CTRL) & (1<<15)) != 0 );
+        return( (DDL(RORC_REG_DDL_CTRL) & (1<<15)) != 0 );
     }
 
 
     bool
     link::ddr3DataReplayAvailable()
     {
-        return( (GTX(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
+        return( (DDL(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
     }
 
     void
     link::setDataSourceDdr3DataReplay()
     {
         // set MUX to DDR3 DataReplay:
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16);
         ddlctrl |= (1<<16); // set MUX to 1
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     void
     link::setDefaultDataSource()
     {
-        uint32_t ddlctrl = GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16); // set MUX to 0
-        setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 }
