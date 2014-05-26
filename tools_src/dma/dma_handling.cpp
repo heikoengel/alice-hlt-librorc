@@ -604,7 +604,11 @@ configureDataSource
     eventStream->m_link->setChannelActive(1);
 
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
-    { configureSiu(eventStream, opts); }
+    {
+        /** override for max read request size to 128B for Supermicro */
+        eventStream->m_channel->setPciePacketSize(128);
+        configureSiu(eventStream, opts);
+    }
 
     /** configure FCF if available */
     configureFcf(eventStream, opts);
@@ -624,16 +628,12 @@ configureDataSource
         break;
 
         case ES_SRC_RAW:
-            {
-                configureRawReadout(eventStream, opts);
-            }
-            break;
+        { configureRawReadout(eventStream, opts); }
+        break;
 
         case ES_SRC_DDR3:
-            {
-                eventStream->m_link->setDataSourceDdr3DataReplay();
-            }
-            break;
+        { eventStream->m_link->setDataSourceDdr3DataReplay(); }
+        break;
 
         default: // "none" or invalid or unspecified
         break;
