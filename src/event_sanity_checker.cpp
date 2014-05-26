@@ -548,8 +548,8 @@ event_sanity_checker::checkDiuError
 {
     if( m_error_flag )
     {
-        DEBUG_PRINTF( PDADEBUG_ERROR, "CH%2d ERROR: DIU Error flag set\n",
-                report_buffer_index);
+        DEBUG_PRINTF( PDADEBUG_ERROR, "CH%2d ERROR: Event[%ld] DIU Error flag set\n",
+                m_channel_id, report_buffer_index);
         return CHK_DIU_ERR;
     }
     return 0;
@@ -566,16 +566,16 @@ event_sanity_checker::checkCompletion
         switch(m_comletion_status)
         {
             case 1:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: CMPL Status Unsupported Request\n", report_buffer_index);
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] CMPL Status Unsupported Request\n", m_channel_id, report_buffer_index);
                 break;
             case 2:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: CMPL Status Completer Abort\n", report_buffer_index);
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] CMPL Status Completer Abort\n", m_channel_id, report_buffer_index);
                 break;
             case 3:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: CMPL Status unknown/reserved\n", report_buffer_index);
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] CMPL Status unknown/reserved\n", m_channel_id, report_buffer_index);
                 break;
             default:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Completion Timeout\n", report_buffer_index);
+                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] Completion Timeout\n", m_channel_id, report_buffer_index);
                 break;
         }
         return CHK_CMPL;
