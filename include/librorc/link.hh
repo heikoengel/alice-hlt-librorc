@@ -228,18 +228,6 @@ namespace LIBRARY_NAME
              *             Low Level GTX Status/Control
              * *******************************************************/
 
-            /** clear GTX disparity error counter */
-            void clearGtxDisparityErrorCount();
-
-            /** clear GTX RX Not-in-Table error counter */
-            void clearGtxRxNotInTableCount();
-
-            /** clear RX-Loss-of-Signal error counter */
-            void clearGtxRxLossOfSignalCount();
-
-            /** clear RX Byte Realign counter */
-            void clearGtxRxByteRealignCount();
-
             /** clear all above counters */
             void clearAllGtxErrorCounters();
 

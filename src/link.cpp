@@ -251,36 +251,11 @@ namespace LIBRARY_NAME
     }
 
     void
-    link::clearGtxDisparityErrorCount()
-    {
-        setGTX(RORC_REG_GTX_DISPERR_CNT, 0);
-    }
-
-    void
-    link::clearGtxRxNotInTableCount()
-    {
-        setGTX(RORC_REG_GTX_RXNIT_CNT, 0);
-    }
-
-    void
-    link::clearGtxRxLossOfSignalCount()
-    {
-        setGTX(RORC_REG_GTX_RXLOS_CNT, 0);
-    }
-
-    void
-    link::clearGtxRxByteRealignCount()
-    {
-        setGTX(RORC_REG_GTX_RXBYTEREALIGN_CNT, 0);
-    }
-
-    void
     link::clearAllGtxErrorCounters()
     {
-        clearGtxDisparityErrorCount();
-        clearGtxRxNotInTableCount();
-        clearGtxRxLossOfSignalCount();
-        clearGtxRxByteRealignCount();
+        setGTX(RORC_REG_GTX_DISPERR_REALIGN_CNT, 0);
+        setGTX(RORC_REG_GTX_RXNIT_RXLOS_CNT, 0);
+        setGTX(RORC_REG_GTX_ERROR_CNT, 0);
     }
 
     uint32_t

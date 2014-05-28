@@ -738,18 +738,20 @@ checkLinkState
         }
         else
         {
+            uint32_t errcnt = link->GTX(RORC_REG_GTX_DISPERR_REALIGN_CNT);
             link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_DISPERR_CNT),
+                    (errcnt>>16),
                     "Disperity Error");
             link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_RXNIT_CNT),
+                    (errcnt & 0xffff),
+                    "RX-Byte-Realign");
+            errcnt = link->GTX(RORC_REG_GTX_RXNIT_RXLOS_CNT);
+            link_errors |= checkCount(channel_id,
+                    (errcnt>>16),
                     "RX-Not-In-Table Error");
             link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_RXLOS_CNT),
+                    (errcnt & 0xffff),
                     "RX-Loss-Of-Signal");
-            link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
-                    "RX-Byte-Realign");
             prot_errors |= checkCount(channel_id,
                     link->GTX(RORC_REG_GTX_ERROR_CNT),
                     "LinkTester Error");
