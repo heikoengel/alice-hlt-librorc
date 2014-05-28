@@ -56,6 +56,23 @@ namespace LIBRARY_NAME
 
     event_stream::event_stream
     (
+        int32_t       deviceId,
+        int32_t       channelId,
+        LibrorcEsType esType
+    )
+    {
+        m_deviceId        = deviceId;
+        m_called_with_bar = false;
+        m_channelId       = channelId;
+
+        initMembers();
+        initializeDmaBuffers(esType, 0);
+        initializeDmaChannel(esType);
+        prepareSharedMemory();
+    }
+
+    event_stream::event_stream
+    (
         librorc::device *dev,
         librorc::bar    *bar,
         int32_t          channelId,
@@ -182,7 +199,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaBuffers
     (
         LibrorcEsType esType,
-        uint64_t eventBufferSize
+        uint64_t      eventBufferSize
     )
     {
         /** make sure requested channel is available for selected esType */
@@ -204,36 +221,35 @@ namespace LIBRARY_NAME
 
         try
         {
-            /**
-             * TODO: this simply connects to an unknown buffer
-             * if a buffer with the given ID already exists.
-             * => Check if buffer of requested size already exists:
-             * YES: connect to existing buffer
-             * NO : check if dma_channel is already active
-             *      (e.g. another process is already using
-             *      these buffers). only re-allocate with
-             *      requested size if not active!
-             **/
-            m_eventBuffer =
-                new librorc::buffer
-                    (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
+            if(eventBufferSize != 0)
+            {
+                m_eventBuffer =
+                    new librorc::buffer
+                        (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
 
-            m_reportBuffer =
-                new librorc::buffer
-                    (m_dev, (eventBufferSize / m_dev->maxPayloadSize()), (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
-
-            m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-            m_done             = false;
-            m_event_callback   = NULL;
-            m_status_callback  = NULL;
-            m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
-            m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
+                uint64_t reportBufferSize
+                    = (eventBufferSize / m_dev->maxPayloadSize())
+                    * sizeof(librorc_event_descriptor);
+                m_reportBuffer =
+                    new librorc::buffer
+                        (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
+            } else {
+                m_eventBuffer  = new librorc::buffer(m_dev, (2*m_channelId));
+                m_reportBuffer = new librorc::buffer(m_dev, (2*m_channelId+1));
+            }
         }
         catch(...)
         {
             cout << "initializeDmaBuffers failed" << endl;
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
+
+        m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+        m_done             = false;
+        m_event_callback   = NULL;
+        m_status_callback  = NULL;
+        m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
+        m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
 
         for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
@@ -244,14 +260,11 @@ namespace LIBRARY_NAME
     void
     event_stream::initializeDmaChannel(LibrorcEsType esType)
     {
-        /*
-         * TODO: get MaxPayload/MaxReadReq sizes from PDA!
-         **/
         uint32_t max_pkt_size = 0;
         if( esType == LIBRORC_ES_TO_HOST )
         { max_pkt_size = m_dev->maxPayloadSize(); }
         else
-        { max_pkt_size = 128; }
+        { max_pkt_size = m_dev->maxReadRequestSize(); }
 
         m_channel = new librorc::dma_channel
         (
@@ -668,6 +681,7 @@ namespace LIBRARY_NAME
                : (event_size << 2);
     }
 
+    /** TODO : this does not work, because the event size in HLT_OUT is usually not fixed*/
     uint64_t
     event_stream::numberOfEvents(uint32_t event_size)
     {
@@ -719,7 +733,7 @@ namespace LIBRARY_NAME
         uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 
         return
-        (el_fifo_write_limit - el_fifo_write_count < number_of_events)
+          (el_fifo_write_limit - el_fifo_write_count < number_of_events)
         ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
     }
 

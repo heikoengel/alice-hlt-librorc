@@ -192,6 +192,9 @@ int main(int argc, char *argv[])
 
 
     uint32_t ch_start_addr = 0;
+    //uint32_t next_addr =
+        fileToRam(sm, INPUT_FILE, opts.channelId, ch_start_addr, false);
+    //next_addr = fileToRam(sm, INPUT_FILE2, opts.channelId, next_addr, true);
 
     //uint32_t next_addr =
         fileToRam(sm, INPUT_FILE, opts.channelId, ch_start_addr, false);
