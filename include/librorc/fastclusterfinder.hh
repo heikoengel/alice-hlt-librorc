@@ -92,7 +92,8 @@ namespace LIBRARY_NAME
 
             /**
              * enable or disable the Merger bypass. If bypass is enabled
-             * the data is not merged but pushed out as cluster candidates
+             * the data is not merged but pushed out as cluster candidates.
+             * WARNING: bypassing the merger is broken in the firmware!
              * @param bypassValue bypass setting, 1 to bypass merger, 0 to
              * use merger (default)
              **/
@@ -241,6 +242,29 @@ namespace LIBRARY_NAME
              **/
             uint8_t
             chargeTolerance();
+
+            /**
+             * get FCF error bitmask. Each flag is set when the according
+             * error occurs and is only cleared by calling clearErrors().
+             * Error Mask Mapping
+             * [7]: not used, always reads as 0
+             * [6]: Divider Underflow Error
+             * [5]: Divider Overflow Error
+             * [4]: RCU Decoder FIFO Overflow
+             * [3]: Divider FIFO Overflow
+             * [2]: Merger FIFO B Overflow
+             * [1]: Merger FIFO A Overflow
+             * [0]: ChannelProcessor FIFO Overflow
+             * @return error mask. 0 means no error
+             **/
+            uint8_t
+            errorMask();
+
+            /**
+             * clear all FCF error flags
+             **/
+            void
+            clearErrors();
 
             /**
              * write an entry to the mapping RAM

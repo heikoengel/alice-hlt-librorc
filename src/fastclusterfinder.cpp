@@ -219,6 +219,23 @@ namespace LIBRARY_NAME
         return (limits>>28 & 0x0f);
     }
 
+    uint8_t
+    fastclusterfinder::errorMask()
+    {
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
+        return ((fcfctrl>>6) & 0x7f);
+    }
+
+    void
+    fastclusterfinder::clearErrors()
+    {
+        uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
+        fcfctrl |= (1<<1);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
+        fcfctrl &= ~(1<<1);
+        m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
 
     /****************************************************
      * Mapping RAM access

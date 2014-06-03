@@ -553,11 +553,10 @@ configureFcf
     if( fcf )
     {
         fcf->setState(1, 0); // reset, not enabled
+        fcf->clearErrors();
 #ifndef SIM
         if( opts.loadFcfMappingRam )
-        {
-            fcf->loadMappingRam(opts.fcfmappingfile);
-        }
+        { fcf->loadMappingRam(opts.fcfmappingfile); }
 #endif
         fcf->setSinglePadSuppression(0);
         fcf->setBypassMerger(0);
