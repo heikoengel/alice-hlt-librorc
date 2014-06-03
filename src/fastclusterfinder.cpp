@@ -43,8 +43,8 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~( (1<<0) | (1<<31) );
-        fcfctrl |= ( ((reset&1)<<31) | (enable&1) );
+        fcfctrl &= ~( (1<<0) | (1<<15) );
+        fcfctrl |= ( ((reset&1)<<15) | (enable&1) );
         m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
@@ -59,7 +59,7 @@ namespace LIBRARY_NAME
     fastclusterfinder::isInReset()
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        return ((fcfctrl & 0x80000000) == 0x80000000);
+        return ((fcfctrl & 0x00008000) == 0x00008000);
     }
 
 
@@ -73,8 +73,8 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<8);
-        fcfctrl |= ((spSupprValue&1)<<8);
+        fcfctrl &= ~(1<<2);
+        fcfctrl |= ((spSupprValue&1)<<2);
         m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
@@ -82,7 +82,7 @@ namespace LIBRARY_NAME
     fastclusterfinder::singlePadSuppression()
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>8)&1);
+        return ((fcfctrl>>2)&1);
     }
 
 
@@ -93,8 +93,8 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<9);
-        fcfctrl |= ((bypassValue&1)<<9);
+        fcfctrl &= ~(1<<3);
+        fcfctrl |= ((bypassValue&1)<<3);
         m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
@@ -102,7 +102,7 @@ namespace LIBRARY_NAME
     fastclusterfinder::bypassMerger()
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>9)&1);
+        return ((fcfctrl>>3)&1);
     }
 
     void
@@ -112,8 +112,8 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<10);
-        fcfctrl |= ((deconvValue&1)<<10);
+        fcfctrl &= ~(1<<4);
+        fcfctrl |= ((deconvValue&1)<<4);
         m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
@@ -121,7 +121,7 @@ namespace LIBRARY_NAME
     fastclusterfinder::deconvPad()
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>10)&1);
+        return ((fcfctrl>>4)&1);
     }
 
     void
@@ -188,8 +188,8 @@ namespace LIBRARY_NAME
     )
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<11);
-        fcfctrl |= ((mode&1)<<11);
+        fcfctrl &= ~(1<<5);
+        fcfctrl |= ((mode&1)<<5);
         m_link->setDDL(RORC_REG_FCF_CTRL, fcfctrl);
     }
 
@@ -197,7 +197,7 @@ namespace LIBRARY_NAME
     fastclusterfinder::mergerAlgorithm()
     {
         uint32_t fcfctrl = m_link->DDL(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>11)&1);
+        return ((fcfctrl>>5)&1);
     }
 
     void
