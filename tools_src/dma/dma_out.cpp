@@ -166,7 +166,7 @@ int main( int argc, char *argv[])
             // print status line each second
             if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
             {
-                eventStream->m_channel_status->n_events = eventStream->m_link->GTX(RORC_REG_DDL_EC);
+                eventStream->m_channel_status->n_events = eventStream->m_link->ddlReg(RORC_REG_DDL_EC);
                 printf("CH%d: Events OUT via PG: %10ld",
                         opts.channelId, eventStream->m_channel_status->n_events);
 

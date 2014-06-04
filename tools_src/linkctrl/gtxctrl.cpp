@@ -309,7 +309,7 @@ int main
             = new librorc::link(bar, chID);
 
         /** get current GTX configuration */
-        uint32_t gtxasynccfg = current_link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+        uint32_t gtxasynccfg = current_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
 
         if( do_status )
         {
@@ -345,7 +345,7 @@ int main
 
             /** also clear GTX error counter for HWTest firmwares */
             if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
-            { current_link->setGTX(RORC_REG_GTX_ERROR_CNT, 0); }
+            { current_link->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0); }
         }
 
         /** set {tx/rx/gtx}reset */
@@ -398,21 +398,21 @@ int main
                 do_txdiffctrl || do_txpreemph || do_txpostemph )
         {
             /** write new values to RORC */
-            current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            current_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
         }
 
         if ( do_pllcfg )
         {
             /** set GTXRESET */
             gtxasynccfg |= 0x00000001;
-            current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            current_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
 
             /** Write new PLL config */
             current_link->drpSetPllConfig(available_configs[pllcfgnum]);
 
             /** release GTXRESET */
             gtxasynccfg &= ~(0x00000001);
-            current_link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
+            current_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
         }
 
         if ( do_dump )

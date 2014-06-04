@@ -135,7 +135,7 @@ namespace LIBRARY_NAME
 
 
     void
-    link::setGTX
+    link::setGtxReg
     (
         uint32_t addr,
         uint32_t data
@@ -147,7 +147,7 @@ namespace LIBRARY_NAME
 
 
     uint32_t
-    link::GTX(uint32_t addr)
+    link::gtxReg(uint32_t addr)
     {
         return m_bar->get32(m_base+(1<<RORC_REGFILE_GTX_SEL)+addr);
     }
@@ -155,7 +155,7 @@ namespace LIBRARY_NAME
 
 
     void
-    link::setDDL
+    link::setDdlReg
     (
         uint32_t addr,
         uint32_t data
@@ -167,7 +167,7 @@ namespace LIBRARY_NAME
 
 
     uint32_t
-    link::DDL(uint32_t addr)
+    link::ddlReg(uint32_t addr)
     {
         return m_bar->get32(m_base+(1<<RORC_REGFILE_DDL_SEL)+addr);
     }
@@ -175,7 +175,7 @@ namespace LIBRARY_NAME
 
 
     void
-    link::setPacketizer
+    link::setPciReg
     (
         uint32_t addr,
         uint32_t data
@@ -187,7 +187,7 @@ namespace LIBRARY_NAME
 
 
     uint32_t
-    link::packetizer
+    link::pciReg
     (
         uint32_t addr
     )
@@ -200,19 +200,19 @@ namespace LIBRARY_NAME
     void
     link::clearDmaStallCount()
     {
-        setPacketizer(RORC_REG_DMA_STALL_CNT, 0);
+        setPciReg(RORC_REG_DMA_STALL_CNT, 0);
     }
 
     void
     link::clearEventCount()
     {
-        setPacketizer(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
+        setPciReg(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
     }
 
     bool
     link::isGtxDomainReady()
     {
-        uint32_t gtxasynccfg = packetizer(RORC_REG_GTX_ASYNC_CFG);
+        uint32_t gtxasynccfg = pciReg(RORC_REG_GTX_ASYNC_CFG);
         uint32_t stsmask = (1<<0) | // GTX reset
             (1<<1) | // RX Reset
             (1<<2) | // RX Reset Done
@@ -234,7 +234,7 @@ namespace LIBRARY_NAME
     bool
     link::isGtxLinkUp()
     {
-        uint32_t gtxsyncsts = GTX(RORC_REG_GTX_CTRL);
+        uint32_t gtxsyncsts = gtxReg(RORC_REG_GTX_CTRL);
         uint32_t stsmask = (1<<0) | // PHY is ready
             (1<<1) | // PHY is enabled enable
             (1<<5) | // GTX byteisaligned
@@ -253,22 +253,22 @@ namespace LIBRARY_NAME
     void
     link::clearAllGtxErrorCounters()
     {
-        setGTX(RORC_REG_GTX_DISPERR_REALIGN_CNT, 0);
-        setGTX(RORC_REG_GTX_RXNIT_RXLOS_CNT, 0);
-        setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+        setGtxReg(RORC_REG_GTX_DISPERR_REALIGN_CNT, 0);
+        setGtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT, 0);
+        setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
     }
 
     uint32_t
     link::linkType()
     {
-        return ((packetizer(RORC_REG_GTX_ASYNC_CFG)>>12) & 3);
+        return ((pciReg(RORC_REG_GTX_ASYNC_CFG)>>12) & 3);
     }
 
 
     uint32_t
     link::dmaStallCount()
     {
-        return packetizer(RORC_REG_DMA_STALL_CNT);
+        return pciReg(RORC_REG_DMA_STALL_CNT);
     }
 
     void
@@ -282,7 +282,7 @@ namespace LIBRARY_NAME
     uint32_t
     link::dmaNumberOfEventsProcessed()
     {
-        return packetizer(RORC_REG_DMA_N_EVENTS_PROCESSED);
+        return pciReg(RORC_REG_DMA_N_EVENTS_PROCESSED);
     }
 
     uint32_t
@@ -292,7 +292,7 @@ namespace LIBRARY_NAME
         do
         {
             usleep(100);
-            drp_status = packetizer(RORC_REG_GTX_DRP_CTRL);
+            drp_status = pciReg(RORC_REG_GTX_DRP_CTRL);
         } while (drp_status & (1 << 31));
         return drp_status;
     }
@@ -304,7 +304,7 @@ namespace LIBRARY_NAME
                            (drp_addr<<16) | //DRP addr
                            (0x00);          //data
 
-        setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+        setPciReg(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
         uint32_t drp_status
             = waitForDrpDenToDeassert();
@@ -333,7 +333,7 @@ namespace LIBRARY_NAME
                            (drp_addr<<16) | //DRP addr
                            (drp_data);      //data
 
-        setPacketizer(RORC_REG_GTX_DRP_CTRL, drp_cmd);
+        setPciReg(RORC_REG_GTX_DRP_CTRL, drp_cmd);
 
         waitForDrpDenToDeassert();
 
@@ -520,22 +520,22 @@ namespace LIBRARY_NAME
     uint32_t
     link::getRBDMnSGEntries()
     {
-        return packetizer(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
+        return pciReg(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
     }
 
     uint64_t
     link::getEBSize()
     {
-        return ((uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
-               (uint64_t)packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
+        return ((uint64_t)pciReg(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)pciReg(RORC_REG_EBDM_BUFFER_SIZE_L);
     }
 
 
     uint64_t
     link::getRBSize()
     {
-        return ((uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
-               (uint64_t)packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
+        return ((uint64_t)pciReg(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)pciReg(RORC_REG_RBDM_BUFFER_SIZE_L);
     }
 
     void
@@ -547,7 +547,7 @@ namespace LIBRARY_NAME
          * Reset D_FIFO
          * Reset MaxPayload
          **/
-        setPacketizer(RORC_REG_DMA_CTRL, 0X00000002);
+        setPciReg(RORC_REG_DMA_CTRL, 0X00000002);
     }
 
 
@@ -570,10 +570,10 @@ namespace LIBRARY_NAME
         uint32_t enable
     )
     {
-        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<1); // clear bit
         ddlctrl |= ((enable & 1)<<1); // set new value
-        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -583,54 +583,54 @@ namespace LIBRARY_NAME
         uint32_t active
     )
     {
-        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<3); // clear bit
         ddlctrl |= ((active & 1)<<3); // set new value
-        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     bool
     link::channelIsActive()
     {
-        return( (DDL(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
+        return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
     }
 
     bool
     link::flowControlIsEnabled()
     {
-        return( (DDL(RORC_REG_DDL_CTRL) & (1<<1)) != 0 );
+        return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<1)) != 0 );
     }
 
 
     bool
     link::patternGeneratorAvailable()
     {
-        return( (DDL(RORC_REG_DDL_CTRL) & (1<<15)) != 0 );
+        return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<15)) != 0 );
     }
 
 
     bool
     link::ddr3DataReplayAvailable()
     {
-        return( (DDL(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
+        return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
     }
 
     void
     link::setDataSourceDdr3DataReplay()
     {
         // set MUX to DDR3 DataReplay:
-        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16);
         ddlctrl |= (1<<16); // set MUX to 1
-        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     void
     link::setDefaultDataSource()
     {
-        uint32_t ddlctrl = DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16); // set MUX to 0
-        setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 }

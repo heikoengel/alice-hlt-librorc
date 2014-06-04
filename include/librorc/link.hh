@@ -103,7 +103,7 @@ namespace LIBRARY_NAME
              * @param data data to be written
              **/
             void
-            setGTX
+            setGtxReg
             (
                 uint32_t addr,
                 uint32_t data
@@ -114,7 +114,7 @@ namespace LIBRARY_NAME
              * @param addr address in GTX component
              * @return data read from GTX domain
              **/
-            uint32_t GTX(uint32_t addr);
+            uint32_t gtxReg(uint32_t addr);
 
             /**
              * set DW in DDL Domain
@@ -122,7 +122,7 @@ namespace LIBRARY_NAME
              * @param data data to be written
              **/
             void
-            setDDL
+            setDdlReg
             (
                 uint32_t addr,
                 uint32_t data
@@ -133,7 +133,7 @@ namespace LIBRARY_NAME
              * @param addr address in DDL component
              * @return data read from DDL domain
              **/
-            uint32_t DDL(uint32_t addr);
+            uint32_t ddlReg(uint32_t addr);
 
             /**
              * set DW in Packtizer
@@ -141,7 +141,7 @@ namespace LIBRARY_NAME
              * @param data data to be written
              **/
             void
-            setPacketizer
+            setPciReg
             (
                 uint32_t addr,
                 uint32_t data
@@ -152,7 +152,7 @@ namespace LIBRARY_NAME
              * @param addr address in PKT component
              * @return data read from PKT
              **/
-            uint32_t packetizer(uint32_t addr);
+            uint32_t pciReg(uint32_t addr);
 
             /**
              * get GTX clock domain status

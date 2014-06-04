@@ -305,18 +305,18 @@ int main
         if ( do_clear )
         {
             /** clear event count */
-            current_link->setGTX(RORC_REG_DDL_EC, 0);
+            current_link->setDdlReg(RORC_REG_DDL_EC, 0);
             /** clear deadtime counter */
-            current_link->setGTX(RORC_REG_DDL_DEADTIME, 0);
+            current_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0);
             /** clear DDL status words */
-            current_link->setGTX(RORC_REG_DDL_CTSTW, 0);
-            current_link->setGTX(RORC_REG_DDL_FESTW, 0);
-            current_link->setGTX(RORC_REG_DDL_DTSTW, 0);
-            current_link->setGTX(RORC_REG_DDL_IFSTW, 0);
+            current_link->setDdlReg(RORC_REG_DDL_CTSTW, 0);
+            current_link->setDdlReg(RORC_REG_DDL_FESTW, 0);
+            current_link->setDdlReg(RORC_REG_DDL_DTSTW, 0);
+            current_link->setDdlReg(RORC_REG_DDL_IFSTW, 0);
         }
 
         /** get current config */
-        uint32_t ddlctrl = current_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = current_link->ddlReg(RORC_REG_DDL_CTRL);
 
         /** enable/disable DDL Interface */
         if ( set_enable )
@@ -358,13 +358,13 @@ int main
             {
                 ddlctrl |= (1<<10); //set continuous-bit
             }
-            current_link->setGTX(RORC_REG_DDL_PG_NUM_EVENTS, pgnevents);
+            current_link->setDdlReg(RORC_REG_DDL_PG_NUM_EVENTS, pgnevents);
         }
 
         /** set PatternGenerator Event Size or PRBS Masks */
         if ( set_pgsize )
         {
-            current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, pgsize);
+            current_link->setDdlReg(RORC_REG_DDL_PG_EVENT_LENGTH, pgsize);
         }
 
         /** set PatternGenerator Mode:
@@ -386,7 +386,7 @@ int main
         {
             if ((type_channels>>16) == RORC_CFG_PROJECT_hlt_in )
             {
-                current_link->setGTX(RORC_REG_DDL_CMD, ddlcmd);
+                current_link->setDdlReg(RORC_REG_DDL_CMD, ddlcmd);
             }
             else
             {
@@ -398,7 +398,7 @@ int main
         /** set initial PG pattern */
         if ( set_pattern )
         {
-            current_link->setGTX(RORC_REG_DDL_PG_PATTERN, pattern);
+            current_link->setDdlReg(RORC_REG_DDL_PG_PATTERN, pattern);
         }
 
 
@@ -423,7 +423,7 @@ int main
         if ( set_fc || set_enable || set_pgmode || set_pgenable ||
                 set_pgnevents || set_prbssize || set_mux || set_reset )
         {
-            current_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+            current_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
         }
 
         dump_channel_status(chID, ddlctrl, type_channels>>16);

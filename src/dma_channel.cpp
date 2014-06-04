@@ -63,7 +63,7 @@ namespace LIBRARY_NAME
                 m_bar            = bar;
                 m_base           = base;
                 m_flag           = flag;
-                m_bdcfg          = dmaChannel->getLink()->packetizer(flag);
+                m_bdcfg          = dmaChannel->getLink()->pciReg(flag);
                 m_pda_dma_buffer = m_buffer->getPDABuffer();
                 m_sglist         = NULL;
                 m_target_ram     = 0;
@@ -231,7 +231,7 @@ namespace LIBRARY_NAME
                  * The packet size has to be provided as #DWs -> divide size by 4
                  * write stuff to channel after this
                  */
-                m_dma_channel->getLink()->setPacketizer
+                m_dma_channel->getLink()->setPciReg
                     (RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
             }
 
@@ -485,13 +485,13 @@ dma_channel::setBufferOffsetsOnDevice
 void
 dma_channel::setDMAConfig(uint32_t config)
 {
-    m_link->setPacketizer(RORC_REG_DMA_CTRL, config);
+    m_link->setPciReg(RORC_REG_DMA_CTRL, config);
 }
 
 uint32_t
 dma_channel::DMAConfig()
 {
-    return m_link->packetizer(RORC_REG_DMA_CTRL);
+    return m_link->pciReg(RORC_REG_DMA_CTRL);
 }
 
 
@@ -537,8 +537,8 @@ dma_channel::setEBOffset
 uint64_t
 dma_channel::getEBOffset()
 {
-    return ((uint64_t)m_link->packetizer(RORC_REG_EBDM_SW_READ_POINTER_H) << 32) +
-           (uint64_t)m_link->packetizer(RORC_REG_EBDM_SW_READ_POINTER_L);
+    return ((uint64_t)m_link->pciReg(RORC_REG_EBDM_SW_READ_POINTER_H) << 32) +
+           (uint64_t)m_link->pciReg(RORC_REG_EBDM_SW_READ_POINTER_L);
 }
 
 
@@ -562,8 +562,8 @@ dma_channel::getLastRBOffset()
 uint64_t
 dma_channel::getEBDMAOffset()
 {
-    return ((uint64_t)m_link->packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32) +
-           (uint64_t)m_link->packetizer(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
+    return ((uint64_t)m_link->pciReg(RORC_REG_EBDM_FPGA_WRITE_POINTER_H) << 32) +
+           (uint64_t)m_link->pciReg(RORC_REG_EBDM_FPGA_WRITE_POINTER_L);
 }
 
 
@@ -591,8 +591,8 @@ dma_channel::setRBOffset
 uint64_t
 dma_channel::getRBOffset()
 {
-    return ((uint64_t)m_link->packetizer(RORC_REG_RBDM_SW_READ_POINTER_H) << 32) +
-           (uint64_t)m_link->packetizer(RORC_REG_RBDM_SW_READ_POINTER_L);
+    return ((uint64_t)m_link->pciReg(RORC_REG_RBDM_SW_READ_POINTER_H) << 32) +
+           (uint64_t)m_link->pciReg(RORC_REG_RBDM_SW_READ_POINTER_L);
 }
 
 
@@ -600,8 +600,8 @@ dma_channel::getRBOffset()
 uint64_t
 dma_channel::getRBDMAOffset()
 {
-    return ((uint64_t)m_link->packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32) +
-           (uint64_t)m_link->packetizer(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
+    return ((uint64_t)m_link->pciReg(RORC_REG_RBDM_FPGA_WRITE_POINTER_H) << 32) +
+           (uint64_t)m_link->pciReg(RORC_REG_RBDM_FPGA_WRITE_POINTER_L);
 }
 
 
@@ -712,30 +712,30 @@ dma_channel::getDMABusy()
     uint32_t
     dma_channel::getEBDMnSGEntries()
     {
-        return m_link->packetizer(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff;
+        return m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff;
     }
 
 
     uint32_t
     dma_channel::getRBDMnSGEntries()
     {
-        return m_link->packetizer(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
+        return m_link->pciReg(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
     }
 
 
     uint64_t
     dma_channel::getEBSize()
     {
-        return ((uint64_t)m_link->packetizer(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
-               (uint64_t)m_link->packetizer(RORC_REG_EBDM_BUFFER_SIZE_L);
+        return ((uint64_t)m_link->pciReg(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)m_link->pciReg(RORC_REG_EBDM_BUFFER_SIZE_L);
     }
 
 
     uint64_t
     dma_channel::getRBSize()
     {
-        return ((uint64_t)m_link->packetizer(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
-               (uint64_t)m_link->packetizer(RORC_REG_RBDM_BUFFER_SIZE_L);
+        return ((uint64_t)m_link->pciReg(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
+               (uint64_t)m_link->pciReg(RORC_REG_RBDM_BUFFER_SIZE_L);
     }
 
 

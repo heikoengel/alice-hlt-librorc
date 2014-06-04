@@ -673,7 +673,7 @@ namespace LIBRARY_NAME
     void
     event_stream::pushEventSizeIntoELFifo(uint32_t event_size)
     {
-        m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+        m_channel->getLink()->setPciReg(RORC_REG_DMA_ELFIFO, event_size);
     }
 
     void
@@ -726,7 +726,7 @@ namespace LIBRARY_NAME
     bool
     event_stream::isSufficientFifoSpaceAvailable()
     {
-        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+        uint32_t el_fifo_state       = m_channel->getLink()->pciReg(RORC_REG_DMA_ELFIFO);
         uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
         uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
         return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
@@ -748,7 +748,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::maximumElfifoCanHandle(uint64_t number_of_events)
     {
-        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+        uint32_t el_fifo_state       = m_channel->getLink()->pciReg(RORC_REG_DMA_ELFIFO);
         uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
         uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 

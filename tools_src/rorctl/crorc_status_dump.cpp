@@ -35,10 +35,10 @@ void printSgEntry
     uint32_t ram_addr
 )
 {
-    link->setPacketizer(RORC_REG_SGENTRY_CTRL, ((ram_sel<<31) | ram_addr) );
-    uint64_t sg_addr = (uint64_t)(link->packetizer(RORC_REG_SGENTRY_ADDR_HIGH))<<32;
-    sg_addr |= link->packetizer(RORC_REG_SGENTRY_ADDR_LOW);
-    uint32_t sg_len = link->packetizer(RORC_REG_SGENTRY_LEN);
+    link->setPciReg(RORC_REG_SGENTRY_CTRL, ((ram_sel<<31) | ram_addr) );
+    uint64_t sg_addr = (uint64_t)(link->pciReg(RORC_REG_SGENTRY_ADDR_HIGH))<<32;
+    sg_addr |= link->pciReg(RORC_REG_SGENTRY_ADDR_LOW);
+    uint32_t sg_len = link->pciReg(RORC_REG_SGENTRY_LEN);
     cout << "RAM" << ram_sel << " entry " << HEXSTR(ram_addr, 4)
          << ": " << HEXSTR(sg_addr, 16) << " " << HEXSTR(sg_len, 8) << endl;
 }
@@ -144,7 +144,7 @@ main
         for( int i=0; i<32; i++ )
         { 
             cout << "CH" << ch << " DMA reg " << setw(2) << i << ": "
-                 << HEXSTR(link->packetizer(i), 8) << endl;
+                 << HEXSTR(link->pciReg(i), 8) << endl;
         }
 
         if( link->isGtxDomainReady() )
@@ -153,26 +153,26 @@ main
             for( int i=0; i<32; i++ )
             { 
                 cout << "CH" << ch << " DDL reg " << setw(2) << i << ": "
-                    << HEXSTR(link->DDL(i), 8) << endl;
+                    << HEXSTR(link->ddlReg(i), 8) << endl;
             }
 
             /** print GTX registers */
             for( int i=0; i<7; i++ )
             { 
                 cout << "CH" << ch << " GTX reg " << setw(2) << i << ": "
-                    << HEXSTR(link->GTX(i), 8) << endl;
+                    << HEXSTR(link->gtxReg(i), 8) << endl;
             }
         }
 
         /** print EBDM sglist */
-        uint32_t nSgConfig = link->packetizer(RORC_REG_EBDM_N_SG_CONFIG);
+        uint32_t nSgConfig = link->pciReg(RORC_REG_EBDM_N_SG_CONFIG);
         uint32_t nEntries = ((nSgConfig&0xffff)>=(nSgConfig>>16)) ?
             (nSgConfig>>16)-1 : (nSgConfig&0xffff);
         for( uint32_t i=0; i<=nEntries; i++ )
         { printSgEntry(link, 0, i); }
 
         /** print RBDM sglist */
-        nSgConfig = link->packetizer(RORC_REG_RBDM_N_SG_CONFIG);
+        nSgConfig = link->pciReg(RORC_REG_RBDM_N_SG_CONFIG);
         nEntries = ((nSgConfig&0xffff)>=(nSgConfig>>16)) ?
             (nSgConfig>>16)-1 : (nSgConfig&0xffff);
         for( uint32_t i=0; i<=nEntries; i++ )

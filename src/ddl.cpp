@@ -38,7 +38,7 @@ namespace LIBRARY_NAME
     bool
     ddl::linkFull()
     {
-        return ( (m_link->DDL(RORC_REG_DDL_CTRL) & (1<<4)) != 0 );
+        return ( (m_link->ddlReg(RORC_REG_DDL_CTRL) & (1<<4)) != 0 );
     }
 
     void
@@ -47,57 +47,57 @@ namespace LIBRARY_NAME
         uint32_t value
     )
     {
-        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<31);
         ddlctrl |= ((value&1)<<31);
-        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
     uint32_t
     ddl::getReset()
     {
-        return (m_link->DDL(RORC_REG_DDL_CTRL)>>31);
+        return (m_link->ddlReg(RORC_REG_DDL_CTRL)>>31);
     }
 
 
     uint32_t
     ddl::getDeadtime()
     {
-        return m_link->DDL(RORC_REG_DDL_DEADTIME);
+        return m_link->ddlReg(RORC_REG_DDL_DEADTIME);
     }
 
     void
     ddl::clearDeadtime()
     {
-        m_link->setDDL(RORC_REG_DDL_DEADTIME, 0);
+        m_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0);
     }
 
     void
     ddl::enableInterface()
     {
-        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl |= (1<<0); // enable DDL_IF
-        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     void
     ddl::disableInterface()
     {
-        uint32_t ddlctrl = m_link->DDL(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<0); // disable DDL_IF
-        m_link->setDDL(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     uint32_t
     ddl::getEventcount()
     {
-        return m_link->DDL(RORC_REG_DDL_EC);
+        return m_link->ddlReg(RORC_REG_DDL_EC);
     }
 
     void
     ddl::clearEventcount()
     {
-        m_link->setDDL(RORC_REG_DDL_EC, 0);
+        m_link->setDdlReg(RORC_REG_DDL_EC, 0);
     }
 }
