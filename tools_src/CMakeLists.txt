@@ -22,6 +22,11 @@ add_executable( reset_error_counters ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/rese
 target_link_libraries( reset_error_counters rorc ${EXTRA_LIBS})
 INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
 
+# Build crorc_status_dump
+add_executable( crorc_status_dump ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/crorc_status_dump.cpp)
+target_link_libraries( crorc_status_dump rorc ${EXTRA_LIBS})
+INSTALL(TARGETS crorc_status_dump RUNTIME DESTINATION bin )
+
 #-----------------------------------------------------------
 
 # Build DMA test with Pattern Generator
