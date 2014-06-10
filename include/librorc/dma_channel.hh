@@ -269,23 +269,14 @@ namespace LIBRARY_NAME
             uint32_t pciePacketSize();
 
             /**
-             * Set Enable Bit of EBDM
+             * Set Enable Bit of the EventBufferDescriptorManager
              **/
-            void enableEventBuffer();
-            /**
-             * Unset Enable Bit of EBDM
-             **/
-            void disableEventBuffer();
+            void setEbdmEnable( uint32_t enable );
 
             /**
-             * Set Enable Bit of RBDM
+             * Set Enable Bit of the ReportBufferDescriptorManager
              **/
-            void enableReportBuffer();
-
-            /**
-             * Unset Enable Bit of RBDM
-             **/
-            void disableReportBuffer();
+            void setRbdmEnable( uint32_t enable );
 
             /**
              * setDMAConfig set the DMA Controller operation mode
@@ -373,13 +364,13 @@ namespace LIBRARY_NAME
              * get Enable Bit of the Event Buffer Descriptor Manager
              * @return enable bit
              **/
-            uint32_t isEventBufferEnabled();
+            uint32_t isEBDMEnabled();
 
             /**
              * get Enable Bit of Report Buffer Descriptor Manager
              * @return enable bit
              **/
-            uint32_t isReportBufferEnabled();
+            uint32_t isRBDMEnabled();
 
             /**
              * Read out the current DMA configuration

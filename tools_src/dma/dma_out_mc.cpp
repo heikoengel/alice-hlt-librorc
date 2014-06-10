@@ -217,10 +217,10 @@ int main(int argc, char *argv[])
         // wait for pending transfers to complete (dma_busy->0)
 
         // disable EBDM Engine
-        eventStream[i]->m_channel->disableEventBuffer();
+        eventStream[i]->m_channel->setEbdmEnable(0);
 
         // disable RBDM
-        eventStream[i]->m_channel->disableReportBuffer();
+        eventStream[i]->m_channel->setRbdmEnable(0);
 
         // reset DFIFO, disable DMA PKT
         eventStream[i]->m_channel->setDMAConfig(0X00000002);

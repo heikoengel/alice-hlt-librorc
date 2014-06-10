@@ -36,6 +36,8 @@ namespace LIBRARY_NAME
 
     /** Class that programs a scatter-gather list into a device */
     #define BUFFER_SGLIST_PROGRAMMER_ERROR 1
+    #define DMACTRL_EBDM_ENABLE_BIT 2
+    #define DMACTRL_RBDM_ENABLE_BIT 3
 
     class buffer_sglist_programmer
     {
@@ -395,8 +397,8 @@ dma_channel::enable()
     { throw LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED; }
 
     setSuspend(0);
-    enableEventBuffer();
-    enableReportBuffer();
+    setEbdmEnable(1);
+    setRbdmEnable(1);
 
     setDMAConfig( DMAConfig() | 0x01 );
 }
@@ -415,54 +417,48 @@ dma_channel::disable()
     while(getDMABusy())
     { usleep(100); }
 
-    disableEventBuffer();
-    disableReportBuffer();
+    setEbdmEnable(0);
+    setRbdmEnable(0);
 
     /** Reset DFIFO, disable DMA engine, disable SUSPEND */
     setDMAConfig(0X00000002);
 }
 
-
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::enableEventBuffer()
-{
-    setDMAConfig(DMAConfig()|(1<<2));
-}
-
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::disableEventBuffer()
-{
-    setDMAConfig(DMAConfig() & ~(1<<2));
-}
-
 uint32_t
-dma_channel::isEventBufferEnabled()
+dma_channel::isEBDMEnabled()
 {
-    return ((DMAConfig()>>2) & 0x01);
-}
-
-
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::enableReportBuffer()
-{
-    setDMAConfig(DMAConfig()|(1<<3));
-}
-//TODO : this is protected when hlt out writer is refactored
-void
-dma_channel::disableReportBuffer()
-{
-    setDMAConfig(DMAConfig() & ~(1<<3));
+    return ((DMAConfig()>>DMACTRL_EBDM_ENABLE_BIT) & 0x01);
 }
 
 unsigned int
-dma_channel::isReportBufferEnabled()
+dma_channel::isRBDMEnabled()
 {
-    return ((DMAConfig()>>3) & 0x01);
+    return ((DMAConfig()>>DMACTRL_RBDM_ENABLE_BIT) & 0x01);
 }
 
+void
+dma_channel::setEbdmEnable
+(
+    uint32_t enable
+)
+{
+    uint32_t dmacfg = DMAConfig();
+    dmacfg &= ~(1<<DMACTRL_EBDM_ENABLE_BIT);
+    dmacfg |= ((enable&1)<<DMACTRL_EBDM_ENABLE_BIT);
+    setDMAConfig(dmacfg);
+}
+
+void
+dma_channel::setRbdmEnable
+(
+    uint32_t enable
+)
+{
+    uint32_t dmacfg = DMAConfig();
+    dmacfg &= ~(1<<DMACTRL_RBDM_ENABLE_BIT);
+    dmacfg |= ((enable&1)<<DMACTRL_RBDM_ENABLE_BIT);
+    setDMAConfig(dmacfg);
+}
 
 
 void
