@@ -528,6 +528,9 @@ show_device_monitor
         cout << "WARNING: fan seems to be stopped!" << endl;
     }
 
+    cout << "Uptime        : " << sm->uptimeSeconds() << "s" << endl;
+    cout << "DipSwitch     : 0x" << hex << sm->dipswitch() << dec << endl;
+
     /** Show QSFP status */
     cout << endl << "QSFPs" << endl;
     for(uint32_t i=0; i<LIBRORC_MAX_QSFP; i++)

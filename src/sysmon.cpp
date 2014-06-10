@@ -294,6 +294,20 @@ namespace LIBRARY_NAME
         m_bar->set32(RORC_REG_FAN_CTRL, fanctrl);
     }
 
+    uint64_t
+    sysmon::uptimeSeconds()
+    {
+        /** uptime is counter value times 134ms (Gen2) or 268ms (Gen1) */
+        return (uint64_t)(m_bar->get32(RORC_REG_UPTIME) *
+                0.268435456 / pcieGeneration());
+    }
+
+    uint32_t
+    sysmon::dipswitch()
+    {
+        return ((m_bar->get32(RORC_REG_UC_SPI_CTRL)>>16) & 0xff);
+    }
+
 
 
     /** QSFP Monitoring ***********************************************/

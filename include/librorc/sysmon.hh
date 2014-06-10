@@ -141,6 +141,20 @@ namespace LIBRARY_NAME
                 uint32_t enable
             );
 
+            /**
+             * get board uptime in seconds. This counter is only reset
+             * when (re)configuring the FPGA and cannot be cleared with
+             * software.
+             * @return uptime in seconds
+             **/
+            uint64_t uptimeSeconds();
+
+            /**
+             * get the current dip switch setting
+             * @return dipswitch value
+             **/
+            uint32_t dipswitch();
+
             bool
             qsfpIsPresent
             (
