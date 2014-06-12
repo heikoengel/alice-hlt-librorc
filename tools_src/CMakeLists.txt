@@ -17,11 +17,6 @@ add_executable( ucctrl ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/ucctrl.cpp)
 target_link_libraries( ucctrl rorc ${EXTRA_LIBS})
 INSTALL(TARGETS ucctrl RUNTIME DESTINATION bin )
 
-# Build reset_error_counters
-add_executable( reset_error_counters ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/reset_error_counters.cpp)
-target_link_libraries( reset_error_counters rorc ${EXTRA_LIBS})
-INSTALL(TARGETS reset_error_counters RUNTIME DESTINATION bin )
-
 # Build crorc_status_dump
 add_executable( crorc_status_dump ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/crorc_status_dump.cpp)
 target_link_libraries( crorc_status_dump rorc ${EXTRA_LIBS})
@@ -145,11 +140,6 @@ INSTALL(TARGETS diuctrl RUNTIME DESTINATION bin )
 add_executable( dmactrl ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/dmactrl.cpp)
 target_link_libraries( dmactrl rorc ${EXTRA_LIBS})
 INSTALL(TARGETS dmactrl RUNTIME DESTINATION bin )
-
-# Build channeldump
-add_executable( channeldump ${LIBRORC_SOURCE_DIR}/tools_src/linkctrl/channeldump.cpp)
-target_link_libraries( channeldump rorc ${EXTRA_LIBS})
-INSTALL(TARGETS channeldump RUNTIME DESTINATION bin )
 
 # Build ddr3_data_replay 
 add_executable( ddr3_data_replay
