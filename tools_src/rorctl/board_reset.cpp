@@ -118,7 +118,7 @@ main
         abort();
     }
 
-    sm->clearSysmonErrorCounters();
+    sm->clearAllErrorCounters();
 
     uint32_t start_channel = (channel_number!=0xffffffff) ?
         channel_number : 0;

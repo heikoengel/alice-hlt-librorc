@@ -155,6 +155,7 @@ namespace LIBRARY_NAME
              **/
             uint32_t dipswitch();
 
+
             bool
             qsfpIsPresent
             (
@@ -418,9 +419,30 @@ namespace LIBRARY_NAME
                 uint8_t address
             );
 
-            void
-            clearSysmonErrorCounters();
+            /**
+             * get PCIe/SlowControl error counters
+             **/
+            uint32_t pcieRequestCanceledCounter();
+            uint32_t pcieTxTimeoutCounter();
+            uint32_t pcieIllegalRequestCounter();
+            uint32_t pcieMultiDwReadCounter();
+            uint32_t pcieTxDestinationBusyCounter();
+            uint32_t pcieTransmissionErrorCounter();
 
+            /**
+             * clear individual PCIe/SlowControl error counters
+             **/
+            void clearPcieRequestCanceledCounter();
+            void clearPcieTxTimeoutCounter();
+            void clearPcieIllegalRequestCounter();
+            void clearPcieMultiDwReadCounter();
+            void clearPcieTxDestinationBusyCounter();
+            void clearPcieTransmissionErrorCounter();
+
+            /**
+             * clear all PCIe/SlowControl error counters
+             **/
+            void clearAllErrorCounters();
 
         protected:
 

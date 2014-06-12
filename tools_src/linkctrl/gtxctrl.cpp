@@ -340,12 +340,14 @@ int main
                      << " : GTX clock is not running - skipping."
                      << endl;
             }
+            else
+            {
+                current_link->clearAllGtxErrorCounters();
 
-            current_link->clearAllGtxErrorCounters();
-
-            /** also clear GTX error counter for HWTest firmwares */
-            if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
-            { current_link->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0); }
+                /** also clear GTX error counter for HWTest firmwares */
+                if ( type_channels>>16 == RORC_CFG_PROJECT_hwtest )
+                { current_link->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0); }
+            }
         }
 
         /** set {tx/rx/gtx}reset */
