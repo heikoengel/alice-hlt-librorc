@@ -294,6 +294,9 @@ int main
         librorc::link *current_link
             = new librorc::link(bar, chID);
 
+        uint32_t linkType = current_link->linkType();
+        bool pgAvail = current_link->patternGeneratorAvailable();
+
         /** check if GTX domain is up */
         if ( !current_link->isGtxDomainReady() )
         {
@@ -302,17 +305,49 @@ int main
             continue;
         }
 
+        if( !pgAvail && (set_pattern || set_pgenable || set_pgmode ||
+                    set_pgsize || set_prbssize || set_pgnevents) )
+        {
+            cout << "WARNING: PatternGenerator not available for channel "
+                 << chID << " - skipping all PG related commands." << endl;
+        }
+
         if ( do_clear )
         {
-            /** clear event count */
-            current_link->setDdlReg(RORC_REG_DDL_EC, 0);
-            /** clear deadtime counter */
-            current_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0);
-            /** clear DDL status words */
-            current_link->setDdlReg(RORC_REG_DDL_CTSTW, 0);
-            current_link->setDdlReg(RORC_REG_DDL_FESTW, 0);
-            current_link->setDdlReg(RORC_REG_DDL_DTSTW, 0);
-            current_link->setDdlReg(RORC_REG_DDL_IFSTW, 0);
+            switch( linkType )
+            {
+                case RORC_CFG_LINK_TYPE_DIU:
+                    {
+                        librorc::diu *diu = new librorc::diu(current_link);
+                        diu->clearAllLastStatusWords();
+                        diu->clearDeadtime();
+                        diu->clearEventcount();
+                        delete diu;
+                    }
+                    break;
+
+                case RORC_CFG_LINK_TYPE_SIU:
+                    {
+                        librorc::siu *siu = new librorc::siu(current_link);
+                        siu->clearLastFrontEndCommandWord();
+                        siu->clearDeadtime();
+                        siu->clearEventcount();
+                        delete siu;
+                    }
+                    break;
+
+                case RORC_CFG_LINK_TYPE_VIRTUAL:
+                    {
+                        librorc::ddl *ddl = new librorc::ddl(current_link);
+                        ddl->clearDeadtime();
+                        ddl->clearEventcount();
+                        delete ddl;
+                    }
+                    break;
+
+                default: // RORC_CFG_LINK_TYPE_IBERT
+                    break;
+            }
         }
 
         /** get current config */
@@ -333,7 +368,7 @@ int main
         }
 
         /** enable/disable PatternGenerator */
-        if ( set_pgenable )
+        if ( set_pgenable && pgAvail )
         {
             /** bit 8: PG Enable */
             ddlctrl &= ~(1<<8);
@@ -341,14 +376,14 @@ int main
         }
 
         /** enable/disable PRBS Event Size */
-        if ( set_prbssize )
+        if ( set_prbssize && pgAvail )
         {
             ddlctrl &= ~(1<<13);
             ddlctrl |= ((prbssize&1)<<13);
         }
 
         /** set number of events - if non-zero set continuous-bit */
-        if ( set_pgnevents )
+        if ( set_pgnevents && pgAvail )
         {
             if ( pgnevents )
             {
@@ -362,7 +397,7 @@ int main
         }
 
         /** set PatternGenerator Event Size or PRBS Masks */
-        if ( set_pgsize )
+        if ( set_pgsize && pgAvail )
         {
             current_link->setDdlReg(RORC_REG_DDL_PG_EVENT_LENGTH, pgsize);
         }
@@ -373,7 +408,7 @@ int main
          * 2: decrement
          * 3: toggle
          * */
-        if ( set_pgmode )
+        if ( set_pgmode && pgAvail )
         {
             /** clear bits 12:11 and set new value */
             ddlctrl &= ~(3<<11);
@@ -384,19 +419,28 @@ int main
         /** send DIU command */
         if ( set_ddlcmd )
         {
-            if ((type_channels>>16) == RORC_CFG_PROJECT_hlt_in )
+            if( linkType==RORC_CFG_LINK_TYPE_DIU )
             {
-                current_link->setDdlReg(RORC_REG_DDL_CMD, ddlcmd);
+                librorc::diu *diu = new librorc::diu(current_link);
+                if( diu->linkUp() )
+                { current_link->setDdlReg(RORC_REG_DDL_CMD, ddlcmd); }
+                else
+                {
+                    cout << "WARNING: Channel " << chID << " is down - "
+                         << " not sending command." << endl;
+                }
+                delete diu;
             }
             else
             {
-                cout << "Current FW is not HLT_IN, cannot send DIU command."
+                cout << "WARNING: Channel " << chID
+                     << "does not have a DIU - cannot send DIU command."
                      << endl;
             }
         }
 
         /** set initial PG pattern */
-        if ( set_pattern )
+        if ( set_pattern && pgAvail )
         {
             current_link->setDdlReg(RORC_REG_DDL_PG_PATTERN, pattern);
         }
@@ -404,13 +448,20 @@ int main
 
         if ( set_mux )
         {
+            if( (mux==1 && !current_link->ddr3DataReplayAvailable()) ||
+                    (mux==2 && !pgAvail) )
+            {
+                cout << "WARNING: multiplexer setting is not valid for this channel."
+                     << endl;
+            }
             /** set EventStream Multiplexer:
-             * Setting | HLT_IN   | HLT_OUT
-             * 0       | from DIU | from host
-             * 1       | from PG  | from PG
+             * Setting | HLT_IN   | HLT_IN_FCF | HLT_OUT
+             * 0       | from DIU | from DIU   | from host
+             * 1       | from DDR | from DDR   | -
+             * 2       | from PG  | -          | from PG
              * */
-            ddlctrl &= ~(1<<3);
-            ddlctrl |= ((mux&1)<<3);
+            ddlctrl &= ~(3<<16);
+            ddlctrl |= ((mux&3)<<16);
         }
 
         /** set flow control */
