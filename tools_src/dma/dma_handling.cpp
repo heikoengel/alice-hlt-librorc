@@ -406,7 +406,10 @@ configureDiu
     {
         diu->useAsDataSource();
         diu->enableInterface();
-        diu->prepareForFeeData();
+        if( diu->prepareForFeeData() < 0 )
+        {
+            cout << "Failed to enable DIU->SIU chain!";
+        }
     }
     else
     {

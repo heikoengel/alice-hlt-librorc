@@ -34,7 +34,7 @@
 #define LIBRORC_DIUCMD_FEE_EOBTR 0x000000b4
 #define LIBRORC_DIUCMD_FEE_RDYRX 0x00000014
 #define LIBRORC_DIUCMD_DIU_DIURST 0x000000a1
-#define LIBRORC_DIUCMD_SIU_RST 0x00000082
+#define LIBRORC_DIUCMD_SIU_RST 0x000000f1
 #define LIBRORC_DIUCMD_DIU_DIUINIT 0x000000b1
 
 namespace LIBRARY_NAME
@@ -157,8 +157,9 @@ namespace LIBRARY_NAME
             /**
              * Prepare DIU for data from FEE by sending EOBTR and
              * RDYRX to SIU
+             * @return 0 on success, -1 on error
              **/
-            void
+            int
             prepareForFeeData();
 
             /**
@@ -166,6 +167,13 @@ namespace LIBRARY_NAME
              **/
             void
             useAsDataSource();
+
+            /**
+             * Blocking wait for LD_N='1'
+             * @return 0 on success, -1 on error
+             **/
+            int
+            waitForLinkUp();
 
 
         protected:
@@ -301,14 +309,6 @@ namespace LIBRARY_NAME
              * */
             int
             waitForInterfaceStatusWord();
-
-            /**
-             * Blocking wait for LD_N='1'
-             * important: clear CTSW before calling this this function!
-             * @return true on sucess, false on timeout
-             **/
-            bool
-            waitForLinkUp();
     };
 }
 #endif

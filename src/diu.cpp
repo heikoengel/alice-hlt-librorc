@@ -102,8 +102,8 @@ namespace LIBRARY_NAME
     diu::sendSiuResetCmd()
     {
         clearLastInterfaceStatusWord();
-        sendCommand(LIBRORC_DIUCMD_SIU_RST); // SRST to SIU
-        return waitForInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_SIU_RST); // SIU-RESET to DIU
+        return waitForCommandTransmissionStatusWord();
     }
 
 
@@ -125,7 +125,7 @@ namespace LIBRARY_NAME
     }
 
 
-    bool
+    int
     diu::waitForLinkUp()
     {
         uint32_t timeout = LIBRORC_DIU_TIMEOUT;
@@ -140,9 +140,10 @@ namespace LIBRARY_NAME
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "Timeout waiting for LF_N to deassert\n");
+            return -1;
         }
-
-        return (timeout!=0);
+        else
+        { return 0; }
     }
 
 
@@ -155,7 +156,7 @@ namespace LIBRARY_NAME
      * and can be changed/controlled while the readout is running. Is
      * there anything checking the link state periodically?
      **/
-    void
+    int
     diu::prepareForFeeData()
     {
         /** check link state before sending commands */
@@ -163,27 +164,29 @@ namespace LIBRARY_NAME
         {
             DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
                     " will not send DIU commands!\n");
+            return -1;
         }
-        else
-        {
-            /** reset DIU */
-            setReset(1);
-            setReset(0);
-            waitForLinkUp();
 
-            /** close any open SIU transfers */
-            sendFeeEndOfBlockTransferCmd();
-            /** reset the SIU */
-            //sendSiuResetCmd();
+        setReset(1);
+        getReset();
+        setReset(0);
+        getReset();
+        if( waitForLinkUp() < 0 )
+        { return -1; }
+        if( sendSiuResetCmd() < 0 )
+        { return -1; }
+        setReset(1);
+        getReset();
+        setReset(0);
+        getReset();
+        if( waitForLinkUp() < 0 )
+        { return -1; }
 
-            /** reset DIU again */
-            //setReset(1);
-            //setReset(0);
-            //waitForLinkUp();
+        /** open the link */
+        if( sendFeeReadyToReceiveCmd() < 0 )
+        { return -1; }
 
-            /** re-open the link */
-            sendFeeReadyToReceiveCmd();
-        }
+        return 0;
     }
 
 
@@ -206,7 +209,9 @@ namespace LIBRARY_NAME
     )
     {
         m_link->setDdlReg(RORC_REG_DDL_CMD, command);
-    }    uint32_t
+    }
+
+    uint32_t
     diu::lastFrontEndStatusWord()
     {
         return m_link->ddlReg(RORC_REG_DDL_FESTW);
