@@ -240,6 +240,14 @@ namespace LIBRARY_NAME
     /****************************************************
      * Mapping RAM access
      ***************************************************/
+
+    /**
+     * TODO: change this method to something like
+     *   writeMappingRamEntry(rcuAddr, row, pad, fl_pad, active, gain, branch)
+     * see header file for bit mapping
+     *
+     * WARNING: the current implementation is only for RCU1!!
+     **/
     void
     fastclusterfinder::writeMappingRamEntry
     (
@@ -247,7 +255,10 @@ namespace LIBRARY_NAME
         uint32_t data
     )
     {
-        m_link->setDdlReg(RORC_REG_FCF_RAM_DATA, data);
+        uint32_t branch = ((addr>>11) & 1); // Set this to 0 for RCU2
+        uint32_t entry = (data | (branch<<29));
+
+        m_link->setDdlReg(RORC_REG_FCF_RAM_DATA, entry);
         m_link->setDdlReg(RORC_REG_FCF_RAM_CTRL, (addr | (1<<31)));
     }
 

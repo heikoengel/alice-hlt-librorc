@@ -270,11 +270,17 @@ namespace LIBRARY_NAME
              * write an entry to the mapping RAM
              * @param addr target RCU channel address
              * @param data:
+             *        [29]   : branch
              *        [28:16]: gain
              *        [15]   : channel active
              *        [14]   : first or last pad in row
              *        [13:8] : row
              *        [7:0]  : pad
+             *
+             * TODO: change this method to something like
+             *   writeMappingRamEntry(rcuAddr, row, pad, fl_pad, active, gain, branch)
+             *
+             * WARNING: the current implementation is only for RCU1!!
              **/
             void
             writeMappingRamEntry
@@ -287,6 +293,7 @@ namespace LIBRARY_NAME
              * read an entry from the mapping RAM
              * @param addr target RCU channel address
              * @return data:
+             *        [29]   : branch
              *        [28:16]: gain
              *        [15]   : channel active
              *        [14]   : first or last pad in row
