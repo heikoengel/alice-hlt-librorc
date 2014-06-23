@@ -289,7 +289,7 @@ int main
         startChannel = 0;
         endChannel = (type_channels & 0xffff) - 1;
     }
-    else if( dev->DMAChannelIsImplemented(ChannelId) )
+    else if( ChannelId < (int)(type_channels & 0xffff) )
     {
         /** use only selected channel */
         startChannel = ChannelId;

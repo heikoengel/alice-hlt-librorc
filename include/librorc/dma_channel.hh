@@ -22,6 +22,7 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 #include <librorc/link.hh>
+#include <librorc/sysmon.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -30,10 +31,7 @@
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED               5
 #define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED                6
 
-/** default maximum payload size in bytes. Check the capabilities
- *  of the chipset and the FPGA PCIe core before modifying this value
- *  Common values are 128 or 256 bytes.*/
-
+/** currently used by dma_monitor.cpp and hwpgdma_es_sweep.cpp */
 #define LIBRORC_MAX_DMA_CHANNELS  12
 
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
@@ -46,6 +44,7 @@ namespace LIBRARY_NAME
     class buffer;
     class device;
     class link;
+    class sysmon;
     class dma_channel_configurator;
 
 
@@ -297,6 +296,7 @@ namespace LIBRARY_NAME
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
             link     *m_link;
+            sysmon   *m_sm;
             bar      *m_bar;
             uint32_t  m_channel_number;
 

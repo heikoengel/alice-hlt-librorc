@@ -75,13 +75,6 @@ alloc_channel
     uint64_t         size
 )
 {
-    if( !(Dev->DMAChannelIsImplemented(ChannelID)) )
-    {
-        printf("ERROR: Requsted channel %d is not implemented in "
-               "firmware - exiting\n", ChannelID);
-        return;
-    }
-
     librorc::event_stream *eventStream = NULL;
     try
     {

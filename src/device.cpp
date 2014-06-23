@@ -34,7 +34,7 @@ device::device(int32_t device_index)
 {
     PDAInit();
 
-    if(PDACheckVersion(7, 0,1) != PDA_SUCCESS)
+    if(PDACheckVersion(8,0,2) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
 
     /** A list of PCI ID to which PDA has to attach. */
@@ -58,9 +58,11 @@ device::device(int32_t device_index)
 
     m_number = device_index;
 
-    // TODO : get this from PDA
-    m_maxReadRequestSize = MAX_READ_REQ;
-    m_maxPayloadSize = MAX_PAYLOAD;
+    /** get MaxPayload and MaxReadRequest sizes from PDA */
+    if(PciDevice_getmaxReadRequestSize(m_device, &m_maxReadRequestSize) != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+    if(PciDevice_getmaxPayloadSize(m_device, &m_maxPayloadSize) != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
 }
 
 
@@ -187,27 +189,5 @@ device::deviceDescription()
 
     return( new string(description_buffer) );
 }
-
-
-
-bool
-device::DMAChannelIsImplemented(int32_t channelId)
-{
-    #ifndef SIM
-    bar *bar1 = new rorc_bar(this, 1);
-
-    if( channelId >= (int32_t)(bar1->get32(RORC_REG_TYPE_CHANNELS) & 0xffff) )
-    {
-        delete(bar1);
-        return false;
-    }
-
-    delete(bar1);
-    #endif
-
-    return true;
-}
-
-
 
 }

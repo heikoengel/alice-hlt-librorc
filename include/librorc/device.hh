@@ -98,8 +98,6 @@ namespace LIBRARY_NAME
 
     std::string *deviceDescription();
 
-    bool DMAChannelIsImplemented(int32_t channelId);
-
     uint8_t getDeviceId();
 
     private:

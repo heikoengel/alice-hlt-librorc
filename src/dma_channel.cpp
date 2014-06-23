@@ -230,7 +230,7 @@ namespace LIBRARY_NAME
                 /**
                  * The packet size is located in RORC_REG_DMA_PKT_SIZE:
                  * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
-                 * The packet size has to be provided as #DWs -> divide size by 4
+                 * packet_size is in bytes, but the FW expects #DWs -> divide size by 4
                  * write stuff to channel after this
                  */
                 m_dma_channel->getLink()->setPciReg
@@ -284,7 +284,9 @@ namespace LIBRARY_NAME
                 /** packet size must be a multiple of 4 DW / 16 bytes */
                 if(m_pcie_packet_size & 0xf)
                     { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
-                else if(m_pcie_packet_size > 1024)
+                else if(m_pcie_packet_size > 512)
+                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
+                else if(m_pcie_packet_size == 0)
                     { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
 
                 /**TODO : hlt_in  -> not more than 256B
@@ -383,6 +385,9 @@ dma_channel::~dma_channel()
 
     if(m_reportBuffer != NULL)
     { m_reportBuffer->clear(); }
+
+    if(m_sm != NULL)
+    { delete m_sm; }
 
     if(m_link != NULL)
     { delete m_link; }
@@ -631,6 +636,7 @@ dma_channel::getDMABusy()
         m_eventBuffer    = eventBuffer;
         m_reportBuffer   = reportBuffer;
         m_link           = new link(bar, channel_number);
+        m_sm             = new sysmon(bar);
 
         if(m_reportBuffer != NULL)
         {
@@ -656,7 +662,7 @@ dma_channel::getDMABusy()
     void
     dma_channel::prepareBuffers()
     {
-        if( !m_dev->DMAChannelIsImplemented(m_channel_number) )
+        if( m_channel_number < m_sm->numberOfChannels() )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
         if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
