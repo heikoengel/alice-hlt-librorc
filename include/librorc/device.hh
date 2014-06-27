@@ -32,13 +32,6 @@ typedef struct PciDevice_struct PciDevice;
 
 #define LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED  1
 
-/** conditional debug printout command **/
-#ifdef DEBUG
-    #define librorc_debug(fmt, args ...) printf(fmt, ## args)
-#else
-    #define librorc_debug(fmt, args ...)
-#endif
-
 namespace LIBRARY_NAME
 {
     /**
