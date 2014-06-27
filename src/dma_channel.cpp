@@ -411,16 +411,20 @@ dma_channel::enable()
 void
 dma_channel::disable()
 {
-    setSuspend(1);
+    // suspend DMA transfer only if active
+    if( DMAConfig() & 0x01 )
+    {
+        setSuspend(1);
 
-    /**
-     * TODO: add timeout
-     * Timeout handling: simply continue after loop.
-     * This may lead to wrong calculated/reported event sizes
-     * but as we want to disable readout anyway...
-     **/
-    while(getDMABusy())
-    { usleep(100); }
+        /**
+         * TODO: add timeout
+         * Timeout handling: simply continue after loop.
+         * This may lead to wrong calculated/reported event sizes
+         * but as we ran into the timeout there's something wrong anyway
+         **/
+        while(getDMABusy())
+        { usleep(100); }
+    }
 
     setEbdmEnable(0);
     setRbdmEnable(0);
@@ -662,7 +666,7 @@ dma_channel::getDMABusy()
     void
     dma_channel::prepareBuffers()
     {
-        if( m_channel_number < m_sm->numberOfChannels() )
+        if( m_channel_number >= m_sm->numberOfChannels() )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
         if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )

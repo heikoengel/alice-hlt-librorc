@@ -90,13 +90,14 @@ namespace LIBRARY_NAME
 
             /**
              * set a filter mask for events to be filtered.
-             * @param mask The filter mask is logically AND'ed with
-             * the event orbit ID from CDH. If the result is 0 the event
-             * is fully read out. If the result is !=0 the event payload
-             * is dropped and the CDH is modified to signal this change.
-             * @param mask 24 bit filter mask applied on orbit ID. Set to
-             * 0 to read out all events, set 1 to read out every second
-             * event, 3 for every third, 7 for every fourth, etc...
+             * @param mask The lower 24 bit of this filter mask are
+             * logically AND'ed with the event orbit ID from CDH.
+             * If the result is 0 the event is fully read out.
+             * If the result is !=0 the event payload is dropped and
+             * the CDH is modified to signal this change.
+             * Set to 0 to read out all events, set 1 to read out
+             * every second event, 3 for every third, 7 for every
+             * fourth, etc...
              **/
             void
             setFilterMask

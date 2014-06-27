@@ -259,15 +259,20 @@ namespace LIBRARY_NAME
         else
         { max_pkt_size = m_dev->maxReadRequestSize(); }
 
-        m_channel = new librorc::dma_channel
-        (
-            m_channelId,
-            max_pkt_size,
-            m_dev,
-            m_bar1,
-            m_eventBuffer,
-            m_reportBuffer
-        );
+        try
+        {
+            m_channel = new librorc::dma_channel
+                (
+                 m_channelId,
+                 max_pkt_size,
+                 m_dev,
+                 m_bar1,
+                 m_eventBuffer,
+                 m_reportBuffer
+                );
+        }
+        catch(...)
+        { throw(LIBRORC_EVENT_STREAM_ERROR_DMA_CHANNEL_FAILED); }
 
         m_channel->enable();
     }
