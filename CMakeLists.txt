@@ -68,6 +68,8 @@ INSTALL(FILES ${files} DESTINATION include/librorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
 
+MESSAGE( STATUS "Install directory   = ${CMAKE_INSTALL_PREFIX}")
+
 #--- Setup CPack --------------------------------------------------------------
 
 include(CPack.txt)
