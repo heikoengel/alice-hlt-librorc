@@ -96,7 +96,7 @@ main
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef SIM
+    #ifdef MODELSIM
         bar = new librorc::sim_bar(dev, 1);
     #else
         bar = new librorc::rorc_bar(dev, 1);
@@ -124,7 +124,7 @@ main
     if( do_reset )
     {
 
-#ifdef SIM
+#ifdef MODELSIM
         /** wait for phy_init_done */
         while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<2)) )
         { usleep(100); }

@@ -324,7 +324,7 @@ print_device
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef SIM
+    #ifdef MODELSIM
         bar = new librorc::sim_bar(dev, 1);
     #else
         bar = new librorc::rorc_bar(dev, 1);
@@ -393,7 +393,7 @@ init_flash
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef SIM
+    #ifdef MODELSIM
         bar = new librorc::sim_bar(options.dev, 0);
     #else
         bar = new librorc::rorc_bar(options.dev, 0);
@@ -462,7 +462,7 @@ show_device_monitor
     librorc::bar *bar1 = NULL;
     try
     {
-    #ifdef SIM
+    #ifdef MODELSIM
         bar1 = new librorc::sim_bar(dev, 1);
     #else
         bar1 = new librorc::rorc_bar(dev, 1);

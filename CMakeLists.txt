@@ -5,7 +5,7 @@ set( REQUIRED_PDA_VERSION "8:0:2" )
 set(VERSION "6.0.0")
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
-set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
+set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g" )
 set( CMAKE_CXX_FLAGS "-Wall -g" )
 
 MESSAGE( STATUS "-------------------------------------------------------------------------------")
@@ -16,11 +16,11 @@ include(CMakePda.txt)
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 
-option(MyOption "SIM" OFF)
-if(${SIM})
-    add_definitions(-DSIM)
+option(MyOption "MODELSIM" OFF)
+if(${MODELSIM})
+    add_definitions(-DMODELSIM)
     MESSAGE( STATUS "Librorc is going to be compiled in simulation mode!")
-endif(${SIM})
+endif(${MODELSIM})
 
 #--- Add target for Doxygen ---------------------------------------------------
 
@@ -48,8 +48,8 @@ SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION ${VERSION} SOVERSION 0)
 
 target_link_libraries( rorc pthread pci ${EXTRA_LIBS})
 
-# Build flisock adapter (if SIM is configured)
-IF(${SIM})
+# Build flisock adapter (if MODELSIM is configured)
+IF(${MODELSIM})
     MESSAGE( STATUS "Adding (optional) FLI Socket Interface")
     add_library( fli ${LIBMODE} $<TARGET_OBJECTS:FLI_OBJECTS> )
     set_target_properties(fli PROPERTIES PREFIX "")

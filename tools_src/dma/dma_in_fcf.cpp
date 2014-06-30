@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     try
     {
         dev = new librorc::device(opts.deviceId);
-#ifdef SIM
+#ifdef MODELSIM
         bar = new librorc::sim_bar(dev, 1);
 #else
         bar = new librorc::rorc_bar(dev, 1);
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
     }
 
     fcf->setState(1, 0); // reset, not enabled
-#ifndef SIM
+#ifndef MODELSIM
     if( opts.loadFcfMappingRam )
     {
         fcf->loadMappingRam(opts.fcfmappingfile);

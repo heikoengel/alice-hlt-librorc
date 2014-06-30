@@ -557,7 +557,7 @@ configureFcf
     {
         fcf->setState(1, 0); // reset, not enabled
         fcf->clearErrors();
-#ifndef SIM
+#ifndef MODELSIM
         if( opts.loadFcfMappingRam )
         { fcf->loadMappingRam(opts.fcfmappingfile); }
 #endif

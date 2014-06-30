@@ -466,7 +466,7 @@ event_sanity_checker::dumpEvent
     uint64_t length
 )
 {
-#ifdef SIM
+#ifdef MODELSIM
     uint64_t i = 0;
     for(i=0; i<length; i++)
     { printf("%03ld: %08x\n", i, (uint32_t)*(event_buffer + offset +i)); }

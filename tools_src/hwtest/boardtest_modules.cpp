@@ -335,7 +335,7 @@ checkFlash
     librorc::bar *bar = NULL;
     try
     {
-#ifdef SIM
+#ifdef MODELSIM
         bar = new librorc::sim_bar(dev, 0);
 #else
         bar = new librorc::rorc_bar(dev, 0);
