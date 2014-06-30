@@ -1,12 +1,38 @@
 #!/bin/bash
 
+for VAR in "$@"
+do
+    COMMAND=`echo $VAR | cut -d= -f1`
+    VALUE=`echo $VAR | cut -d= -f2`
+    echo $COMMAND $VALUE
+
+    case "$COMMAND" in
+        --prefix)
+            INSTALL_PATH=$VALUE
+        ;;
+
+        *)
+            echo  "Unknown option $COMMAND"
+            exit 1
+        ;;
+     esac
+done
+
 VERSION=`cat CMakeLists.txt | grep "set(VERSION" | awk '{print $2}' | cut -d")" -f1 | cut -d"\"" -f2`
-INSTALL_PATH="/opt/package/librorc/$VERSION/"
+
+echo $INSTALL_PATH
+
+if [ -z "$INSTALL_PATH" ]
+then
+    INSTALL_PATH="/opt/package/librorc/$VERSION/"
+fi
+
+
 MODE="SHARED"
 #MODE="STATIC"
 
 BASEDIR=`pwd`/`dirname $0`
-echo $BASEDIR
+#echo $BASEDIR
 
 mkdir -p $BASEDIR/build
 mkdir -p $BASEDIR/build/debug
