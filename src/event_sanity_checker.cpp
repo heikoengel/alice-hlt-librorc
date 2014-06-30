@@ -403,7 +403,7 @@ event_sanity_checker::check
 {
     uint64_t                  report_buffer_index =  channel_status->index;
     librorc_event_descriptor *report_pointer      =  &report;
-    //int64_t                   last_id             =  channel_status->last_id;
+    int64_t                   last_id             =  channel_status->last_id;
 
     m_event               = rawEventPointer(report_pointer);
     m_reported_event_size = reportedEventSize(report_pointer);
@@ -421,7 +421,7 @@ event_sanity_checker::check
         error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
         error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_pointer, report_buffer_index);
         error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_pointer, report_buffer_index);
-        //error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
+        error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
     }
 
     if(error_code != 0)
@@ -618,13 +618,20 @@ event_sanity_checker::nextPgWord
     switch(mode)
     {
         case PG_PATTERN_INC:
-            return cur_word+1;
+        { return cur_word+1;}
+        break;
+
         case PG_PATTERN_DEC:
-            return cur_word-1;
+        { return cur_word-1; }
+        break;
+
         case PG_PATTERN_SHIFT:
-            return ((cur_word<<1) | (cur_word>>31));
+        { return ((cur_word<<1) | (cur_word>>31)); }
+        break;
+
         default: // PG_PATTERN_TOGGLE:
-            return ~cur_word;
+        { return ~cur_word; }
+        break;
     }
 }
 
