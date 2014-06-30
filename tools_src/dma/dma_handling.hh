@@ -12,6 +12,7 @@
 #define ES_SRC_DMA 3
 #define ES_SRC_DDR3 4
 #define ES_SRC_RAW 5
+#define ES_SRC_SIU 6
 
 /** Help text, that is displayed when -h is used */
 #define HELP_TEXT "%s usage:                                          \n\

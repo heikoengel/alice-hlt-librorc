@@ -31,8 +31,8 @@
  **/
 #define LIBRORC_DIUCMD_DIU_RCIFSTW 0x00000001
 #define LIBRORC_DIUCMD_SIU_RCIFSTW 0x00000002
-#define LIBRORC_DIUCMD_FEE_EOBTR 0x000000b4
-#define LIBRORC_DIUCMD_FEE_RDYRX 0x00000014
+#define LIBRORC_DIUCMD_SIU_EOBTR 0x000000b4
+#define LIBRORC_DIUCMD_SIU_RDYRX 0x00000014
 #define LIBRORC_DIUCMD_DIU_DIURST 0x000000a1
 #define LIBRORC_DIUCMD_SIU_RST 0x000000f1
 #define LIBRORC_DIUCMD_DIU_DIUINIT 0x000000b1
@@ -155,12 +155,19 @@ namespace LIBRARY_NAME
 
 
             /**
-             * Prepare DIU for data from FEE by sending EOBTR and
+             * Prepare DIU for data from SIU, includes sending
              * RDYRX to SIU
              * @return 0 on success, -1 on error
              **/
             int
-            prepareForFeeData();
+            prepareForSiuData();
+
+            /**
+             * prepare DIU for data from another DIU
+             * @return 0 on success, -1 on error
+             **/
+            int
+            prepareForDiuData();
 
             /**
              * configure DIU to be used as data source

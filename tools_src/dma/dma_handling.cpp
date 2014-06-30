@@ -85,6 +85,9 @@ evaluateArguments(int argc, char *argv[])
                 else if( 0 == strcmp(optarg, "diu") &&
                         ret.esType!=LIBRORC_ES_TO_DEVICE )
                 { ret.datasource = ES_SRC_DIU; break; }
+                else if( 0 == strcmp(optarg, "siu") &&
+                        ret.esType!=LIBRORC_ES_TO_DEVICE )
+                { ret.datasource = ES_SRC_SIU; break; }
                 else if( 0 == strcmp(optarg, "ddr3") &&
                         ret.esType!=LIBRORC_ES_TO_DEVICE)
                 { ret.datasource = ES_SRC_DDR3; break; }
@@ -406,9 +409,19 @@ configureDiu
     {
         diu->useAsDataSource();
         diu->enableInterface();
-        if( diu->prepareForFeeData() < 0 )
+        if(opts.datasource==ES_SRC_SIU)
         {
-            cout << "Failed to enable DIU->SIU chain!";
+            if( diu->prepareForSiuFeeData() < 0 )
+            {
+                cout << "Failed to enable DIU->SIU chain!";
+            }
+        }
+        else
+        {
+            if( diu->prepareForDiuData() < 0 )
+            {
+                cout << "Failed to enable DIU->SIU chain!";
+            }
         }
     }
     else
@@ -621,6 +634,7 @@ configureDataSource
         { configurePatternGenerator(eventStream, opts); }
         break;
 
+        case ES_SRC_SIU:
         case ES_SRC_DIU:
         { configureDiu(eventStream, opts); }
         break;
@@ -661,6 +675,7 @@ unconfigureDataSource
         break;
 
         case ES_SRC_DIU:
+        case ES_SRC_SIU:
         { unconfigureDiu(eventStream, opts); }
         break;
 

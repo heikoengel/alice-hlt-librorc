@@ -66,7 +66,7 @@ namespace LIBRARY_NAME
     diu::sendFeeEndOfBlockTransferCmd()
     {
         clearLastCommandTransmissionStatusWord();
-        sendCommand(LIBRORC_DIUCMD_FEE_EOBTR); // EOBTR to FEE
+        sendCommand(LIBRORC_DIUCMD_SIU_EOBTR); // EOBTR to SIU
         return waitForCommandTransmissionStatusWord();
     }
 
@@ -75,7 +75,7 @@ namespace LIBRARY_NAME
     diu::sendFeeReadyToReceiveCmd()
     {
         clearLastCommandTransmissionStatusWord();
-        sendCommand(LIBRORC_DIUCMD_FEE_RDYRX); // RdyRx to FEE
+        sendCommand(LIBRORC_DIUCMD_SIU_RDYRX); // RdyRx to SIU
         return waitForCommandTransmissionStatusWord();
     }
 
@@ -157,7 +157,29 @@ namespace LIBRARY_NAME
      * there anything checking the link state periodically?
      **/
     int
-    diu::prepareForFeeData()
+    diu::prepareForSiuData()
+    {
+        /** check link state before sending commands */
+        if( !m_link->isGtxDomainReady() )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
+                    " will not send DIU commands!\n");
+            return -1;
+        }
+
+        // same steps as for DIU
+        if( prepareForDiuData() )
+        { return -1; }
+
+        // but additionally send RXRDY
+        if( sendFeeReadyToReceiveCmd() < 0 )
+        { return -1; }
+
+        return 0;
+    }
+
+    int
+    diu::prepareForDiuData()
     {
         /** check link state before sending commands */
         if( !m_link->isGtxDomainReady() )
@@ -180,10 +202,6 @@ namespace LIBRARY_NAME
         setReset(0);
         getReset();
         if( waitForLinkUp() < 0 )
-        { return -1; }
-
-        /** open the link */
-        if( sendFeeReadyToReceiveCmd() < 0 )
         { return -1; }
 
         return 0;
