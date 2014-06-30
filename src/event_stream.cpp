@@ -139,7 +139,15 @@ namespace LIBRARY_NAME
     event_stream::~event_stream()
     {
         deleteParts();
-        shmdt(m_channel_status);
+
+        if(m_channel_status!=NULL)
+        {
+        #ifdef SHM
+            shmdt(m_channel_status);
+        #else
+            free(m_channel_status);
+        #endif
+        }
 
         pthread_mutex_destroy(&m_releaseEnable);
         pthread_mutex_destroy(&m_getEventEnable);
@@ -278,23 +286,33 @@ namespace LIBRARY_NAME
     event_stream::prepareSharedMemory()
     {
         m_channel_status = NULL;
+        char *shm        = NULL;
 
-        int shID =
-            shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
-                sizeof(librorcChannelStatus), IPC_CREAT | 0666);
-        if(shID==-1)
-        {
-            cout << "prepareSharedMemory failed (1)!" << endl;
-            throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
-        }
+        #ifdef SHM
+            int shID =
+                shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
+                    sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+            if(shID==-1)
+            {
+                cout << "prepareSharedMemory failed (1)!" << endl;
+                throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+            }
 
-        /** attach to shared memory */
-        char *shm = (char*)shmat(shID, 0, 0);
-        if(shm==(char*)-1)
-        {
-            cout << "prepareSharedMemory failed (2)!" << endl;
-            throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
-        }
+            /** attach to shared memory */
+            shm = (char*)shmat(shID, 0, 0);
+            if(shm==(char*)-1)
+            {
+                cout << "prepareSharedMemory failed (2)!" << endl;
+                throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+            }
+        #else
+            shm = (char*)malloc(sizeof(librorcChannelStatus));
+            if(shm == NULL)
+            {
+                cout << "prepareSharedMemory failed (2)!" << endl;
+                throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
+            }
+        #endif
 
         m_channel_status = (librorcChannelStatus*)shm;
     }
