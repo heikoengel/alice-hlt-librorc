@@ -48,17 +48,6 @@
 #define DATA_REPLAY_EOE (1<<8)
 #define DATA_REPLAY_END (1<<9)
 
-#define LIBRORC_NUMBER_OF_FIRMWARE_MODES 5
-const char
-librorc_firmware_mode_descriptions[LIBRORC_NUMBER_OF_FIRMWARE_MODES][1024]
-= {
-"HLT-in",
-"HLT-out",
-"PCI Debug",
-"HLT-in (fcf)",
-"hwtest"
-};
-
 
 namespace LIBRARY_NAME
 {

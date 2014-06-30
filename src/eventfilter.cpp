@@ -35,23 +35,23 @@ namespace LIBRARY_NAME
     void
     eventfilter::enable()
     {
-        uint32_t filterctrl = m_link->GTX(RORC_REG_DDL_FILTER_CTRL);
+        uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
         filterctrl |= (1<<31);
-        m_link->setGTX(RORC_REG_DDL_FILTER_CTRL, filterctrl);
+        m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
     }
 
     void
     eventfilter::disable()
     {
-        uint32_t filterctrl = m_link->GTX(RORC_REG_DDL_FILTER_CTRL);
+        uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
         filterctrl &= ~(1<<31);
-        m_link->setGTX(RORC_REG_DDL_FILTER_CTRL, filterctrl);
+        m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
     }
 
     bool
     eventfilter::isEnabled()
     {
-        return (m_link->GTX(RORC_REG_DDL_FILTER_CTRL)>>31 != 0);
+        return (m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL)>>31 != 0);
     }
 
     void
@@ -60,18 +60,18 @@ namespace LIBRARY_NAME
         bool filter_all
     )
     {
-        uint32_t filterctrl = m_link->GTX(RORC_REG_DDL_FILTER_CTRL);
+        uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
         if(filter_all)
         { filterctrl |= (1<<24); }
         else
         { filterctrl &= ~(1<<24); }
-        m_link->setGTX(RORC_REG_DDL_FILTER_CTRL, filterctrl);
+        m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
     }
 
     bool
     eventfilter::filterAll()
     {
-        return (((m_link->GTX(RORC_REG_DDL_FILTER_CTRL)>>24)&1) != 0);
+        return (((m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL)>>24)&1) != 0);
     }
 
     void
@@ -80,15 +80,15 @@ namespace LIBRARY_NAME
         uint32_t mask
     )
     {
-        uint32_t filterctrl = m_link->GTX(RORC_REG_DDL_FILTER_CTRL);
+        uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
         filterctrl &= 0xff000000;
         filterctrl |= (mask & 0x00ffffff);
-        m_link->setGTX(RORC_REG_DDL_FILTER_CTRL, filterctrl);
+        m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
     }
 
     uint32_t
     eventfilter::filterMask()
     {
-        return (m_link->GTX(RORC_REG_DDL_FILTER_CTRL) & 0x00ffffff);
+        return (m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL) & 0x00ffffff);
     }
 }

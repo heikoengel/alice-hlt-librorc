@@ -92,13 +92,13 @@ resetGtx
     uint32_t reset
     )
 {
-    uint32_t gtxctrl = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+    uint32_t gtxctrl = link->pciReg(RORC_REG_GTX_ASYNC_CFG);
     /** clear all reset bits (0,1,3) */
     gtxctrl &= ~(BIT_GTXRESET|BIT_RXRESET|BIT_TXRESET);
     /** set new reset bits */
     gtxctrl |= (reset & (BIT_GTXRESET|BIT_RXRESET|BIT_TXRESET));
     /** write back */
-    link->setPacketizer( RORC_REG_GTX_ASYNC_CFG, gtxctrl);
+    link->setPciReg( RORC_REG_GTX_ASYNC_CFG, gtxctrl);
 }
 
 
@@ -115,7 +115,7 @@ waitForResetDone
         if ( link->isGtxDomainReady() )
         {
             /** make sure DFE eye is above threshold */
-            double dfeEye = (link->GTX(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200.0/31.0;
+            double dfeEye = (link->gtxReg(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200.0/31.0;
             return (dfeEye > GTX_DFE_EYE_DAC_MIN);
         }
         usleep(100);
@@ -242,7 +242,7 @@ waitForLinkUp
         for ( uint32_t i=0; i<nchannels; i++ )
         {
             librorc::link *link = new librorc::link(bar, i);
-            if ( link->isGtxDomainReady() && (link->GTX(RORC_REG_GTX_CTRL) & 1) )
+            if ( link->isGtxDomainReady() && (link->gtxReg(RORC_REG_GTX_CTRL) & 1) )
             {
                 lnkup |= (1<<i);
             }
@@ -275,7 +275,7 @@ clearAllErrorCounters
         if ( link->isGtxDomainReady() )
         {
             link->clearAllGtxErrorCounters();
-            link->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+            link->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
         }
         delete link;
     }

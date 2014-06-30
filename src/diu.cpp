@@ -37,15 +37,15 @@ namespace LIBRARY_NAME
     bool
     diu::linkUp()
     {
-        return ( (m_link->GTX(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
+        return ( (m_link->ddlReg(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
     }
 
 
     void
     diu::clearEventSizeCounter()
     {
-        m_link->setGTX(RORC_REG_DDL_CTRL,
-                m_link->GTX(RORC_REG_DDL_CTRL)|(1<<2));
+        m_link->setDdlReg(RORC_REG_DDL_CTRL,
+                m_link->ddlReg(RORC_REG_DDL_CTRL)|(1<<2));
     }
 
 
@@ -60,7 +60,7 @@ namespace LIBRARY_NAME
 
 
     /**********************************************************
-     *             Protocol Level DDL Status and Control
+     *             Protocol Level  DDL Status and Control
      * *******************************************************/
     int
     diu::sendFeeEndOfBlockTransferCmd()
@@ -98,8 +98,35 @@ namespace LIBRARY_NAME
     }
 
 
-    void
-    diu::prepareForFeeData()
+    uint32_t
+    diu::sendSiuResetCmd()
+    {
+        clearLastInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_SIU_RST); // SRST to SIU
+        return waitForInterfaceStatusWord();
+    }
+
+
+    uint32_t
+    diu::sendDiuLinkInitializationCmd()
+    {
+        clearLastInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_DIU_DIUINIT); // LINIT to DIU
+        return waitForInterfaceStatusWord();
+    }
+
+
+    uint32_t
+    diu::sendDiuLinkResetCmd()
+    {
+        clearLastInterfaceStatusWord();
+        sendCommand(LIBRORC_DIUCMD_DIU_DIURST); // SRST to DIU
+        return waitForInterfaceStatusWord();
+    }
+
+
+    bool
+    diu::waitForLinkUp()
     {
         uint32_t timeout = LIBRORC_DIU_TIMEOUT;
         /** wait for LF_N to go high */
@@ -114,21 +141,48 @@ namespace LIBRARY_NAME
             DEBUG_PRINTF(PDADEBUG_ERROR,
                     "Timeout waiting for LF_N to deassert\n");
         }
+
+        return (timeout!=0);
+    }
+
+
+    /**
+     * TODO: should this throw/return an error instead of just printing
+     * to PDA_DEBUG?
+     * PRO: it is important to know if data can be received at all or
+     * if further action is required
+     * CON: DIU/SIU state is independent of any DMA/readout channel
+     * and can be changed/controlled while the readout is running. Is
+     * there anything checking the link state periodically?
+     **/
+    void
+    diu::prepareForFeeData()
+    {
+        /** check link state before sending commands */
+        if( !m_link->isGtxDomainReady() )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
+                    " will not send DIU commands!\n");
+        }
         else
         {
-            /** check link state before sending commands */
-            if( !m_link->isGtxDomainReady() )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
-                        " will not send DIU commands!\n");
-            }
-            else
-            {
-                /** close any open transfer */
-                sendFeeEndOfBlockTransferCmd();
-                /** re-open the link */
-                sendFeeReadyToReceiveCmd();
-            }
+            /** reset DIU */
+            setReset(1);
+            setReset(0);
+            waitForLinkUp();
+
+            /** close any open SIU transfers */
+            sendFeeEndOfBlockTransferCmd();
+            /** reset the SIU */
+            //sendSiuResetCmd();
+
+            /** reset DIU again */
+            //setReset(1);
+            //setReset(0);
+            //waitForLinkUp();
+
+            /** re-open the link */
+            sendFeeReadyToReceiveCmd();
         }
     }
 
@@ -136,9 +190,9 @@ namespace LIBRARY_NAME
     void
     diu::useAsDataSource()
     {
-        uint32_t ddlctrl = m_link->GTX(RORC_REG_DDL_CTRL);
+        uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16); // set MUX to 0
-        m_link->setGTX(RORC_REG_DDL_CTRL, ddlctrl);
+        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
 
@@ -151,56 +205,56 @@ namespace LIBRARY_NAME
         uint32_t command
     )
     {
-        m_link->setGTX(RORC_REG_DDL_CMD, command);
+        m_link->setDdlReg(RORC_REG_DDL_CMD, command);
     }    uint32_t
     diu::lastFrontEndStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_FESTW);
+        return m_link->ddlReg(RORC_REG_DDL_FESTW);
     }
 
     void
     diu::clearLastFrontEndStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_FESTW, 0);
+        m_link->setDdlReg(RORC_REG_DDL_FESTW, 0);
     }
 
 
     uint32_t
     diu::lastCommandTransmissionStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_CTSTW);
+        return m_link->ddlReg(RORC_REG_DDL_CTSTW);
     }
 
     void
     diu::clearLastCommandTransmissionStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_CTSTW, 0);
+        m_link->setDdlReg(RORC_REG_DDL_CTSTW, 0);
     }
 
 
     uint32_t
     diu::lastDataTransmissionStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_DTSTW);
+        return m_link->ddlReg(RORC_REG_DDL_DTSTW);
     }
 
     void
     diu::clearLastDataTransmissionStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_DTSTW, 0);
+        m_link->setDdlReg(RORC_REG_DDL_DTSTW, 0);
     }
 
 
     uint32_t
     diu::lastInterfaceStatusWord()
     {
-        return m_link->GTX(RORC_REG_DDL_IFSTW);
+        return m_link->ddlReg(RORC_REG_DDL_IFSTW);
     }
 
     void
     diu::clearLastInterfaceStatusWord()
     {
-        m_link->setGTX(RORC_REG_DDL_IFSTW, 0);
+        m_link->setDdlReg(RORC_REG_DDL_IFSTW, 0);
     }
 
 
@@ -213,7 +267,7 @@ namespace LIBRARY_NAME
         uint32_t timeout = LIBRORC_DIU_TIMEOUT;
         uint32_t status;
 
-        while( ((status = m_link->GTX(address)) == 0xffffffff) &&
+        while( ((status = m_link->ddlReg(address)) == 0xffffffff) &&
                 (timeout!=0) )
         {
             usleep(100);
@@ -262,13 +316,13 @@ namespace LIBRARY_NAME
         if (result==0xffffffff)
         {
             DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for DDL "
+                    "Timeout waiting for DDL"
                     "InterfaceStatusWord\n");
         }
         else
         {
             DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForDiuInterfaceStatusWord: "
+                    "waitForInterfaceStatusWord: "
                     "got IFSTW: %08x\n", result);
         }
         return result;

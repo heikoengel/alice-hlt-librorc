@@ -171,7 +171,10 @@ int main
                 {
                     cout << "Dumping device to file!" << endl;
                     librorc::flash *flash = init_flash(options);
-                    return( flash->dump(options.filename, options.verbose) );
+                    if( flash != NULL )
+                    { return( flash->dump(options.filename, options.verbose) ); }
+                    else
+                    { abort(); }
                 }
                 break;
 
@@ -179,7 +182,10 @@ int main
                 {
                     cout << "Flashing device!" << endl;
                     librorc::flash *flash = init_flash(options);
-                    return( flash->flashWrite(options.filename, options.verbose) );
+                    if( flash != NULL )
+                    { return( flash->flashWrite(options.filename, options.verbose) ); }
+                    else
+                    { abort(); }
                 }
                 break;
 
@@ -187,15 +193,23 @@ int main
                 {
                     cout << "Erasing device!" << endl;
                     librorc::flash *flash = init_flash(options);
-                    return( flash->erase(16<<20, options.verbose) );
+                    if( flash != NULL )
+                    { return( flash->erase(16<<20, options.verbose) ); }
+                    else
+                    { abort(); }
                 }
                 break;
 
                 case 's':
                 {
                     librorc::flash *flash = init_flash(options);
-                    delete flash_status(flash);
-                    return 0;
+                    if( flash != NULL )
+                    {
+                        delete flash_status(flash);
+                        return 0;
+                    }
+                    else
+                    { abort(); }
                 }
                 break;
 
@@ -203,7 +217,10 @@ int main
                 {
                     cout << "Resetting Flash!" << endl;
                     librorc::flash *flash = init_flash(options);
-                    return( flash->resetChip() );
+                    if( flash != NULL )
+                    { return( flash->resetChip() ); }
+                    else
+                    { abort(); }
                 }
                 break;
 
@@ -394,41 +411,33 @@ init_flash
     {
         flash =
             new librorc::flash
-                (bar, options.chip_select, options.verbose);
+                (bar, options.chip_select);
     }
     catch(int e)
     {
         switch (e)
         {
             case 1:
-            {
-                cout << "BAR is no CRORC flash.";
-            }
+            { cout << "BAR is not initialized."; }
             break;
 
             case 2:
-            {
-                cout << "Illegal flash chip select";
-            }
+            { cout << "Illegal flash chip select"; }
             break;
 
             default:
-            {
-                cout << "Unknown Exception Nr. " << e << endl;
-            }
+            { cout << "Unknown Exception Nr. " << e << endl; }
             break;
         }
         return(NULL);
     }
 
     /** set asynchronous read mode */
-    flash->setConfigReg(0xbddf);
+    flash->setAsynchronousReadMode();
 
     uint16_t status = flash->resetChip();
     if ( status )
-    {
-        cout << "resetChip failed: " << hex << status << endl;
-    }
+    { cout << "resetChip failed: " << hex << status << endl; }
 
     return(flash);
 }

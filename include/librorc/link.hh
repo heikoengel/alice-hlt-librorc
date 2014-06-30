@@ -100,10 +100,10 @@ namespace LIBRARY_NAME
             /**
              * set DW in GTX Domain
              * @param addr address in GTX component
-             * @param data data to be writtem
+             * @param data data to be written
              **/
             void
-            setGTX
+            setGtxReg
             (
                 uint32_t addr,
                 uint32_t data
@@ -112,17 +112,36 @@ namespace LIBRARY_NAME
             /**
              * get DW from GTX Domain
              * @param addr address in GTX component
-             * @return data read from GTX
+             * @return data read from GTX domain
              **/
-            uint32_t GTX(uint32_t addr);
+            uint32_t gtxReg(uint32_t addr);
+
+            /**
+             * set DW in DDL Domain
+             * @param addr address in DDL component
+             * @param data data to be written
+             **/
+            void
+            setDdlReg
+            (
+                uint32_t addr,
+                uint32_t data
+            );
+
+            /**
+             * get DW from DDL Domain
+             * @param addr address in DDL component
+             * @return data read from DDL domain
+             **/
+            uint32_t ddlReg(uint32_t addr);
 
             /**
              * set DW in Packtizer
              * @param addr address in PKT component
-             * @param data data to be writtem
+             * @param data data to be written
              **/
             void
-            setPacketizer
+            setPciReg
             (
                 uint32_t addr,
                 uint32_t data
@@ -133,7 +152,7 @@ namespace LIBRARY_NAME
              * @param addr address in PKT component
              * @return data read from PKT
              **/
-            uint32_t packetizer(uint32_t addr);
+            uint32_t pciReg(uint32_t addr);
 
             /**
              * get GTX clock domain status
@@ -208,18 +227,6 @@ namespace LIBRARY_NAME
             /**********************************************************
              *             Low Level GTX Status/Control
              * *******************************************************/
-
-            /** clear GTX disparity error counter */
-            void clearGtxDisparityErrorCount();
-
-            /** clear GTX RX Not-in-Table error counter */
-            void clearGtxRxNotInTableCount();
-
-            /** clear RX-Loss-of-Signal error counter */
-            void clearGtxRxLossOfSignalCount();
-
-            /** clear RX Byte Realign counter */
-            void clearGtxRxByteRealignCount();
 
             /** clear all above counters */
             void clearAllGtxErrorCounters();

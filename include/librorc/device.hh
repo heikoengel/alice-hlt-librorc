@@ -87,10 +87,8 @@ namespace LIBRARY_NAME
      **/
     uint8_t *getBarMap(uint8_t n);
 
-    uint64_t    maxPayloadSize();
-    void     setMaxPayloadSize(uint64_t size);
-    uint64_t    maxReadRequestSize();
-    void     setMaxReadRequestSize(uint64_t size);
+    uint64_t maxPayloadSize();
+    uint64_t maxReadRequestSize();
 
     /**
      * get PCI Bar-Size

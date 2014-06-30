@@ -202,7 +202,7 @@ main
         if (link[i]->isGtxDomainReady())
         {
             link[i]->clearAllGtxErrorCounters();
-            link[i]->setGTX(RORC_REG_GTX_ERROR_CNT, 0);
+            link[i]->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
         }
         else
         {

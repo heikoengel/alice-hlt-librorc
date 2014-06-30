@@ -194,7 +194,7 @@ int main
 
         if ( do_reset )
         {
-            current_link->setPacketizer(RORC_REG_DMA_CTRL, 0x00000002);
+            current_link->setPciReg(RORC_REG_DMA_CTRL, 0x00000002);
         }
 
         if ( do_ratelimit )
@@ -209,7 +209,7 @@ int main
                 double clock_period = 1.0/clk_freq;
                 waittime = (uint32_t)(event_period/clock_period);
             }
-            current_link->setPacketizer(RORC_REG_DMA_RATE_LIMITER_WAITTIME, waittime);
+            current_link->setPciReg(RORC_REG_DMA_RATE_LIMITER_WAITTIME, waittime);
         }
 
         delete current_link;

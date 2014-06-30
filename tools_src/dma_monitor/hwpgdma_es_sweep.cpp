@@ -76,7 +76,7 @@ setEventSize
      *  packet is sent containing only the EOE word. -> would take
      *  bandwidth but would not appear in number of bytes transferred
      *  */
-    current_link->setGTX(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize-1);
+    current_link->setDdlReg(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize-1);
 
     delete current_link;
     return 0;

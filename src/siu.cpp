@@ -37,37 +37,37 @@ namespace LIBRARY_NAME
     siu::linkOpen()
     {
         // same bit as DIU LD_N
-        return ((m_link->GTX(RORC_REG_DDL_CTRL)>>5) & 1);
+        return ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>5) & 1);
     }
 
     uint32_t
     siu::lastFrontEndCommandWord()
     {
-        return m_link->GTX(RORC_REG_DDL_FESTW);
+        return m_link->ddlReg(RORC_REG_DDL_FESTW);
     }
 
     void
     siu::clearLastFrontEndCommandWord()
     {
-        m_link->setGTX(RORC_REG_DDL_FESTW, 0);
+        m_link->setDdlReg(RORC_REG_DDL_FESTW, 0);
     }
 
     bool
     siu::isInterfaceFifoEmpty()
     {
-        return ((m_link->GTX(RORC_REG_DDL_CTRL)>>29) & 1)==1;
+        return ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>29) & 1)==1;
     }
 
     bool
     siu::isInterfaceFifoFull()
     {
-        return ((m_link->GTX(RORC_REG_DDL_CTRL)>>28) & 1)==1;
+        return ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>28) & 1)==1;
     }
 
     bool
     siu::isSourceEmpty()
     {
-        return ((m_link->GTX(RORC_REG_DDL_CTRL)>>30) & 1)==1;
+        return ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>30) & 1)==1;
     }
 
 }

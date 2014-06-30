@@ -117,9 +117,17 @@ namespace LIBRARY_NAME
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
 
-        m_link                    = new librorc::link(m_bar1, m_channelId);
-        m_sm                      = new librorc::sysmon(m_bar1);
+        /** check if selected channel is available in current FW */
+        m_sm = new librorc::sysmon(m_bar1);
+        if( (uint32_t)m_channelId >= m_sm->numberOfChannels() )
+        {
+            cout << "ERROR: Requsted channel " << m_channelId
+                 << " is not implemented in firmware "
+                 << "- exiting" << endl;
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
         m_fwtype                  = m_sm->firmwareType();
+        m_link                    = new librorc::link(m_bar1, m_channelId);
         m_linktype                = m_link->linkType();
         m_event_generation_offset = 0;
 
@@ -155,33 +163,17 @@ namespace LIBRARY_NAME
     }
 
     void
-    event_stream::checkFirmwareCompatibility(LibrorcEsType esType)
+    event_stream::checkLinkTypeCompatibility(LibrorcEsType esType)
     {
-        int32_t availDmaChannels = m_sm->numberOfChannels();
-        if( m_channelId >= availDmaChannels )
-        {
-            cout << "ERROR: Requsted channel " << m_channelId
-                 << " is not implemented in firmware "
-                 << "- exiting" << endl;
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-        }
-
         bool fwOK;
         switch(esType)
         {
             case LIBRORC_ES_TO_HOST:
-            {
-                fwOK =
-                      m_sm->firmwareIsHltHardwareTest()
-                    | m_sm->firmwareIsHltIn()
-                    | m_sm->firmwareIsHltInFcf();
-            }
+            { fwOK = (m_linktype!=RORC_CFG_LINK_TYPE_SIU); }
             break;
-
             case LIBRORC_ES_TO_DEVICE:
-            { fwOK = m_sm->firmwareIsHltOut(); }
+            { fwOK = (m_linktype==RORC_CFG_LINK_TYPE_SIU); }
             break;
-
             default:
             { fwOK = false; }
             break;
@@ -189,7 +181,8 @@ namespace LIBRARY_NAME
 
         if( !fwOK )
         {
-            cout << "ERROR: Wrong or unknown firmware loaded!"
+            cout << "ERROR: selected event stream type not "
+                 << "available for this channel!"
                  << endl;
             throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
@@ -203,7 +196,7 @@ namespace LIBRARY_NAME
     )
     {
         /** make sure requested channel is available for selected esType */
-        checkFirmwareCompatibility(esType);
+        checkLinkTypeCompatibility(esType);
 
         /** TODO : remove this? */
         /** set EventBuffer DMA direction according to EventStream type */
@@ -621,6 +614,33 @@ namespace LIBRARY_NAME
         // TODO: log message: getSiu failed, Firmware, channelId
     }
 
+    fastclusterfinder*
+    event_stream::getFastClusterFinder()
+    {
+        if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
+                m_linktype==RORC_CFG_LINK_TYPE_DIU)
+        { return new fastclusterfinder(m_link); }
+        else
+        {
+            // TODO: log message: getSiu failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
+    ddl*
+    event_stream::getRawReadout()
+    {
+        if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
+        { return new ddl(m_link); }
+        else
+        {
+            // TODO: log message: getRawReadout failed,
+            // Firmware, channelId
+            return NULL;
+        }
+    }
+
 /** HLT out API ---------------------------------------------------------------*/
 
     void
@@ -653,7 +673,7 @@ namespace LIBRARY_NAME
     void
     event_stream::pushEventSizeIntoELFifo(uint32_t event_size)
     {
-        m_channel->getLink()->setPacketizer(RORC_REG_DMA_ELFIFO, event_size);
+        m_channel->getLink()->setPciReg(RORC_REG_DMA_ELFIFO, event_size);
     }
 
     void
@@ -706,7 +726,7 @@ namespace LIBRARY_NAME
     bool
     event_stream::isSufficientFifoSpaceAvailable()
     {
-        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+        uint32_t el_fifo_state       = m_channel->getLink()->pciReg(RORC_REG_DMA_ELFIFO);
         uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
         uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
         return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
@@ -728,7 +748,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::maximumElfifoCanHandle(uint64_t number_of_events)
     {
-        uint32_t el_fifo_state       = m_channel->getLink()->packetizer(RORC_REG_DMA_ELFIFO);
+        uint32_t el_fifo_state       = m_channel->getLink()->pciReg(RORC_REG_DMA_ELFIFO);
         uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
         uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
 
@@ -744,32 +764,4 @@ namespace LIBRARY_NAME
         (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
         ? MAX_EVENTS_PER_ITERATION : number_of_events;
     }
-
-    fastclusterfinder*
-    event_stream::getFastClusterFinder()
-    {
-        if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
-                m_linktype==RORC_CFG_LINK_TYPE_DIU)
-        { return new fastclusterfinder(m_link); }
-        else
-        {
-            // TODO: log message: getSiu failed,
-            // Firmware, channelId
-            return NULL;
-        }
-    }
-
-    ddl*
-    event_stream::getRawReadout()
-    {
-        if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
-        { return new ddl(m_link); }
-        else
-        {
-            // TODO: log message: getRawReadout failed,
-            // Firmware, channelId
-            return NULL;
-        }
-    }
-
 }

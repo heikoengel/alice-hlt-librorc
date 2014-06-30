@@ -134,12 +134,12 @@ main
 
         if ( do_full_reset )
         {
-            uint32_t linkcfg = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+            uint32_t linkcfg = link->pciReg(RORC_REG_GTX_ASYNC_CFG);
             linkcfg |= 0x00000001; // set GTX_RESET
-            link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, linkcfg);
+            link->setPciReg(RORC_REG_GTX_ASYNC_CFG, linkcfg);
             usleep(1000);
             linkcfg &= ~(0x00000001); // release GTX_RESET
-            link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, linkcfg);
+            link->setPciReg(RORC_REG_GTX_ASYNC_CFG, linkcfg);
             link->waitForGTXDomain();
         }
 

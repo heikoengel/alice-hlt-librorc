@@ -57,8 +57,8 @@ device::device(int32_t device_index)
     m_number = device_index;
 
     // TODO : get this from PDA
-    setMaxPayloadSize(MAX_PAYLOAD);
-    setMaxReadRequestSize(MAX_READ_REQ);
+    m_maxReadRequestSize = MAX_READ_REQ;
+    m_maxPayloadSize = MAX_PAYLOAD;
 }
 
 
@@ -159,19 +159,11 @@ device::getBarSize(uint8_t n)
 }
 
 
-
 uint64_t
 device::maxPayloadSize()
 {
     return(m_maxPayloadSize);
 }
-
-void
-device::setMaxPayloadSize(uint64_t size)
-{
-    m_maxPayloadSize = size;
-}
-
 
 
 uint64_t
@@ -179,13 +171,6 @@ device::maxReadRequestSize()
 {
     return(m_maxReadRequestSize);
 }
-
-void
-device::setMaxReadRequestSize(uint64_t size)
-{
-    m_maxReadRequestSize = size;
-}
-
 
 
 string*

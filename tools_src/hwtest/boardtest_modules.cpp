@@ -351,7 +351,7 @@ checkFlash
 
     try
     {
-        flash = new librorc::flash(bar, chip_select, LIBRORC_VERBOSE_OFF);
+        flash = new librorc::flash(bar, chip_select);
     }
     catch(...)
     {
@@ -360,7 +360,7 @@ checkFlash
     }
 
     /** set asynchronous read mode */
-    flash->setConfigReg(0xbddf);
+    flash->setAsynchronousReadMode();
 
     uint16_t status = flash->resetChip();
     if ( status )
@@ -729,7 +729,7 @@ checkLinkState
     uint32_t prot_errors = 0;
     if (link->isGtxDomainReady())
     {
-        uint32_t gtxctrl = link->GTX(RORC_REG_GTX_CTRL);
+        uint32_t gtxctrl = link->gtxReg(RORC_REG_GTX_CTRL);
         if ( !(gtxctrl&1) )
         {
             cout << "ERROR: Link channel " << channel_id
@@ -738,20 +738,22 @@ checkLinkState
         }
         else
         {
+            uint32_t errcnt = link->gtxReg(RORC_REG_GTX_DISPERR_REALIGN_CNT);
             link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_DISPERR_CNT),
+                    (errcnt>>16),
                     "Disperity Error");
             link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_RXNIT_CNT),
+                    (errcnt & 0xffff),
+                    "RX-Byte-Realign");
+            errcnt = link->gtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT);
+            link_errors |= checkCount(channel_id,
+                    (errcnt>>16),
                     "RX-Not-In-Table Error");
             link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_RXLOS_CNT),
+                    (errcnt & 0xffff),
                     "RX-Loss-Of-Signal");
-            link_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_RXBYTEREALIGN_CNT),
-                    "RX-Byte-Realign");
             prot_errors |= checkCount(channel_id,
-                    link->GTX(RORC_REG_GTX_ERROR_CNT),
+                    link->gtxReg(RORC_REG_GTX_ERROR_CNT),
                     "LinkTester Error");
         }
     }
@@ -854,8 +856,8 @@ testDmaChannel
     eventStream->setEventCallback(event_callback);
 
     /** enable EBDM + RBDM + PKT */
-    link->setPacketizer(RORC_REG_DMA_CTRL, 
-            (link->packetizer(RORC_REG_DMA_CTRL) | 0x0d) );
+    link->setPciReg(RORC_REG_DMA_CTRL,
+            (link->pciReg(RORC_REG_DMA_CTRL) | 0x0d) );
 
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE|CHK_PATTERN|CHK_ID;
 
@@ -990,11 +992,11 @@ checkAndReleaseGtxReset
     int verbose
 )
 {
-    uint32_t gtxcfg = link->packetizer(RORC_REG_GTX_ASYNC_CFG);
+    uint32_t gtxcfg = link->pciReg(RORC_REG_GTX_ASYNC_CFG);
     if ( gtxcfg & 0x0000000b )
     {
         /** release any reset bit */
-        link->setPacketizer(RORC_REG_GTX_ASYNC_CFG, (gtxcfg & ~(0x00000000b)));
+        link->setPciReg(RORC_REG_GTX_ASYNC_CFG, (gtxcfg & ~(0x00000000b)));
         if ( verbose )
         {
             cout << "INFO: found GTX in reset - releasing..." << endl;
