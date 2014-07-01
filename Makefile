@@ -5,6 +5,9 @@ all: $(TARGETS)
 $(TARGETS):
 	$(MAKE) -j16 -C build/$@
 
+install:
+	$(MAKE) -C build/release install
+
 rpm:
 	$(MAKE) -j16 -C build/release package
 	cp build/release/*.rpm .
