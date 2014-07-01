@@ -145,6 +145,7 @@ namespace LIBRARY_NAME
         #ifdef SHM
             shmdt(m_channel_status);
         #else
+            #pragma message "Compiling without SHM"
             free(m_channel_status);
         #endif
         }
@@ -306,6 +307,7 @@ namespace LIBRARY_NAME
                 throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
             }
         #else
+            #pragma message "Compiling without SHM"
             shm = (char*)malloc(sizeof(librorcChannelStatus));
             if(shm == NULL)
             {

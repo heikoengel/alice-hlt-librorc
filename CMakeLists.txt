@@ -14,6 +14,14 @@ MESSAGE( STATUS "---------------------------------------------------------------
 
 include(CMakePda.txt)
 
+#--- Define whether SHM is used or not ----------------------------------------
+
+option(MyOption "SHM" OFF)
+if(${SHM})
+    add_definitions(-DSHM)
+    MESSAGE( STATUS "Librorc is going to be compiled with SHM support!")
+endif(${SHM})
+
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 
 option(MyOption "SIM" OFF)

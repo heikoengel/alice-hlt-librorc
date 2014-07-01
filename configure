@@ -4,6 +4,7 @@ VERSION=`cat CMakeLists.txt | grep "set(VERSION" | awk '{print $2}' | cut -d")" 
 INSTALL_PATH="/opt/package/librorc/$VERSION/"
 MODE="SHARED"
 BASEDIR=`pwd`/`dirname $0`
+NOSHM="-DSHM=ON"
 
 helptext()
 {
@@ -29,6 +30,11 @@ do
             MODE="STATIC"
         ;;
 
+        --noshm)
+            NOSHM=""
+        ;;
+
+
         --help)
             helptext
             exit 0
@@ -42,6 +48,8 @@ do
      esac
 done
 
+echo $NOSHM
+
 mkdir -p $BASEDIR/build
 mkdir -p $BASEDIR/build/debug
 mkdir -p $BASEDIR/build/release
@@ -49,15 +57,15 @@ mkdir -p $BASEDIR/build/sim_debug
 mkdir -p $BASEDIR/build/sim_release
 
 cd $BASEDIR/build/release
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release $NOSHM -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/debug
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug $NOSHM -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/sim_release
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DSIM=ON -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DSIM=ON $NOSHM -DLIBMODE=$MODE ../../
 
 cd $BASEDIR/build/sim_debug
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DSIM=ON -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DSIM=ON $NOSHM -DLIBMODE=$MODE ../../
 
 cd $BASEDIR
