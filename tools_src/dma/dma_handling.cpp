@@ -411,7 +411,7 @@ configureDiu
         diu->enableInterface();
         if(opts.datasource==ES_SRC_SIU)
         {
-            if( diu->prepareForSiuFeeData() < 0 )
+            if( diu->prepareForSiuData() < 0 )
             {
                 cout << "Failed to enable DIU->SIU chain!";
             }
