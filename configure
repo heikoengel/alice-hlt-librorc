@@ -19,7 +19,6 @@ for VAR in "$@"
 do
     COMMAND=`echo $VAR | cut -d= -f1`
     VALUE=`echo $VAR | cut -d= -f2`
-#    echo $COMMAND $VALUE
 
     case "$COMMAND" in
         --prefix)
@@ -47,8 +46,6 @@ do
         ;;
      esac
 done
-
-echo $NOSHM
 
 mkdir -p $BASEDIR/build
 mkdir -p $BASEDIR/build/debug
