@@ -618,13 +618,20 @@ event_sanity_checker::nextPgWord
     switch(mode)
     {
         case PG_PATTERN_INC:
-            return cur_word+1;
+        { return cur_word+1;}
+        break;
+
         case PG_PATTERN_DEC:
-            return cur_word-1;
+        { return cur_word-1; }
+        break;
+
         case PG_PATTERN_SHIFT:
-            return ((cur_word<<1) | (cur_word>>31));
+        { return ((cur_word<<1) | (cur_word>>31)); }
+        break;
+
         default: // PG_PATTERN_TOGGLE:
-            return ~cur_word;
+        { return ~cur_word; }
+        break;
     }
 }
 

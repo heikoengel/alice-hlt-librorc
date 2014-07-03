@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
 
 set( REQUIRED_PDA_VERSION "8:0:2" )
-set(VERSION "6.0.0")
+set(VERSION "6.1.0")
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g" )
@@ -13,6 +13,14 @@ MESSAGE( STATUS "---------------------------------------------------------------
 #--- Find and check PDA -------------------------------------------------------
 
 include(CMakePda.txt)
+
+#--- Define whether SHM is used or not ----------------------------------------
+
+option(MyOption "SHM" OFF)
+if(${SHM})
+    add_definitions(-DSHM)
+    MESSAGE( STATUS "Librorc is going to be compiled with SHM support!")
+endif(${SHM})
 
 #--- Compile LibRORC in Simulation mode ---------------------------------------
 
@@ -67,6 +75,8 @@ FILE(GLOB files "${CMAKE_CURRENT_SOURCE_DIR}/include/librorc/*.h*")
 INSTALL(FILES ${files} DESTINATION include/librorc)
 
 INSTALL(TARGETS rorc LIBRARY DESTINATION lib )
+
+MESSAGE( STATUS "Install directory   = ${CMAKE_INSTALL_PREFIX}")
 
 #--- Setup CPack --------------------------------------------------------------
 
