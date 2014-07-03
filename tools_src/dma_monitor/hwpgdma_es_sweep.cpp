@@ -263,7 +263,7 @@ int main( int argc, char *argv[])
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef SIM
+    #ifdef MODELSIM
         bar = new librorc::sim_bar(dev, 1);
     #else
         bar = new librorc::rorc_bar(dev, 1);

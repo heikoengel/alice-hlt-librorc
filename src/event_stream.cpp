@@ -104,7 +104,7 @@ namespace LIBRARY_NAME
             if( !m_called_with_bar )
             {
                 m_dev = new librorc::device(m_deviceId);
-                #ifdef SIM
+                #ifdef MODELSIM
                     m_bar1 = new librorc::sim_bar(m_dev, 1);
                 #else
                     m_bar1 = new librorc::rorc_bar(m_dev, 1);

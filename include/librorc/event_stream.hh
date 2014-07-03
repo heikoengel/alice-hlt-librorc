@@ -35,7 +35,7 @@
 #define MAX_EVENTS_PER_ITERATION 0x0
 
 /** Buffer Sizes (in Bytes) **/
-#ifndef SIM
+#ifndef MODELSIM
     #define EBUFSIZE (((uint64_t)1) << 28)
     #define STAT_INTERVAL 1.0
 #else

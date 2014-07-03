@@ -41,7 +41,7 @@ device::device(int32_t device_index)
     const char *pci_ids[] =
     {
         "10dc 01a0", /* CRORC as registered at CERN */
-#ifdef SIM
+#ifdef MODELSIM
         "17aa 1e22", /* Heikos SMBus Controller for modelsim*/
         "8086 1e22", /* Heikos SMBus Controller for modelsim*/
 #endif
