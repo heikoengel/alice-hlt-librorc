@@ -547,7 +547,7 @@ namespace LIBRARY_NAME
     bool
     link::dmaEngineIsActive()
     {
-        return ((pciReg(RORC_REG_DMA_CTRL) & 0x1)==0x0);
+        return ((pciReg(RORC_REG_DMA_CTRL) & 0x1)==0x1);
     }
 
 

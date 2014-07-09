@@ -62,6 +62,7 @@ Instruction parameters :                                     \n\
   -s              Show flash status                          \n\
   -r              Reset Flash                                \n\
   -m              Show CRORC monitor stats                   \n\
+  -b [0,1]        Set CRORC bracket LED blinking on/off      \n\
 Examples :                                                   \n\
 Show status of Device 0 Flash 0:                             \n\
   rorctl -n 0 -c 0 -s                                        \n\
@@ -96,6 +97,13 @@ void
 print_device
 (
     uint8_t index
+);
+
+void
+set_led_blink_mode
+(
+    uint8_t index,
+    uint32_t mode
 );
 
 inline
@@ -149,7 +157,7 @@ int main
     {
         opterr = 0;
         int c;
-        while((c = getopt(argc, argv, "hvlmdepn:f:c:sr")) != -1)
+        while((c = getopt(argc, argv, "hvlmdepn:f:c:srb:")) != -1)
         {
             switch(c)
             {
@@ -269,6 +277,12 @@ int main
                 }
                 break;
 
+                case 'b':
+                {
+                    set_led_blink_mode(options.device_number, atoi(optarg));
+                }
+                break;
+
                 default:
                 {
                     cout << "Unknown parameter (" << c << ")!" << endl;
@@ -305,6 +319,38 @@ print_devices()
     {
         print_device(i);
     }
+}
+
+void
+set_led_blink_mode(
+    uint8_t index,
+    uint32_t mode
+)
+{
+    /** Instantiate device with index <index> */
+    librorc::device *dev = NULL;
+    try{ dev = new librorc::device(index);}
+    catch(...){ exit(0); }
+
+    /** Instantiate a new bar */
+    librorc::bar *bar = NULL;
+    try
+    {
+    #ifdef SIM
+        bar = new librorc::sim_bar(dev, 1);
+    #else
+        bar = new librorc::rorc_bar(dev, 1);
+    #endif
+    }
+    catch(...)
+    {
+        printf("ERROR: failed to initialize BAR.\n");
+        return;
+    }
+
+    bar->set32(RORC_REG_BRACKET_LED_CTRL, mode<<31);
+    delete bar;
+    delete dev;
 }
 
 

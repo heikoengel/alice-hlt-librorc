@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: 22a59f899bd49c2633bc580cc787b367dbafc0ad
-// short hash: 22a59f8
+// hash: d3a99c299630c28df6f415e0cffa9ec4c18dc88a
+// short hash: d3a99c2
 //
 
-#define RORC_REVISION 0x22a59f8
-#define RORC_BUILD_DATE 0x20140527
+#define RORC_REVISION 0xd3a99c2
+#define RORC_BUILD_DATE 0x20140624
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -28,6 +28,7 @@
 #define RORC_REG_PCIE_CTRL 16
 #define RORC_REG_TYPE_CHANNELS 17
 #define RORC_REG_PCIE_DST_BUSY 18
+#define RORC_REG_BRACKET_LED_CTRL 19
 #define RORC_REG_FAN_CTRL 20
 #define RORC_REG_PCIE_TERR_DROP 21
 #define RORC_REG_UC_SPI_DATA 22
