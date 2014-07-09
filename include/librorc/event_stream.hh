@@ -1,5 +1,5 @@
 /**
- * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>, Heiko Engel <hengel@cern.ch>
  * @date 2013-08-16
  *
  * @section LICENSE
@@ -30,7 +30,10 @@
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
-#define LIBRORC_EVENT_STREAM_ERROR_DMA_CHANNEL_FAILED     3
+#define LIBRORC_EVENT_STREAM_ERROR_BUSY                   4
+#define LIBRORC_EVENT_STREAM_ERROR_INVALID_ES_TYPE        5
+#define LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL        6
+#define LIBRORC_EVENT_STREAM_ERROR_ES_TYPE_NOT_AVAILABLE  8
 
 #define MAX_EVENTS_PER_ITERATION 0x0
 
@@ -112,14 +115,6 @@ class diu;
              (
                 int32_t       deviceId,
                 int32_t       channelId,
-                LibrorcEsType esType,
-                uint64_t      bufferSize
-             );
-
-             event_stream
-             (
-                int32_t       deviceId,
-                int32_t       channelId,
                 LibrorcEsType esType
              );
 
@@ -129,8 +124,7 @@ class diu;
                 librorc::device *dev,
                 librorc::bar    *bar,
                 int32_t          channelId,
-                LibrorcEsType    esType,
-                uint64_t         bufferSize
+                LibrorcEsType    esType
              );
 #endif
 
@@ -141,10 +135,9 @@ class diu;
              * Check if selected channel is available in current
              * firmware and if selected esType is possible for
              * this channel.
-             * @param esType event stream type, LIBRORC_ES_xxx
              * throws exception if check fails.
              **/
-            void checkLinkTypeCompatibility(LibrorcEsType esType);
+            void checkLinkTypeCompatibility();
 
             /**
              * Print the current device status.
@@ -217,7 +210,6 @@ class diu;
              */
             uint64_t handleChannelData(void *user_data);
 
-            void clearSharedMemory();
 
             /**
              * get PatternGenerator instance for current event_stream
@@ -256,6 +248,13 @@ class diu;
              **/
             fastclusterfinder* getFastClusterFinder();
 
+            /**
+             * override the default PCIe packet size from the PCIe
+             * subsystem with a custom value
+             * @param pciePacketSize packet size in Bytes
+             **/
+            void overridePciePacketSize( uint32_t pciePacketSize );
+
 
             void
             packEventIntoBuffer
@@ -288,10 +287,22 @@ class diu;
 
             librorcChannelStatus *m_channel_status;
 
+            int
+            initializeDma
+            (
+                uint64_t      eventBufferId,
+                uint64_t      eventBufferSize
+            );
+
+            int  initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize );
+            void deinitializeDmaBuffers();
+
         protected:
             uint32_t         m_eventSize;
             int32_t          m_deviceId;
             int32_t          m_channelId;
+            LibrorcEsType    m_esType;
+            uint32_t         m_pciePacketSize;
             bool             m_called_with_bar;
             bool            *m_release_map;
             pthread_mutex_t  m_releaseEnable;
@@ -309,14 +320,8 @@ class diu;
             uint64_t        m_event_generation_offset;
             uint64_t        m_last_event_buffer_offset;
 
-            void
-            initializeDmaBuffers
-            (
-                LibrorcEsType esType,
-                uint64_t      eventBufferSize
-            );
+            int      initializeDmaChannel();
 
-            void     initializeDmaChannel(LibrorcEsType esType);
             void     prepareSharedMemory();
             void     deleteParts();
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
@@ -332,6 +337,8 @@ class diu;
                 const uint32_t           *event,
                 uint64_t                 *events_per_iteration
             );
+
+            void clearSharedMemory();
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);

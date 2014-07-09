@@ -197,14 +197,21 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.esType, EBUFSIZE); }
+    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
         return(NULL);
     }
 
-    eventStream->clearSharedMemory();
+    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    {
+        /** override for max read request size to 128B for Supermicro */
+        eventStream->overridePciePacketSize(128);
+    }
+
+    if( eventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
+    { return NULL; }
 
     return(eventStream);
 }
@@ -222,13 +229,21 @@ prepareEventStream
     librorc::event_stream *eventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.esType, EBUFSIZE); }
+    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
         return(NULL);
     }
-    eventStream->clearSharedMemory();
+
+    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    {
+        /** override for max read request size to 128B for Supermicro */
+        eventStream->overridePciePacketSize(128);
+    }
+
+    if( eventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
+    { return NULL; }
 
     return(eventStream);
 }
@@ -620,8 +635,6 @@ configureDataSource
 
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     {
-        /** override for max read request size to 128B for Supermicro */
-        eventStream->m_channel->setPciePacketSize(128);
         configureSiu(eventStream, opts);
     }
 

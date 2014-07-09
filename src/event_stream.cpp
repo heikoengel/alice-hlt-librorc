@@ -1,6 +1,6 @@
 /**
  * @file
- * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
+ * @author Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>, Heiko Engel <hengel@cern.ch>
  * @date 2013-08-16
  *
  * @section LICENSE
@@ -40,34 +40,15 @@ namespace LIBRARY_NAME
     (
         int32_t       deviceId,
         int32_t       channelId,
-        LibrorcEsType esType,
-        uint64_t      bufferSize
-    )
-    {
-        m_deviceId        = deviceId;
-        m_called_with_bar = false;
-        m_channelId       = channelId;
-
-        initMembers();
-        initializeDmaBuffers(esType, bufferSize);
-        initializeDmaChannel(esType);
-        prepareSharedMemory();
-    }
-
-    event_stream::event_stream
-    (
-        int32_t       deviceId,
-        int32_t       channelId,
         LibrorcEsType esType
     )
     {
         m_deviceId        = deviceId;
         m_called_with_bar = false;
         m_channelId       = channelId;
+        m_esType          = esType;
 
         initMembers();
-        initializeDmaBuffers(esType, 0);
-        initializeDmaChannel(esType);
         prepareSharedMemory();
     }
 
@@ -76,8 +57,7 @@ namespace LIBRARY_NAME
         librorc::device *dev,
         librorc::bar    *bar,
         int32_t          channelId,
-        LibrorcEsType    esType,
-        uint64_t         bufferSize
+        LibrorcEsType    esType
     )
     {
         m_dev             = dev;
@@ -85,12 +65,32 @@ namespace LIBRARY_NAME
         m_deviceId        = dev->getDeviceId();
         m_called_with_bar = true;
         m_channelId       = channelId;
+        m_esType          = esType;
 
         initMembers();
-        initializeDmaBuffers(esType, bufferSize);
-        initializeDmaChannel(esType);
         prepareSharedMemory();
     }
+
+    int
+    event_stream::initializeDma
+    (
+        uint64_t bufferId,
+        uint64_t bufferSize
+    )
+    {
+        if( initializeDmaBuffers(bufferId, bufferSize) != 0 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA buffers");
+            return -1;
+        }
+        if( initializeDmaChannel() != 0 )
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA channel");
+            return -1;
+        }
+        return 0;
+    }
+
 
     void
     event_stream::initMembers()
@@ -99,22 +99,22 @@ namespace LIBRARY_NAME
         m_event_callback   = NULL;
         m_status_callback  = NULL;
         m_raw_event_buffer = NULL;
-        try
+        m_eventBuffer      = NULL;
+        m_reportBuffer     = NULL;
+
+        if( !m_called_with_bar )
         {
-            if( !m_called_with_bar )
+            try
             {
                 m_dev = new librorc::device(m_deviceId);
-                #ifdef MODELSIM
-                    m_bar1 = new librorc::sim_bar(m_dev, 1);
-                #else
-                    m_bar1 = new librorc::rorc_bar(m_dev, 1);
-                #endif
+#ifdef MODELSIM
+                m_bar1 = new librorc::sim_bar(m_dev, 1);
+#else
+                m_bar1 = new librorc::rorc_bar(m_dev, 1);
+#endif
             }
-        }
-        catch(...)
-        {
-            cout << "initMembers failed!" << endl;
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            catch(...)
+            { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
         }
 
         /** check if selected channel is available in current FW */
@@ -124,15 +124,35 @@ namespace LIBRARY_NAME
             cout << "ERROR: Requsted channel " << m_channelId
                  << " is not implemented in firmware "
                  << "- exiting" << endl;
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL;
         }
         m_fwtype                  = m_sm->firmwareType();
         m_link                    = new librorc::link(m_bar1, m_channelId);
         m_linktype                = m_link->linkType();
         m_event_generation_offset = 0;
 
+        if( m_link->dmaEngineIsActive() )
+        { throw LIBRORC_EVENT_STREAM_ERROR_BUSY; }
+
+        // get default pciePacketSize from device
+        switch(m_esType)
+        {
+            case LIBRORC_ES_TO_DEVICE:
+                m_pciePacketSize = m_dev->maxReadRequestSize();
+                break;
+            case LIBRORC_ES_TO_HOST:
+                m_pciePacketSize = m_dev->maxPayloadSize();
+                break;
+            default:
+                throw LIBRORC_EVENT_STREAM_ERROR_INVALID_ES_TYPE;
+                break;
+        }
+
         pthread_mutex_init(&m_releaseEnable, NULL);
         pthread_mutex_init(&m_getEventEnable, NULL);
+
+        /** make sure requested channel is available for selected esType */
+        checkLinkTypeCompatibility();
     }
 
 
@@ -158,24 +178,27 @@ namespace LIBRARY_NAME
     void
     event_stream::deleteParts()
     {
-        delete m_sm;
-        delete m_channel;
-        delete m_eventBuffer;
-        delete m_reportBuffer;
-        delete m_link;
-        delete[] m_release_map;
+        if( m_sm )
+        { delete m_sm; }
+        if( m_channel )
+        { delete m_channel; }
+        if( m_link )
+        { delete m_link; }
+        deinitializeDmaBuffers();
         if( !m_called_with_bar )
         {
-            delete m_bar1;
-            delete m_dev;
+            if( m_bar1 )
+            { delete m_bar1; }
+            if( m_dev )
+            { delete m_dev; }
         }
     }
 
     void
-    event_stream::checkLinkTypeCompatibility(LibrorcEsType esType)
+    event_stream::checkLinkTypeCompatibility()
     {
         bool fwOK;
-        switch(esType)
+        switch(m_esType)
         {
             case LIBRORC_ES_TO_HOST:
             { fwOK = (m_linktype!=RORC_CFG_LINK_TYPE_SIU); }
@@ -190,60 +213,46 @@ namespace LIBRARY_NAME
 
         if( !fwOK )
         {
-            cout << "ERROR: selected event stream type not "
-                 << "available for this channel!"
-                 << endl;
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            DEBUG_PRINTF(PDADEBUG_ERROR, "ERROR: selected event stream type \
+                    not available for this channel!");
+            throw LIBRORC_EVENT_STREAM_ERROR_ES_TYPE_NOT_AVAILABLE;
         }
     }
 
-    void
+    int
     event_stream::initializeDmaBuffers
     (
-        LibrorcEsType esType,
+        uint64_t      eventBufferId,
         uint64_t      eventBufferSize
     )
     {
-        /** make sure requested channel is available for selected esType */
-        checkLinkTypeCompatibility(esType);
-
-        /** TODO : remove this? */
-        /** set EventBuffer DMA direction according to EventStream type */
-        int32_t dma_direction;
-        switch (esType)
-        {
-            case LIBRORC_ES_TO_DEVICE:
-            { dma_direction = LIBRORC_DMA_TO_DEVICE; }
-            break;
-
-            default:
-            { dma_direction = LIBRORC_DMA_FROM_DEVICE; }
-            break;
-        }
-
         try
         {
-            if(eventBufferSize != 0)
+            // allocate a new buffer if a size was provided, else connect
+            // to existing buffer
+            if( eventBufferSize )
             {
                 m_eventBuffer =
                     new librorc::buffer
-                        (m_dev, eventBufferSize, (2*m_channelId), 1, dma_direction);
-
-                uint64_t reportBufferSize
-                    = (eventBufferSize / m_dev->maxPayloadSize())
-                    * sizeof(librorc_event_descriptor);
-                m_reportBuffer =
-                    new librorc::buffer
-                        (m_dev, reportBufferSize, (2*m_channelId+1), 1, LIBRORC_DMA_FROM_DEVICE);
-            } else {
-                m_eventBuffer  = new librorc::buffer(m_dev, (2*m_channelId));
-                m_reportBuffer = new librorc::buffer(m_dev, (2*m_channelId+1));
+                    (m_dev, eventBufferSize, eventBufferId, 1);
             }
+            else
+            { m_eventBuffer = new librorc::buffer(m_dev, eventBufferId); }
+
+            uint64_t reportBufferSize
+                = (m_eventBuffer->size()/ m_pciePacketSize)
+                * sizeof(librorc_event_descriptor);
+
+            // ReportBuffer uses by default EventBuffer-ID + 1
+            m_reportBuffer =
+                new librorc::buffer
+                (m_dev, reportBufferSize, (m_eventBuffer->getID()+1), 1);
         }
         catch(...)
         {
-            cout << "initializeDmaBuffers failed" << endl;
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            // TODO: different return codes for different exceptions
+            // TODO: which exceptions can be thrown?
+            return -1;
         }
 
         m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
@@ -255,25 +264,43 @@ namespace LIBRARY_NAME
 
         for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
+        return 0;
+    }
+
+    void
+    event_stream::deinitializeDmaBuffers()
+    {
+        if( m_eventBuffer )
+        { delete m_eventBuffer; }
+        if( m_reportBuffer )
+        { delete m_reportBuffer; }
+        if( m_release_map )
+        { delete[] m_release_map; }
     }
 
 
-
     void
-    event_stream::initializeDmaChannel(LibrorcEsType esType)
+    event_stream::overridePciePacketSize( uint32_t pciePacketSize )
     {
-        uint32_t max_pkt_size = 0;
-        if( esType == LIBRORC_ES_TO_HOST )
-        { max_pkt_size = m_dev->maxPayloadSize(); }
-        else
-        { max_pkt_size = m_dev->maxReadRequestSize(); }
+        //TODO: validity checks here?!
+        m_pciePacketSize = pciePacketSize;
+        if(m_channel)
+        { m_channel->setPciePacketSize(pciePacketSize); }
+    }
+
+
+    int
+    event_stream::initializeDmaChannel()
+    {
+        if( m_eventBuffer==NULL || m_reportBuffer==NULL )
+        { return -1; }
 
         try
         {
             m_channel = new librorc::dma_channel
                 (
                  m_channelId,
-                 max_pkt_size,
+                 m_pciePacketSize,
                  m_dev,
                  m_bar1,
                  m_eventBuffer,
@@ -281,9 +308,10 @@ namespace LIBRARY_NAME
                 );
         }
         catch(...)
-        { throw(LIBRORC_EVENT_STREAM_ERROR_DMA_CHANNEL_FAILED); }
+        { return -1; }
 
         m_channel->enable();
+        return 0;
     }
 
 
@@ -322,6 +350,7 @@ namespace LIBRARY_NAME
         #endif
 
         m_channel_status = (librorcChannelStatus*)shm;
+        clearSharedMemory();
     }
 
 
