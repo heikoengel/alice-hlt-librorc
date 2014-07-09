@@ -99,8 +99,7 @@ class buffer_sglist_programmer;
                  device   *dev,
                  uint64_t  size,
                  uint64_t  id,
-                 int32_t   overmap,
-                 int32_t   dma_direction
+                 int32_t   overmap
              );
 
              /**
@@ -206,6 +205,33 @@ class buffer_sglist_programmer;
             { return( size()/sizeof(librorc_event_descriptor) ); }
 
 
+            /**
+             * resolv buffer offset to physical DMA address
+             * @param offset buffer offset to be resolved
+             * @param phys_addr pointer to uint64_t to save the physical address
+             * @return true on success, false if the offset was not found in the buffer
+             **/
+            bool
+            offsetToPhysAddr
+            (
+                uint64_t offset,
+                uint64_t *phys_addr
+            );
+
+            /**
+             * resolv a physical DMA address to buffer offset
+             * @param phys_addr physical address to be resolved
+             * @param offset pointer to uint64_t to save the buffer offset
+             * @return true on success, false if the physical address was not
+             * found in the buffer
+             **/
+            bool
+            physAddrToOffset
+            (
+                uint64_t phys_addr,
+                uint64_t *offset
+            );
+
         /**
          * @internal
          */
@@ -219,7 +245,6 @@ class buffer_sglist_programmer;
 
             uint32_t         *m_mem;
             uint64_t          m_id;
-            int32_t           m_dmaDirection;
             uint64_t          m_numberOfScatterGatherEntries;
             uint64_t          m_size;
 

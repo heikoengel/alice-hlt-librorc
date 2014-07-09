@@ -412,7 +412,7 @@ void
 dma_channel::disable()
 {
     // suspend DMA transfer only if active
-    if( DMAConfig() & 0x01 )
+    if( m_link->dmaEngineIsActive() )
     {
         setSuspend(1);
 

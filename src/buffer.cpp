@@ -36,15 +36,20 @@ buffer::buffer
     device   *dev,
     uint64_t  size,
     uint64_t  id,
-    int32_t   overmap,
-    int32_t   dma_direction
+    int32_t   overmap
 )
 {
-    m_dmaDirection      = dma_direction;
     m_device            = dev->getPdaPciDevice();
 
     bool newAllocNeeded = false;
     m_buffer            = NULL;
+
+    if( size == 0 )
+    {
+        DEBUG_PRINTF(PDADEBUG_ERROR, "Requested buffer of size 0");
+        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+    }
+
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     { newAllocNeeded = true; }
     else
@@ -191,5 +196,49 @@ buffer::deallocate()
 }
 
 
+bool
+buffer::offsetToPhysAddr
+(
+    uint64_t offset,
+    uint64_t *phys_addr
+)
+{
+    std::vector<librorc_sg_entry>::iterator iter;
+    uint64_t reference_offset = 0;
+    for( iter=m_sglist_vector.begin(); iter!=m_sglist_vector.end(); iter++ )
+    {
+        if( offset>=reference_offset && offset<(reference_offset+iter->length) )
+        {
+            *phys_addr = iter->pointer + (offset - reference_offset);
+            return true;
+        }
+        else
+        { reference_offset += iter->length; }
+    }
+    return false;
+}
+
+
+bool
+buffer::physAddrToOffset
+(
+    uint64_t phys_addr,
+    uint64_t *offset
+)
+{
+    std::vector<librorc_sg_entry>::iterator iter;
+    uint64_t reference_offset = 0;
+    for( iter=m_sglist_vector.begin(); iter!=m_sglist_vector.end(); iter++ )
+    {
+        if( phys_addr>=iter->pointer && phys_addr<(iter->pointer+iter->length) )
+        {
+            *offset = reference_offset + (phys_addr - iter->pointer);
+            return true;
+        }
+        else
+        { reference_offset += iter->length; }
+    }
+    return false;
+}
 
 }

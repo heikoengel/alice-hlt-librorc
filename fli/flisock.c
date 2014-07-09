@@ -20,7 +20,7 @@
 // 0.2       Heiko Engel     22 Sep 2011   Adjusted for CRORC, Modelsim SE 10.0c_1
 //==============================================================================
 
-#ifdef SIM
+#ifdef MODELSIM
 
 #include <stdio.h>
 #include <math.h>

@@ -541,13 +541,13 @@ namespace LIBRARY_NAME
     void
     link::disableDmaEngine()
     {
-        /**
-         * disable EBDM + RBDM
-         * disable Packetizer
-         * Reset D_FIFO
-         * Reset MaxPayload
-         **/
         setPciReg(RORC_REG_DMA_CTRL, 0X00000002);
+    }
+
+    bool
+    link::dmaEngineIsActive()
+    {
+        return ((pciReg(RORC_REG_DMA_CTRL) & 0x1)==0x0);
     }
 
 

@@ -218,8 +218,16 @@ namespace LIBRARY_NAME
              **/
             uint64_t getRBSize();
 
-
+            /**
+             * kill DMA engine.
+             **/
             void disableDmaEngine();
+
+            /**
+             * check if DMA engine is running.
+             * @return true if running, false if stopped
+             **/
+            bool dmaEngineIsActive();
 
 
 
