@@ -119,19 +119,44 @@ namespace LIBRARY_NAME
              * [30]  : select target RAM, 0->EventBufferRAM, 1->ReportBufferRAM
              * [29:0]: RAM address
              **/
-            void pushSglistEntryToRAM( uint64_t sg_addr, uint32_t sg_len, uint32_t ctrl)
+            void pushSglistEntryToRAM
+            (
+                uint64_t  sg_address,
+                size_t    sg_length,
+                uint32_t  control,
+                uint64_t *i
+            )
             {
-                librorc_sg_entry_config sg_entry;
-                /** Convert sg list into CRORC compatible format */
-                sg_entry.sg_addr_low  = (uint32_t)(sg_addr & 0xffffffff);
-                sg_entry.sg_addr_high = (uint32_t)(sg_addr >> 32);
-                sg_entry.sg_len       = (uint32_t)(sg_len & 0xffffffff);
+                size_t length      = 0;
 
-                /** Write librorc_dma_desc to RORC BufferDescriptorManager */
-                m_link->getBar()->memcopy
-                    ( (librorc_bar_address)(m_link->base()+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
-                // write to CTRL may only happen once, so this is not included into the memcopy
-                m_link->setPciReg(RORC_REG_SGENTRY_CTRL, ctrl);
+                for(uint64_t address=sg_address; address<(sg_address+sg_length); address=(address+length))
+                {
+                    if( ((sg_address+sg_length) - address) > 0xffffffff )
+                    { length = 0xffffffff; }
+                    else
+                    { length = (sg_address+sg_length) - address; }
+
+                    librorc_sg_entry_config sg_entry;
+                    /** Convert sg list into CRORC compatible format */
+                    sg_entry.sg_addr_low  = (uint32_t)(address & 0xffffffff);
+                    sg_entry.sg_addr_high = (uint32_t)(address >> 32);
+                    sg_entry.sg_len       = (uint32_t)(length  & 0xffffffff);
+
+                    /** Write librorc_dma_desc to RORC BufferDescriptorManager */
+                    m_link->getBar()->memcopy
+                    (
+                        (librorc_bar_address)(m_link->base()+RORC_REG_SGENTRY_ADDR_LOW),
+                        &sg_entry,
+                        sizeof(sg_entry)
+                    );
+
+                    /**
+                     * write to CTRL may only happen once, so this is not
+                     * included into the memcopy
+                     */
+                    m_link->setPciReg(RORC_REG_SGENTRY_CTRL, control);
+                    i[0]++;
+                }
             }
 
             void programSglistIntoDescriptorRAM()
@@ -142,12 +167,17 @@ namespace LIBRARY_NAME
                 for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
                 {
                     ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
-                    pushSglistEntryToRAM((uint64_t)sg->d_pointer, sg->length, ctrl);
-                    i++;
+                    pushSglistEntryToRAM
+                    (
+                        (uint64_t)sg->d_pointer,
+                        sg->length,
+                        ctrl,
+                        &i
+                    );
                 }
                 // clear trailing descriptor entry
                 ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
-                pushSglistEntryToRAM(0, 0, ctrl);
+                pushSglistEntryToRAM(0, 0, ctrl, &i);
             }
 
     };
