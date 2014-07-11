@@ -127,14 +127,13 @@ namespace LIBRARY_NAME
                 uint64_t *i
             )
             {
-                size_t length      = 0;
+                size_t length = 0;
 
                 for(uint64_t address=sg_address; address<(sg_address+sg_length); address=(address+length))
                 {
-                    if( ((sg_address+sg_length) - address) > 0xffffffff )
-                    { length = 0xffffffff; }
-                    else
-                    { length = (sg_address+sg_length) - address; }
+                    length = (((sg_address+sg_length) - address) > 0xffffffff)
+                           ? 0xffffffff
+                           : ((sg_address+sg_length)-address);
 
                     librorc_sg_entry_config sg_entry;
                     /** Convert sg list into CRORC compatible format */
