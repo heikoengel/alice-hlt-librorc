@@ -49,37 +49,30 @@ namespace LIBRARY_NAME
                 uint32_t sg_addr_low;  /** lower part of sg address **/
                 uint32_t sg_addr_high; /** higher part of sg address **/
                 uint32_t sg_len;       /** total length of sg entry in bytes **/
-                uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
             } librorc_sg_entry_config;
 
             buffer_sglist_programmer
             (
                 dma_channel *dmaChannel,
                 buffer      *buf,
-                bar         *bar,
-                uint32_t     base,
-                uint32_t     flag
+                uint32_t     target
             )
             {
                 m_buffer         = buf;
-                m_bar            = bar;
-                m_base           = base;
-                m_flag           = flag;
-                m_bdcfg          = dmaChannel->getLink()->pciReg(flag);
-                m_pda_dma_buffer = m_buffer->getPDABuffer();
+                m_link           = dmaChannel->getLink();
+                m_bdcfg          = 0;
                 m_sglist         = NULL;
-                m_target_ram     = 0;
+                m_target_ram     = target;
             }
 
             int32_t program()
             {
                 try
                 {
-                    selectTargetDescriptorRAM();
+                    readSelectedRAMStatus();
                     CheckSglistFitsIntoDescriptorRAM();
                     getSglistFromPDA();
                     programSglistIntoDescriptorRAM();
-                    clearTrailingDescriptorRAMEntry();
                 }
                 catch(...){ return -1; }
 
@@ -91,24 +84,19 @@ namespace LIBRARY_NAME
             uint32_t                 m_target_ram;
             buffer                  *m_buffer;
             uint32_t                 m_bdcfg;
-            DMABuffer               *m_pda_dma_buffer;
             DMABuffer_SGNode        *m_sglist;
-            uint32_t                 m_flag;
-            bar                     *m_bar;
-            uint32_t                 m_base;
+            link                    *m_link;
 
-            void selectTargetDescriptorRAM()
+            void readSelectedRAMStatus()
             {
-                switch(m_flag)
+                switch(m_target_ram)
                 {
-                    case RORC_REG_RBDM_N_SG_CONFIG:
-                    { m_target_ram = 1; }
-                    break;
-
-                    case RORC_REG_EBDM_N_SG_CONFIG:
-                    { m_target_ram = 0; }
-                    break;
-
+                    case 0:
+                        { m_bdcfg = m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG); }
+                        break;
+                    case 1:
+                        { m_bdcfg = m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG); }
+                        break;
                     default:
                     { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
                 }
@@ -122,38 +110,44 @@ namespace LIBRARY_NAME
 
             void getSglistFromPDA()
             {
-                if(PDA_SUCCESS != DMABuffer_getSGList(m_pda_dma_buffer, &m_sglist) )
+                if(PDA_SUCCESS != DMABuffer_getSGList(m_buffer->getPDABuffer(), &m_sglist) )
                 { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
+            }
+
+            /** ctrl encoding:
+             * [31]  : write-enable to write sg_entry to RAM
+             * [30]  : select target RAM, 0->EventBufferRAM, 1->ReportBufferRAM
+             * [29:0]: RAM address
+             **/
+            void pushSglistEntryToRAM( uint64_t sg_addr, uint32_t sg_len, uint32_t ctrl)
+            {
+                librorc_sg_entry_config sg_entry;
+                /** Convert sg list into CRORC compatible format */
+                sg_entry.sg_addr_low  = (uint32_t)(sg_addr & 0xffffffff);
+                sg_entry.sg_addr_high = (uint32_t)(sg_addr >> 32);
+                sg_entry.sg_len       = (uint32_t)(sg_len & 0xffffffff);
+
+                /** Write librorc_dma_desc to RORC BufferDescriptorManager */
+                m_link->getBar()->memcopy
+                    ( (librorc_bar_address)(m_link->base()+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+                // write to CTRL may only happen once, so this is not included into the memcopy
+                m_link->setPciReg(RORC_REG_SGENTRY_CTRL, ctrl);
             }
 
             void programSglistIntoDescriptorRAM()
             {
                 uint64_t i = 0;
-                librorc_sg_entry_config sg_entry;
+                uint32_t ctrl;
+                // write scatter gather list into BufferDescriptorRAM
                 for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
                 {
-                    /** Convert sg list into CRORC compatible format */
-                    sg_entry.sg_addr_low  = (uint32_t)( (uint64_t)(sg->d_pointer) & 0xffffffff);
-                    sg_entry.sg_addr_high = (uint32_t)( (uint64_t)(sg->d_pointer) >> 32);
-                    sg_entry.sg_len       = (uint32_t)(sg->length & 0xffffffff);
-
-                    sg_entry.ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
-
-                    /** Write librorc_dma_desc to RORC BufferDescriptorManager */
-                    m_bar->memcopy
-                        ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+                    ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
+                    pushSglistEntryToRAM((uint64_t)sg->d_pointer, sg->length, ctrl);
                     i++;
                 }
-            }
-
-            void clearTrailingDescriptorRAMEntry()
-            {
-                librorc_sg_entry_config sg_entry;
-                memset(&sg_entry, 0, sizeof(sg_entry) );
-                sg_entry.ctrl = (1 << 31) | (m_target_ram << 30) | m_buffer->getnSGEntries();
-
-                m_bar->memcopy
-                    ( (librorc_bar_address)(m_base+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+                // clear trailing descriptor entry
+                ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
+                pushSglistEntryToRAM(0, 0, ctrl);
             }
 
     };
@@ -257,8 +251,8 @@ namespace LIBRARY_NAME
                 offsets.dma_ctrl =
                     SYNC_SOFTWARE_READ_POINTERS | // sync pointers)
                     SET_CHANNEL_AS_PCIE_TAG | // set channel ID as tag
-                    (1<<2)  | // enable EB
-                    (1<<3)  | // enable RB
+                    (1<<DMACTRL_EBDM_ENABLE_BIT)  | // enable EB
+                    (1<<DMACTRL_RBDM_ENABLE_BIT)  | // enable RB
                     (1<<0);   // enable DMA engine
 
                 m_bar->memcopy
@@ -281,17 +275,17 @@ namespace LIBRARY_NAME
 
             void checkPacketSize()
             {
-                /** packet size must be a multiple of 4 DW / 16 bytes */
-                if(m_pcie_packet_size & 0xf)
-                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
-                else if(m_pcie_packet_size > 512)
-                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
-                else if(m_pcie_packet_size == 0)
-                    { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
-
-                /**TODO : hlt_in  -> not more than 256B
-                 *        hlt_out -> max_rd_req not more than 512B
-                 */
+                /*
+                 * Rules
+                 * - multiple of 4DWs / 16 bytes
+                 * - must not be zero
+                 * - less or equal 512 for HLT_OUT
+                 * - less or equal for HLT_IN
+                 **/
+                if( (m_pcie_packet_size & 0xf) || (m_pcie_packet_size==0) ||
+                        (m_pcie_packet_size>512 && m_dma_channel->m_esType==LIBRORC_ES_TO_DEVICE) ||
+                        (m_pcie_packet_size>256 && m_dma_channel->m_esType==LIBRORC_ES_TO_HOST) )
+                { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
             }
 
             void fillConfigurationStructure()
@@ -371,10 +365,11 @@ dma_channel::dma_channel
     device   *dev,
     bar      *bar,
     buffer   *eventBuffer,
-    buffer   *reportBuffer
+    buffer   *reportBuffer,
+    LibrorcEsType esType
 )
 {
-    initMembers(pcie_packet_size, dev, bar, channel_number, eventBuffer, reportBuffer);
+    initMembers(pcie_packet_size, dev, bar, channel_number, eventBuffer, reportBuffer, esType);
     prepareBuffers();
 }
 
@@ -631,7 +626,8 @@ dma_channel::getDMABusy()
         bar      *bar,
         uint32_t  channel_number,
         buffer   *eventBuffer,
-        buffer   *reportBuffer
+        buffer   *reportBuffer,
+        LibrorcEsType esType
     )
     {
         m_channel_number = channel_number;
@@ -641,6 +637,7 @@ dma_channel::getDMABusy()
         m_reportBuffer   = reportBuffer;
         m_link           = new link(bar, channel_number);
         m_sm             = new sysmon(bar);
+        m_esType         = esType;
 
         if(m_reportBuffer != NULL)
         {
@@ -669,10 +666,15 @@ dma_channel::getDMABusy()
         if( m_channel_number >= m_sm->numberOfChannels() )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-        if( (m_eventBuffer!=NULL) && (m_reportBuffer!=NULL) )
+        if( (m_eventBuffer==NULL) || (m_reportBuffer==NULL) )
+        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+        else
         {
-            if(programSglistForEventBuffer(m_eventBuffer) < 0)
-            { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+            if( m_esType == LIBRORC_ES_TO_HOST )
+            {
+                if(programSglistForEventBuffer(m_eventBuffer) < 0)
+                { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+            }
 
             if(programSglistForReportBuffer(m_reportBuffer) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
@@ -697,7 +699,7 @@ dma_channel::getDMABusy()
     )
     {
         buffer_sglist_programmer
-            programmer(this, buf, m_bar, m_link->base(), RORC_REG_EBDM_N_SG_CONFIG);
+            programmer(this, buf, 0);
         return(programmer.program());
     }
 
@@ -710,7 +712,7 @@ dma_channel::getDMABusy()
     )
     {
         buffer_sglist_programmer
-            programmer(this, buf, m_bar, m_link->base(), RORC_REG_RBDM_N_SG_CONFIG);
+            programmer(this, buf, 1);
         return(programmer.program());
     }
 

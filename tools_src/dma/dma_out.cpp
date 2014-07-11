@@ -67,7 +67,8 @@ int main( int argc, char *argv[])
 
     eventStream->printDeviceStatus();
 
-    eventStream->setEventCallback(eventCallBack);
+    //eventStream->setEventCallback(eventCallBack);
+    eventStream->setEventCallback(NULL);
 
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
@@ -102,6 +103,40 @@ int main( int argc, char *argv[])
 //    uint64_t number_of_events = eventGen.fillEventBuffer(opts.eventSize);
 //    uint64_t result = eventStream->eventLoop((void*)&checker);
 
+    // fill EB
+    const uint32_t EVENT_SIZE = 0x404;
+    const uint64_t event_id = 0;
+    uint32_t *eb = eventStream->m_eventBuffer->getMem();
+    eb[0] = 0xffffffff;
+    eb[1] = event_id & 0xfff;
+    eb[2] = ((event_id>>12) & 0x00ffffff);
+    eb[3] = 0x00000000; // PGMode / participating subdetectors
+    eb[4] = 0x00000000; // mini event id, error flags, MBZ
+    eb[5] = 0xaffeaffe; // trigger classes low
+    eb[6] = 0x00000000; // trigger classes high, MBZ, ROI
+    eb[7] = 0xdeadbeaf; // ROI high
+    for( uint32_t i=8; i<(EVENT_SIZE/4); i++ )
+    { eb[i] = i-8; }
+
+    typedef struct
+        __attribute__((__packed__))
+        {
+            uint32_t sg_addr_low;  /** lower part of sg address **/
+            uint32_t sg_addr_high; /** higher part of sg address **/
+            uint32_t sg_len;       /** total length of sg entry in bytes **/
+            uint32_t ctrl;         /** BDM control register: [31]:we, [30]:sel, [29:0]BRAM addr **/
+        } librorc_sg_entry_config;
+
+    librorc_sg_entry_config sg;
+    uint64_t phys_addr;
+    if( !eventStream->m_eventBuffer->offsetToPhysAddr(0, &phys_addr) )
+    { cout << "Failed to resolv physical address for offset" << endl; }
+    sg.sg_addr_low = (phys_addr & 0xffffffff);
+    sg.sg_addr_high = (phys_addr>>32);
+    sg.sg_len = EVENT_SIZE/4;
+    sg.ctrl = (1<<31);
+    eventStream->m_bar1->memcopy(eventStream->m_link->base()+RORC_REG_SGENTRY_ADDR_LOW, &sg, sizeof(sg));
+
     /** capture starting time */
     timeval start_time;
     eventStream->m_bar1->gettime(&start_time, 0);
@@ -117,10 +152,11 @@ int main( int argc, char *argv[])
         if( opts.datasource==ES_SRC_DMA)
         {
             /** Data is fed via DMA */
-            number_of_events = eventGen.fillEventBuffer(opts.eventSize);
+            /*number_of_events = eventGen.fillEventBuffer(opts.eventSize);
 
             if( number_of_events > 0 )
             { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
+            */
 
             if(eventStream->handleChannelData(&checker) == 0)
             { usleep(100); }

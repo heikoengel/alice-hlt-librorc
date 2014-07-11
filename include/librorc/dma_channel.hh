@@ -72,7 +72,8 @@ namespace LIBRARY_NAME
                 device   *dev,
                 bar      *bar,
                 buffer   *eventBuffer,
-                buffer   *reportBuffer
+                buffer   *reportBuffer,
+                LibrorcEsType esType
              );
 
             virtual ~dma_channel();
@@ -299,6 +300,7 @@ namespace LIBRARY_NAME
             sysmon   *m_sm;
             bar      *m_bar;
             uint32_t  m_channel_number;
+            LibrorcEsType m_esType;
 
             dma_channel_configurator *m_channelConfigurator;
 
@@ -310,7 +312,8 @@ namespace LIBRARY_NAME
                 bar      *bar,
                 uint32_t  channel_number,
                 buffer   *eventBuffer,
-                buffer   *reportBuffer
+                buffer   *reportBuffer,
+                LibrorcEsType esType
             );
 
             void prepareBuffers();

@@ -304,7 +304,8 @@ namespace LIBRARY_NAME
                  m_dev,
                  m_bar1,
                  m_eventBuffer,
-                 m_reportBuffer
+                 m_reportBuffer,
+                 m_esType
                 );
         }
         catch(...)
@@ -449,6 +450,7 @@ namespace LIBRARY_NAME
     uint64_t
     event_stream::getEventIdFromCdh(uint64_t offset)
     {
+        // TODO: no event/offset size check here - prone to segmentation faults!
         uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
         cur_event_id <<= 12;
         cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
@@ -486,7 +488,7 @@ namespace LIBRARY_NAME
             m_channel_status->index   =  tmp_index;
             *reference                =  m_channel_status->index;
             *report                   = &m_reports[m_channel_status->index];
-            m_channel_status->last_id =  getEventIdFromCdh(dwordOffset(**report));
+            //m_channel_status->last_id =  getEventIdFromCdh(dwordOffset(**report));
             *event                    =  getRawEvent(**report);
         pthread_mutex_unlock(&m_getEventEnable);
         return true;
@@ -553,13 +555,13 @@ namespace LIBRARY_NAME
     )
     {
 
+        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "New RB Entry: offset=0x%lx, calcSize=0x%x, repSize=0x%x\n",
+                report->offset, report->calc_event_size, report->reported_event_size);
+
         events_processed++;
 
-        if(0 != (m_event_callback != NULL) ? m_event_callback(user_data, *report, event, m_channel_status) : 1)
-        {
-            cout << "Event Callback is not set!" << endl;
-            abort();
-        }
+        if( m_event_callback != NULL )
+        { m_event_callback(user_data, *report, event, m_channel_status); }
 
         m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
         m_channel_status->n_events++;
