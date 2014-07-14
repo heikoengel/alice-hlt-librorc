@@ -76,6 +76,14 @@ namespace LIBRARY_NAME
                 LibrorcEsType esType
              );
 
+            typedef struct
+            __attribute__((__packed__))
+            {
+                uint32_t sg_addr_low;  /** lower part of sg address **/
+                uint32_t sg_addr_high; /** higher part of sg address **/
+                uint32_t sg_len;       /** total length of sg entry in bytes **/
+            } librorc_sg_entry_config;
+
             virtual ~dma_channel();
 
             void enable();
@@ -289,6 +297,28 @@ namespace LIBRARY_NAME
              * */
             void printDMAState();
 
+            /**
+             * Fill state of the HLT_OUT event descriptor FIFO
+             * @return number of entries in FIFO
+             **/
+            uint32_t outFifoFillState();
+
+            /**
+             * Maximum number of outstanding HLT_OUT event descriptor
+             * FIFO entries (= FIFO depth). Make sure outFifoFillState()
+             * never exceeds outFifoDepth().
+             * @return maximum number of FIFO entries.
+             **/
+            uint32_t outFifoDepth();
+
+            void
+            pushSglistEntryToRAM
+            (
+                uint64_t sg_addr,
+                uint32_t sg_len,
+                uint32_t ctrl
+            );
+
         protected:
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
@@ -300,6 +330,7 @@ namespace LIBRARY_NAME
             sysmon   *m_sm;
             bar      *m_bar;
             uint32_t  m_channel_number;
+            uint32_t  m_outFifoDepth;
             LibrorcEsType m_esType;
 
             dma_channel_configurator *m_channelConfigurator;

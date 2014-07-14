@@ -92,6 +92,9 @@ namespace LIBRARY_NAME
                 return m_base;
             }
 
+            uint32_t linkNumber()
+            { return m_link_number; }
+
 
             /**********************************************************
              *             Low Level Channel Access
