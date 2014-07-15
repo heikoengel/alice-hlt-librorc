@@ -50,20 +50,23 @@ namespace LIBRARY_NAME
     patterngenerator::disable()
     {
         uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<8); // disable PatternGenerator
-        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
+        if( ddlctrl & (1<<8) )
+        {
+            ddlctrl &= ~(1<<8); // disable PatternGenerator
+            m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
 
-        uint32_t timeout = LIBRORC_PG_TIMEOUT;
-        while(!done() && timeout)
-        {
-            usleep(100);
-        }
-        if(!timeout)
-        {
-            /**
-             * TODO: Log entry PG disable timed out, there may
-             * be event fragments in the FIFOs
-             **/
+            uint32_t timeout = LIBRORC_PG_TIMEOUT;
+            while(!done() && timeout)
+            {
+                usleep(100);
+            }
+            if(!timeout)
+            {
+                /**
+                 * TODO: Log entry PG disable timed out, there may
+                 * be event fragments in the FIFOs
+                 **/
+            }
         }
     }
 
