@@ -451,7 +451,7 @@ event_sanity_checker::check
     librorcChannelStatus     *channel_status
 )
 {
-    uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));
+    uint64_t event_id = 0;//getEventIdFromCdh(dwordOffset(&report));
     check(report, channel_status, event_id);
     return event_id;
 }

@@ -260,11 +260,18 @@ buffer::composeSglistFromBufferSegment
 
         // get physical address and remaining length of current sg entry
         if( !offsetToPhysAddr(cur_offset, &phys_addr, &segment_length) )
-        { return false; }
+        {
+            DEBUG_PRINTF( PDADEBUG_ERROR, "Failed to convert offset %llx "
+                    " to pysical address\n", cur_offset);
+            return false;
+        }
 
         // reduce segment length to a 32bit value if larger
         if( segment_length>>32 )
         { segment_length = (((uint64_t)1)<<32) - PAGE_SIZE; }
+
+        if( segment_length >= rem_size )
+        { segment_length = rem_size; }
 
         // add this as a new librorc_sg_entry
         librorc_sg_entry entry;
