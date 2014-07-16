@@ -115,12 +115,14 @@ namespace LIBRARY_NAME
                 // write scatter gather list into BufferDescriptorRAM
                 for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
                 {
-                    ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
+                    ctrl = SGCTRL_WRITE_ENABLE | (uint32_t)i;
+                    ctrl |= (m_target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
                     m_channel->pushSglistEntryToRAM((uint64_t)sg->d_pointer, sg->length, ctrl);
                     i++;
                 }
                 // clear trailing descriptor entry
-                ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
+                ctrl = SGCTRL_WRITE_ENABLE | (uint32_t)i;
+                ctrl |= (m_target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
                 m_channel->pushSglistEntryToRAM(0, 0, ctrl);
             }
 
@@ -783,4 +785,26 @@ dma_channel::pushSglistEntryToRAM
     {
         return ((DMAConfig()>>10) & 1);
     }
+
+
+    /*******************************************************************
+     *    HLT-OUT related
+     ******************************************************************/
+    void
+    dma_channel::announceEvent
+    (
+        std::vector<librorc_sg_entry> sglist
+    )
+    {
+        std::vector<librorc_sg_entry>::iterator iter;
+        for(iter=sglist.begin(); iter!=sglist.end(); iter++)
+        {
+            uint32_t ctrl = SGCTRL_WRITE_ENABLE | SGCTRL_TARGET_EBDMRAM;
+            // add EOE flag for last entry
+            if( (iter+1) == sglist.end() )
+            { ctrl |= SGCTRL_EOE_FLAG; }
+            pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
+        }
+    }
+
 }

@@ -208,14 +208,19 @@ class buffer_sglist_programmer;
             /**
              * resolv buffer offset to physical DMA address
              * @param offset buffer offset to be resolved
-             * @param phys_addr pointer to uint64_t to save the physical address
+             * @param phys_addr pointer to uint64_t to save the physical
+             * address
+             * @param rem_sg_length pointer to uint64_t to save the
+             * remaining length of the currently addressed scatter gather
+             * segment
              * @return true on success, false if the offset was not found in the buffer
              **/
             bool
             offsetToPhysAddr
             (
                 uint64_t offset,
-                uint64_t *phys_addr
+                uint64_t *phys_addr,
+                uint64_t *rem_sg_length
             );
 
             /**
@@ -232,6 +237,22 @@ class buffer_sglist_programmer;
                 uint64_t *offset
             );
 
+            /**
+             * compose a scatter-gather list of physical start addresses
+             * and lengths for a buffer segment defined by offset and size
+             * @param offset starting offset within the buffer
+             * @param size size of the segment
+             * @param list pointer to a vector list into which the resulting
+             * scatter-gather list is stored
+             * @return true on success, false on error
+             **/
+            bool
+            composeSglistFromBufferSegment
+            (
+                 uint64_t offset,
+                 uint64_t size,
+                 std::vector<librorc_sg_entry> *list
+            );
         /**
          * @internal
          */

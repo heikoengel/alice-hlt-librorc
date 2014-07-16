@@ -200,7 +200,8 @@ bool
 buffer::offsetToPhysAddr
 (
     uint64_t offset,
-    uint64_t *phys_addr
+    uint64_t *phys_addr,
+    uint64_t *rem_sg_length
 )
 {
     std::vector<librorc_sg_entry>::iterator iter;
@@ -209,7 +210,8 @@ buffer::offsetToPhysAddr
     {
         if( offset>=reference_offset && offset<(reference_offset+iter->length) )
         {
-            *phys_addr = iter->pointer + (offset - reference_offset);
+            *phys_addr = (uint64_t)iter->pointer + (offset - reference_offset);
+            *rem_sg_length = (uint64_t)iter->length - (offset - reference_offset);
             return true;
         }
         else
@@ -239,6 +241,42 @@ buffer::physAddrToOffset
         { reference_offset += iter->length; }
     }
     return false;
+}
+
+bool
+buffer::composeSglistFromBufferSegment
+(
+    uint64_t offset,
+    uint64_t size,
+    std::vector<librorc_sg_entry> *list
+)
+{
+    uint64_t rem_size = size;
+    uint64_t cur_offset = offset;
+    while(rem_size > 0)
+    {
+        uint64_t phys_addr;
+        uint64_t segment_length;
+
+        // get physical address and remaining length of current sg entry
+        if( !offsetToPhysAddr(cur_offset, &phys_addr, &segment_length) )
+        { return false; }
+
+        // reduce segment length to a 32bit value if larger
+        if( segment_length>>32 )
+        { segment_length = (((uint64_t)1)<<32) - PAGE_SIZE; }
+
+        // add this as a new librorc_sg_entry
+        librorc_sg_entry entry;
+        entry.pointer = phys_addr;
+        entry.length = segment_length;
+        list->push_back(entry);
+
+        // adjust offset and length
+        rem_size -= segment_length;
+        cur_offset += segment_length;
+    }
+    return true;
 }
 
 }
