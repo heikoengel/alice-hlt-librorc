@@ -23,6 +23,7 @@
 #include <librorc/defines.hh>
 #include <librorc/link.hh>
 #include <librorc/sysmon.hh>
+#include <librorc/buffer.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -63,6 +64,11 @@ namespace LIBRARY_NAME
     class dma_channel
     {
         friend class dma_channel_configurator;
+
+#define SGCTRL_WRITE_ENABLE (1<<31)
+#define SGCTRL_TARGET_EBDMRAM (0<<30)
+#define SGCTRL_TARGET_RBDMRAM (1<<30)
+#define SGCTRL_EOE_FLAG (1<<0)
 
         public:
              dma_channel
@@ -317,6 +323,20 @@ namespace LIBRARY_NAME
                 uint64_t sg_addr,
                 uint32_t sg_len,
                 uint32_t ctrl
+            );
+
+            /**
+             * announce an event to be read by the HLT-OUT firmware and
+             * pushed out via SIU.
+             * @param sglist vector of librorc_sg_entry containing the
+             * pysical start addresses and lengths of the event blocks.
+             * Use buffer::composeSglistFromBufferSegment to get from
+             * buffer offset and length to this scatter-gather list.
+             **/
+            void
+            announceEvent
+            (
+                 std::vector<librorc_sg_entry> sglist
             );
 
         protected:
