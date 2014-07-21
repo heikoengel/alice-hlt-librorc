@@ -93,7 +93,7 @@ int main( int argc, char *argv[])
 
 
     /** Connect to buffer **/
-    try{ buf = new librorc::buffer(dev, BufferId); }
+    try{ buf = new librorc::buffer(dev, BufferId, 1); }
     catch(...)
     {
         perror("ERROR: buf->connect");

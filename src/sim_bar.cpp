@@ -539,7 +539,7 @@ sim_bar::sockMonitor()
 
             try
             {
-                buf = new buffer(m_parent_dev, buffer_id);
+                buf = new buffer(m_parent_dev, buffer_id, 1);
             }
             catch(...)
             {
@@ -753,7 +753,7 @@ sim_bar::cmplHandler()
         buffer *buf;
         try
         {
-            buf = new buffer(m_parent_dev, rdreq.buffer_id);
+            buf = new buffer(m_parent_dev, rdreq.buffer_id, 1);
         }
         catch(...)
         {
