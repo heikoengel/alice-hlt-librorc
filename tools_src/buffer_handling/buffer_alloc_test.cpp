@@ -42,8 +42,8 @@ int main()
     int32_t overmap = 1;
     uint64_t bufferSize = MIN_BUF_SIZE;
 
-    //for( bufferSize=MIN_BUF_SIZE; bufferSize<MAX_BUF_SIZE; bufferSize=(bufferSize*2))
-    //{
+    for( bufferSize=MIN_BUF_SIZE; bufferSize<MAX_BUF_SIZE; bufferSize=(bufferSize*2))
+    {
         cout << "Trying RequestedSize=0x" << hex << bufferSize << "..." << endl;
 
         librorc::buffer *buf = NULL;
@@ -62,7 +62,7 @@ int main()
 
         buf->deallocate();
         delete buf;
-    //}
+    }
 
     return 0;
 }
