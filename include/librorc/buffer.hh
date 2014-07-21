@@ -115,7 +115,8 @@ class buffer_sglist_programmer;
              buffer
              (
                  device   *dev,
-                 uint64_t  id
+                 uint64_t  id,
+                 int32_t   overmap
              );
 
             ~buffer();

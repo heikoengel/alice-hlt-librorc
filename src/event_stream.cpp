@@ -238,7 +238,7 @@ namespace LIBRARY_NAME
                     (m_dev, eventBufferSize, eventBufferId, 1);
             }
             else
-            { m_eventBuffer = new librorc::buffer(m_dev, eventBufferId); }
+            { m_eventBuffer = new librorc::buffer(m_dev, eventBufferId, 1); }
 
             uint64_t reportBufferSize
                 = (m_eventBuffer->size()/ m_pciePacketSize)

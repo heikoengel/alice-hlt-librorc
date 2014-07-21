@@ -103,9 +103,22 @@ buffer::buffer
 buffer::buffer
 (
     device   *dev,
-    uint64_t  id
+    uint64_t  id,
+    int32_t   overmap
 )
 {
+    m_device            = dev->getPdaPciDevice();
+    if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
+    { throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED; }
+
+    if(overmap == 1)
+    {
+        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+        {
+            cout << "Wrap mapping failed!" << endl;
+            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        }
+    }
     connect(dev, id);
 }
 
