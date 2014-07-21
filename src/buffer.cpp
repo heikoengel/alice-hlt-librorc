@@ -122,14 +122,14 @@ buffer::connect
     m_id                           = id;
     m_device                       = dev->getPdaPciDevice();
 
-    if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
+    if( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
     {
         cout << "Buffer lookup failed!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
     m_size = 0;
-    if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
+    if( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
         cout << "Failed to get buffer size!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
@@ -164,7 +164,10 @@ buffer::connect
 
 
 
-buffer::~buffer(){}
+buffer::~buffer()
+{
+
+}
 
 
 
@@ -174,7 +177,10 @@ buffer::isOvermapped()
     void *map_two = NULL;
 
     if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
-    { if(map_two != NULL){ return 1; } }
+    {
+        if(map_two != NULL)
+        { return 1; }
+    }
 
     return 0;
 }
@@ -192,6 +198,9 @@ buffer::clear()
 int32_t
 buffer::deallocate()
 {
+    if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
+    { return 1; }
+
     return 0;
 }
 

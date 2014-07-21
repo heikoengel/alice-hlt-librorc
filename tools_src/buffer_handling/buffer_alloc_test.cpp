@@ -60,6 +60,7 @@ int main()
             << " Overmapped=" << hex << buf->isOvermapped()
             << endl;
 
+        buf->deallocate();
         delete buf;
     }
 
