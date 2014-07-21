@@ -173,10 +173,15 @@ buffer::isOvermapped()
 {
     void *map_two = NULL;
 
-    if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
-    { if(map_two != NULL){ return 1; } }
-
-    return 0;
+    if(DMABuffer_getMapTwo(m_buffer, &map_two) == PDA_SUCCESS)
+    {
+        if(map_two != NULL)
+        { return 1; }
+        else
+        {return 0;}
+    }
+    else
+    { return -1; }
 }
 
 

@@ -56,7 +56,7 @@ int main()
         }
 
         cout << "\tPhysicalSize=0x" << hex << buf->getPhysicalSize()
-            << " MappingSize=0x" << hex << buf->getPhysicalSize()
+            << " MappingSize=0x" << hex << buf->getMappingSize()
             << " Overmapped=" << hex << buf->isOvermapped()
             << endl;
 
