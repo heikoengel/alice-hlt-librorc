@@ -279,17 +279,10 @@ class buffer_sglist_programmer;
             }
 
             /**
-             * Connect to an existing buffer
-             * @param dev parent librorc::device
-             * @param id buffer ID of exisiting buffer
-             * @return 0 on sucessful connect, -EPERM or -ENOMEM on errors
+             * Connect to an existing buffer.
+             * can throw exceptions.
              **/
-            void
-            connect
-            (
-                device   *dev,
-                uint64_t  id
-            );
+            void connect();
 
 
     };

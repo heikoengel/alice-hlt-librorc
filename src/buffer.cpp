@@ -39,6 +39,7 @@ buffer::buffer
     int32_t   overmap
 )
 {
+    m_id                = id;
     m_device            = dev->getPdaPciDevice();
 
     bool newAllocNeeded = false;
@@ -95,7 +96,7 @@ buffer::buffer
         }
     }
 
-    connect(dev, id);
+    connect();
 }
 
 
@@ -107,7 +108,9 @@ buffer::buffer
     int32_t   overmap
 )
 {
-    m_device            = dev->getPdaPciDevice();
+    m_id     = id;
+    m_device = dev->getPdaPciDevice();
+
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     { throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED; }
 
@@ -119,28 +122,15 @@ buffer::buffer
             throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
         }
     }
-    connect(dev, id);
+    connect();
 }
 
 
 
 void
-buffer::connect
-(
-    device   *dev,
-    uint64_t  id
-)
+buffer::connect()
 
 {
-    m_id                           = id;
-    m_device                       = dev->getPdaPciDevice();
-
-    if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
-    {
-        cout << "Buffer lookup failed!" << endl;
-        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-    }
-
     m_size = 0;
     if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
@@ -300,6 +290,10 @@ buffer::composeSglistFromBufferSegment
         // adjust offset and length
         rem_size -= segment_length;
         cur_offset += segment_length;
+
+        // wrap offset if required
+        if( cur_offset == getPhysicalSize() )
+        { cur_offset = 0; }
     }
     return true;
 }
