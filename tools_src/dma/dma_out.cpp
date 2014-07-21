@@ -155,7 +155,7 @@ int main( int argc, char *argv[])
     uint64_t last_events_received = 0;
     uint64_t number_of_samples = 0;
     bool waitForDone = false;
-    uint32_t eventSize = 0x100;
+    uint32_t eventSize = 0x1000;
     uint64_t pending = 0;
     librorc_event_descriptor *report               = NULL;
     const uint32_t           *event                = 0;
@@ -173,8 +173,8 @@ int main( int argc, char *argv[])
             { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
             */
 
-            //if( !waitForDone )
-            if( pending < 256 )
+            if( !waitForDone )
+            //if( pending < 256 )
             {
                 std::vector<librorc_sg_entry> list;
                 if( !eventStream->m_eventBuffer->composeSglistFromBufferSegment(0, eventSize, &list) )
@@ -183,8 +183,8 @@ int main( int argc, char *argv[])
                 waitForDone = true;
                 pending++;
             }
-            //else
-            //{
+            else
+            {
                 if( eventStream->getNextEvent(&report, &event, &reference) )
                 {
                     if( (report->reported_event_size>>30)&1 || (report->calc_event_size>>30) )
@@ -199,7 +199,7 @@ int main( int argc, char *argv[])
                 }
                 //else
                 //{ usleep(100); }
-            //}
+            }
 
             eventStream->m_bar1->gettime(&cur_time, 0);
 
@@ -246,12 +246,12 @@ int main( int argc, char *argv[])
 
                 printf("%d, %f, %f\n", eventSize, throughput, rate);
 
-                if(number_of_samples==0x3)
+                /*if(number_of_samples==0x3)
                 {
                     eventSize = nextEventSize(eventSize);
                     if( eventSize >= eventStream->m_eventBuffer->size() )
                     { eventSize = 0x100; }
-                }
+                }*/
 
             }
         }

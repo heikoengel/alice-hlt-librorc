@@ -46,7 +46,7 @@ buffer::buffer
 
     if( size == 0 )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "Requested buffer of size 0");
+        DEBUG_PRINTF(PDADEBUG_ERROR, "Requested buffer of size 0\n");
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 

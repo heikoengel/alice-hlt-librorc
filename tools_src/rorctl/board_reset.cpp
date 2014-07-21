@@ -218,6 +218,7 @@ main
         link->setChannelActive(0);
         link->disableDmaEngine();
         link->clearAllDmaCounters();
+        link->clearBDMPtrMatchFlags();
 
         delete link;
     }

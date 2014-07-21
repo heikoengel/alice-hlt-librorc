@@ -278,6 +278,15 @@ namespace LIBRARY_NAME
         clearDmaStallCount();
     }
 
+    void
+    link::clearBDMPtrMatchFlags()
+    {
+        uint32_t dmacfg = pciReg(RORC_REG_DMA_CTRL);
+        dmacfg |= (1<<11);
+        dmacfg |= (1<<12);
+        setPciReg(RORC_REG_DMA_CTRL, dmacfg);
+    }
+
 
     uint32_t
     link::dmaNumberOfEventsProcessed()

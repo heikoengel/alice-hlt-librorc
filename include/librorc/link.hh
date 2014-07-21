@@ -232,6 +232,8 @@ namespace LIBRARY_NAME
              **/
             bool dmaEngineIsActive();
 
+            void clearBDMPtrMatchFlags();
+
 
 
 
