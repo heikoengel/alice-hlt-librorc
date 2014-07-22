@@ -203,7 +203,7 @@ buffer::clear()
 int32_t
 buffer::deallocate()
 {
-    if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
+    if(PciDevice_deleteDMABuffer(m_device, m_buffer, PDA_DELETE) != PDA_SUCCESS)
     { return 1; }
 
     m_device = NULL;
