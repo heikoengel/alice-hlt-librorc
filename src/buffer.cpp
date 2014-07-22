@@ -132,7 +132,7 @@ buffer::connect()
 
 {
     m_size = 0;
-    if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
+    if( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
         cout << "Failed to get buffer size!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
@@ -167,7 +167,10 @@ buffer::connect()
 
 
 
-buffer::~buffer(){}
+buffer::~buffer()
+{
+
+}
 
 
 
@@ -200,6 +203,9 @@ buffer::clear()
 int32_t
 buffer::deallocate()
 {
+    if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
+    { return 1; }
+
     return 0;
 }
 
