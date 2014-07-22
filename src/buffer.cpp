@@ -39,6 +39,7 @@ buffer::buffer
     int32_t   overmap
 )
 {
+    m_id                = id;
     m_device            = dev->getPdaPciDevice();
 
     bool newAllocNeeded = false;
@@ -46,7 +47,7 @@ buffer::buffer
 
     if( size == 0 )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "Requested buffer of size 0");
+        DEBUG_PRINTF(PDADEBUG_ERROR, "Requested buffer of size 0\n");
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
@@ -95,7 +96,7 @@ buffer::buffer
         }
     }
 
-    connect(dev, id);
+    connect();
 }
 
 
@@ -103,33 +104,35 @@ buffer::buffer
 buffer::buffer
 (
     device   *dev,
-    uint64_t  id
+    uint64_t  id,
+    int32_t   overmap
 )
 {
-    connect(dev, id);
+    m_id     = id;
+    m_device = dev->getPdaPciDevice();
+
+    if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
+    { throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED; }
+
+    if(overmap == 1)
+    {
+        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+        {
+            cout << "Wrap mapping failed!" << endl;
+            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        }
+    }
+    connect();
 }
 
 
 
 void
-buffer::connect
-(
-    device   *dev,
-    uint64_t  id
-)
+buffer::connect()
 
 {
-    m_id                           = id;
-    m_device                       = dev->getPdaPciDevice();
-
-    if ( PciDevice_getDMABuffer(dev->getPdaPciDevice(), id, &m_buffer)!=PDA_SUCCESS )
-    {
-        cout << "Buffer lookup failed!" << endl;
-        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-    }
-
     m_size = 0;
-    if ( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
+    if( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
         cout << "Failed to get buffer size!" << endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
@@ -164,7 +167,10 @@ buffer::connect
 
 
 
-buffer::~buffer(){}
+buffer::~buffer()
+{
+
+}
 
 
 
@@ -173,10 +179,15 @@ buffer::isOvermapped()
 {
     void *map_two = NULL;
 
-    if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
-    { if(map_two != NULL){ return 1; } }
-
-    return 0;
+    if(DMABuffer_getMapTwo(m_buffer, &map_two) == PDA_SUCCESS)
+    {
+        if(map_two != MAP_FAILED)
+        { return 1; }
+        else
+        {return 0;}
+    }
+    else
+    { return -1; }
 }
 
 
@@ -192,6 +203,9 @@ buffer::clear()
 int32_t
 buffer::deallocate()
 {
+    if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
+    { return 1; }
+
     return 0;
 }
 
@@ -200,7 +214,8 @@ bool
 buffer::offsetToPhysAddr
 (
     uint64_t offset,
-    uint64_t *phys_addr
+    uint64_t *phys_addr,
+    uint64_t *rem_sg_length
 )
 {
     std::vector<librorc_sg_entry>::iterator iter;
@@ -209,7 +224,8 @@ buffer::offsetToPhysAddr
     {
         if( offset>=reference_offset && offset<(reference_offset+iter->length) )
         {
-            *phys_addr = iter->pointer + (offset - reference_offset);
+            *phys_addr = (uint64_t)iter->pointer + (offset - reference_offset);
+            *rem_sg_length = (uint64_t)iter->length - (offset - reference_offset);
             return true;
         }
         else
@@ -239,6 +255,53 @@ buffer::physAddrToOffset
         { reference_offset += iter->length; }
     }
     return false;
+}
+
+bool
+buffer::composeSglistFromBufferSegment
+(
+    uint64_t offset,
+    uint64_t size,
+    std::vector<librorc_sg_entry> *list
+)
+{
+    uint64_t rem_size = size;
+    uint64_t cur_offset = offset;
+    while(rem_size > 0)
+    {
+        uint64_t phys_addr;
+        uint64_t segment_length;
+
+        // get physical address and remaining length of current sg entry
+        if( !offsetToPhysAddr(cur_offset, &phys_addr, &segment_length) )
+        {
+            DEBUG_PRINTF( PDADEBUG_ERROR, "Failed to convert offset %llx "
+                    " to pysical address\n", cur_offset);
+            return false;
+        }
+
+        // reduce segment length to a 32bit value if larger
+        if( segment_length>>32 )
+        { segment_length = (((uint64_t)1)<<32) - PAGE_SIZE; }
+
+        if( segment_length >= rem_size )
+        { segment_length = rem_size; }
+
+        // add this as a new librorc_sg_entry
+        librorc_sg_entry entry;
+        entry.pointer = phys_addr;
+        entry.length = segment_length;
+        list->push_back(entry);
+
+        // adjust offset and length
+        rem_size -= segment_length;
+        cur_offset += segment_length;
+
+        // wrap offset if required
+        if( cur_offset == getPhysicalSize() )
+        { cur_offset = 0; }
+    }
+    return true;
 }
 
 }

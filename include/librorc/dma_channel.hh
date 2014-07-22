@@ -23,6 +23,7 @@
 #include <librorc/defines.hh>
 #include <librorc/link.hh>
 #include <librorc/sysmon.hh>
+#include <librorc/buffer.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
@@ -64,6 +65,11 @@ namespace LIBRARY_NAME
     {
         friend class dma_channel_configurator;
 
+#define SGCTRL_WRITE_ENABLE (1<<31)
+#define SGCTRL_TARGET_EBDMRAM (0<<30)
+#define SGCTRL_TARGET_RBDMRAM (1<<30)
+#define SGCTRL_EOE_FLAG (1<<0)
+
         public:
              dma_channel
              (
@@ -75,6 +81,14 @@ namespace LIBRARY_NAME
                 buffer   *reportBuffer,
                 LibrorcEsType esType
              );
+
+            typedef struct
+            __attribute__((__packed__))
+            {
+                uint32_t sg_addr_low;  /** lower part of sg address **/
+                uint32_t sg_addr_high; /** higher part of sg address **/
+                uint32_t sg_len;       /** total length of sg entry in bytes **/
+            } librorc_sg_entry_config;
 
             virtual ~dma_channel();
 
@@ -289,6 +303,42 @@ namespace LIBRARY_NAME
              * */
             void printDMAState();
 
+            /**
+             * Fill state of the HLT_OUT event descriptor FIFO
+             * @return number of entries in FIFO
+             **/
+            uint32_t outFifoFillState();
+
+            /**
+             * Maximum number of outstanding HLT_OUT event descriptor
+             * FIFO entries (= FIFO depth). Make sure outFifoFillState()
+             * never exceeds outFifoDepth().
+             * @return maximum number of FIFO entries.
+             **/
+            uint32_t outFifoDepth();
+
+            void
+            pushSglistEntryToRAM
+            (
+                uint64_t sg_addr,
+                uint32_t sg_len,
+                uint32_t ctrl
+            );
+
+            /**
+             * announce an event to be read by the HLT-OUT firmware and
+             * pushed out via SIU.
+             * @param sglist vector of librorc_sg_entry containing the
+             * pysical start addresses and lengths of the event blocks.
+             * Use buffer::composeSglistFromBufferSegment to get from
+             * buffer offset and length to this scatter-gather list.
+             **/
+            void
+            announceEvent
+            (
+                 std::vector<librorc_sg_entry> sglist
+            );
+
         protected:
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
@@ -300,6 +350,7 @@ namespace LIBRARY_NAME
             sysmon   *m_sm;
             bar      *m_bar;
             uint32_t  m_channel_number;
+            uint32_t  m_outFifoDepth;
             LibrorcEsType m_esType;
 
             dma_channel_configurator *m_channelConfigurator;

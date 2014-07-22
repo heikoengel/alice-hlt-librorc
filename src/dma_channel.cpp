@@ -43,14 +43,6 @@ namespace LIBRARY_NAME
     {
         public:
 
-            typedef struct
-            __attribute__((__packed__))
-            {
-                uint32_t sg_addr_low;  /** lower part of sg address **/
-                uint32_t sg_addr_high; /** higher part of sg address **/
-                uint32_t sg_len;       /** total length of sg entry in bytes **/
-            } librorc_sg_entry_config;
-
             buffer_sglist_programmer
             (
                 dma_channel *dmaChannel,
@@ -59,6 +51,7 @@ namespace LIBRARY_NAME
             )
             {
                 m_buffer         = buf;
+                m_channel        = dmaChannel;
                 m_link           = dmaChannel->getLink();
                 m_bdcfg          = 0;
                 m_sglist         = NULL;
@@ -86,6 +79,7 @@ namespace LIBRARY_NAME
             uint32_t                 m_bdcfg;
             DMABuffer_SGNode        *m_sglist;
             link                    *m_link;
+            dma_channel             *m_channel;
 
             void readSelectedRAMStatus()
             {
@@ -114,50 +108,6 @@ namespace LIBRARY_NAME
                 { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
             }
 
-            /** ctrl encoding:
-             * [31]  : write-enable to write sg_entry to RAM
-             * [30]  : select target RAM, 0->EventBufferRAM, 1->ReportBufferRAM
-             * [29:0]: RAM address
-             **/
-            void pushSglistEntryToRAM
-            (
-                uint64_t  sg_address,
-                size_t    sg_length,
-                uint32_t  control,
-                uint64_t *i
-            )
-            {
-                size_t length = 0;
-
-                for(uint64_t address=sg_address; address<(sg_address+sg_length); address=(address+length))
-                {
-                    length = (((sg_address+sg_length) - address) > 0xffffffff)
-                           ? 0xffffffff
-                           : ((sg_address+sg_length)-address);
-
-                    librorc_sg_entry_config sg_entry;
-                    /** Convert sg list into CRORC compatible format */
-                    sg_entry.sg_addr_low  = (uint32_t)(address & 0xffffffff);
-                    sg_entry.sg_addr_high = (uint32_t)(address >> 32);
-                    sg_entry.sg_len       = (uint32_t)(length  & 0xffffffff);
-
-                    /** Write librorc_dma_desc to RORC BufferDescriptorManager */
-                    m_link->getBar()->memcopy
-                    (
-                        (librorc_bar_address)(m_link->base()+RORC_REG_SGENTRY_ADDR_LOW),
-                        &sg_entry,
-                        sizeof(sg_entry)
-                    );
-
-                    /**
-                     * write to CTRL may only happen once, so this is not
-                     * included into the memcopy
-                     */
-                    m_link->setPciReg(RORC_REG_SGENTRY_CTRL, control);
-                    i[0]++;
-                }
-            }
-
             void programSglistIntoDescriptorRAM()
             {
                 uint64_t i = 0;
@@ -165,18 +115,15 @@ namespace LIBRARY_NAME
                 // write scatter gather list into BufferDescriptorRAM
                 for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
                 {
-                    ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
-                    pushSglistEntryToRAM
-                    (
-                        (uint64_t)sg->d_pointer,
-                        sg->length,
-                        ctrl,
-                        &i
-                    );
+                    ctrl = SGCTRL_WRITE_ENABLE | (uint32_t)i;
+                    ctrl |= (m_target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
+                    m_channel->pushSglistEntryToRAM((uint64_t)sg->d_pointer, sg->length, ctrl);
+                    i++;
                 }
                 // clear trailing descriptor entry
-                ctrl = (1 << 31) | (m_target_ram << 30) | ((uint32_t)i);
-                pushSglistEntryToRAM(0, 0, ctrl, &i);
+                ctrl = SGCTRL_WRITE_ENABLE | (uint32_t)i;
+                ctrl |= (m_target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
+                m_channel->pushSglistEntryToRAM(0, 0, ctrl);
             }
 
     };
@@ -642,6 +589,48 @@ dma_channel::getDMABusy()
 }
 
 
+uint32_t
+dma_channel::outFifoFillState()
+{
+    uint32_t fill_state = m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG);
+    return (fill_state & 0xffff);
+}
+
+uint32_t
+dma_channel::outFifoDepth()
+{
+    uint32_t fill_state = m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG);
+    return ((fill_state>>16) & 0xffff);
+}
+
+
+
+/** ctrl encoding:
+ * [31]  : write-enable to write sg_entry to RAM
+ * [30]  : select target RAM, 0->EventBufferRAM, 1->ReportBufferRAM
+ * [29:0]: RAM address
+ **/
+void
+dma_channel::pushSglistEntryToRAM
+(
+    uint64_t sg_addr,
+    uint32_t sg_len,
+    uint32_t ctrl
+)
+{
+    librorc_sg_entry_config sg_entry;
+    /** Convert sg list into CRORC compatible format */
+    sg_entry.sg_addr_low  = (uint32_t)(sg_addr & 0xffffffff);
+    sg_entry.sg_addr_high = (uint32_t)(sg_addr >> 32);
+    sg_entry.sg_len       = (uint32_t)(sg_len & 0xffffffff);
+
+    /** Write librorc_dma_desc to RORC BufferDescriptorManager */
+    m_link->getBar()->memcopy
+        ( (librorc_bar_address)(m_link->base()+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+    // write to CTRL may only happen once, so this is not included into the memcopy
+    m_link->setPciReg(RORC_REG_SGENTRY_CTRL, ctrl);
+}
+
 
 
 
@@ -697,20 +686,21 @@ dma_channel::getDMABusy()
 
         if( (m_eventBuffer==NULL) || (m_reportBuffer==NULL) )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-        else
+
+        if( m_esType == LIBRORC_ES_TO_HOST )
         {
-            if( m_esType == LIBRORC_ES_TO_HOST )
-            {
-                if(programSglistForEventBuffer(m_eventBuffer) < 0)
-                { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-            }
-
-            if(programSglistForReportBuffer(m_reportBuffer) < 0)
-            { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
-            if( m_channelConfigurator->configure() < 0)
+            if(programSglistForEventBuffer(m_eventBuffer) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
+
+        if( m_esType == LIBRORC_ES_TO_DEVICE )
+        { m_outFifoDepth = outFifoDepth(); }
+
+        if(programSglistForReportBuffer(m_reportBuffer) < 0)
+        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
+
+        if( m_channelConfigurator->configure() < 0)
+        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
     }
 
     link*
@@ -798,4 +788,26 @@ dma_channel::getDMABusy()
     {
         return ((DMAConfig()>>10) & 1);
     }
+
+
+    /*******************************************************************
+     *    HLT-OUT related
+     ******************************************************************/
+    void
+    dma_channel::announceEvent
+    (
+        std::vector<librorc_sg_entry> sglist
+    )
+    {
+        std::vector<librorc_sg_entry>::iterator iter;
+        for(iter=sglist.begin(); iter!=sglist.end(); iter++)
+        {
+            uint32_t ctrl = SGCTRL_WRITE_ENABLE | SGCTRL_TARGET_EBDMRAM;
+            // add EOE flag for last entry
+            if( (iter+1) == sglist.end() )
+            { ctrl |= SGCTRL_EOE_FLAG; }
+            pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
+        }
+    }
+
 }

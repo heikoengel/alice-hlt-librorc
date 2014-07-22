@@ -101,6 +101,7 @@ namespace LIBRARY_NAME
         m_raw_event_buffer = NULL;
         m_eventBuffer      = NULL;
         m_reportBuffer     = NULL;
+        m_channel          = NULL;
 
         if( !m_called_with_bar )
         {
@@ -237,10 +238,10 @@ namespace LIBRARY_NAME
                     (m_dev, eventBufferSize, eventBufferId, 1);
             }
             else
-            { m_eventBuffer = new librorc::buffer(m_dev, eventBufferId); }
+            { m_eventBuffer = new librorc::buffer(m_dev, eventBufferId, 1); }
 
             uint64_t reportBufferSize
-                = (m_eventBuffer->size()/ m_pciePacketSize)
+                = (m_eventBuffer->getPhysicalSize()/ m_pciePacketSize)
                 * sizeof(librorc_event_descriptor);
 
             // ReportBuffer uses by default EventBuffer-ID + 1
@@ -260,9 +261,9 @@ namespace LIBRARY_NAME
         m_event_callback   = NULL;
         m_status_callback  = NULL;
         m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
-        m_release_map      = new bool[m_reportBuffer->size()/sizeof(librorc_event_descriptor)];
+        m_release_map      = new bool[m_reportBuffer->getPhysicalSize()/sizeof(librorc_event_descriptor)];
 
-        for(uint64_t i = 0; i<(m_reportBuffer->size()/sizeof(librorc_event_descriptor)); i++)
+        for(uint64_t i = 0; i<(m_reportBuffer->getPhysicalSize()/sizeof(librorc_event_descriptor)); i++)
         { m_release_map[i] = false; }
         return 0;
     }
@@ -376,8 +377,8 @@ namespace LIBRARY_NAME
     void
     event_stream::printDeviceStatus()
     {
-        printf("EventBuffer size: 0x%lx bytes\n", m_eventBuffer->size());
-        printf("ReportBuffer size: 0x%lx bytes\n", m_reportBuffer->size());
+        printf("EventBuffer size: 0x%lx bytes\n", m_eventBuffer->getPhysicalSize());
+        printf("ReportBuffer size: 0x%lx bytes\n", m_reportBuffer->getPhysicalSize());
         printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
 
         try
@@ -722,7 +723,7 @@ namespace LIBRARY_NAME
 
         return   (m_event_generation_offset < m_last_event_buffer_offset)
                ? m_last_event_buffer_offset - m_event_generation_offset
-               : m_last_event_buffer_offset + m_eventBuffer->size()
+               : m_last_event_buffer_offset + m_eventBuffer->getPhysicalSize()
                - m_event_generation_offset; /** wrap in between */
     }
 
@@ -742,8 +743,8 @@ namespace LIBRARY_NAME
     event_stream::wrapFillStateIfNecessary()
     {
         m_event_generation_offset
-            = (m_event_generation_offset >= m_eventBuffer->size())
-            ? (m_event_generation_offset - m_eventBuffer->size())
+            = (m_event_generation_offset >= m_eventBuffer->getPhysicalSize())
+            ? (m_event_generation_offset - m_eventBuffer->getPhysicalSize())
             : m_event_generation_offset;
     }
 

@@ -93,7 +93,7 @@ int main( int argc, char *argv[])
 
 
     /** Connect to buffer **/
-    try{ buf = new librorc::buffer(dev, BufferId); }
+    try{ buf = new librorc::buffer(dev, BufferId, 1); }
     catch(...)
     {
         perror("ERROR: buf->connect");
@@ -104,8 +104,8 @@ int main( int argc, char *argv[])
     cout << "Device " << DeviceId << ", Buffer " << BufferId << endl;
     cout << "Number of SG Entries: " << buf->getnSGEntries() << endl;
     cout << "Overmapped:           " << buf->isOvermapped() << endl;
-    cout << "Size:                 " << buf->size()
-        << " Bytes (" << dec << (buf->size()/(1<<20)) << " MB)" << endl;
+    cout << "Physical Size:        " << buf->getPhysicalSize()
+        << " Bytes (" << dec << (buf->getPhysicalSize()/(1<<20)) << " MB)" << endl;
 
     if ( verbose )
     {
@@ -115,10 +115,13 @@ int main( int argc, char *argv[])
         for ( uint64_t i=0; i< sglist.size(); i++ )
         {
             uint32_t addr_high = sglist[i].pointer>>32;
-            cout << "                 [" << i << "]: addr=0x" << hex;
-            cout << setw(8) << setfill('0') << addr_high << "_";
-            cout << (sglist[i].pointer & 0xffffffff)
-                 << ", len=0x" << sglist[i].length <<endl;
+            uint32_t addr_low = (sglist[i].pointer & 0xffffffff);
+            cout << "                 [" << i << "]: addr=0x"
+                << hex << setw(8) << setfill('0')
+                << addr_high << "_"
+                << hex << setw(8) << setfill('0')
+                << addr_low
+                << ", len=0x" << sglist[i].length <<endl;
         }
     }
 

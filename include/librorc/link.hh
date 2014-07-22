@@ -92,6 +92,9 @@ namespace LIBRARY_NAME
                 return m_base;
             }
 
+            uint32_t linkNumber()
+            { return m_link_number; }
+
 
             /**********************************************************
              *             Low Level Channel Access
@@ -228,6 +231,8 @@ namespace LIBRARY_NAME
              * @return true if running, false if stopped
              **/
             bool dmaEngineIsActive();
+
+            void clearBDMPtrMatchFlags();
 
 
 
