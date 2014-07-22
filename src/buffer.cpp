@@ -206,6 +206,17 @@ buffer::deallocate()
     if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
     { return 1; }
 
+    m_device = NULL;
+    m_buffer = NULL;
+    m_sglist = NULL;
+
+    m_sglist_vector.erase(m_sglist_vector.begin(), m_sglist_vector.end());
+
+    m_mem                          = NULL;
+    m_id                           = 0;
+    m_numberOfScatterGatherEntries = 0;
+    m_size                         = 0;
+
     return 0;
 }
 
