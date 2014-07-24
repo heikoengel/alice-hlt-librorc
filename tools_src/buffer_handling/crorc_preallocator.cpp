@@ -58,6 +58,8 @@ int main( int argc, char *argv[])
         try{ Dev = new librorc::device(DeviceId); }
         catch(...){ return(0); }
 
+        Dev->deleteAllBuffers();
+
         for( uint32_t ChannelId = 0; ChannelId<=MAX_CHANNEL; ChannelId++ )
         { alloc_channel(ChannelId, Dev, DefaultSize); }
     }
