@@ -102,6 +102,7 @@ namespace LIBRARY_NAME
         m_eventBuffer      = NULL;
         m_reportBuffer     = NULL;
         m_channel          = NULL;
+        m_release_map      = NULL;
 
         if( !m_called_with_bar )
         {
