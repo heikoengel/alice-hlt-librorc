@@ -30,7 +30,8 @@
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
 
-#define LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED  1
+#define LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED    1
+#define LIBRORC_DEVICE_ERROR_BUFFER_FREEING_FAILED 2
 
 namespace LIBRARY_NAME
 {
@@ -92,6 +93,8 @@ namespace LIBRARY_NAME
     std::string *deviceDescription();
 
     uint8_t getDeviceId();
+
+    void deleteAllBuffers();
 
     private:
         uint64_t m_maxPayloadSize;

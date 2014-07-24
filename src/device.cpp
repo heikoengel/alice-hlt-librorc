@@ -190,4 +190,12 @@ device::deviceDescription()
     return( new string(description_buffer) );
 }
 
+
+void
+device::deleteAllBuffers()
+{
+    if( PciDevice_freeAllBuffers(m_device) != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_BUFFER_FREEING_FAILED; }
+}
+
 }
