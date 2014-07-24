@@ -64,7 +64,7 @@ buffer::buffer
 
         if(size != length)
         {
-            if(PciDevice_deleteDMABuffer(m_device, m_buffer, PDA_DELETE) != PDA_SUCCESS)
+            if(PciDevice_deleteDMABuffer(m_device, m_buffer) != PDA_SUCCESS)
             {
                 cout << "PDA buffer freeing totally failed!" << endl;
                 throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
