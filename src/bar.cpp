@@ -66,7 +66,6 @@ rorc_bar::memcopy
 )
 {
     pthread_mutex_lock(&m_mtx);
-    //memcpy( (uint8_t*)m_bar + (target << 2), source, num);
     if( PDA_SUCCESS != Bar_memcpyToBar32(m_pda_bar, (target << 2), source, num) )
     { cout << "bar copy failed!" << endl; }
     msync( (uint8_t*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
@@ -83,10 +82,8 @@ rorc_bar::memcopy
     size_t               num
 )
 {
-    //TODO: this is broken (transfers only allowed in 32B dwords)
     assert(false);
     pthread_mutex_lock(&m_mtx);
-    //memcpy( target, (const void*)(m_bar + (source << 2)), num);
     if( PDA_SUCCESS != Bar_memcpyFromBar32(m_pda_bar, target, source, num) )
     { cout << "bar copy failed!" << endl; }
     pthread_mutex_unlock(&m_mtx);
@@ -97,15 +94,17 @@ rorc_bar::memcopy
 uint32_t
 rorc_bar::get32(librorc_bar_address address )
 {
-    uint32_t *bar = (uint32_t *)m_bar;
-    uint32_t result;
-    if( (address << 2) < m_size)
-    {
-        result = bar[address];
-        return result;
-    }
-    else
-    { return -1; }
+//    uint32_t *bar = (uint32_t *)m_bar;
+//    uint32_t result;
+//    if( (address << 2) < m_size)
+//    {
+//        result = bar[address];
+//        return result;
+//    }
+//    else
+//    { return -1; }
+
+    return( Bar_get32(m_pda_bar, (address*4) ) );
 }
 
 
@@ -113,18 +112,20 @@ rorc_bar::get32(librorc_bar_address address )
 uint16_t
 rorc_bar::get16(librorc_bar_address address )
 {
-    uint16_t *sbar;
-    sbar = (uint16_t *)m_bar;
-    assert( sbar != NULL );
+//    uint16_t *sbar;
+//    sbar = (uint16_t *)m_bar;
+//    assert( sbar != NULL );
+//
+//    uint64_t result;
+//    if( (address << 1) < m_size)
+//    {
+//        result = sbar[address];
+//        return result;
+//    }
+//    else
+//    { return 0xffff; }
 
-    uint64_t result;
-    if( (address << 1) < m_size)
-    {
-        result = sbar[address];
-        return result;
-    }
-    else
-    { return 0xffff; }
+    return( Bar_get16(m_pda_bar, (address*2) ) );
 }
 
 
@@ -141,10 +142,12 @@ rorc_bar::set32
     if( (address << 2) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
-        bar[address] = data;
+        //bar[address] = data;
+        Bar_put32(m_pda_bar, data, (address*4) );
         msync( (bar + ( (address << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
         pthread_mutex_unlock(&m_mtx);
     }
+
 }
 
 
@@ -163,7 +166,8 @@ rorc_bar::set16
     if( (address << 1) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
-        sbar[address] = data;
+        //sbar[address] = data;
+        Bar_put32(m_pda_bar, data, (address*2) );
         msync( (sbar + ( (address << 1) & PAGE_MASK) ),
                PAGE_SIZE, MS_SYNC);
         pthread_mutex_unlock(&m_mtx);
