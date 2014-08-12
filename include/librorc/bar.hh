@@ -70,7 +70,6 @@ namespace LIBRARY_NAME
             );
 
             uint32_t get32( librorc_bar_address address );
-
             uint16_t get16( librorc_bar_address address );
 
             void
@@ -95,6 +94,9 @@ namespace LIBRARY_NAME
             );
 
             size_t size();
+
+        protected:
+            Bar *m_pda_bar;
 
     };
 

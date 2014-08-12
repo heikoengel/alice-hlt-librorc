@@ -20,6 +20,8 @@
 #include <librorc/device.hh>
 #include <librorc/bar.hh>
 
+using namespace std;
+
 namespace LIBRARY_NAME
 {
 
@@ -38,6 +40,10 @@ rorc_bar::rorc_bar
     { throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED; }
 
     m_size = m_parent_dev->getBarSize(m_number);
+
+    m_pda_bar = NULL;
+    if( PDA_SUCCESS != PciDevice_getBar(m_pda_pci_device, &m_pda_bar, m_number) )
+    { throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED; }
 
     pthread_mutex_init(&m_mtx, NULL);
 }
@@ -60,7 +66,9 @@ rorc_bar::memcopy
 )
 {
     pthread_mutex_lock(&m_mtx);
-    memcpy( (uint8_t*)m_bar + (target << 2), source, num);
+    //memcpy( (uint8_t*)m_bar + (target << 2), source, num);
+    if( PDA_SUCCESS != Bar_memcpyToBar32(m_pda_bar, (target << 2), source, num) )
+    { cout << "bar copy failed!" << endl; }
     msync( (uint8_t*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
 }
@@ -78,7 +86,9 @@ rorc_bar::memcopy
     //TODO: this is broken (transfers only allowed in 32B dwords)
     assert(false);
     pthread_mutex_lock(&m_mtx);
-    memcpy( target, (const void*)(m_bar + (source << 2)), num);
+    //memcpy( target, (const void*)(m_bar + (source << 2)), num);
+    if( PDA_SUCCESS != Bar_memcpyFromBar32(m_pda_bar, target, source, num) )
+    { cout << "bar copy failed!" << endl; }
     pthread_mutex_unlock(&m_mtx);
 }
 
