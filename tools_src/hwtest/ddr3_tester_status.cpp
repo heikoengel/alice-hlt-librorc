@@ -109,11 +109,24 @@ main
         abort();
     }
 
-    /** Check if firmware is 'hwtest' */
-    if ( bar->get32(RORC_REG_TYPE_CHANNELS)>>16 != RORC_CFG_PROJECT_hwtest )
+    librorc::sysmon *sm = NULL;
+    try
     {
-        cout << "Current firmware is no hwtest firmware! "
+        sm = new librorc::sysmon(bar);
+    }
+    catch(...)
+    {
+        cout << "ERROR: failed to Sysmon." << endl;
+        delete bar;
+        delete dev;
+        abort();
+    }
+
+    if ( !sm->ddr3Bitrate(0) )
+    {
+        cout << "No DDR3 Controller available in Firmware! "
              << "Won't do anything..." << endl;
+        delete sm;
         delete bar;
         delete dev;
         return 0;
@@ -156,9 +169,12 @@ main
         cout << "C0 Write Levelling Started: " << ((ddrctrl>>6)&1) << endl;
         cout << "C0 Write Levelling Done: " << ((ddrctrl>>7)&1) << endl;
         cout << "C0 Write Levelling Error: " << ((ddrctrl>>8)&1) << endl;
-        cout << "C0 Read Count: " << rdcnt0 << endl;
-        cout << "C0 Write Count: " << wrcnt0 << endl;
-        cout << "C0 TG Error: " << ((ddrctrl>>15)&1) << endl;
+        if( sm->firmwareIsHltHardwareTest() )
+        {
+            cout << "C0 Read Count: " << rdcnt0 << endl;
+            cout << "C0 Write Count: " << wrcnt0 << endl;
+            cout << "C0 TG Error: " << ((ddrctrl>>15)&1) << endl;
+        }
         cout << endl;
 
         cout << "C1 Reset: " << ((ddrctrl>>16)&1) << endl;
@@ -170,11 +186,15 @@ main
         cout << "C1 Write Levelling Started: " << ((ddrctrl>>22)&1) << endl;
         cout << "C1 Write Levelling Done: " << ((ddrctrl>>23)&1) << endl;
         cout << "C1 Write Levelling Error: " << ((ddrctrl>>24)&1) << endl;
-        cout << "C1 Read Count: " << rdcnt1 << endl;
-        cout << "C1 Write Count: " << wrcnt1 << endl;
-        cout << "C1 TG Error: " << ((ddrctrl>>31)&1) << endl;
+        if( sm->firmwareIsHltHardwareTest() )
+        {
+            cout << "C1 Read Count: " << rdcnt1 << endl;
+            cout << "C1 Write Count: " << wrcnt1 << endl;
+            cout << "C1 TG Error: " << ((ddrctrl>>31)&1) << endl;
+        }
     }
 
+    delete sm;
     delete bar;
     delete dev;
 
