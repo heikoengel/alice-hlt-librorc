@@ -28,10 +28,11 @@
 #define HELP_TEXT                                                              \
   "crorc_sensors usage: \n"                                                    \
   "  -h|--help        print this help text\n"                                  \
-  "  -d|--device [n]  select target C-RORC device. Uses device 0 if not\n"     \
+  "  -d|--device [id] select target C-RORC device. Uses device 0 if not\n"     \
   "                   specified\n"                                             \
   "  -l|--list        list all available sensors\n"                            \
   "  -a|--all         print all sensor values\n"                               \
+  "  -q|--qsfp [id]   select QSFP module. [id] can be 0..2\n"                  \
   "  --fpga_temp      print FPGA Temperature in Degree Celsius\n"              \
   "  --fpga_fw_rev    print FPGA Firmware Revision\n"                          \
   "  --fpga_fw_date   print FPGA Firmware Date\n"                              \
@@ -47,6 +48,10 @@
   "  --pcie_ill_req   print PCIe Illegal Request Count\n"                      \
   "  --smbus_slv_addr print SMBus Slave Address for Configuration\n"           \
   "                   Controller access\n"                                     \
+  "  --num_qsfps      print number of QSFP modules installed\n"                \
+  "  --num_dma_ch     print number of DMA channels supported by firmware\n"    \
+  "  --num_ddls       print number of DDLs supported by firmware\n"            \
+  "  --qsfp_temp      print QSFP Module temperature. requires --qsfp\n"        \
   "\n"
 
 const char *composeFormat(const char *name, const char *fmt, int withName) {
@@ -84,11 +89,21 @@ int main(int argc, char *argv[]) {
   int sPcieIllReq = 0;
   int sSmbusSlvAddr = 0;
   int sNumQsfps = 0;
+  int sQsfpTemp = 0;
+  int sNumDmaCh = 0;
+  int sDdrCtrl0Bitrate = 0;
+  int sDdrCtrl1Bitrate = 0;
+  int sDdrMod0Available = 0;
+  int sDdrMod1Available = 0;
   uint32_t deviceId = 0;
+  uint32_t qsfpId = 0xffffffff;
 
   static struct option long_options[] = {
-    { "help", no_argument, 0, 'h' }, { "device", required_argument, 0, 'd' },
-    { "list", no_argument, 0, 'l' }, { "all", no_argument, 0, 'a' },
+    { "help", no_argument, 0, 'h' },
+    { "device", required_argument, 0, 'd' },
+    { "list", no_argument, 0, 'l' },
+    { "all", no_argument, 0, 'a' },
+    { "qsfp", required_argument, 0, 'q' },
     { "fpga_temp", no_argument, &sFpgaTemp, 1 },
     { "fpga_fw_rev", no_argument, &sFpgaFwRev, 1 },
     { "fpga_fw_date", no_argument, &sFpgaFwDate, 1 },
@@ -104,13 +119,20 @@ int main(int argc, char *argv[]) {
     { "pcie_tx_error", no_argument, &sPcieTxErr, 1 },
     { "pcie_ill_req", no_argument, &sPcieIllReq, 1 },
     { "smbus_slv_addr", no_argument, &sSmbusSlvAddr, 1 },
-    { "num_qsfps", no_argument, &sNumQsfps, 1 }, { 0, 0, 0, 0 }
+    { "num_qsfps", no_argument, &sNumQsfps, 1 },
+    { "num_dma_ch", no_argument, &sNumDmaCh, 1 },
+    { "ddr_ctrl0_bitrate", no_argument, &sDdrCtrl0Bitrate, 1 },
+    { "ddr_ctrl1_bitrate", no_argument, &sDdrCtrl1Bitrate, 1 },
+    { "ddr_mod0_available", no_argument, &sDdrMod0Available, 1 },
+    { "ddr_mod1_available", no_argument, &sDdrMod1Available, 1 },
+    { "qsfp_temp", no_argument, &sQsfpTemp, 1 },
+    { 0, 0, 0, 0 }
   };
 
   /** Parse command line arguments **/
   if (argc > 1) {
     while (1) {
-      int opt = getopt_long(argc, argv, "hld:a", long_options, NULL);
+      int opt = getopt_long(argc, argv, "hld:aq:", long_options, NULL);
       if (opt == -1) {
         break;
       }
@@ -124,6 +146,9 @@ int main(int argc, char *argv[]) {
         break;
       case 'a':
         sAll = 1;
+        break;
+      case 'q':
+        qsfpId = strtol(optarg, NULL, 0);
         break;
       case 'l': {
         int iter = 0;
@@ -179,7 +204,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (sFpgaTemp || sAll) {
-    PRINT_METRIC("fpga_temp", "%d", (uint32_t) sm->FPGATemperature(), sAll);
+    PRINT_METRIC("fpga_temp", "%d", (uint32_t)sm->FPGATemperature(), sAll);
   }
   if (sFpgaFwRev || sAll) {
     PRINT_METRIC("fpga_fw_rev", "0x%08x", sm->FwRevision(), sAll);
@@ -201,18 +226,18 @@ int main(int argc, char *argv[]) {
   }
   if (sFpgaSysclkActive || sAll) {
     PRINT_METRIC("fpga_sysclk_active", "%d",
-                 (uint32_t) sm->systemClockIsRunning(), sAll);
+                 (uint32_t)sm->systemClockIsRunning(), sAll);
   }
   if (sFpgaFan || sAll) {
     uint32_t fan_speed =
-        (sm->systemFanIsRunning()) ? (uint32_t) sm->systemFanSpeed() : 0;
+        (sm->systemFanIsRunning()) ? (uint32_t)sm->systemFanSpeed() : 0;
     PRINT_METRIC("fan_speed", "%d", fan_speed, sAll);
   }
   if (sPcieSlot || sAll) {
-    uint32_t domain = (uint32_t) dev->getDomain();
-    uint32_t bus = (uint32_t) dev->getBus();
-    uint32_t slot = (uint32_t) dev->getSlot();
-    uint32_t func = (uint32_t) dev->getFunc();
+    uint32_t domain = (uint32_t)dev->getDomain();
+    uint32_t bus = (uint32_t)dev->getBus();
+    uint32_t slot = (uint32_t)dev->getSlot();
+    uint32_t func = (uint32_t)dev->getFunc();
 
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(4) << domain << ":"
@@ -245,6 +270,52 @@ int main(int argc, char *argv[]) {
       }
     }
     PRINT_METRIC("num_qsfps", "%d", num_qsfps, sAll);
+  }
+  if (sNumDmaCh) {
+    PRINT_METRIC("num_dma_ch", "%d", sm->numberOfChannels(), sAll);
+  }
+
+  if (sDdrCtrl0Bitrate || sAll) {
+    PRINT_METRIC("ddr_ctrl0_bitrate", "%d", sm->ddr3Bitrate(0), sAll);
+  }
+  if (sDdrCtrl1Bitrate || sAll) {
+    PRINT_METRIC("ddr_ctrl1_bitrate", "%d", sm->ddr3Bitrate(1), sAll);
+  }
+
+  if (sDdrMod0Available || sAll) {
+    int mod_available = 1;
+    try {
+      sm->ddr3SpdRead(0, 0x03);
+    }
+    catch (...) {
+      mod_available = 0;
+    }
+    PRINT_METRIC("ddr_mod0_available", "%d", mod_available, sAll);
+  }
+
+  if (sDdrMod1Available || sAll) {
+    int mod_available = 1;
+    try {
+      sm->ddr3SpdRead(1, 0x03);
+    }
+    catch (...) {
+      mod_available = 0;
+    }
+    PRINT_METRIC("ddr_mod1_available", "%d", mod_available, sAll);
+  }
+
+  if (sQsfpTemp & (qsfpId >= LIBRORC_MAX_QSFP)) {
+    std::cerr << "No or invalid QSFP module selected. Use --qsfp [0-2]."
+              << std::endl;
+    return -1;
+  } else if (!sm->qsfpIsPresent(qsfpId)) {
+    std::cerr << "Selected QSFP module not found." << std::endl;
+    return -1;
+  } else {
+    if (sQsfpTemp) {
+      PRINT_METRIC("qsfp_temp", "%d", (uint32_t)sm->qsfpTemperature(qsfpId),
+                   sAll);
+    }
   }
 
   if (sm) {
