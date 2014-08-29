@@ -122,7 +122,7 @@ main
         abort();
     }
 
-    if ( !sm->ddr3Bitrate(0) )
+    if ( !sm->ddr3Bitrate(0) && !sm->ddr3Bitrate(1) )
     {
         cout << "No DDR3 Controller available in Firmware! "
              << "Won't do anything..." << endl;
@@ -154,43 +154,50 @@ main
     }
     else
     {
-        uint32_t rdcnt0 = bar->get32(RORC_REG_DDR3_C0_TESTER_RDCNT);
-        uint32_t wrcnt0 = bar->get32(RORC_REG_DDR3_C0_TESTER_WRCNT);
 
-        uint32_t rdcnt1 = bar->get32(RORC_REG_DDR3_C1_TESTER_RDCNT);
-        uint32_t wrcnt1 = bar->get32(RORC_REG_DDR3_C1_TESTER_WRCNT);
-
-        cout << "C0 Reset: " << (ddrctrl&1) << endl;
-        cout << "C0 PhyInitDone: " << ((ddrctrl>>1)&1) << endl;
-        cout << "C0 PLL Lock: " << ((ddrctrl>>2)&1) << endl;
-        cout << "C0 Read Levelling Started: " << ((ddrctrl>>3)&1) << endl;
-        cout << "C0 Read Levelling Done: " << ((ddrctrl>>4)&1) << endl;
-        cout << "C0 Read Levelling Error: " << ((ddrctrl>>5)&1) << endl;
-        cout << "C0 Write Levelling Started: " << ((ddrctrl>>6)&1) << endl;
-        cout << "C0 Write Levelling Done: " << ((ddrctrl>>7)&1) << endl;
-        cout << "C0 Write Levelling Error: " << ((ddrctrl>>8)&1) << endl;
-        if( sm->firmwareIsHltHardwareTest() )
+        if( sm->ddr3Bitrate(0) )
         {
-            cout << "C0 Read Count: " << rdcnt0 << endl;
-            cout << "C0 Write Count: " << wrcnt0 << endl;
-            cout << "C0 TG Error: " << ((ddrctrl>>15)&1) << endl;
+            cout << "C0 Reset: " << (ddrctrl&1) << endl;
+            cout << "C0 PhyInitDone: " << ((ddrctrl>>1)&1) << endl;
+            cout << "C0 PLL Lock: " << ((ddrctrl>>2)&1) << endl;
+            cout << "C0 Read Levelling Started: " << ((ddrctrl>>3)&1) << endl;
+            cout << "C0 Read Levelling Done: " << ((ddrctrl>>4)&1) << endl;
+            cout << "C0 Read Levelling Error: " << ((ddrctrl>>5)&1) << endl;
+            cout << "C0 Write Levelling Started: " << ((ddrctrl>>6)&1) << endl;
+            cout << "C0 Write Levelling Done: " << ((ddrctrl>>7)&1) << endl;
+            cout << "C0 Write Levelling Error: " << ((ddrctrl>>8)&1) << endl;
+            if( sm->firmwareIsHltHardwareTest() )
+            {
+                uint32_t rdcnt0 = bar->get32(RORC_REG_DDR3_C0_TESTER_RDCNT);
+                uint32_t wrcnt0 = bar->get32(RORC_REG_DDR3_C0_TESTER_WRCNT);
+
+                cout << "C0 Read Count: " << rdcnt0 << endl;
+                cout << "C0 Write Count: " << wrcnt0 << endl;
+                cout << "C0 TG Error: " << ((ddrctrl>>15)&1) << endl;
+            }
+            cout << endl;
         }
-        cout << endl;
 
-        cout << "C1 Reset: " << ((ddrctrl>>16)&1) << endl;
-        cout << "C1 PhyInitDone: " << ((ddrctrl>>17)&1) << endl;
-        cout << "C1 PLL Lock: " << ((ddrctrl>>18)&1) << endl;
-        cout << "C1 Read Levelling Started: " << ((ddrctrl>>19)&1) << endl;
-        cout << "C1 Read Levelling Done: " << ((ddrctrl>>20)&1) << endl;
-        cout << "C1 Read Levelling Error: " << ((ddrctrl>>21)&1) << endl;
-        cout << "C1 Write Levelling Started: " << ((ddrctrl>>22)&1) << endl;
-        cout << "C1 Write Levelling Done: " << ((ddrctrl>>23)&1) << endl;
-        cout << "C1 Write Levelling Error: " << ((ddrctrl>>24)&1) << endl;
-        if( sm->firmwareIsHltHardwareTest() )
+        if( sm->ddr3Bitrate(1) )
         {
-            cout << "C1 Read Count: " << rdcnt1 << endl;
-            cout << "C1 Write Count: " << wrcnt1 << endl;
-            cout << "C1 TG Error: " << ((ddrctrl>>31)&1) << endl;
+            cout << "C1 Reset: " << ((ddrctrl>>16)&1) << endl;
+            cout << "C1 PhyInitDone: " << ((ddrctrl>>17)&1) << endl;
+            cout << "C1 PLL Lock: " << ((ddrctrl>>18)&1) << endl;
+            cout << "C1 Read Levelling Started: " << ((ddrctrl>>19)&1) << endl;
+            cout << "C1 Read Levelling Done: " << ((ddrctrl>>20)&1) << endl;
+            cout << "C1 Read Levelling Error: " << ((ddrctrl>>21)&1) << endl;
+            cout << "C1 Write Levelling Started: " << ((ddrctrl>>22)&1) << endl;
+            cout << "C1 Write Levelling Done: " << ((ddrctrl>>23)&1) << endl;
+            cout << "C1 Write Levelling Error: " << ((ddrctrl>>24)&1) << endl;
+            if( sm->firmwareIsHltHardwareTest() )
+            {
+                uint32_t rdcnt1 = bar->get32(RORC_REG_DDR3_C1_TESTER_RDCNT);
+                uint32_t wrcnt1 = bar->get32(RORC_REG_DDR3_C1_TESTER_WRCNT);
+
+                cout << "C1 Read Count: " << rdcnt1 << endl;
+                cout << "C1 Write Count: " << wrcnt1 << endl;
+                cout << "C1 TG Error: " << ((ddrctrl>>31)&1) << endl;
+            }
         }
     }
 
