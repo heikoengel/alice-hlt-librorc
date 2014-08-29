@@ -201,3 +201,8 @@ INSTALL(TARGETS ddr3_tester_status RUNTIME DESTINATION bin )
 #add_executable( ddr3_writer ${LIBRORC_SOURCE_DIR}/tools_src/sim_tests/ddr3_writer.cpp)
 #target_link_libraries( ddr3_writer rorc ${EXTRA_LIBS})
 #INSTALL(TARGETS ddr3_writer RUNTIME DESTINATION bin )
+
+add_executable( crorc_sensors
+  ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/crorc_sensors.cpp )
+target_link_libraries( crorc_sensors rorc ${EXTRA_LIBS} )
+INSTALL(TARGETS crorc_sensors RUNTIME DESTINATION bin )
