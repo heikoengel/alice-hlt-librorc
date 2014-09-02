@@ -69,7 +69,8 @@ rorc_bar::~rorc_bar()
 }
 
 
-
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::memcopy
 (
@@ -87,6 +88,8 @@ rorc_bar::memcopy
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::memcopy
 (
@@ -104,45 +107,47 @@ rorc_bar::memcopy
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 uint32_t
 rorc_bar::get32(librorc_bar_address address )
 {
-//    uint32_t *bar = (uint32_t *)m_bar;
-//    uint32_t result;
-//    if( (address << 2) < m_size)
-//    {
-//        result = bar[address];
-//        return result;
-//    }
-//    else
-//    { return -1; }
-
-    return( Bar_get32(m_pda_bar, (address*4) ) );
+    uint32_t *bar = (uint32_t *)m_bar;
+    uint32_t result;
+    if( (address << 2) < m_size)
+    {
+        result = bar[address];
+        return result;
+    }
+    else
+    { return -1; }
 }
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 uint16_t
 rorc_bar::get16(librorc_bar_address address )
 {
-//    uint16_t *sbar;
-//    sbar = (uint16_t *)m_bar;
-//    assert( sbar != NULL );
-//
-//    uint64_t result;
-//    if( (address << 1) < m_size)
-//    {
-//        result = sbar[address];
-//        return result;
-//    }
-//    else
-//    { return 0xffff; }
+    uint16_t *sbar;
+    sbar = (uint16_t *)m_bar;
+    assert( sbar != NULL );
 
-    return( Bar_get16(m_pda_bar, (address*2) ) );
+    uint64_t result;
+    if( (address << 1) < m_size)
+    {
+        result = sbar[address];
+        return result;
+    }
+    else
+    { return 0xffff; }
 }
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::set32
 (
@@ -155,8 +160,7 @@ rorc_bar::set32
     if( (address << 2) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
-        //bar[address] = data;
-        Bar_put32(m_pda_bar, data, (address*4) );
+        bar[address] = data;
         msync( (bar + ( (address << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
         pthread_mutex_unlock(&m_mtx);
     }
@@ -165,6 +169,8 @@ rorc_bar::set32
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::set16
 (
@@ -179,8 +185,7 @@ rorc_bar::set16
     if( (address << 1) < m_size)
     {
         pthread_mutex_lock(&m_mtx);
-        //sbar[address] = data;
-        Bar_put32(m_pda_bar, data, (address*2) );
+        sbar[address] = data;
         msync( (sbar + ( (address << 1) & PAGE_MASK) ),
                PAGE_SIZE, MS_SYNC);
         pthread_mutex_unlock(&m_mtx);
