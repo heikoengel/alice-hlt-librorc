@@ -265,7 +265,9 @@ namespace LIBRARY_NAME
     sysmon::systemFanSpeed()
     {
         uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
-        return 15/((fanctrl & 0x1fffffff)*0.000000004);
+        double clk_period = 0.000000004; // 250 MHz, 4 ns
+        uint32_t pulses_per_rotation = 3; // SEPA Fan - Radian Fan has 4
+        return 60/((fanctrl & 0x1fffffff)*clk_period*pulses_per_rotation);
     }
 
 
