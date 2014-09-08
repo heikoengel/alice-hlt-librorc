@@ -304,15 +304,15 @@ int main(int argc, char *argv[]) {
     PRINT_METRIC("ddr_mod1_available", "%d", mod_available, sAll);
   }
 
-  if (sQsfpTemp & (qsfpId >= LIBRORC_MAX_QSFP)) {
-    std::cerr << "No or invalid QSFP module selected. Use --qsfp [0-2]."
-              << std::endl;
-    return -1;
-  } else if (!sm->qsfpIsPresent(qsfpId)) {
-    std::cerr << "Selected QSFP module not found." << std::endl;
-    return -1;
-  } else {
-    if (sQsfpTemp) {
+  if (sQsfpTemp) {
+    if (qsfpId >= LIBRORC_MAX_QSFP) {
+      std::cerr << "No or invalid QSFP module selected. Use --qsfp [0-2]."
+                << std::endl;
+      return -1;
+    } else if (!sm->qsfpIsPresent(qsfpId)) {
+      std::cerr << "Selected QSFP module not found." << std::endl;
+      return -1;
+    } else {
       PRINT_METRIC("qsfp_temp", "%d", (uint32_t)sm->qsfpTemperature(qsfpId),
                    sAll);
     }

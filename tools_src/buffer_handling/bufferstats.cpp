@@ -116,7 +116,7 @@ int main( int argc, char *argv[])
         {
             uint32_t addr_high = sglist[i].pointer>>32;
             uint32_t addr_low = (sglist[i].pointer & 0xffffffff);
-            cout << "                 [" << i << "]: addr=0x"
+            cout << "                 [" << dec << i << "]: addr=0x"
                 << hex << setw(8) << setfill('0')
                 << addr_high << "_"
                 << hex << setw(8) << setfill('0')
