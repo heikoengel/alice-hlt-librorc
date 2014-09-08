@@ -293,7 +293,7 @@ namespace LIBRARY_NAME
         else
         {
             // drive PWM_EN_T high, enable auto controls
-            fanctrl |= ~(1<<30);
+            fanctrl |= (1<<30);
         }
 
         /** write back new settings */

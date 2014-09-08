@@ -29,8 +29,8 @@
         fanctrl -n [device] (-e [0/1]) \n\
 paramters: \n\
         -n [0...255]    Target device ID \n\
-        -e [-1,0,1]     (optional) Enable(1) / Disable(0) the Fan, \n\
-                        or set to automatic control(-1).\n\
+        -e [0,1,2]     (optional) Enable(1) / Disable(0) the Fan, \n\
+                        or set to automatic control(2).\n\
 "
 
 using namespace std;
@@ -78,7 +78,7 @@ main
         return -1;
     }
 
-    if ( enable_val < -1 || enable_val > 1 )
+    if ( enable_val < 0 || enable_val > 2 )
     {
         cout << "ERROR: invalid 'enable' value " << enable_val << endl;
         cout << HELP_TEXT;
@@ -129,22 +129,29 @@ main
 
     if ( do_enable )
     {
-        if (enable_val==-1)
+        if (enable_val==2)
         { sm->systemFanSetEnable(0, 1); }
         else
         { sm->systemFanSetEnable(1, enable_val); }
     }
 
-    cout << "Fan speed     : " << sm->systemFanSpeed() << " RPM" << endl;
+    bool enabled = sm->systemFanIsEnabled();
+    bool running = sm->systemFanIsRunning();
+    bool automode = sm->systemFanIsAutoMode();
+
+    cout << "Fan speed     : ";
+    if( running )
+    { cout << sm->systemFanSpeed(); }
+    else
+    { cout << "0"; }
+    cout << " RPM" << endl;
     cout << "Fan mode      : ";
-    if( sm->systemFanIsAutoMode() )
+    if( automode )
     { cout << "auto"; }
     else
     { cout << "MANUAL OVERRIDE"; }
     cout << endl;
 
-    bool enabled = sm->systemFanIsEnabled();
-    bool running = sm->systemFanIsRunning();
     cout << "Fan enabled   : " << enabled << endl;
     cout << "Fan Running   : " << running << endl;
 
