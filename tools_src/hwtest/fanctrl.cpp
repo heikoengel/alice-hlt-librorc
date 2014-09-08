@@ -29,7 +29,8 @@
         fanctrl -n [device] (-e [0/1]) \n\
 paramters: \n\
         -n [0...255]    Target device ID \n\
-        -e [0,1]        (optional) Enable/Disable the Fan \n\
+        -e [-1,0,1]     (optional) Enable(1) / Disable(0) the Fan, \n\
+                        or set to automatic control(-1).\n\
 "
 
 using namespace std;
@@ -59,7 +60,7 @@ main
                 device_number = atoi(optarg);
                 break;
             case 'e':
-                enable_val = strtol(optarg, NULL, 0) & 0x3f;
+                enable_val = strtol(optarg, NULL, 0);
                 do_enable = 1;
                 break;
             default:
@@ -73,6 +74,13 @@ main
     {
         cout << "ERROR: no or invalid device ID selected: " 
              << device_number << endl;
+        cout << HELP_TEXT;
+        return -1;
+    }
+
+    if ( enable_val < -1 || enable_val > 1 )
+    {
+        cout << "ERROR: invalid 'enable' value " << enable_val << endl;
         cout << HELP_TEXT;
         return -1;
     }
@@ -121,19 +129,27 @@ main
 
     if ( do_enable )
     {
-        sm->systemFanSetEnable(enable_val);
+        if (enable_val==-1)
+        { sm->systemFanSetEnable(0, 1); }
+        else
+        { sm->systemFanSetEnable(1, enable_val); }
     }
 
     cout << "Fan speed     : " << sm->systemFanSpeed() << " RPM" << endl;
-    if( sm->systemFanIsEnabled() == false)
-    {
-        cout << "WARNING: fan seems to be disabled!" << endl;
-    }
+    cout << "Fan mode      : ";
+    if( sm->systemFanIsAutoMode() )
+    { cout << "auto"; }
+    else
+    { cout << "MANUAL OVERRIDE"; }
+    cout << endl;
 
-    if( sm->systemFanIsRunning() == false)
-    {
-        cout << "WARNING: fan seems to be stopped!" << endl;
-    }
+    bool enabled = sm->systemFanIsEnabled();
+    bool running = sm->systemFanIsRunning();
+    cout << "Fan enabled   : " << enabled << endl;
+    cout << "Fan Running   : " << running << endl;
+
+    if( enabled && !running )
+    { cout << "WARNING: fan is enabled but not running!" << endl; }
 
     delete sm;
     delete bar;

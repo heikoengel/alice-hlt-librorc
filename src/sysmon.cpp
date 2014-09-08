@@ -273,26 +273,39 @@ namespace LIBRARY_NAME
     void
     sysmon::systemFanSetEnable
     (
+        uint32_t ovrd,
         uint32_t enable
     )
     {
         /** get current settings */
         uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
-        if ( enable )
+        if( ovrd )
         {
-            /** set PWM_EN_T high, so onboard pullup enables the fan */
-            fanctrl |= (1<<30);
+            // drive PWM_EN_T low
+            fanctrl &= ~(1<<30);
+            // clear previous 'enable' value
+            fanctrl &= ~(1<<31);
+            // set new 'enable' value
+            fanctrl |= ((enable&1)<<31);
         }
         else
         {
-            /** drive PWM_EN_T low */
-            fanctrl &= ~(1<<30);
-            /** drive PWM_EN_O low */
-            fanctrl &= ~(1<<31);
+            // drive PWM_EN_T high, enable auto controls
+            fanctrl |= ~(1<<30);
         }
+
         /** write back new settings */
         m_bar->set32(RORC_REG_FAN_CTRL, fanctrl);
     }
+
+    bool
+    sysmon::systemFanIsAutoMode()
+    {
+        uint32_t fanctrl = m_bar->get32(RORC_REG_FAN_CTRL);
+        return ((fanctrl & (1<<30))!=0);
+    }
+
+
 
     uint64_t
     sysmon::uptimeSeconds()
@@ -916,6 +929,24 @@ namespace LIBRARY_NAME
                 DDR3_SPD_SLVADDR + (module&1),
                 address);
         return rdval;
+    }
+
+    string
+    sysmon::ddr3SpdReadString
+    (
+        uint8_t module,
+        uint8_t start_address,
+        uint8_t end_address
+    )
+    {
+        string readout = "";
+        char data_r = 0;
+        for( uint8_t addr=start_address; addr<=end_address; addr++ )
+        {
+            data_r = ddr3SpdRead(module, addr);
+            readout.append(1, data_r);
+        }
+        return readout;
     }
 
 

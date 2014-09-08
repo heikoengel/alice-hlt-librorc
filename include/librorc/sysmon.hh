@@ -135,11 +135,32 @@ namespace LIBRARY_NAME
             bool   systemFanIsRunning();
             double systemFanSpeed();
 
+            /**
+             * control FPGA fan. The fan is by default in automatic control
+             * mode: as long as the FPGA temperature is below ~72 degC the
+             * fan is disabled. If the temperature exceeds this threshold
+             * the fan is activated. This default mode can be overridden by
+             * manual controls.
+             *
+             * @param ovrd override fan control. 1 enables
+             * override mode, 0 activates automatic fan control.
+             * @param enable enable (1) or disable (0) the fan. This only
+             * applies if override is non-zero
+             **/
             void
             systemFanSetEnable
             (
+                uint32_t ovrd,
                 uint32_t enable
             );
+
+            /**
+             * get fan operating mode
+             * @return true if automatic fan control is enabled, false if
+             * manual fan override is active
+             **/
+            bool
+            systemFanIsAutoMode();
 
             /**
              * get board uptime in seconds. This counter is only reset
@@ -417,6 +438,23 @@ namespace LIBRARY_NAME
             (
                 uint8_t module,
                 uint8_t address
+            );
+
+            /**
+             * read string from DDR3 SPD monitor. This iteratively calls
+             * ddr3SpdRead and returns the results as a string
+             * @param module 0 or 1 to select target SO-DIMM module
+             * @start_address first address to read
+             * @end_address last address to read
+             * @return string of the values from start_address to
+             * end_address
+             **/
+            std::string
+            ddr3SpdReadString
+            (
+                uint8_t module,
+                uint8_t start_address,
+                uint8_t end_address
             );
 
             /**
