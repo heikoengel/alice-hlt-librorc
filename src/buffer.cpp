@@ -24,8 +24,6 @@
 
 #include <pda.h>
 
-using namespace std;
-
 namespace LIBRARY_NAME
 {
 
@@ -58,7 +56,7 @@ buffer::buffer
         size_t length = 0;
         if(DMABuffer_getLength(m_buffer, &length) != PDA_SUCCESS)
         {
-            cout << "Getting buffer length from PDA totally failed!" << endl;
+            std::cout << "Getting buffer length from PDA totally failed!" << std::endl;
             throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
         }
 
@@ -66,7 +64,7 @@ buffer::buffer
         {
             if(DMABuffer_free(m_buffer, PDA_DELETE) != PDA_SUCCESS)
             {
-                cout << "PDA buffer freeing totally failed!" << endl;
+                std::cout << "PDA buffer freeing totally failed!" << std::endl;
                 throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
             }
             newAllocNeeded = true;
@@ -82,7 +80,7 @@ buffer::buffer
                     (m_device, id, size, PDABUFFER_DIRECTION_BI, &m_buffer)
         )
         {
-            cout << "DMA Buffer allocation failed!" << endl;
+            std::cout << "DMA Buffer allocation failed!" << std::endl;
             throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
         }
     }
@@ -91,7 +89,7 @@ buffer::buffer
     {
         if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
         {
-            cout << "Wrap mapping failed!" << endl;
+            std::cout << "Wrap mapping failed!" << std::endl;
             throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
         }
     }
@@ -118,7 +116,7 @@ buffer::buffer
     {
         if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
         {
-            cout << "Wrap mapping failed!" << endl;
+            std::cout << "Wrap mapping failed!" << std::endl;
             throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
         }
     }
@@ -134,21 +132,21 @@ buffer::connect()
     m_size = 0;
     if( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
     {
-        cout << "Failed to get buffer size!" << endl;
+        std::cout << "Failed to get buffer size!" << std::endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
     m_mem = NULL;
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     {
-        cout << "Mapping failed!" << endl;
+        std::cout << "Mapping failed!" << std::endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 
     m_sglist = NULL;
     if(DMABuffer_getSGList(m_buffer, &m_sglist)!=PDA_SUCCESS)
     {
-        cout << "SG list lookup failed!" << endl;
+        std::cout << "SG list lookup failed!" << std::endl;
         throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
     }
 

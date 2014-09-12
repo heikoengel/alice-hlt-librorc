@@ -22,8 +22,6 @@
 
 #include <librorc/bar.hh>
 
-using namespace std;
-
 #define MAX_PAYLOAD  256
 #define MAX_READ_REQ 256
 
@@ -177,7 +175,7 @@ device::maxReadRequestSize()
 }
 
 
-string*
+std::string*
 device::deviceDescription()
 {
     char description_buffer[1024];
@@ -187,7 +185,7 @@ device::deviceDescription()
     if(PciDevice_getDescription(m_device, &description ) != PDA_SUCCESS)
     { return NULL; }
 
-    return( new string(description_buffer) );
+    return( new std::string(description_buffer) );
 }
 
 }

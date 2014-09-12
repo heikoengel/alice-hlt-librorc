@@ -27,8 +27,6 @@
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 
-using namespace std;
-
 namespace LIBRARY_NAME
 {
 
@@ -407,7 +405,7 @@ namespace LIBRARY_NAME
 
 
 
-    string*
+    std::string*
     sysmon::qsfpVendorName
     (
         uint8_t index
@@ -419,7 +417,7 @@ namespace LIBRARY_NAME
 
 
 
-    string*
+    std::string*
     sysmon::qsfpPartNumber
     (
         uint8_t index
@@ -431,7 +429,7 @@ namespace LIBRARY_NAME
 
 
 
-    string*
+    std::string*
     sysmon::qsfpSerialNumber
     (
         uint8_t index
@@ -443,7 +441,7 @@ namespace LIBRARY_NAME
 
 
 
-    string*
+    std::string*
     sysmon::qsfpRevisionNumber
     (
         uint8_t index
@@ -933,7 +931,7 @@ namespace LIBRARY_NAME
         return rdval;
     }
 
-    string
+    std::string
     sysmon::ddr3SpdReadString
     (
         uint8_t module,
@@ -941,7 +939,7 @@ namespace LIBRARY_NAME
         uint8_t end_address
     )
     {
-        string readout = "";
+        std::string readout = "";
         char data_r = 0;
         for( uint8_t addr=start_address; addr<=end_address; addr++ )
         {
@@ -1051,7 +1049,7 @@ namespace LIBRARY_NAME
         uint8_t end
     )
     {
-        string *readout = new string();
+        std::string *readout = new std::string();
         char data_r = 0;
         for(uint8_t i=start; i<=end; i++)
         {

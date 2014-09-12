@@ -25,8 +25,6 @@
 #include <mti.h>
 #include <pda.h>
 
-using namespace std;
-
 /**
  * usleep time for FLI read polling
  * */
@@ -59,14 +57,14 @@ sim_bar::sim_bar
     m_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if( m_sockfd < 0 )
     {
-        cout << "ERROR: failed to open socket" << endl;
+        std::cout << "ERROR: failed to open socket" << std::endl;
         throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
     struct hostent *server = gethostbyname(MODELSIM_SERVER);
     if( server == NULL )
     {
-        cout << "ERROR: no such host" << endl;
+        std::cout << "ERROR: no such host" << std::endl;
         throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
@@ -80,7 +78,7 @@ sim_bar::sim_bar
     serv_addr.sin_port = htons(2000);
     if( 0 > connect(m_sockfd,(struct sockaddr *) &serv_addr, sizeof(serv_addr)) )
     {
-        cout << "ERROR connecting" << endl;
+        std::cout << "ERROR connecting" << std::endl;
         throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
@@ -90,7 +88,7 @@ sim_bar::sim_bar
      */
     if( pipe(m_pipefd) == -1 )
     {
-        cout << "ERROR: Failed to create PIPE" << endl;
+        std::cout << "ERROR: Failed to create PIPE" << std::endl;
         throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED;
     }
 
@@ -155,7 +153,7 @@ sim_bar::memcopy
 
     if( result != (ssize_t)(buffersize*sizeof(uint32_t)) )
     {
-        cout << "ERROR writing to socket" << endl;
+        std::cout << "ERROR writing to socket" << std::endl;
     }
     else
     {
@@ -209,7 +207,7 @@ uint32_t sim_bar::get32(librorc_bar_address address )
 
     if( result != (ssize_t)(sizeof(uint32_t)*buffersize) )
     {
-        cout << "ERROR writing to socket" << endl;
+        std::cout << "ERROR writing to socket" << std::endl;
     }
     else
     {
@@ -259,7 +257,7 @@ uint16_t sim_bar::get16(librorc_bar_address address )
 
     if( result != (ssize_t)(buffersize*sizeof(uint32_t)) )
     {
-        cout << "ERROR writing to socket" << endl;
+        std::cout << "ERROR writing to socket" << std::endl;
     }
     else
     {
@@ -306,7 +304,7 @@ sim_bar::set32
 
     if( result != (ssize_t)(buffersize*sizeof(uint32_t)) )
     {
-        cout << "ERROR writing to socket" << endl;
+        std::cout << "ERROR writing to socket" << std::endl;
     }
     else
     {
@@ -359,7 +357,7 @@ sim_bar::set16
 
     if ( result != (ssize_t)(buffersize*sizeof(uint32_t)) )
     {
-        cout << "ERROR writing to socket" << endl;
+        std::cout << "ERROR writing to socket" << std::endl;
     }
     else
     {
@@ -399,7 +397,7 @@ sim_bar::gettime
 
     if( result != (ssize_t)(buffersize*sizeof(uint32_t)) )
     {
-        cout << "ERROR writing to socket" << endl;
+        std::cout << "ERROR writing to socket" << std::endl;
     }
 
     /** wait for FLI completion */
@@ -480,8 +478,8 @@ sim_bar::sockMonitor()
         }
         else if (result!=sizeof(uint32_t))
         {
-            cout << "ERROR: librorc::sim_bar::readDWfromSock returned "
-                 << result << " bytes" << endl;
+            std::cout << "ERROR: librorc::sim_bar::readDWfromSock returned "
+                 << result << " bytes" << std::endl;
         }
 
         return buffer;
@@ -496,8 +494,8 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=4)
         {
-            cout << "ERROR: Invalid message size for CMD_CMPL_TO_HOST: "
-                 << msgsize << endl;
+            std::cout << "ERROR: Invalid message size for CMD_CMPL_TO_HOST: "
+                 << msgsize << std::endl;
         }
 
         readDWfromSock(m_sockfd);
@@ -530,8 +528,8 @@ sim_bar::sockMonitor()
         uint64_t buffer_id = 0;
         if( getOffset(addr, &buffer_id, &offset) )
         {
-            cout << "ERROR: Could not find physical address "
-                 << addr << endl;
+            std::cout << "ERROR: Could not find physical address "
+                 << addr << std::endl;
         }
         else
         {
@@ -588,7 +586,8 @@ sim_bar::sockMonitor()
 
         if( getOffset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
         {
-            cout << "ERROR: Could not find physical address " << addr << endl;
+            std::cout << "ERROR: Could not find physical address "
+                 << addr << std::endl;
         }
         else
         {
@@ -599,7 +598,7 @@ sim_bar::sockMonitor()
                     != write(m_pipefd[1], &rdreq, sizeof(rdreq))
             )
             {
-                cout << "ERROR: Write to pipe failed with" << endl;
+                std::cout << "ERROR: Write to pipe failed with" << std::endl;
             }
         }
     }
@@ -613,8 +612,8 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=2)
         {
-            cout << "ERROR: Invalid message size for CMD_ACK_CMPL: "
-                 << msgsize << endl;
+            std::cout << "ERROR: Invalid message size for CMD_ACK_CMPL: "
+                 << msgsize << std::endl;
         }
         m_cmpl_to_dev_done = 1;
     }
@@ -628,8 +627,8 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=2)
         {
-            cout << "ERROR: Invalid message size for CMD_ACK_WRITE: "
-                 << msgsize << endl;
+            std::cout << "ERROR: Invalid message size for CMD_ACK_WRITE: "
+                 << msgsize << std::endl;
         }
         m_write_to_dev_done = 1;
     }
@@ -643,8 +642,8 @@ sim_bar::sockMonitor()
     {
         if (msgsize!=4)
         {
-            cout << "ERROR: Invalid message size for CMD_ACK_TIME: "
-                 << msgsize << endl;
+            std::cout << "ERROR: Invalid message size for CMD_ACK_TIME: "
+                 << msgsize << std::endl;
         }
         m_read_time_data = ((uint64_t)readDWfromSock(m_sockfd)<<32);
         m_read_time_data += readDWfromSock(m_sockfd);
@@ -740,8 +739,8 @@ sim_bar::cmplHandler()
     {
         if(result<0)
         {
-            cout << "ERROR: Failed to read from pipe: "
-                 << result << endl;
+            std::cout << "ERROR: Failed to read from pipe: "
+                 << result << std::endl;
             break;
         }
 
@@ -757,8 +756,8 @@ sim_bar::cmplHandler()
         }
         catch(...)
         {
-            cout << "ERROR: Failed to connect to buffer "
-                 << rdreq.buffer_id << endl;
+            std::cout << "ERROR: Failed to connect to buffer "
+                 << rdreq.buffer_id << std::endl;
             abort();
         }
 
@@ -804,8 +803,8 @@ sim_bar::cmplHandler()
 
             if( result!=buffersize )
             {
-                cout << "ERROR: CMD_CMPL_TO_DEVICE write failed with "
-                    << result;
+                std::cout << "ERROR: CMD_CMPL_TO_DEVICE write failed with "
+                    << result << std::endl;
             }
             else
             {

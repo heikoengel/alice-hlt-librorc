@@ -22,8 +22,6 @@
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 
-using namespace std;
-
 namespace LIBRARY_NAME
 {
 
@@ -192,8 +190,8 @@ flash::resetChip()
         uint16_t status = resetBlock(blkaddr);
         if ( !(status & FLASH_PEC_BUSY) )
         {
-            cout << "resetBlock failed, Block "
-                 << arch.blknum << " is busy." << endl;
+            std::cout << "resetBlock failed, Block "
+                 << arch.blknum << " is busy." << std::endl;
             return status;
         }
         blkaddr += (arch.blksize >> 1);
@@ -218,7 +216,8 @@ flash::programBuffer
     struct flash_architecture arch;
     if ( getFlashArchitecture(addr, &arch) )
     {
-        cout << "Invalid flash address: "<< hex << addr << endl;
+        std::cout << "Invalid flash address: "
+             << std::hex << addr << std::endl;
         return -1;
     }
 
@@ -228,8 +227,8 @@ flash::programBuffer
         int32_t ret = unlockBlock(arch.blkaddr) ;
         if ( ret < 0 )
         {
-            cout << "Failed to unlock block at addr" << hex
-                 << arch.blkaddr << endl;
+            std::cout << "Failed to unlock block at addr" << std::hex
+                 << arch.blkaddr << std::endl;
             return ret;
         }
     }
@@ -245,7 +244,10 @@ flash::programBuffer
         if(timeout == 0)
         {
             if( verbose==LIBRORC_VERBOSE_ON )
-            { cout << "programBuffer: Timeout waiting for buffer!" << endl; }
+            {
+                std::cout << "programBuffer: Timeout waiting for buffer!"
+                     << std::endl;
+            }
             return -status;
         }
     }
@@ -270,7 +272,10 @@ flash::programBuffer
         if(timeout == 0)
         {
             if( verbose==LIBRORC_VERBOSE_ON )
-            { cout << "programBuffer: Timeout waiting for busy!" << endl; }
+            {
+                std::cout << "programBuffer: Timeout waiting for busy!"
+                    << std::endl;
+            }
             return -status;
         }
     }
@@ -280,8 +285,8 @@ flash::programBuffer
     {
         if( verbose==LIBRORC_VERBOSE_ON )
         {
-            cout << "programBuffer: program/erase sequence error: "
-                 << hex << status << endl;
+            std::cout << "programBuffer: program/erase sequence error: "
+                 << std::hex << status << std::endl;
         }
         return -status;
     }
@@ -510,8 +515,8 @@ flash::dump
         flash_buffer[i] = get(i);
         if(verbose == LIBRORC_VERBOSE_ON)
         {
-            cout << i << " : "  << hex << setw(4)
-                 << flash_buffer[i] << dec << endl;
+            std::cout << i << " : "  << std::hex << std::setw(4)
+                 << flash_buffer[i] << std::dec << std::endl;
         }
     }
 
@@ -535,7 +540,8 @@ flash::erase
 {
     if(verbose == LIBRORC_VERBOSE_ON)
     {
-        cout << "Erasing first " << byte_count << " bytes in the flash." << endl;
+        std::cout << "Erasing first " << byte_count
+             << " bytes in the flash." << std::endl;
     }
 
     uint32_t current_addr = 0;
@@ -547,14 +553,16 @@ flash::erase
 
         if ( getFlashArchitecture(current_addr, &arch) )
         {
-            cout << "Invalid flash address: "<< current_addr << endl;
+            std::cout << "Invalid flash address: "
+                 << current_addr << std::endl;
             return -1;
         }
 
         if(verbose == LIBRORC_VERBOSE_ON)
         {
-            cout << "\rErasing block " << dec << arch.blknum << " (0x"
-                 << hex << arch.blkaddr << ")...";
+            std::cout << "\rErasing block "
+                 << std::dec << arch.blknum << " (0x"
+                 << std::hex << arch.blkaddr << ")...";
             fflush(stdout);
         }
 
@@ -565,8 +573,8 @@ flash::erase
             status = unlockBlock(arch.blkaddr) ;
             if ( status < 0 )
             {
-                cout << "Failed to unlock block at addr" << hex
-                     << arch.blkaddr << endl;
+                std::cout << "Failed to unlock block at addr" << std::hex
+                     << arch.blkaddr << std::endl;
                 return status;
             }
         }
@@ -575,8 +583,8 @@ flash::erase
         status = eraseBlock(arch.blkaddr);
         if( status < 0 )
         {
-            cout << "Failed to erase block at addr" << hex
-                 << arch.blkaddr << ": " << -status << endl;
+            std::cout << "Failed to erase block at addr" << std::hex
+                 << arch.blkaddr << ": " << -status << std::endl;
             return status;
         }
 
@@ -587,7 +595,7 @@ flash::erase
     }
 
     if(verbose == LIBRORC_VERBOSE_ON)
-    { cout << "Erase complete!" << endl; }
+    { std::cout << "Erase complete!" << std::endl; }
 
     return 0;
 }
@@ -603,21 +611,21 @@ flash::flashWrite
 {
     if(filename == NULL)
     {
-        cout << "File was not given!" << endl;
+        std::cout << "File was not given!" << std::endl;
         return -1;
     }
 
     struct stat stat_buf;
     if( stat(filename, &stat_buf) != 0)
     {
-        cout << "Flash input file does not exist or is not accessable!"
-             << endl;
+        std::cout << "Flash input file does not exist or is not accessable!"
+             << std::endl;
         return -1;
     }
 
     if(stat_buf.st_size > FLASH_FILE_SIZE)
     {
-        cout << "Flash file is to big!" << endl;
+        std::cout << "Flash file is to big!" << std::endl;
         return -1;
     }
 
@@ -625,28 +633,28 @@ flash::flashWrite
 
     if(verbose == LIBRORC_VERBOSE_ON)
     {
-        cout << "Bitfile Size         : "
+        std::cout << "Bitfile Size         : "
              << (double)(stat_buf.st_size/1024.0/1024.0)
-             << " MB (" << dec << stat_buf.st_size
-             << " Bytes)" << endl;
+             << " MB (" << std::dec << stat_buf.st_size
+             << " Bytes)" << std::endl;
 
-        cout << "Bitfile will be written to Flash starting at addr "
-             << addr << endl;
+        std::cout << "Bitfile will be written to Flash starting at addr "
+             << addr << std::endl;
     }
 
     /** Open the flash file */
     int32_t fd = open(filename, O_RDONLY);
     if(fd == -1)
 	{
-        cout << "failed to open input file "
-             << filename << "!"<< endl;
+        std::cout << "failed to open input file "
+             << filename << "!"<< std::endl;
         return -1;
 	}
 
     /** Erase the flash first */
     if( erase(stat_buf.st_size, verbose)!=0 )
     {
-        cout << "CRORC flash erase failed!" << endl;
+        std::cout << "CRORC flash erase failed!" << std::endl;
         return -1;
     }
 
@@ -660,9 +668,11 @@ flash::flashWrite
     {
         if(verbose == LIBRORC_VERBOSE_ON)
         {
-            cout << "\rWriting " << dec << (uint64_t)bytes_read << " bytes to 0x"
-                 << hex << addr << " : "
-                 << dec << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
+            std::cout << "\rWriting " << std::dec
+                 << (uint64_t)bytes_read << " bytes to 0x"
+                 << std::hex << addr << " : "
+                 << std::dec
+                 << (uint64_t)((100*bytes_programmed)/stat_buf.st_size)
                  << "% ...";
             fflush(stdout);
         }
@@ -670,8 +680,8 @@ flash::flashWrite
         int32_t ret = programBuffer(addr, bytes_read/2, buffer, verbose);
         if (ret < 0)
         {
-            cout << "programBuffer failed, STS: " << hex
-                 << -ret << dec << endl;
+            std::cout << "programBuffer failed, STS: " << std::hex
+                 << -ret << std::dec << std::endl;
             break;
         }
 
@@ -680,10 +690,11 @@ flash::flashWrite
             uint16_t status = get(addr+i);
             if( buffer[i] != status )
             {
-                cout << "write failed: written " << hex << buffer[i]
-                     << ", read " << status << ", addr " << hex
-                     << (addr+i) << ", bytes_read " << dec << bytes_read
-                     << endl;
+                std::cout << "write failed: written "
+                     << std::hex << buffer[i]
+                     << ", read " << status << ", addr " << std::hex
+                     << (addr+i) << ", bytes_read "
+                     << std::dec << bytes_read << std::endl;
                 break;
             }
         }
@@ -693,7 +704,7 @@ flash::flashWrite
     }
 
     if(verbose == LIBRORC_VERBOSE_ON)
-    { cout << endl << "DONE!" << endl; }
+    { std::cout << std::endl << "DONE!" << std::endl; }
 
     /* Close everything */
 	free(buffer);

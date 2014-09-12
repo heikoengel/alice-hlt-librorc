@@ -31,8 +31,6 @@
 #include <librorc/dma_channel.hh>
 #include <librorc/event_sanity_checker.hh>
 
-using namespace std;
-
 namespace LIBRARY_NAME
 {
 
@@ -122,9 +120,6 @@ namespace LIBRARY_NAME
         m_sm = new librorc::sysmon(m_bar1);
         if( (uint32_t)m_channelId >= m_sm->numberOfChannels() )
         {
-            cout << "ERROR: Requsted channel " << m_channelId
-                 << " is not implemented in firmware "
-                 << "- exiting" << endl;
             throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL;
         }
         m_fwtype                  = m_sm->firmwareType();
@@ -330,7 +325,6 @@ namespace LIBRARY_NAME
                     sizeof(librorcChannelStatus), IPC_CREAT | 0666);
             if(shID==-1)
             {
-                cout << "prepareSharedMemory failed (1)!" << endl;
                 throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
             }
 
@@ -338,7 +332,6 @@ namespace LIBRARY_NAME
             shm = (char*)shmat(shID, 0, 0);
             if(shm==(char*)-1)
             {
-                cout << "prepareSharedMemory failed (2)!" << endl;
                 throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
             }
         #else
@@ -346,7 +339,6 @@ namespace LIBRARY_NAME
             shm = (char*)malloc(sizeof(librorcChannelStatus));
             if(shm == NULL)
             {
-                cout << "prepareSharedMemory failed (2)!" << endl;
                 throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
             }
         #endif
@@ -383,12 +375,14 @@ namespace LIBRARY_NAME
 
         try
         {
-            cout << "CRORC FPGA" << endl
-                 << "Firmware Rev. : " << hex << setw(8) << m_sm->FwRevision()  << dec << endl
-                 << "Firmware Date : " << hex << setw(8) << m_sm->FwBuildDate() << dec << endl;
+            std::cout << "CRORC FPGA" << std::endl
+                 << "Firmware Rev. : " << std::hex << std::setw(8)
+                 << m_sm->FwRevision()  << std::dec << std::endl
+                 << "Firmware Date : " << std::hex << std::setw(8)
+                 << m_sm->FwBuildDate() << std::dec << std::endl;
         }
         catch(...)
-        { cout << "Firmware Rev. and Date not available!" << endl; }
+        { std::cout << "Firmware Rev. and Date not available!" << std::endl; }
     }
 
 
