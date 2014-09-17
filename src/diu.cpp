@@ -146,16 +146,6 @@ namespace LIBRARY_NAME
         { return 0; }
     }
 
-
-    /**
-     * TODO: should this throw/return an error instead of just printing
-     * to PDA_DEBUG?
-     * PRO: it is important to know if data can be received at all or
-     * if further action is required
-     * CON: DIU/SIU state is independent of any DMA/readout channel
-     * and can be changed/controlled while the readout is running. Is
-     * there anything checking the link state periodically?
-     **/
     int
     diu::prepareForSiuData()
     {

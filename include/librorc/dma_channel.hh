@@ -32,6 +32,7 @@
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED               5
 #define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED                6
 
+#define LIBRORC_DMA_CHANNEL_TIMEOUT 10000
 
 namespace LIBRARY_NAME
 {
@@ -87,7 +88,7 @@ namespace LIBRARY_NAME
             virtual ~dma_channel();
 
             void enable();
-            void disable();
+            int disable();
 
 
             void

@@ -351,6 +351,7 @@ dma_channel::dma_channel
 
 dma_channel::~dma_channel()
 {
+    // TODO: no check if disable() failed, but does this matter at this point?!
     disable();
     delete(m_channelConfigurator);
 
@@ -379,22 +380,25 @@ dma_channel::enable()
     setDMAConfig( DMAConfig() | 0x01 );
 }
 
-void
+int
 dma_channel::disable()
 {
+    uint32_t timeout = LIBRORC_DMA_CHANNEL_TIMEOUT;
     // suspend DMA transfer only if active
     if( m_link->dmaEngineIsActive() )
     {
         setSuspend(1);
 
         /**
-         * TODO: add timeout
          * Timeout handling: simply continue after loop.
          * This may lead to wrong calculated/reported event sizes
          * but as we ran into the timeout there's something wrong anyway
          **/
-        while(getDMABusy())
-        { usleep(100); }
+        while(timeout!=0 && getDMABusy())
+        {
+            usleep(100);
+            timeout--;
+        }
     }
 
     setEbdmEnable(0);
@@ -402,6 +406,8 @@ dma_channel::disable()
 
     /** Reset DFIFO, disable DMA engine, disable SUSPEND */
     setDMAConfig(0X00000002);
+
+    return (timeout!=0) ? 0 : -1;
 }
 
 uint32_t
