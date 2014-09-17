@@ -26,6 +26,8 @@
 
 using namespace std;
 
+#define LIBRORC_MAX_DMA_CHANNELS 12
+
 #define HELP_TEXT "dma_monitor usage: \n\
         dma_monitor [parameters] \n\
 parameters: \n\

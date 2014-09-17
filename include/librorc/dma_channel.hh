@@ -32,12 +32,6 @@
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED               5
 #define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED                6
 
-/** currently used by dma_monitor.cpp and hwpgdma_es_sweep.cpp */
-#define LIBRORC_MAX_DMA_CHANNELS  12
-
-#define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
-#define PAGE_SIZE sysconf(_SC_PAGESIZE)
-
 
 namespace LIBRARY_NAME
 {

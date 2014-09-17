@@ -33,6 +33,7 @@ parameters: \n\
 #define TIME_ES_TO_STAT 1
 #define TIME_STAT_TO_STAT 1
 #define ITERATIONS_PER_ES 10
+#define LIBRORC_MAX_DMA_CHANNELS 12
 
 
 typedef struct {
