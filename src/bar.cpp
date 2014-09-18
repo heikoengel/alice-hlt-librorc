@@ -80,8 +80,9 @@ rorc_bar::memcopy
 )
 {
     pthread_mutex_lock(&m_mtx);
-    if( PDA_SUCCESS != Bar_memcpyToBar32(m_pda_bar, (target << 2), source, num) )
-    { cout << "bar copy failed!" << endl; }
+//    if( PDA_SUCCESS != Bar_memcpyToBar32(m_pda_bar, (target << 2), source, num) )
+//    { cout << "bar copy failed!" << endl; }
+    memcpy( (uint8_t*)m_bar + (target << 2), source, num);
     msync( (uint8_t*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
 }
@@ -100,8 +101,9 @@ rorc_bar::memcopy
 {
     assert(false);
     pthread_mutex_lock(&m_mtx);
-    if( PDA_SUCCESS != Bar_memcpyFromBar32(m_pda_bar, target, source, num) )
-    { cout << "bar copy failed!" << endl; }
+//    if( PDA_SUCCESS != Bar_memcpyFromBar32(m_pda_bar, target, source, num) )
+//    { cout << "bar copy failed!" << endl; }
+    memcpy( target, (const void*)(m_bar + (source << 2)), num);
     pthread_mutex_unlock(&m_mtx);
 }
 
