@@ -1,24 +1,39 @@
 /**
- * @author Heiko Engel <hengel@cern.ch>, Dominic Eschweiler <eschweiler@fias.uni-frankfurt.de>
- * @version 0.2
- * @date 2011-08-16
+ * Copyright (c) 2014, Heiko Engel <hengel@cern.ch>
+ * Copyright (c) 2014, Dominic Eschweiler <dominic.eschweiler@cern.ch>
  *
- * @section LICENSE
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * All rights reserved.
  *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details at
- * http://www.gnu.org/copyleft/gpl.html
- */
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of University Frankfurt, FIAS, CERN nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL A COPYRIGHT HOLDER BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ **/
 
 #include <librorc/registers.h>
 #include <librorc/device.hh>
 #include <librorc/bar.hh>
+
+using namespace std;
 
 namespace LIBRARY_NAME
 {
@@ -39,6 +54,10 @@ rorc_bar::rorc_bar
 
     m_size = m_parent_dev->getBarSize(m_number);
 
+    m_pda_bar = NULL;
+    if( PDA_SUCCESS != PciDevice_getBar(m_pda_pci_device, &m_pda_bar, m_number) )
+    { throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED; }
+
     pthread_mutex_init(&m_mtx, NULL);
 }
 
@@ -50,7 +69,8 @@ rorc_bar::~rorc_bar()
 }
 
 
-
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::memcopy
 (
@@ -60,6 +80,8 @@ rorc_bar::memcopy
 )
 {
     pthread_mutex_lock(&m_mtx);
+//    if( PDA_SUCCESS != Bar_memcpyToBar32(m_pda_bar, (target << 2), source, num) )
+//    { cout << "bar copy failed!" << endl; }
     memcpy( (uint8_t*)m_bar + (target << 2), source, num);
     msync( (uint8_t*)m_bar + ((target << 2) & PAGE_MASK) , PAGE_SIZE, MS_SYNC);
     pthread_mutex_unlock(&m_mtx);
@@ -67,6 +89,8 @@ rorc_bar::memcopy
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::memcopy
 (
@@ -75,15 +99,18 @@ rorc_bar::memcopy
     size_t               num
 )
 {
-    //TODO: this is broken (transfers only allowed in 32B dwords)
     assert(false);
     pthread_mutex_lock(&m_mtx);
+//    if( PDA_SUCCESS != Bar_memcpyFromBar32(m_pda_bar, target, source, num) )
+//    { cout << "bar copy failed!" << endl; }
     memcpy( target, (const void*)(m_bar + (source << 2)), num);
     pthread_mutex_unlock(&m_mtx);
 }
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 uint32_t
 rorc_bar::get32(librorc_bar_address address )
 {
@@ -100,6 +127,8 @@ rorc_bar::get32(librorc_bar_address address )
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 uint16_t
 rorc_bar::get16(librorc_bar_address address )
 {
@@ -119,6 +148,8 @@ rorc_bar::get16(librorc_bar_address address )
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::set32
 (
@@ -135,10 +166,13 @@ rorc_bar::set32
         msync( (bar + ( (address << 2) & PAGE_MASK) ), PAGE_SIZE, MS_SYNC);
         pthread_mutex_unlock(&m_mtx);
     }
+
 }
 
 
 
+__attribute__((optimize("no-tree-vectorize")))
+__attribute__((__target__("no-sse")))
 void
 rorc_bar::set16
 (
