@@ -88,6 +88,9 @@ List all available devices :                                 \n\
   rorctl -l                                                  \n\
 "
 
+#define MESSAGE_DEPRECATED "INFO: C-RORC flash access with \
+rorctl is deprecated. Use crorc_flash instead."
+
 #ifndef NOT_SET
     #define NOT_SET 0xFFFFFFFFFFFFFFFF
 #endif
@@ -189,6 +192,7 @@ int main
 
                 case 'd':
                 {
+                    cout << MESSAGE_DEPRECATED << endl << endl;
                     cout << "Dumping device to file!" << endl;
                     librorc::flash *flash = init_flash(options);
                     if( flash != NULL )
@@ -200,6 +204,7 @@ int main
 
                 case 'p':
                 {
+                    cout << MESSAGE_DEPRECATED << endl << endl;
                     cout << "Flashing device!" << endl;
                     librorc::flash *flash = init_flash(options);
                     if( flash != NULL )
@@ -211,6 +216,7 @@ int main
 
                 case 'e':
                 {
+                    cout << MESSAGE_DEPRECATED << endl << endl;
                     cout << "Erasing device!" << endl;
                     librorc::flash *flash = init_flash(options);
                     if( flash != NULL )
@@ -222,6 +228,7 @@ int main
 
                 case 's':
                 {
+                    cout << MESSAGE_DEPRECATED << endl << endl;
                     librorc::flash *flash = init_flash(options);
                     if( flash != NULL )
                     {
@@ -235,6 +242,7 @@ int main
 
                 case 'r':
                 {
+                    cout << MESSAGE_DEPRECATED << endl << endl;
                     cout << "Resetting Flash!" << endl;
                     librorc::flash *flash = init_flash(options);
                     if( flash != NULL )
