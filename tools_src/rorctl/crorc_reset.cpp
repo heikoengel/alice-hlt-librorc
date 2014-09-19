@@ -33,12 +33,13 @@
 
 using namespace std;
 
-#define HELP_TEXT "board_reset usage: \n\
-reset_error_counters [parameters] \n\
+#define HELP_TEXT "crorc_reset usage: \n\
+crorc_reset [parameters] \n\
 Parameters: \n\
         -h              Print this help \n\
         -n [0...255]    Target device \n\
         -c [channelID]  (optional) channel ID \n\
+        -f              (optional) do full reset incl. GTXs\n\
 "
 
 int
