@@ -5,7 +5,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Build all in rorctl
 SET( RORCTL_LIST i2c qsfpctrl refclkgenctrl ucctrl rorctl crorc_reset
-  crorc_sensors crorc_status_dump crorc_flash )
+  crorc_sensors crorc_status_dump crorc_flash crorc_ddr3ctrl )
 FOREACH( STEMNAME ${RORCTL_LIST} )
   ADD_EXECUTABLE( ${STEMNAME}
     ${LIBRORC_SOURCE_DIR}/tools_src/rorctl/${STEMNAME}.cpp )
