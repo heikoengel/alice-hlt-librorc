@@ -265,8 +265,9 @@ class diu;
              * override the default PCIe packet size from the PCIe
              * subsystem with a custom value
              * @param pciePacketSize packet size in Bytes
+             * @return 0 on success, -1 on invalid packet size
              **/
-            void overridePciePacketSize( uint32_t pciePacketSize );
+            int overridePciePacketSize( uint32_t pciePacketSize );
 
 
             void

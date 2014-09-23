@@ -259,8 +259,7 @@ namespace LIBRARY_NAME
         }
         catch(...)
         {
-            // TODO: different return codes for different exceptions
-            // TODO: which exceptions can be thrown?
+            // librorc::buffer can throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED
             return -1;
         }
 
@@ -288,13 +287,28 @@ namespace LIBRARY_NAME
     }
 
 
-    void
+    int
     event_stream::overridePciePacketSize( uint32_t pciePacketSize )
     {
-        //TODO: validity checks here?!
+        if( pciePacketSize % 4 )
+        { return -1; }
+        if( m_esType==LIBRORC_ES_TO_HOST )
+        {
+            // DMA to Host: 256B write requests max.
+            if ( pciePacketSize > 256 )
+            { return -1; }
+        }
+        else
+        {
+            // DMA to Device: 512B read requests max.
+            if ( pciePacketSize > 512 )
+            { return -1; }
+        }
+
         m_pciePacketSize = pciePacketSize;
         if(m_channel)
         { m_channel->setPciePacketSize(pciePacketSize); }
+        return 0;
     }
 
 

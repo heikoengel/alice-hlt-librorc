@@ -238,7 +238,11 @@ prepareEventStream
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     {
         /** override for max read request size to 128B for Supermicro */
-        eventStream->overridePciePacketSize(128);
+        if( eventStream->overridePciePacketSize(128) )
+        {
+            cout << "Failed to override PCIe packet size" << endl;
+            return NULL;
+        }
     }
 
     if( eventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
@@ -270,7 +274,11 @@ prepareEventStream
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     {
         /** override for max read request size to 128B for Supermicro */
-        eventStream->overridePciePacketSize(128);
+        if( eventStream->overridePciePacketSize(128) )
+        {
+            cout << "Failed to override PCIe packet size" << endl;
+            return NULL;
+        }
     }
 
     if( eventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
