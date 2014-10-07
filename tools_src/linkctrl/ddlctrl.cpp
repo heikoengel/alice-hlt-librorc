@@ -51,6 +51,7 @@ using namespace std;
         -M [0,1]      EventStream MUX: 0->DDL, 1->PG \n\
         -W [pattern]  Set initial PG pattern word \n\
         -x            Clear counters \n\
+        -S            Read remote serial \n\
 \n\
 In PRBS EventSize mode: \n\
 [size] parameter consists of {prbs_mask[31:16], prbs_min_size[15:0]}, where\n\
@@ -110,6 +111,7 @@ int main
     int set_prbssize = 0;
     int set_pattern = 0;
     int set_reset = 0;
+    int set_readRemoteSerial = 0;
 
     uint32_t enable = 0;
     uint32_t reset = 0;
@@ -128,7 +130,7 @@ int main
     int32_t DeviceId  = -1;
     int32_t ChannelId = -1;
     int arg;
-    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:W:r:")) != -1 )
+    while( (arg = getopt(argc, argv, "hn:c:e:p:m:C:s:f:xN:M:P:W:r:S")) != -1 )
     {
         switch(arg)
         {
@@ -227,6 +229,12 @@ int main
             }
             break;
 
+            case 'S':
+            {
+                set_readRemoteSerial = 1;
+            }
+            break;
+
             case 'h':
             {
                 cout << HELP_TEXT;
@@ -310,6 +318,9 @@ int main
         bool pgAvail = current_link->patternGeneratorAvailable();
 
         /** check if GTX domain is up */
+#ifdef MODELSIM
+        current_link->waitForGTXDomain();
+#endif
         if ( !current_link->isGtxDomainReady() )
         {
             cout << "GTX Domain not ready for channel "
@@ -429,13 +440,24 @@ int main
 
 
         /** send DIU command */
-        if ( set_ddlcmd )
+        if ( set_ddlcmd || set_readRemoteSerial )
         {
             if( linkType==RORC_CFG_LINK_TYPE_DIU )
             {
                 librorc::diu *diu = new librorc::diu(current_link);
+#ifdef MODELSIM
+                diu->waitForLinkUp();
+                // waiting for SIU ready the dirty way...
+                for( int i=0; i<20; i++ )
+                { diu->readAndClearDiuInterfaceStatus(); }
+#endif
                 if( diu->linkUp() )
-                { current_link->setDdlReg(RORC_REG_DDL_CMD, ddlcmd); }
+                {
+                    if( set_ddlcmd )
+                    { current_link->setDdlReg(RORC_REG_DDL_CMD, ddlcmd); }
+                    else
+                    { cout << diu->readRemoteSerial() << endl; }
+                }
                 else
                 {
                     cout << "WARNING: Channel " << chID << " is down - "

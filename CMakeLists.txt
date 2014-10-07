@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 project(LIBRORC)
 
-set( REQUIRED_PDA_VERSION "8:0:4" )
+set( REQUIRED_PDA_VERSION "8:1:4" )
 set(VERSION "7.1.0")
 
 include_directories ( ${LIBRORC_SOURCE_DIR}/include )

@@ -218,6 +218,37 @@ namespace LIBRARY_NAME
     }
 
 
+    uint32_t
+    diu::readRemoteHwVersion
+    (
+       uint8_t addr
+    )
+    {
+        clearLastFrontEndStatusWord();
+        uint32_t cmd = LIBRORC_DIUCMD_REMOTE_HWVERS;
+        cmd |= ((uint32_t)addr)<<12;
+        sendCommand(cmd);
+        return waitForFrontEndStatusWord();
+    }
+
+
+    std::string
+    diu::readRemoteSerial()
+    {
+        std::string serial = std::string();
+        for( uint32_t addr=0; addr<50; addr++ )
+        {
+            uint32_t result = readRemoteHwVersion( addr );
+            if( result!=0xffffffff )
+            { serial.append( 1, ((result>>20)&0xff) ); }
+            else
+            {  break; }
+        }
+        return serial;
+    }
+
+
+
     /**********************************************************
      *                  protected
      * *******************************************************/
@@ -348,6 +379,27 @@ namespace LIBRARY_NAME
             DEBUG_PRINTF(PDADEBUG_VALUE,
                     "waitForInterfaceStatusWord: "
                     "got IFSTW: %08x\n", result);
+        }
+        return result;
+    }
+
+
+    int
+    diu::waitForFrontEndStatusWord()
+    {
+        uint32_t result = waitForStatusWord(RORC_REG_DDL_FESTW);
+
+        if (result==0xffffffff)
+        {
+            DEBUG_PRINTF(PDADEBUG_ERROR,
+                    "Timeout waiting for DDL"
+                    "FrontEndStatusWord\n");
+        }
+        else
+        {
+            DEBUG_PRINTF(PDADEBUG_VALUE,
+                    "waitForFrontEndStatusWord: "
+                    "got FESTW: %08x\n", result);
         }
         return result;
     }

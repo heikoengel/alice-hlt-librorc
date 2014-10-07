@@ -47,6 +47,7 @@
 #define LIBRORC_DIUCMD_DIU_DIURST 0x000000a1
 #define LIBRORC_DIUCMD_SIU_RST 0x000000f1
 #define LIBRORC_DIUCMD_DIU_DIUINIT 0x000000b1
+#define LIBRORC_DIUCMD_REMOTE_HWVERS 0x00000062
 
 namespace LIBRARY_NAME
 {
@@ -193,6 +194,34 @@ namespace LIBRARY_NAME
             int
             waitForLinkUp();
 
+            /**
+             * Read from remote SIU EEPROM
+             * @addr i2c eeprom address
+             * @return FrontEndStatusWord on success or 0xffffffff on timeout
+             * [31] I2C Error
+             * [30] 0
+             * [29] I2C Error
+             * [28] 0
+             * [27:20] I2C Data
+             * [19:12] I2C Addr
+             * [11:8] Transaction-ID
+             * [7:4] "0110"
+             * [3:0] Data Source: 0010 for remote SIU
+             **/
+            uint32_t
+            readRemoteHwVersion
+            (
+                 uint8_t addr
+            );
+
+            /**
+             * read full serial string from remote SIU.
+             * @return string with link description and serial or empty string
+             * on error.
+             **/
+            std::string
+            readRemoteSerial();
+
 
         protected:
             link *m_link;
@@ -327,6 +356,15 @@ namespace LIBRARY_NAME
              * */
             int
             waitForInterfaceStatusWord();
+
+
+            /**
+             * Blocking wait for FrontEndStatusWord.
+             * important: clear FESTW before calling this this function!
+             * @return FESTW on sucess, -1 on timeout
+             * */
+            int
+            waitForFrontEndStatusWord();
     };
 }
 #endif
