@@ -526,7 +526,7 @@ namespace LIBRARY_NAME
         drpSetPllConfigClkDivider(0x17, 5, clkdiv);
 
         /** set RX_CP_CFG: addr 0x1a, bits[15:8] */
-        drpSetPllConfigCpCfg(0x1e, pll.cp_cfg);
+        drpSetPllConfigCpCfg(0x1a, pll.cp_cfg);
 
         /********************* Common *********************/
 
