@@ -121,7 +121,7 @@ main
 
 
     int32_t nconfigs = sizeof(available_configs) /
-                       sizeof(gtxpll_settings);
+                       sizeof(librorc::gtxpll_settings);
     uint32_t nchannels[2];
     nchannels[0] = bar[0]->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
     nchannels[1] = bar[1]->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;

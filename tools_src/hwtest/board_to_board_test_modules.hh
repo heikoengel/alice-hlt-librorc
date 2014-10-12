@@ -42,7 +42,7 @@
 
 #define GTX_DFE_EYE_DAC_MIN 120.0
 
-const gtxpll_settings available_configs[] =
+const librorc::gtxpll_settings available_configs[] =
 {
     //div,n1,n2,d, m, tdcc, cp, refclk
     {  9, 5, 2, 1, 1, 3, 0x0d, 212.50}, // 4.250 Gbps with RefClk=212.50 MHz
@@ -68,7 +68,7 @@ const gtxpll_settings available_configs[] =
 double
 LinkRateFromPllSettings
 (
-    gtxpll_settings cfg
+    librorc::gtxpll_settings cfg
 );
 
 void
@@ -102,7 +102,7 @@ configureAllGtx
 (
     librorc::bar *bar,
     uint32_t nchannels,
-    gtxpll_settings pllcfg
+    librorc::gtxpll_settings pllcfg
 );
 
 void

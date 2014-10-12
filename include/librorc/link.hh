@@ -35,20 +35,6 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 
-typedef struct
-gtxpll_settings_struct
-{
-    uint8_t clk25_div;
-    uint8_t n1;
-    uint8_t n2;
-    uint8_t d;
-    uint8_t m;
-    uint8_t tx_tdcc_cfg;
-    uint8_t cp_cfg;
-    float refclk;
-}gtxpll_settings;
-
-
 
 namespace LIBRARY_NAME
 {
@@ -245,44 +231,6 @@ namespace LIBRARY_NAME
             uint32_t linkType();
 
 
-            /**
-             * Read from GTX DRP port
-             * DRP = Dynamic Reconfiguratin Port (transciever)
-             * @param drp_addr DRP address to read from
-             * @return DRP value
-             * */
-            uint16_t
-            drpRead(uint8_t drp_addr);
-
-            /**
-             * Write to GTX DRP port
-             * @param drp_addr DRP address to write to
-             * @param drp_data data to be written
-             * */
-            void
-            drpWrite
-            (
-                uint8_t  drp_addr,
-                uint16_t drp_data
-            );
-
-            /**
-             * get current PLL configuration
-             * @param ch pointer to dma_channel instance
-             * @return struct gtxpll_settings
-             * */
-            gtxpll_settings
-            drpGetPllConfig();
-
-            /**
-             * set new PLL configuration
-             * @param ch pointer to dma_channel instance
-             * @param pll struct gtxpll_settings with new values
-             * */
-            void
-            drpSetPllConfig(gtxpll_settings pll);
-
-
             /**********************************************************
              *             Data Path Configuration
              *********************************************************/
@@ -369,42 +317,6 @@ namespace LIBRARY_NAME
             bar      *m_bar;
             uint32_t  m_base;
             uint32_t  m_link_number;
-
-
-            uint32_t waitForDrpDenToDeassert();
-
-            void
-            drpSetPllConfigA
-            (
-                uint8_t  value,
-                uint8_t& n1_reg,
-                uint8_t& n2_reg,
-                uint8_t& d_reg
-            );
-
-            void
-            drpSetPllConfigMRegister
-            (
-                uint8_t  value,
-                uint8_t  m_reg
-            );
-
-            void
-            drpSetPllConfigClkDivider
-            (
-                uint8_t value,
-                uint8_t bit,
-                uint8_t clkdiv
-            );
-
-            void drpSetPllConfigCommon(gtxpll_settings pll);
-
-            void
-            drpSetPllConfigCpCfg
-            (
-                uint8_t addr,
-                uint8_t value
-            );
 };
 
 }

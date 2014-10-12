@@ -32,7 +32,7 @@
 
 #include <librorc/defines.hh>
 #include <librorc/registers.h>
-#include <librorc/link.hh>
+#include <librorc/include_ext.hh>
 
 #define LIBRORC_GTX_FULL_RESET 1
 #define LIBRORC_GTX_RX_RESET 2
@@ -40,9 +40,23 @@
 
 namespace LIBRARY_NAME {
 
+    typedef struct
+    gtxpll_settings_struct
+    {
+        uint8_t clk25_div;
+        uint8_t n1;
+        uint8_t n2;
+        uint8_t d;
+        uint8_t m;
+        uint8_t tx_tdcc_cfg;
+        uint8_t cp_cfg;
+        float refclk;
+    }gtxpll_settings;
+
     class link;
 
-    class gtx {
+    class gtx
+    {
 
         public:
             /** constructor
@@ -75,8 +89,57 @@ namespace LIBRARY_NAME {
             uint32_t getRxNotInTableErrorCount();
             uint32_t getRxLossOfSignalErrorCount();
 
+
+            /**
+             * Read from GTX DRP port
+             * @param drp_addr DRP address to read from
+             * @return DRP value
+             * */
+            uint16_t
+            drpRead(uint8_t drp_addr);
+
+            /**
+             * Write to GTX DRP port
+             * @param drp_addr DRP address to write to
+             * @param drp_data data to be written
+             * */
+            void
+            drpWrite
+            (
+                uint8_t  drp_addr,
+                uint16_t drp_data
+            );
+
+            /**
+             * get current PLL configuration
+             * @param ch pointer to dma_channel instance
+             * @return struct gtxpll_settings
+             * */
+            gtxpll_settings
+            drpGetPllConfig();
+
+            /**
+             * set new PLL configuration
+             * @param ch pointer to dma_channel instance
+             * @param pll struct gtxpll_settings with new values
+             * */
+            void
+            drpSetPllConfig(gtxpll_settings pll);
+
         protected:
             librorc::link *m_link;
+
+            uint32_t waitForDrpDenToDeassert();
+
+            void
+            drpUpdateField
+            (
+                 uint8_t drp_addr,
+                 uint16_t field_data,
+                 uint16_t field_bit,
+                 uint16_t field_width
+            );
+
     };
 }
 #endif

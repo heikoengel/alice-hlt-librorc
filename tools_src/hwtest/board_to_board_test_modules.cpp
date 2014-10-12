@@ -90,7 +90,7 @@ initLibrorcInstances
 double
 LinkRateFromPllSettings
 (
-    gtxpll_settings cfg
+    librorc::gtxpll_settings cfg
 )
 {
     return cfg.refclk * cfg.n1 * cfg.n2 / cfg.m * 2.0 / cfg.d / 1000.0;
@@ -194,14 +194,16 @@ configureAllGtx
 (
     librorc::bar *bar,
     uint32_t nchannels,
-    gtxpll_settings pllcfg
+    librorc::gtxpll_settings pllcfg
 )
 {
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
+        librorc::gtx *gtx = new librorc::gtx(link);
         /** Write new PLL config */
-        link->drpSetPllConfig(pllcfg);
+        gtx->drpSetPllConfig(pllcfg);
+        delete gtx;
         delete link;
     }
 }

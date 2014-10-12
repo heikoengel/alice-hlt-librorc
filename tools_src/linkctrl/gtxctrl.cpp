@@ -67,7 +67,7 @@ To release all resets, do \n\
  * fPLL = fREF * N1 * N2 / M
  * fLineRate = fPLL * 2 / D
  * */
-const gtxpll_settings available_configs[] =
+const librorc::gtxpll_settings available_configs[] =
 {
     //div,n1,n2,d, m, tdcc, cp, refclk
     {  9, 5, 2, 2, 1, 0, 0x0d, 212.50}, // 2.125 Gbps with RefClk=212.50 MHz
@@ -112,7 +112,7 @@ int main
     int32_t txpostemph = 0;
 
     int32_t nconfigs = sizeof(available_configs) /
-                       sizeof(gtxpll_settings);
+                       sizeof(librorc::gtxpll_settings);
 
     int arg;
     while( (arg = getopt(argc, argv, "hn:c:r:l:xsp:dPE:D:R:O:")) != -1 )
@@ -225,7 +225,7 @@ int main
         cout << "Available PLL Configurations:" << endl;
         for ( int i=0; i<nconfigs; i++ )
         {
-            gtxpll_settings pll = available_configs[i];
+            librorc::gtxpll_settings pll = available_configs[i];
             float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
             float link_rate = fPLL * 2 / pll.d / 1000.0;
             cout << "[" << i << "] RefClk="
@@ -319,6 +319,7 @@ int main
         /** Create DMA channel and bind channel to BAR1 */
         librorc::link *current_link
             = new librorc::link(bar, chID);
+        librorc::gtx *gtx = new librorc::gtx(current_link);
 
         /** get current GTX configuration */
         uint32_t gtxasynccfg = current_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
@@ -329,7 +330,7 @@ int main
                  << hex << setw(8) << setfill('0') << gtxasynccfg
                  << dec << setfill(' ') << endl;
 
-            gtxpll_settings pll = current_link->drpGetPllConfig();
+            librorc::gtxpll_settings pll = gtx->drpGetPllConfig();
             cout << "\tPLL: N1=" << (int)pll.n1 << " N2=" << (int)pll.n2
                  << " D=" << (int)pll.d << " M=" << (int)pll.m
                  << " CLK25DIV=" << (int)pll.clk25_div
@@ -422,7 +423,7 @@ int main
             current_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
 
             /** Write new PLL config */
-            current_link->drpSetPllConfig(available_configs[pllcfgnum]);
+            gtx->drpSetPllConfig(available_configs[pllcfgnum]);
 
             /** release GTXRESET */
             gtxasynccfg &= ~(0x00000001);
@@ -436,10 +437,11 @@ int main
             {
                 cout << hex << setw(2) << i << ": 0x"
                      << setw(4) << setfill('0')
-                     << current_link->drpRead(i) << endl;
+                     << gtx->drpRead(i) << endl;
             }
         }
 
+        delete gtx;
         delete current_link;
     }
 
