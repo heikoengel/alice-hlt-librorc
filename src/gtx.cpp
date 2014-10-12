@@ -163,4 +163,29 @@ namespace LIBRARY_NAME {
         asynccfg |= (((value >> 2) & 1) << 3); // TXreset
         m_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, asynccfg);
     }
+
+    void
+    gtx::clearErrorCounters()
+    {
+        m_link->setGtxReg(RORC_REG_GTX_DISPERR_REALIGN_CNT, 0);
+        m_link->setGtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT, 0);
+        m_link->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
+    }
+
+    uint32_t
+    gtx::getDisparityErrorCount()
+    { return ((m_link->gtxReg(RORC_REG_GTX_DISPERR_REALIGN_CNT))>>16); }
+
+    uint32_t
+    gtx::getRealignCount()
+    { return ((m_link->gtxReg(RORC_REG_GTX_DISPERR_REALIGN_CNT)) & 0xffff); }
+
+    uint32_t
+    gtx::getRxNotInTableErrorCount()
+    { return ((m_link->gtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT))>>16); }
+
+    uint32_t
+    gtx::getRxLossOfSignalErrorCount()
+    { return ((m_link->gtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT)) & 0xffff); }
+
 }

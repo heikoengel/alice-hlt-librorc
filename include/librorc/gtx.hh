@@ -69,6 +69,12 @@ namespace LIBRARY_NAME {
             void setLoopback( uint32_t value );
             void setReset( uint32_t value );
 
+            void clearErrorCounters();
+            uint32_t getDisparityErrorCount();
+            uint32_t getRealignCount();
+            uint32_t getRxNotInTableErrorCount();
+            uint32_t getRxLossOfSignalErrorCount();
+
         protected:
             librorc::link *m_link;
     };
