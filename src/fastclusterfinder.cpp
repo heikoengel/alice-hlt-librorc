@@ -30,6 +30,8 @@
  **/
 
 #include <librorc/fastclusterfinder.hh>
+#include <fstream>
+#include <sstream>
 
 namespace LIBRARY_NAME
 {

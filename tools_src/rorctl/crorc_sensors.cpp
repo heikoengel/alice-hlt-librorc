@@ -21,9 +21,7 @@
 #include <librorc.h>
 #include <getopt.h>
 #include <string>
-
-#define MAX_LIBRORC_DEVICE_ID 31
-#define NAME_VALUE(name) #name << ": " << name
+#include <sstream>
 
 #define HELP_TEXT                                                              \
   "crorc_sensors usage: \n"                                                    \

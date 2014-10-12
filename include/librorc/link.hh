@@ -34,26 +34,6 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
-#include <sstream>
-#include <fstream>
-
-#define LIBRORC_LINK_DDL_TIMEOUT 10000
-
-#define LIBRORC_LINK_CMD_DIU_RCIFSTW 0x00000001
-#define LIBRORC_LINK_CMD_SIU_RCIFSTW 0x00000002
-#define LIBRORC_LINK_CMD_FEE_EOBTR 0x000000b4
-#define LIBRORC_LINK_CMD_FEE_RDYRX 0x00000014
-#define LIBRORC_LINK_CMD_DIU_LINK_RST 0x000000a1
-#define LIBRORC_LINK_CMD_SIU_RST 0x00000082
-#define LIBRORC_LINK_CMD_DIU_LINK_INIT 0x000000b1
-
-/**
- * TODO: this is a copy of include/librorc/event_sanity_checker.hh:51
- **/
-#define PG_PATTERN_INC    0 /** Increment value by 1 */
-#define PG_PATTERN_DEC    2 /** Decrement value by 1 */
-#define PG_PATTERN_SHIFT  1 /** Shifts the value to the left, the leftmost bit is inserted on the right side */
-#define PG_PATTERN_TOGGLE 3 /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
 
 typedef struct
 gtxpll_settings_struct
