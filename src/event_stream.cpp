@@ -775,7 +775,7 @@ namespace LIBRARY_NAME
         uint32_t max_read_req = m_channel->pciePacketSize();
 
         return   ((event_size << 2) % max_read_req)
-               ? (trunc((event_size << 2) / max_read_req) + 1) * max_read_req
+               ? ((event_size << 2) / max_read_req + 1) * max_read_req
                : (event_size << 2);
     }
 

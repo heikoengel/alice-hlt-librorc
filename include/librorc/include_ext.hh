@@ -35,23 +35,16 @@
 #include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
-#include <math.h>
+//#include <math.h>
 
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/wait.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 
 #include <unistd.h>
 #include <stdint.h>
 
-#include <pthread.h>
-
-#include <netinet/in.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 
 #include <sys/shm.h>
 
@@ -63,7 +56,6 @@
 #include <cstring>
 #include <iomanip>
 #include <vector>
-#include <pthread.h>
 
 #ifndef MODELSIM_SERVER
     #define MODELSIM_SERVER "localhost"
