@@ -39,7 +39,7 @@
 using namespace std;
 
 #define HELP_TEXT "access onboard i2c devices \n\
-usage: i2c [parameters] \n\
+usage: crorc_i2c [parameters] \n\
 parameters: \n\
         -h              Print this help screen \n\
         -d [0..255]     Target device ID \n\
@@ -55,9 +55,9 @@ parameters: \n\
         -w [value]      Value to be written to slave address \n\
 Examples: \n\
 Read from device 0, QSFP0, slave address 5: \n\
-        i2c -d 0 -c 0 -a 0x5 \n\
+        crorc_i2c -d 0 -c 0 -a 0x5 \n\
 Write 0x12 to device 1, FMC chain, slave address 0x27: \n\
-        i2c -d 1 -c 5 -a 0x27 -w 0x12 \n\
+        crorc_i2c -d 1 -c 5 -a 0x27 -w 0x12 \n\
 "
 
 
