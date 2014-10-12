@@ -386,25 +386,25 @@ int main
 
         if( do_rxeqmix )
         {
-            gtxasynccfg &= ~(7<29);
+            gtxasynccfg &= ~(7<<29);
             gtxasynccfg |= ((rxeqmix&7)<<29);
         }
 
         if( do_txdiffctrl )
         {
-            gtxasynccfg &= ~(0xf<16);
+            gtxasynccfg &= ~(0xf<<16);
             gtxasynccfg |= ((txdiffctrl&0xf)<<16);
         }
 
         if( do_txpreemph )
         {
-            gtxasynccfg &= ~(0xf<20);
+            gtxasynccfg &= ~(0xf<<20);
             gtxasynccfg |= ((txpreemph&0xf)<<20);
         }
 
         if( do_txpostemph )
         {
-            gtxasynccfg &= ~(0xf<24);
+            gtxasynccfg &= ~(0xf<<24);
             gtxasynccfg |= ((txpostemph&0xf)<<24);
         }
 
