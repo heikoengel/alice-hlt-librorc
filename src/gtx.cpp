@@ -97,7 +97,7 @@ namespace LIBRARY_NAME {
 
     gtx::gtx
     (
-         librorc::link *link
+         link *link
     )
     { m_link = link; }
 
