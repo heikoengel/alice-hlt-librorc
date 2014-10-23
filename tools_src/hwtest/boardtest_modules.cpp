@@ -454,7 +454,7 @@ checkRefClkGen
     try
     {
         /** get current configuration */
-        refclkopts opts = rc->getCurrentOpts( LIBRORC_REFCLK_DEFAULT_FOUT );
+        librorc::refclkopts opts = rc->getCurrentOpts( LIBRORC_REFCLK_DEFAULT_FOUT );
 
         double cur_freq = opts.fxtal * opts.rfreq_float /
             (opts.hs_div * opts.n1);

@@ -227,10 +227,10 @@ configureRefclk
     rc->waitForClearance( M_RECALL );
 
     /** get current configuration */
-    refclkopts cur_opts = rc->getCurrentOpts( LIBRORC_REFCLK_DEFAULT_FOUT );
+    librorc::refclkopts cur_opts = rc->getCurrentOpts( LIBRORC_REFCLK_DEFAULT_FOUT );
         
     /** get new values for desired frequency */
-    refclkopts new_opts = rc->getNewOpts(refclk_freq, cur_opts.fxtal);
+    librorc::refclkopts new_opts = rc->getNewOpts(refclk_freq, cur_opts.fxtal);
 
     /** write new configuration to device */
     rc->setOpts(new_opts);

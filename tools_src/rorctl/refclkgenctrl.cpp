@@ -58,7 +58,7 @@ set new frequency to 125.00 MHz for device 0 \n\
 void
 print_refclk_settings
 (
-    refclkopts opts
+    librorc::refclkopts opts
 )
 {
     cout << "HS_DIV    : " << dec << opts.hs_div << endl;
@@ -198,7 +198,7 @@ main
     }
 
     /** get current configuration */
-    refclkopts opts = rc->getCurrentOpts( fout );
+    librorc::refclkopts opts = rc->getCurrentOpts( fout );
 
     /** Print configuration */
     cout << endl << "Current Oscillator Values" << endl;
@@ -207,7 +207,7 @@ main
     if ( do_write )
     {
         /** get new values for desired frequency */
-        refclkopts new_opts = rc->getNewOpts(new_freq, opts.fxtal);
+        librorc::refclkopts new_opts = rc->getNewOpts(new_freq, opts.fxtal);
 
         /** Print new configuration */
         cout << endl << "New Oscillator Values" << endl;

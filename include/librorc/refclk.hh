@@ -35,6 +35,9 @@
 #ifndef LIBRORC_REFCLK_H
 #define LIBRORC_REFCLK_H
 
+namespace LIBRARY_NAME
+{
+
 #define LIBRORC_REFCLK_ERROR_CONSTRUCTOR_FAILED  1
 #define LIBRORC_REFCLK_ERROR_INVALID_PARAMETER 2
 
@@ -43,26 +46,23 @@
 #define LIBRORC_REFCLK_DEFAULT_FOUT 212.500
 
 
-/** Register 135 Pin Mapping */
+    /** Register 135 Pin Mapping */
 #define M_RECALL (1<<0)
 #define M_FREEZE (1<<5)
 #define M_NEWFREQ (1<<6)
-/** Register 137 Pin Mapping */
+    /** Register 137 Pin Mapping */
 #define FREEZE_DCO (1<<4)
 
-typedef struct
-{
-    uint32_t hs_div;
-    uint32_t n1;
-    uint64_t rfreq_int;
-    double rfreq_float;
-    double fdco;
-    double fxtal;
-}refclkopts;
+    typedef struct
+    {
+        uint32_t hs_div;
+        uint32_t n1;
+        uint64_t rfreq_int;
+        double rfreq_float;
+        double fdco;
+        double fxtal;
+    }refclkopts;
 
-
-namespace LIBRARY_NAME
-{
     class sysmon;
 
     /**
