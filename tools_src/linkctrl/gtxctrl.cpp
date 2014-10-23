@@ -63,25 +63,6 @@ To release all resets, do \n\
 "
 
 
-/**
- * fPLL = fREF * N1 * N2 / M
- * fLineRate = fPLL * 2 / D
- * */
-const librorc::gtxpll_settings available_configs[] =
-{
-    //div,n1,n2,d, m, tdcc, cp, refclk
-    {  9, 5, 2, 2, 1, 0, 0x0d, 212.50}, // 2.125 Gbps with RefClk=212.50 MHz
-    {  9, 5, 2, 1, 1, 3, 0x0d, 212.50}, // 4.250 Gbps with RefClk=212.50 MHz
-    { 10, 5, 2, 1, 1, 3, 0x0d, 250.00}, // 5.000 Gbps with RefClk=250.00 MHz
-    {  4, 5, 4, 2, 1, 0, 0x0d, 100.00}, // 2.000 Gbps with RefClk=100.00 MHz
-    { 10, 4, 2, 2, 1, 0, 0x0d, 250.00}, // 2.000 Gbps with RefClk=250.00 MHz
-    {  7, 5, 2, 1, 1, 3, 0x0d, 156.25}, // 3.125 Gbps with RefClk=156.25 MHz
-    {  5, 5, 5, 1, 2, 3, 0x07, 125.00}, // 3.125 Gbps with RefClk=125.00 MHz
-    {  9, 5, 5, 1, 2, 3, 0x07, 212.50}, // 5.3125 Gbps with RefClk=212.50 MHz
-};
-
-
-
 int main
 (
     int argc,
@@ -111,7 +92,7 @@ int main
     int32_t txpreemph = 0;
     int32_t txpostemph = 0;
 
-    int32_t nconfigs = sizeof(available_configs) /
+    int32_t nconfigs = sizeof(librorc::gtxpll_supported_cfgs) /
                        sizeof(librorc::gtxpll_settings);
 
     int arg;
@@ -225,12 +206,12 @@ int main
         cout << "Available PLL Configurations:" << endl;
         for ( int i=0; i<nconfigs; i++ )
         {
-            librorc::gtxpll_settings pll = available_configs[i];
+            librorc::gtxpll_settings pll = librorc::gtxpll_supported_cfgs[i];
             float fPLL = pll.refclk * pll.n1 * pll.n2 / pll.m;
             float link_rate = fPLL * 2 / pll.d / 1000.0;
             cout << "[" << i << "] RefClk="
                 << fixed << setprecision(3)
-                << available_configs[i].refclk
+                << librorc::gtxpll_supported_cfgs[i].refclk
                 << " MHz, LinkRate=" << link_rate
                 << " Gbps, PLL=" << fPLL << " MHz" << endl;
         }
@@ -423,7 +404,7 @@ int main
             current_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, gtxasynccfg);
 
             /** Write new PLL config */
-            gtx->drpSetPllConfig(available_configs[pllcfgnum]);
+            gtx->drpSetPllConfig(librorc::gtxpll_supported_cfgs[pllcfgnum]);
 
             /** release GTXRESET */
             gtxasynccfg &= ~(0x00000001);
