@@ -179,6 +179,15 @@ namespace LIBRARY_NAME
         return opts;
     }
 
+    float
+    refclk::getFout
+    (
+        refclkopts opts
+    )
+    {
+        return opts.fxtal * opts.rfreq_float / opts.hs_div / opts.n1;
+    }
+
     void
     refclk::setRFMCtrl
     (

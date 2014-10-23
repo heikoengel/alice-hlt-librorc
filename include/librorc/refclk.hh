@@ -111,6 +111,17 @@ namespace LIBRARY_NAME
             );
 
             /**
+             * get current reference clock frequency from clock options struct
+             * @param opts clock options struct
+             * @return clock frequency
+             **/
+            float
+            getFout
+            (
+                refclkopts opts
+            );
+
+            /**
              * setReser/Freeze/Memory Control Register
              * @param flag value to be written
              **/
