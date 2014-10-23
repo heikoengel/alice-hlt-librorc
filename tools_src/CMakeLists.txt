@@ -24,6 +24,13 @@ ENDFOREACH( STEMNAME )
 
 #-----------------------------------------------------------
 
+add_executable( crorc_fpga_ctrl
+  "${LIBRORC_SOURCE_DIR}/tools_src/crorc_fpga_ctrl/class_crorc.cpp"
+  "${LIBRORC_SOURCE_DIR}/tools_src/crorc_fpga_ctrl/crorc_fpga_ctrl.cpp"
+  )
+target_link_libraries( crorc_fpga_ctrl rorc ${EXTRA_LIBS} )
+
+
 # Build DMA-in standalone tool
 add_executable( dma_in
 "${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_in.cpp"
