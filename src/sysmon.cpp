@@ -317,7 +317,41 @@ namespace LIBRARY_NAME
         return ((fanctrl & (1<<30))!=0);
     }
 
+    bool
+    sysmon::bracketLedInBlinkMode()
+    {
+        return ((m_bar->get32(RORC_REG_BRACKET_LED_CTRL) & (1<<31)) != 0);
+    }
 
+    void
+    sysmon::setBracketLedMode
+    (
+        uint32_t mode
+    )
+    {
+        uint32_t ledctrl = m_bar->get32(RORC_REG_BRACKET_LED_CTRL);
+        ledctrl &= ~(1<<31); //clear current mode
+        ledctrl |= ((mode&1)<<31); //set new mode
+        m_bar->set32(RORC_REG_BRACKET_LED_CTRL, ledctrl);
+    }
+
+    uint32_t
+    sysmon::getLinkmask()
+    {
+        return (m_bar->get32(RORC_REG_BRACKET_LED_CTRL) & 0x7fffffff);
+    }
+
+    void
+    sysmon::setLinkmask
+    (
+        uint32_t mask
+    )
+    {
+        uint32_t ledctrl = m_bar->get32(RORC_REG_BRACKET_LED_CTRL);
+        ledctrl &= (1<<31);
+        ledctrl |= (mask & 0x7fffffff);
+        m_bar->set32(RORC_REG_BRACKET_LED_CTRL, ledctrl);
+    }
 
     uint64_t
     sysmon::uptimeSeconds()

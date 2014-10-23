@@ -174,6 +174,35 @@ namespace LIBRARY_NAME
             systemFanIsAutoMode();
 
             /**
+             * get bracket LED mode
+             * @return true if in blink mode, false if in auto mode
+             **/
+            bool
+            bracketLedInBlinkMode();
+
+            /**
+             * set bracket LED mode
+             * @param mode 0 for auto mode, 1 for blink mode
+             **/
+            void
+            setBracketLedMode( uint32_t mode );
+
+
+            /**
+             * get current link mask
+             * @return bitmask of links, 1 is active, 0 is masked
+             **/
+            uint32_t
+            getLinkmask();
+
+            /**
+             * set link mask
+             * @param mask bitmask of links, 1 is active, 0 is masked
+             **/
+            void
+            setLinkmask( uint32_t mask );
+
+            /**
              * get board uptime in seconds. This counter is only reset
              * when (re)configuring the FPGA and cannot be cleared with
              * software.
