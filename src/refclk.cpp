@@ -251,6 +251,16 @@ namespace LIBRARY_NAME
         waitForClearance(M_NEWFREQ);
     }
 
+    void
+    refclk::reset()
+    {
+        /** Recall initial conditions */
+        setRFMCtrl( M_RECALL );
+        /** Wait for RECALL to complete */
+        waitForClearance( M_RECALL );
+        /** fOUT is now the default freqency */
+    }
+
 
     //------------- protected --------------
     double

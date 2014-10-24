@@ -122,6 +122,12 @@ namespace LIBRARY_NAME
             );
 
             /**
+             * reset the reference clock generator to the default frequency
+             **/
+            void
+            reset();
+
+            /**
              * setReser/Freeze/Memory Control Register
              * @param flag value to be written
              **/
