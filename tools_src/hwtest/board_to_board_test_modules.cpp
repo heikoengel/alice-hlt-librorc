@@ -221,19 +221,16 @@ configureRefclk
     librorc::refclk *rc = new librorc::refclk(sm);
 
     /** Recall initial conditions */
-    rc->setRFMCtrl( M_RECALL );
-
-    /** Wait for RECALL to complete */
-    rc->waitForClearance( M_RECALL );
+    rc->reset();
 
     /** get current configuration */
     librorc::refclkopts cur_opts = rc->getCurrentOpts( LIBRORC_REFCLK_DEFAULT_FOUT );
         
     /** get new values for desired frequency */
-    librorc::refclkopts new_opts = rc->getNewOpts(refclk_freq, cur_opts.fxtal);
+    librorc::refclkopts new_opts = rc->calcNewOpts(refclk_freq, cur_opts.fxtal);
 
     /** write new configuration to device */
-    rc->setOpts(new_opts);
+    rc->writeOptsToDevice(new_opts);
 
     delete rc;
 }

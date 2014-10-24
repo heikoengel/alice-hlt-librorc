@@ -76,13 +76,7 @@ namespace LIBRARY_NAME
         public:
             refclk(sysmon *parent_sysmon);
             ~refclk();
-            
-            /**
-             * Release DCO
-             **/
-            void
-            releaseDCO();
-            
+
             /**
              * read back current oscillator settings from device
              * @param fout current output frequency.
@@ -93,18 +87,18 @@ namespace LIBRARY_NAME
             (
                 double fout
             );
-            
+
             /**
              * calculate a new set of oscillator settings with a
              * new output frequency based on the device specific
-             * XTAL frequency, which has been retrived via 
+             * XTAL frequency, which has been retrived via
              * getCurrentOpts()
              * @param new output frequency
              * @param device specific XTAL frequency
              * @return a new set of oscillator settings
              **/
             refclkopts
-            getNewOpts
+            calcNewOpts
             (
                 double new_freq,
                 double fxtal
@@ -126,6 +120,26 @@ namespace LIBRARY_NAME
              **/
             void
             reset();
+
+            /**
+             * write oscillator settings into device
+             **/
+            void
+            writeOptsToDevice
+            (
+                refclkopts opts
+            );
+
+        private:
+                sysmon *m_sysmon;
+
+        protected:
+
+            /**
+             * Release DCO
+             **/
+            void
+            releaseDCO();
 
             /**
              * setReser/Freeze/Memory Control Register
@@ -153,21 +167,6 @@ namespace LIBRARY_NAME
             (
                 uint8_t flag
             );
-
-            /**
-             * write oscillator settings into device
-             **/
-            void 
-            setOpts
-            (
-                refclkopts opts
-            );
-
-        private:
-                sysmon *m_sysmon;
-
-        protected:
-                
             /**
              * convert 48bit hex value to float, see Si570 UG
              **/
@@ -185,7 +184,7 @@ namespace LIBRARY_NAME
             (
                 double value
             );
-            
+
             /**
              * convert encoding to logical value for HsDiv
              **/
@@ -203,7 +202,7 @@ namespace LIBRARY_NAME
             (
                 uint32_t hs_val
             );
-            
+
             /**
              * convert encoding to logical value for N1
              **/
@@ -238,13 +237,13 @@ namespace LIBRARY_NAME
              * @param addr target address
              * @param value value to be written
              **/
-            void 
+            void
             refclk_write
             (
                 uint8_t addr,
                 uint8_t value
             );
     };
-}                
+}
 
 #endif /** LIBRORC_REFCLK_H */

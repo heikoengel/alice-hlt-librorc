@@ -56,24 +56,6 @@ namespace LIBRARY_NAME
         m_sysmon = NULL;
     }
 
-    void
-    refclk::releaseDCO()
-    {
-        // get current FREEZE_DCO settings 
-        uint8_t freeze_val = refclk_read(137);
-
-        // clear FREEZE_DCO bit 
-        freeze_val &= 0xef;
-
-        m_sysmon->i2c_write_mem_dual(LIBRORC_REFCLK_I2C_CHAIN,
-                LIBRORC_REFCLK_I2C_SLAVE, 137, freeze_val, 135, M_NEWFREQ);
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-                "i2c_write_mem_dual(%02x->%02x, %02x->%02x)\n",
-                137, freeze_val, 135, M_NEWFREQ);
-    }
-
-
-
     refclkopts
     refclk::getCurrentOpts
     (
@@ -110,7 +92,7 @@ namespace LIBRARY_NAME
             opts.fxtal = opts.fdco/opts.rfreq_float;
         }
         else
-        // fOUT is unknown 
+        // fOUT is unknown
         // -> use default fXTAL to get approximate fDCO
         {
             opts.fdco = 114.285 * opts.rfreq_float;
@@ -120,9 +102,8 @@ namespace LIBRARY_NAME
         return opts;
     }
 
-
     refclkopts
-    refclk::getNewOpts
+    refclk::calcNewOpts
     (
         double new_freq,
         double fxtal
@@ -139,7 +120,7 @@ namespace LIBRARY_NAME
 
         for ( int n=1; n<=128; n++ )
         {
-            // N1 can be 1 or any even number up to 128 
+            // N1 can be 1 or any even number up to 128
             if ( n!=1 && (n & 0x1) )
             {
                 continue;
@@ -147,7 +128,7 @@ namespace LIBRARY_NAME
 
             for ( int h=11; h>3; h-- )
             {
-                // valid values for HSDIV are 4, 5, 6, 7, 9 or 11 
+                // valid values for HSDIV are 4, 5, 6, 7, 9 or 11
                 if ( h==8 || h==10 )
                 {
                     continue;
@@ -156,7 +137,7 @@ namespace LIBRARY_NAME
                 if ( fDCO_new >= 4850.0 && fDCO_new <= 5670.0 )
                 {
                     vco_found = 1;
-                    // find lowest possible fDCO for this configuration 
+                    // find lowest possible fDCO for this configuration
                     if (fDCO_new<lastfDCO)
                     {
                         opts.hs_div = h;
@@ -189,6 +170,67 @@ namespace LIBRARY_NAME
     }
 
     void
+    refclk::writeOptsToDevice
+    (
+        refclkopts opts
+    )
+    {
+        // Freeze oscillator
+        setFreezeDCO();
+
+        // write new osciallator values
+        uint8_t value = (hsdiv_val2reg(opts.hs_div)<<5) |
+            (n1_val2reg(opts.n1)>>2);
+        refclk_write(13, value);
+
+        value = ((n1_val2reg(opts.n1)&0x03)<<6) |
+            (opts.rfreq_int>>32);
+        refclk_write(14, value);
+
+        // addr 15...18: RFREQ[31:0]
+        for(uint8_t i=0; i<=3; i++)
+        {
+            value = ((opts.rfreq_int>>((3-i)*8)) & 0xff);
+            refclk_write(15+i, value);
+        }
+
+        // release DCO Freeze
+        releaseDCO();
+
+        // wait for NewFreq to be deasserted
+        waitForClearance(M_NEWFREQ);
+    }
+
+    void
+    refclk::reset()
+    {
+        /** Recall initial conditions */
+        setRFMCtrl( M_RECALL );
+        /** Wait for RECALL to complete */
+        waitForClearance( M_RECALL );
+        /** fOUT is now the default freqency */
+    }
+
+
+    //------------- protected --------------
+
+    void
+    refclk::releaseDCO()
+    {
+        // get current FREEZE_DCO settings
+        uint8_t freeze_val = refclk_read(137);
+
+        // clear FREEZE_DCO bit
+        freeze_val &= 0xef;
+
+        m_sysmon->i2c_write_mem_dual(LIBRORC_REFCLK_I2C_CHAIN,
+                LIBRORC_REFCLK_I2C_SLAVE, 137, freeze_val, 135, M_NEWFREQ);
+        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
+                "i2c_write_mem_dual(%02x->%02x, %02x->%02x)\n",
+                137, freeze_val, 135, M_NEWFREQ);
+    }
+
+    void
     refclk::setRFMCtrl
     (
         uint8_t flag
@@ -211,7 +253,7 @@ namespace LIBRARY_NAME
         uint8_t flag
     )
     {
-        // wait for flag to be cleared by device 
+        // wait for flag to be cleared by device
         uint8_t reg135 = flag;
         while ( reg135 & flag )
         {
@@ -219,50 +261,6 @@ namespace LIBRARY_NAME
         }
     }
 
-    void 
-    refclk::setOpts
-    (
-        refclkopts opts
-    )
-    {
-        // Freeze oscillator 
-        setFreezeDCO();
-
-        // write new osciallator values 
-        uint8_t value = (hsdiv_val2reg(opts.hs_div)<<5) | 
-            (n1_val2reg(opts.n1)>>2);
-        refclk_write(13, value);
-
-        value = ((n1_val2reg(opts.n1)&0x03)<<6) |
-            (opts.rfreq_int>>32);
-        refclk_write(14, value);
-
-        // addr 15...18: RFREQ[31:0] 
-        for(uint8_t i=0; i<=3; i++)
-        {
-            value = ((opts.rfreq_int>>((3-i)*8)) & 0xff);
-            refclk_write(15+i, value);
-        }
-
-        // release DCO Freeze 
-        releaseDCO();
-
-        // wait for NewFreq to be deasserted 
-        waitForClearance(M_NEWFREQ);
-    }
-
-    void
-    refclk::reset()
-    {
-        /** Recall initial conditions */
-        setRFMCtrl( M_RECALL );
-        /** Wait for RECALL to complete */
-        waitForClearance( M_RECALL );
-        /** fOUT is now the default freqency */
-    }
-
-
-    //------------- protected --------------
     double
     refclk::hex2float
     (
@@ -332,7 +330,7 @@ namespace LIBRARY_NAME
         return value;
     }
 
-    void 
+    void
     refclk::refclk_write
     (
         uint8_t addr,

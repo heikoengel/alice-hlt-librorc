@@ -187,13 +187,7 @@ main
 
     if ( do_reset || do_write )
     {
-        /** Recall initial conditions */
-        rc->setRFMCtrl( M_RECALL );
-
-        /** Wait for RECALL to complete */
-        rc->waitForClearance( M_RECALL );
-
-        /** fOUT is now the default freqency */
+        rc->reset();
         fout = LIBRORC_REFCLK_DEFAULT_FOUT;
     }
 
@@ -207,14 +201,14 @@ main
     if ( do_write )
     {
         /** get new values for desired frequency */
-        librorc::refclkopts new_opts = rc->getNewOpts(new_freq, opts.fxtal);
+        librorc::refclkopts new_opts = rc->calcNewOpts(new_freq, opts.fxtal);
 
         /** Print new configuration */
         cout << endl << "New Oscillator Values" << endl;
         print_refclk_settings( new_opts );
 
         /** write new configuration to device */
-        rc->setOpts(new_opts);
+        rc->writeOptsToDevice(new_opts);
     }
 
 
