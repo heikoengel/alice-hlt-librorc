@@ -114,17 +114,16 @@ main
     librorc::bar *bar[2] = {NULL, NULL};
     librorc::sysmon *sm[2] = {NULL, NULL};
 
+    uint32_t nchannels[2];
     for ( int i=0; i<2; i++ )
     {
         initLibrorcInstances( &dev[i], devnr[i], &bar[i], &sm[i]);
+        nchannels[i] = sm[i]->numberOfChannels();
     }
 
 
     int32_t nconfigs = sizeof(available_configs) /
                        sizeof(librorc::gtxpll_settings);
-    uint32_t nchannels[2];
-    nchannels[0] = bar[0]->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
-    nchannels[1] = bar[1]->get32(RORC_REG_TYPE_CHANNELS) & 0xffff;
 
     if ( verbose )
     {

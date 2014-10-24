@@ -288,21 +288,31 @@ int main( int argc, char *argv[])
         abort();
     }
 
-    /** get number channels implemented in firmware */
-    uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
+    librorc::sysmon *sm = NULL;
+    try
+    {
+        sm = new librorc::sysmon(bar);
+    }
+    catch(...)
+    {
+        cout << "ERROR: failed to initialize Sysmon." << endl;
+        delete bar;
+        delete dev;
+        abort();
+    }
 
     /** make sure FW is HLT_IN */
-    if ( (type_channels>>16) != RORC_CFG_PROJECT_hlt_in &&
-    (type_channels>>16) != RORC_CFG_PROJECT_hwtest )
+    if ( !sm->firmwareIsHltIn() && !sm->firmwareIsHltHardwareTest() )
     {
         cout << "ERROR: No HLT_IN firmware detected - aborting." << endl;
+        delete sm;
         delete bar;
         delete dev;
         abort();
     }
         
     uint32_t startChannel = 0;
-    uint32_t endChannel = (type_channels & 0xffff) - 1;
+    uint32_t endChannel = sm->numberOfChannels() - 1;
 
     for ( uint32_t EventSize=16; 
             EventSize<0x10000; 
@@ -373,6 +383,7 @@ int main( int argc, char *argv[])
         free(fname);
     }
 
+    delete sm;
     delete bar;
     delete dev;
 

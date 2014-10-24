@@ -182,15 +182,15 @@ main
         << HEXSTR(getPcieDSN(pdev), 16) << endl;
 
     /** check FW type */
-    uint32_t fwtype = bar->get32(RORC_REG_TYPE_CHANNELS);
-    if ( (fwtype>>16) != RORC_CFG_PROJECT_hwtest )
+    if ( !sm->firmwareIsHltHardwareTest() )
     {
         cout << "FATAL: No suitable FW detected - aborting." << endl;
+        delete sm;
         delete bar;
         delete dev;
         abort();
     }
-    uint32_t nchannels = (fwtype & 0xffff);
+    uint32_t nchannels = sm->numberOfChannels();
 
     checkPcieState( sm, verbose );
 

@@ -236,11 +236,23 @@ main
         abort();
     }
 
+    librorc::sysmon *sm;
+    try
+    {
+        sm = new librorc::sysmon(bar);
+    }
+    catch(...)
+    {
+        printf("ERROR: failed to initialize Sysmon.\n");
+        abort();
+    }
+
     /** Check if firmware is 'hwtest' */
-    if ( bar->get32(RORC_REG_TYPE_CHANNELS)>>16 != RORC_CFG_PROJECT_hwtest )
+    if ( !sm->firmwareIsHltHardwareTest() )
     {
         cout << "Current firmware is no hwtest firmware! "
             << "Won't do anything..." << endl;
+        delete sm;
         delete bar;
         delete dev;
         return 0;
@@ -285,6 +297,7 @@ main
 
     reset_fmc_tester(bar);
 
+    delete sm;
     delete bar;
     delete dev;
 

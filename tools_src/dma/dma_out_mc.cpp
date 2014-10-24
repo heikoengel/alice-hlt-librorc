@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
 
     librorc::device *dev;
     librorc::bar *bar;
+    librorc::sysmon *sm;
 
     try
     {
@@ -84,18 +85,19 @@ int main(int argc, char *argv[])
     #else
         bar = new librorc::rorc_bar(dev, 1);
     #endif
+        sm = new librorc::sysmon(bar);
 
     }
     catch(...)
     {
-        cout << "Failed to initialize dev and bar" << endl;
+        cout << "Failed to initialize dev, bar or sm" << endl;
         abort();
     }
 
     bar->simSetPacketSize(128);
 
     // check if firmware is HLT_OUT
-    if( (bar->get32(RORC_REG_TYPE_CHANNELS)>>16) != RORC_CFG_PROJECT_hlt_out )
+    if( !sm->firmwareIsHltOut() )
     {
         cout << "Firmware is not HLT_OUT - exiting." << endl;
         abort();
@@ -243,6 +245,7 @@ int main(int argc, char *argv[])
         delete eventStream[i];
     }
 
+    delete sm;
     delete bar;
     delete dev;
 

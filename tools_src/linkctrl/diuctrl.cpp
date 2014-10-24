@@ -296,17 +296,26 @@ int main
         abort();
     }
 
-    /** get number channels implemented in firmware */
-    uint32_t type_channels = bar->get32(RORC_REG_TYPE_CHANNELS);
+    librorc::sysmon *sm;
+    try
+    {
+        sm = new librorc::sysmon(bar);
+    }
+    catch(...)
+    {
+        printf("ERROR: failed to initialize Sysmon.\n");
+        abort();
+    }
 
     uint32_t startChannel, endChannel;
+    uint32_t nChannels = sm->numberOfChannels();
     if ( ChannelId==-1 )
     {
         /** no specific channel selected, iterate over all channels */
         startChannel = 0;
-        endChannel = (type_channels & 0xffff) - 1;
+        endChannel = nChannels - 1;
     }
-    else if( ChannelId < (int)(type_channels & 0xffff) )
+    else if( ChannelId < (int)nChannels )
     {
         /** use only selected channel */
         startChannel = ChannelId;
@@ -369,6 +378,7 @@ int main
         delete current_link;
     }
 
+    delete sm;
     delete bar;
     delete dev;
 
