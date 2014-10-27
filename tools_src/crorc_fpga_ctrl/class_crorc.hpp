@@ -32,21 +32,29 @@
 
 #include <librorc.h>
 #define LIBRORC_MAX_LINKS 12
+#define LIBRORC_CH_UNDEF 0xffffffff
 
-enum tFanState { FAN_ON = 1, FAN_OFF = 0, FAN_AUTO = 2 };
-enum tLedState { LED_AUTO = 0, LED_BLINK = 1 };
+#define FAN_OFF 0
+#define FAN_ON 1
+#define FAN_AUTO 2
+
+#define LED_AUTO 0
+#define LED_BLINK 1
 
 class crorc {
 public:
   crorc(uint32_t deviceId);
   ~crorc();
   const char *getFanState();
-  void setFanState(tFanState state);
+  void setFanState(uint32_t state);
   const char *getLedState();
-  void setLedState(tLedState state);
+  void setLedState(uint32_t state);
   uint32_t getLinkmask();
   void setLinkmask(uint32_t mask);
   void doBoardReset();
+  void setAllQsfpReset(uint32_t reset);
+  void setAllGtxReset(uint32_t reset);
+  void configAllGtxPlls(librorc::gtxpll_settings pllcfg);
 
   librorc::device *m_dev;
   librorc::bar *m_bar;
@@ -54,6 +62,9 @@ public:
   librorc::refclk *m_refclk;
   librorc::link *m_link[LIBRORC_MAX_LINKS];
   librorc::gtx *m_gtx[LIBRORC_MAX_LINKS];
+  librorc::diu *m_diu[LIBRORC_MAX_LINKS];
+  librorc::siu *m_siu[LIBRORC_MAX_LINKS];
+  librorc::ddl *m_ddl[LIBRORC_MAX_LINKS];
   uint32_t m_nchannels;
 };
 

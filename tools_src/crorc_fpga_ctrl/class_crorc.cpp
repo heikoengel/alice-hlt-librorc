@@ -32,8 +32,13 @@ crorc::crorc(uint32_t deviceId) {
   m_dev = NULL;
   m_bar = NULL;
   m_sm = NULL;
+  m_refclk = NULL;
   for (uint32_t i = 0; i < LIBRORC_MAX_LINKS; i++) {
     m_link[i] = NULL;
+    m_gtx[i] = NULL;
+    m_diu[i] = NULL;
+    m_siu[i] = NULL;
+    m_ddl[i] = NULL;
   }
   try {
     m_dev = new librorc::device(deviceId);
@@ -69,6 +74,18 @@ crorc::crorc(uint32_t deviceId) {
     try {
       m_link[i] = new librorc::link(m_bar, i);
       m_gtx[i] = new librorc::gtx(m_link[i]);
+      m_ddl[i] = new librorc::ddl(m_link[i]);
+
+      switch (m_link[i]->linkType()) {
+      case RORC_CFG_LINK_TYPE_DIU:
+        m_diu[i] = new librorc::diu(m_link[i]);
+        break;
+      case RORC_CFG_LINK_TYPE_SIU:
+        m_siu[i] = new librorc::siu(m_link[i]);
+        break;
+      default:
+        break;
+      }
     } catch (...) {
       throw;
     }
@@ -77,9 +94,24 @@ crorc::crorc(uint32_t deviceId) {
 
 crorc::~crorc() {
   for (uint32_t i = 0; i < LIBRORC_MAX_LINKS; i++) {
+    if (m_ddl[i]) {
+      delete m_ddl[i];
+    }
+    if (m_siu[i]) {
+      delete m_siu[i];
+    }
+    if (m_diu[i]) {
+      delete m_diu[i];
+    }
+    if (m_gtx[i]) {
+      delete m_gtx[i];
+    }
     if (m_link[i]) {
       delete m_link[i];
     }
+  }
+  if (m_refclk) {
+    delete m_refclk;
   }
   if (m_sm) {
     delete m_sm;
@@ -102,7 +134,7 @@ const char *crorc::getFanState() {
   }
 }
 
-void crorc::setFanState(tFanState state) {
+void crorc::setFanState(uint32_t state) {
   if (state == FAN_ON) {
     m_sm->systemFanSetEnable(1, 1);
   } else if (state == FAN_OFF) {
@@ -120,7 +152,7 @@ const char *crorc::getLedState() {
   }
 }
 
-void crorc::setLedState(tLedState state) {
+void crorc::setLedState(uint32_t state) {
   uint32_t mode = (state == LED_BLINK) ? 1 : 0;
   m_sm->setBracketLedMode(mode);
 }
@@ -130,3 +162,21 @@ uint32_t crorc::getLinkmask() { return m_sm->getLinkmask(); }
 void crorc::setLinkmask(uint32_t mask) { m_sm->setLinkmask(mask); }
 
 void crorc::doBoardReset(){};
+
+void crorc::setAllQsfpReset(uint32_t reset) {
+  m_sm->qsfpSetReset(0, reset);
+  m_sm->qsfpSetReset(1, reset);
+  m_sm->qsfpSetReset(2, reset);
+}
+
+void crorc::setAllGtxReset(uint32_t reset) {
+  for (uint32_t i = 0; i < m_nchannels; i++) {
+    m_gtx[i]->setReset(reset);
+  }
+}
+
+void crorc::configAllGtxPlls(librorc::gtxpll_settings pllcfg) {
+  for (uint32_t i = 0; i < m_nchannels; i++) {
+    m_gtx[i]->drpSetPllConfig(pllcfg);
+  }
+}
