@@ -109,7 +109,7 @@ void testDmaChannel(librorc::device *dev, librorc::bar *bar, uint32_t channel_id
 
 void printPcieInfos(librorc::device *dev, librorc::sysmon *sm);
 
-void checkAndReleaseGtxReset(librorc::link *link, int verbose);
+void checkAndReleaseGtxReset(librorc::gtx *gtx, int verbose);
 void checkAndReleaseQsfpResets(librorc::sysmon *sm, int verbose);
 
 #endif

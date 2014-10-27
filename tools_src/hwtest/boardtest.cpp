@@ -205,15 +205,17 @@ main
     int sysclk_avail = checkSysClkAvailable( sm );
 
     librorc::link *link[nchannels];
+    librorc::gtx *gtx[nchannels];
     for  ( uint32_t i=0; i<nchannels; i++ )
     {
         link[i] = new librorc::link(bar, i);
+        gtx[i] = new librorc::gtx(link[i]);
 
-        checkAndReleaseGtxReset( link[i], verbose );
+        checkAndReleaseGtxReset( gtx[i], verbose );
 
-        if (link[i]->isGtxDomainReady())
+        if (gtx[i]->isDomainReady())
         {
-            link[i]->clearAllGtxErrorCounters();
+            gtx[i]->clearErrorCounters();
             link[i]->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
         }
         else

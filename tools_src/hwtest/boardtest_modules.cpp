@@ -1001,15 +1001,14 @@ checkAndReleaseQsfpResets
 void
 checkAndReleaseGtxReset
 (
-    librorc::link *link,
+    librorc::gtx *gtx,
     int verbose
 )
 {
-    uint32_t gtxcfg = link->pciReg(RORC_REG_GTX_ASYNC_CFG);
-    if ( gtxcfg & 0x0000000b )
+    if ( gtx->getReset() )
     {
         /** release any reset bit */
-        link->setPciReg(RORC_REG_GTX_ASYNC_CFG, (gtxcfg & ~(0x00000000b)));
+        gtx->setReset(0);
         if ( verbose )
         {
             cout << "INFO: found GTX in reset - releasing..." << endl;
@@ -1020,7 +1019,7 @@ checkAndReleaseGtxReset
 
         /** Wait for clock to be up */
         uint32_t trycount = 0;
-        while( !link->isGtxDomainReady() )
+        while( !gtx->isDomainReady() )
         {
             usleep(100);
             trycount++;

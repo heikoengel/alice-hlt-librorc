@@ -117,7 +117,8 @@ resetGtx
 bool
 waitForResetDone
 (
-    librorc::link *link
+    librorc::link *link,
+    librorc::gtx *gtx
 )
 {
     uint32_t timeout = 0;
@@ -126,8 +127,7 @@ waitForResetDone
         if ( link->isGtxDomainReady() )
         {
             /** make sure DFE eye is above threshold */
-            double dfeEye = (link->gtxReg(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200.0/31.0;
-            return (dfeEye > GTX_DFE_EYE_DAC_MIN);
+            return (gtx->dfeEye() > GTX_DFE_EYE_DAC_MIN);
         }
         usleep(100);
         timeout++;
@@ -148,13 +148,14 @@ resetAllGtx
     for ( uint32_t i=0; i<nchannels; i++)
     {
         librorc::link *link = new librorc::link(bar, i);
-        resetGtx( link, reset );
+        librorc::gtx *gtx = new librorc::gtx(link);
+        gtx->setReset(reset);
         if ( !reset )
         {
             uint32_t retry = WAIT_FOR_RESET_DONE_RETRY;
-            while( !waitForResetDone(link) )
+            while( !waitForResetDone(link, gtx) )
             {
-                resetGtx( link, reset );
+                gtx->setReset(reset);
                 if(retry==0)
                 {
                     cout << "WARNING: Link " << i
@@ -166,6 +167,7 @@ resetAllGtx
                 retry--;
             }
         }
+        delete gtx;
         delete link;
     }
 }
