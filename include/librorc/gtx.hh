@@ -93,7 +93,12 @@ namespace LIBRARY_NAME {
             uint32_t getLoopback();
             uint32_t getReset();
 
-            void setTxDiffCtrl( uint32_t value );
+            bool isDomainReady();
+            bool isLinkUp();
+
+            double dfeEye();
+
+            void setTxDiffCtrl(uint32_t value);
             void setTxPreEmph( uint32_t value );
             void setTxPostEmph( uint32_t value );
             void setRxEqMix( uint32_t value );
