@@ -141,24 +141,22 @@ main
     for ( uint32_t i=start_channel; i<=end_channel; i++ )
     {
         librorc::link *link = new librorc::link(bar, i);
+        librorc::gtx *gtx = new librorc::gtx(link);
         uint32_t link_type = link->linkType();
 
 
         if ( do_full_reset )
         {
-            uint32_t linkcfg = link->pciReg(RORC_REG_GTX_ASYNC_CFG);
-            linkcfg |= 0x00000001; // set GTX_RESET
-            link->setPciReg(RORC_REG_GTX_ASYNC_CFG, linkcfg);
+            gtx->setReset(1);
             usleep(1000);
-            linkcfg &= ~(0x00000001); // release GTX_RESET
-            link->setPciReg(RORC_REG_GTX_ASYNC_CFG, linkcfg);
+            gtx->setReset(0);
             link->waitForGTXDomain();
         }
 
         if(link->isGtxDomainReady())
         {
             link->setFlowControlEnable(0);
-            link->clearAllGtxErrorCounters();
+            gtx->clearErrorCounters();
 
             switch( link_type )
             {
@@ -232,6 +230,7 @@ main
         link->clearAllDmaCounters();
         link->clearBDMPtrMatchFlags();
 
+        delete gtx;
         delete link;
     }
 

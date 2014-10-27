@@ -345,7 +345,7 @@ int main
             }
             else
             {
-                current_link->clearAllGtxErrorCounters();
+                gtx->clearErrorCounters();
 
                 /** also clear GTX error counter for HWTest firmwares */
                 if ( sm->firmwareIsHltHardwareTest() )

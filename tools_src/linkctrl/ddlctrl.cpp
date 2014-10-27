@@ -463,7 +463,7 @@ int main
                 if( diu->linkUp() )
                 {
                     if( set_ddlcmd )
-                    { current_link->setDdlReg(RORC_REG_DDL_CMD, ddlcmd); }
+                    { diu->sendCommand(ddlcmd); }
                     else
                     { cout << diu->readRemoteSerial() << endl; }
                 }
