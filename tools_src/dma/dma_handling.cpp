@@ -462,7 +462,7 @@ configureDiu
     if( diu )
     {
         diu->useAsDataSource();
-        diu->enableInterface();
+        diu->setEnable(1);
         if(opts.datasource==ES_SRC_SIU)
         {
             if( diu->prepareForSiuData() < 0 )
@@ -501,7 +501,7 @@ unconfigureDiu
     {
         if(diu->linkUp())
         { diu->sendFeeEndOfBlockTransferCmd(); }
-        diu->disableInterface();
+        diu->setEnable(0);
     }
     else
     {
@@ -524,7 +524,7 @@ configureRawReadout
         eventStream->getRawReadout();
     if( rawddl )
     {
-        rawddl->enableInterface();
+        rawddl->setEnable(1);
     }
     else
     {
@@ -547,7 +547,7 @@ unconfigureRawReadout
         eventStream->getRawReadout();
     if( rawddl )
     {
-        rawddl->disableInterface();
+        rawddl->setEnable(0);
     }
     else
     {
@@ -572,7 +572,7 @@ configureSiu
     if( siu )
     {
         siu->setReset(0);
-        siu->enableInterface();
+        siu->setEnable(1);
     }
     else
     {
@@ -596,7 +596,7 @@ unconfigureSiu
     if( siu )
     {
         /** TODO: send EOBTR? */
-        siu->disableInterface();
+        siu->setEnable(0);
     }
     else
     {

@@ -85,19 +85,21 @@ namespace LIBRARY_NAME
     }
 
     void
-    ddl::enableInterface()
+    ddl::setEnable
+    (
+        uint32_t value
+    )
     {
         uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
-        ddlctrl |= (1<<0); // enable DDL_IF
+        ddlctrl &= ~(1<<0); // clear previous value
+        ddlctrl |= (value&1); // clear previous value
         m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
-    void
-    ddl::disableInterface()
+    uint32_t
+    ddl::getEnable()
     {
-        uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(1<<0); // disable DDL_IF
-        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
+        return (m_link->ddlReg(RORC_REG_DDL_CTRL) & 1);
     }
 
     uint32_t

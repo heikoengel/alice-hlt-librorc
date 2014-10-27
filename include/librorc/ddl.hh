@@ -49,13 +49,11 @@ namespace LIBRARY_NAME
             ddl( link *link );
             ~ddl();
 
-
             /**
              * check if DDL link is full
              * @return true when full, false when not full
              **/
             bool linkFull();
-
 
             /**
              * set DDL module reset
@@ -73,20 +71,21 @@ namespace LIBRARY_NAME
             uint32_t
             getReset();
 
+            /**
+             * set DDL interface enable 
+             * @param value enable value
+             **/
+            void setEnable
+            (
+                uint32_t value
+            );
 
             /**
-             * enable DIU/SIU Interface
+             * get DDL interface enable
+             * @return enable value
              **/
-            void
-            enableInterface();
-
-
-            /**
-             * disable DIU/SIU Interface
-             **/
-            void
-            disableInterface();
-
+            uint32_t
+            getEnable();
 
             /**
              * get DDL deadtime

@@ -166,7 +166,7 @@ main
                     {
                         librorc::diu *diu = new librorc::diu(link);
                         diu->setReset(1);
-                        diu->disableInterface();
+                        diu->setEnable(0);
                         diu->clearEventcount();
                         diu->clearDeadtime();
                         diu->clearAllLastStatusWords();
@@ -186,7 +186,7 @@ main
                     {
                         librorc::siu *siu = new librorc::siu(link);
                         siu->setReset(1);
-                        siu->disableInterface();
+                        siu->setEnable(0);
                         siu->clearEventcount();
                         siu->clearDeadtime();
                         delete siu;
@@ -196,7 +196,7 @@ main
                 case RORC_CFG_LINK_TYPE_VIRTUAL:
                     {
                         librorc::ddl *ddlraw = new librorc::ddl(link);
-                        ddlraw->disableInterface();
+                        ddlraw->setEnable(0);
                         ddlraw->clearDeadtime();
                         delete ddlraw;
                     }
