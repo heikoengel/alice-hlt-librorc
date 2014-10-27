@@ -222,22 +222,12 @@ namespace LIBRARY_NAME
             std::string
             readRemoteSerial();
 
-
-        protected:
-            link *m_link;
-
             /**
-             * HLT_IN: wait for DIU StatusWord. This is called by
-             * waitFor***StatusWord().
-             * @param status value register address
-             * @return 0xffffffff on timeout, else status value
-             * */
+             * get the last command sent via DIU interface
+             * @return command word
+             **/
             uint32_t
-            waitForStatusWord
-            (
-                uint32_t address
-            );
-
+            lastDiuCommand();
 
             /**
              * Send command via DIU interface
@@ -339,6 +329,21 @@ namespace LIBRARY_NAME
             void
             clearLastInterfaceStatusWord();
 
+
+        protected:
+            link *m_link;
+
+            /**
+             * HLT_IN: wait for DIU StatusWord. This is called by
+             * waitFor***StatusWord().
+             * @param status value register address
+             * @return 0xffffffff on timeout, else status value
+             * */
+            uint32_t
+            waitForStatusWord
+            (
+                uint32_t address
+            );
 
             /**
              * Blocking wait for CommandTransmissionStatusWord.

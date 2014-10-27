@@ -160,14 +160,6 @@ namespace LIBRARY_NAME
     int
     diu::prepareForSiuData()
     {
-        /** check link state before sending commands */
-        if( !m_link->isGtxDomainReady() )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
-                    " will not send DIU commands!\n");
-            return -1;
-        }
-
         // same steps as for DIU
         if( prepareForDiuData() )
         { return -1; }
@@ -182,14 +174,6 @@ namespace LIBRARY_NAME
     int
     diu::prepareForDiuData()
     {
-        /** check link state before sending commands */
-        if( !m_link->isGtxDomainReady() )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Unexpected GTX state -"
-                    " will not send DIU commands!\n");
-            return -1;
-        }
-
         setReset(1);
         getReset();
         setReset(0);
@@ -247,11 +231,12 @@ namespace LIBRARY_NAME
         return serial;
     }
 
+    uint32_t
+    diu::lastDiuCommand()
+    {
+        return m_link->ddlReg(RORC_REG_DDL_CMD);
+    }
 
-
-    /**********************************************************
-     *                  protected
-     * *******************************************************/
     void
     diu::sendCommand
     (
@@ -313,6 +298,9 @@ namespace LIBRARY_NAME
     }
 
 
+    /**********************************************************
+     *                  protected
+     * *******************************************************/
     uint32_t
     diu::waitForStatusWord
     (
