@@ -144,7 +144,6 @@ namespace LIBRARY_NAME
         m_fwtype                  = m_sm->firmwareType();
         m_link                    = new link(m_bar1, m_channelId);
         m_linktype                = m_link->linkType();
-        m_event_generation_offset = 0;
 
         if( m_link->dmaEngineIsActive() )
         { throw LIBRORC_EVENT_STREAM_ERROR_BUSY; }

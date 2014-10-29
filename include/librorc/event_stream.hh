@@ -273,16 +273,6 @@ class fastclusterfinder;
              **/
             int overridePciePacketSize( uint32_t pciePacketSize );
 
-
-            void
-            packEventIntoBuffer
-            (
-                uint32_t *event,
-                uint32_t  event_size
-            );
-
-            uint64_t numberOfEvents(uint32_t event_size);
-
             /** Member Variables */
 
 
@@ -316,7 +306,6 @@ class fastclusterfinder;
             void deinitializeDmaBuffers();
 
         protected:
-            uint32_t         m_eventSize;
             int32_t          m_deviceId;
             int32_t          m_channelId;
             LibrorcEsType    m_esType;
@@ -335,7 +324,6 @@ class fastclusterfinder;
             librorc_event_callback  m_event_callback;
             librorc_status_callback m_status_callback;
 
-            uint64_t        m_event_generation_offset;
             uint64_t        m_last_event_buffer_offset;
 
             int      initializeDmaChannel();
