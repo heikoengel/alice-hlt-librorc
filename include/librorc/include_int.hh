@@ -48,6 +48,6 @@
 #include "librorc/datareplaychannel.hh"
 #include "librorc/ddl.hh"
 #include "librorc/diu.hh"
+#include "librorc/siu.hh"
 #include "librorc/gtx.hh"
 #include "librorc/eventfilter.hh"
-#include "librorc/event_generator.hh"

@@ -32,15 +32,21 @@
 #define LIBRORC_INTERNAL
 #include <librorc/event_stream.hh>
 
-#include <librorc/device.hh>
 #include <librorc/buffer.hh>
+#include <librorc/device.hh>
 #include <librorc/bar_proto.hh>
 #include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 #include <librorc/sysmon.hh>
 #include <librorc/link.hh>
-
 #include <librorc/dma_channel.hh>
+
+#include <librorc/fastclusterfinder.hh>
+#include <librorc/diu.hh>
+#include <librorc/ddl.hh>
+#include <librorc/siu.hh>
+#include <librorc/patterngenerator.hh>
+
 #include <librorc/event_sanity_checker.hh>
 
 namespace LIBRARY_NAME
@@ -64,8 +70,8 @@ namespace LIBRARY_NAME
 
     event_stream::event_stream
     (
-        librorc::device *dev,
-        librorc::bar    *bar,
+        device *dev,
+        bar    *bar,
         int32_t          channelId,
         LibrorcEsType    esType
     )
@@ -118,11 +124,11 @@ namespace LIBRARY_NAME
         {
             try
             {
-                m_dev = new librorc::device(m_deviceId);
+                m_dev = new device(m_deviceId);
 #ifdef MODELSIM
-                m_bar1 = new librorc::sim_bar(m_dev, 1);
+                m_bar1 = new sim_bar(m_dev, 1);
 #else
-                m_bar1 = new librorc::rorc_bar(m_dev, 1);
+                m_bar1 = new rorc_bar(m_dev, 1);
 #endif
             }
             catch(...)
@@ -130,13 +136,13 @@ namespace LIBRARY_NAME
         }
 
         /** check if selected channel is available in current FW */
-        m_sm = new librorc::sysmon(m_bar1);
+        m_sm = new sysmon(m_bar1);
         if( (uint32_t)m_channelId >= m_sm->numberOfChannels() )
         {
             throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL;
         }
         m_fwtype                  = m_sm->firmwareType();
-        m_link                    = new librorc::link(m_bar1, m_channelId);
+        m_link                    = new link(m_bar1, m_channelId);
         m_linktype                = m_link->linkType();
         m_event_generation_offset = 0;
 
@@ -242,11 +248,11 @@ namespace LIBRARY_NAME
             if( eventBufferSize )
             {
                 m_eventBuffer =
-                    new librorc::buffer
+                    new buffer
                     (m_dev, eventBufferSize, eventBufferId, 1);
             }
             else
-            { m_eventBuffer = new librorc::buffer(m_dev, eventBufferId, 1); }
+            { m_eventBuffer = new buffer(m_dev, eventBufferId, 1); }
 
             uint64_t reportBufferSize
                 = (m_eventBuffer->getPhysicalSize()/ m_pciePacketSize)
@@ -254,12 +260,12 @@ namespace LIBRARY_NAME
 
             // ReportBuffer uses by default EventBuffer-ID + 1
             m_reportBuffer =
-                new librorc::buffer
+                new buffer
                 (m_dev, reportBufferSize, (m_eventBuffer->getID()+1), 1);
         }
         catch(...)
         {
-            // librorc::buffer can throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED
+            // buffer can throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED
             return -1;
         }
 
@@ -320,7 +326,7 @@ namespace LIBRARY_NAME
 
         try
         {
-            m_channel = new librorc::dma_channel
+            m_channel = new dma_channel
                 (
                  m_channelId,
                  m_pciePacketSize,
@@ -351,23 +357,17 @@ namespace LIBRARY_NAME
                 shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
                     sizeof(librorcChannelStatus), IPC_CREAT | 0666);
             if(shID==-1)
-            {
-                throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
-            }
+            { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
 
             /** attach to shared memory */
             shm = (char*)shmat(shID, 0, 0);
             if(shm==(char*)-1)
-            {
-                throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
-            }
+            { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
         #else
             #pragma message "Compiling without SHM"
             shm = (char*)malloc(sizeof(librorcChannelStatus));
             if(shm == NULL)
-            {
-                throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED);
-            }
+            { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
         #endif
 
         m_channel_status = (librorcChannelStatus*)shm;
@@ -516,6 +516,16 @@ namespace LIBRARY_NAME
         return true;
     }
 
+    void
+    event_stream::updateChannelStatus
+    (
+        librorc_event_descriptor *report
+    )
+    {
+        m_channel_status->bytes_received += (report->calc_event_size << 2);
+        m_channel_status->n_events++;
+    }
+
 
     void
     event_stream::setBufferOffsets()
@@ -660,6 +670,9 @@ namespace LIBRARY_NAME
     }
 
 
+
+    /************************* Generators *************************/
+
     patterngenerator*
     event_stream::getPatternGenerator()
     {
@@ -667,9 +680,7 @@ namespace LIBRARY_NAME
         { return new patterngenerator(m_link); }
         else
         { return NULL; }
-        // TODO: log message: getPatternGenerator failed, Firmware, channelId
     }
-
 
     diu*
     event_stream::getDiu()
@@ -678,9 +689,7 @@ namespace LIBRARY_NAME
         { return new diu(m_link); }
         else
         { return NULL; }
-        // TODO: log message: getDiu failed, Firmware, channelId
     }
-
 
     siu*
     event_stream::getSiu()
@@ -689,7 +698,6 @@ namespace LIBRARY_NAME
         { return new siu(m_link); }
         else
         { return NULL; }
-        // TODO: log message: getSiu failed, Firmware, channelId
     }
 
     fastclusterfinder*
@@ -699,11 +707,7 @@ namespace LIBRARY_NAME
                 m_linktype==RORC_CFG_LINK_TYPE_DIU)
         { return new fastclusterfinder(m_link); }
         else
-        {
-            // TODO: log message: getSiu failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
     }
 
     ddl*
@@ -712,134 +716,7 @@ namespace LIBRARY_NAME
         if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
         { return new ddl(m_link); }
         else
-        {
-            // TODO: log message: getRawReadout failed,
-            // Firmware, channelId
-            return NULL;
-        }
+        { return NULL; }
     }
 
-/** HLT out API ---------------------------------------------------------------*/
-
-    void
-    event_stream::packEventIntoBuffer
-    (
-        uint32_t *event,
-        uint32_t  event_size
-    )
-    {
-        uint32_t *dest = (m_eventBuffer->getMem() + (m_event_generation_offset >> 2));
-
-        memcpy((void*) (dest), event, (event_size * sizeof(uint32_t)));
-        pushEventSizeIntoELFifo(event_size);
-        iterateEventBufferFillState(event_size);
-        wrapFillStateIfNecessary();
-    }
-
-    uint64_t
-    event_stream::availableBufferSpace()
-    {
-        m_last_event_buffer_offset
-            = m_channel->getLastEBOffset();
-
-        return   (m_event_generation_offset < m_last_event_buffer_offset)
-               ? m_last_event_buffer_offset - m_event_generation_offset
-               : m_last_event_buffer_offset + m_eventBuffer->getPhysicalSize()
-               - m_event_generation_offset; /** wrap in between */
-    }
-
-    void
-    event_stream::pushEventSizeIntoELFifo(uint32_t event_size)
-    {
-        m_channel->getLink()->setPciReg(RORC_REG_DMA_ELFIFO, event_size);
-    }
-
-    void
-    event_stream::iterateEventBufferFillState(uint32_t event_size)
-    {
-        m_event_generation_offset += fragmentSize(event_size);
-    }
-
-    void
-    event_stream::wrapFillStateIfNecessary()
-    {
-        m_event_generation_offset
-            = (m_event_generation_offset >= m_eventBuffer->getPhysicalSize())
-            ? (m_event_generation_offset - m_eventBuffer->getPhysicalSize())
-            : m_event_generation_offset;
-    }
-
-    uint32_t
-    event_stream::fragmentSize(uint32_t event_size)
-    {
-        uint32_t max_read_req = m_channel->pciePacketSize();
-
-        return   ((event_size << 2) % max_read_req)
-               ? ((event_size << 2) / max_read_req + 1) * max_read_req
-               : (event_size << 2);
-    }
-
-    /** TODO : this does not work, because the event size in HLT_OUT is usually not fixed*/
-    uint64_t
-    event_stream::numberOfEvents(uint32_t event_size)
-    {
-
-        if(!isSufficientFifoSpaceAvailable())
-        { return 0; }
-
-        uint64_t
-        number_of_events
-            = numberOfEventsThatFitIntoBuffer
-                (availableBufferSpace(), event_size, fragmentSize(event_size));
-
-        number_of_events
-            = maximumElfifoCanHandle(number_of_events);
-
-        number_of_events
-            = reduceNumberOfEventsToCustomMaximum(number_of_events);
-
-        return number_of_events;
-    }
-
-    bool
-    event_stream::isSufficientFifoSpaceAvailable()
-    {
-        uint32_t el_fifo_state       = m_channel->getLink()->pciReg(RORC_REG_DMA_ELFIFO);
-        uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
-        uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
-        return !(el_fifo_write_count + 10 >= el_fifo_write_limit);
-    }
-
-    uint64_t
-    event_stream::numberOfEventsThatFitIntoBuffer
-    (
-        uint64_t available_buffer_space,
-        uint32_t event_size,
-        uint32_t fragment_size
-    )
-    {
-        return
-        ((available_buffer_space - event_size) <= fragment_size)
-        ? 0 : ((uint64_t)(available_buffer_space / fragment_size) - 1);
-    }
-
-    uint64_t
-    event_stream::maximumElfifoCanHandle(uint64_t number_of_events)
-    {
-        uint32_t el_fifo_state       = m_channel->getLink()->pciReg(RORC_REG_DMA_ELFIFO);
-        uint32_t el_fifo_write_limit = ((el_fifo_state >> 16) & 0x0000ffff);
-        uint32_t el_fifo_write_count = (el_fifo_state & 0x0000ffff);
-
-        return
-          (el_fifo_write_limit - el_fifo_write_count < number_of_events)
-        ? (el_fifo_write_limit - el_fifo_write_count) : number_of_events;
-    }
-
-    uint64_t
-    event_stream::reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events)
-    {
-        return
-        (MAX_EVENTS_PER_ITERATION && number_of_events > MAX_EVENTS_PER_ITERATION)
-        ? MAX_EVENTS_PER_ITERATION : number_of_events;
-    }
 }

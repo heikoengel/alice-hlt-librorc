@@ -48,11 +48,11 @@ target_link_libraries( dma_out rorc ${EXTRA_LIBS})
 #INSTALL(TARGETS dma_out RUNTIME DESTINATION bin )
 
 # Build DMA-out testbed
-add_executable( dma_out_mc
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out_mc.cpp"
-"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
-)
-target_link_libraries( dma_out_mc rorc ${EXTRA_LIBS})
+#add_executable( dma_out_mc
+#"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_out_mc.cpp"
+#"${LIBRORC_SOURCE_DIR}/tools_src/dma/dma_handling.cpp"
+#)
+#target_link_libraries( dma_out_mc rorc ${EXTRA_LIBS})
 #INSTALL(TARGETS dma_out_mc RUNTIME DESTINATION bin )
 
 #-----------------------------------------------------------

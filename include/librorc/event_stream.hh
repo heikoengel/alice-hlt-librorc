@@ -35,11 +35,6 @@
 #include <librorc/include_ext.hh>
 #include "defines.hh"
 #include <librorc/buffer.hh>
-#include <librorc/sysmon.hh>
-#include <librorc/diu.hh>
-#include <librorc/siu.hh>
-#include <librorc/patterngenerator.hh>
-#include <librorc/fastclusterfinder.hh>
 
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
@@ -102,17 +97,20 @@ typedef uint64_t (*librorc_status_callback)
 namespace LIBRARY_NAME
 {
 
-class dma_channel;
-class bar;
 class buffer;
 class device;
-class event_sanity_checker;
+class bar;
+class sysmon;
+class dma_channel;
 class patterngenerator;
 class link;
 class diu;
+class siu;
+class ddl;
+class fastclusterfinder;
 
     /**
-     * @class librorc::event_stream
+     * @class event_stream
      * @brief This class glues everything together to receive or send events
      *        with a CRORC. It manages report as well as event buffer and
      *        configures the DMA channels etc. It also features an API to handle
@@ -134,8 +132,8 @@ class diu;
 #ifdef LIBRORC_INTERNAL
              event_stream
              (
-                librorc::device *dev,
-                librorc::bar    *bar,
+                device          *dev,
+                bar             *bar,
                 int32_t          channelId,
                 LibrorcEsType    esType
              );
@@ -212,6 +210,13 @@ class diu;
             );
 
             /**
+             * update channel status after successful getNextEvent.
+             * This adjusts bytes_received and n_events.
+             * @param report received reportbuffer descriptor
+             **/
+            void updateChannelStatus( librorc_event_descriptor *report);
+
+            /**
              * Release the event which was obtained by getNextEvent().
              * @param [in] reference to the report entry which was obtained with
              *        getNextEvent().
@@ -245,7 +250,6 @@ class diu;
              * when not available for current event_stream
              **/
             ddl* getRawReadout();
-
 
             /**
              * get SIU instance for current event_stream.
@@ -356,25 +360,6 @@ class diu;
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);
-
-            /** out */
-            uint64_t availableBufferSpace();
-            void     pushEventSizeIntoELFifo(uint32_t event_size);
-            void     iterateEventBufferFillState(uint32_t event_size);
-            void     wrapFillStateIfNecessary();
-            uint32_t fragmentSize(uint32_t event_size);
-            bool     isSufficientFifoSpaceAvailable();
-
-            uint64_t
-            numberOfEventsThatFitIntoBuffer
-            (
-                uint64_t available_buffer_space,
-                uint32_t event_size,
-                uint32_t fragment_size
-            );
-
-            uint64_t maximumElfifoCanHandle(uint64_t number_of_events);
-            uint64_t reduceNumberOfEventsToCustomMaximum(uint64_t number_of_events);
 
     };
 
