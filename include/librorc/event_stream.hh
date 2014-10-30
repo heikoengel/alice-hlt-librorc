@@ -220,8 +220,9 @@ class fastclusterfinder;
              * Release the event which was obtained by getNextEvent().
              * @param [in] reference to the report entry which was obtained with
              *        getNextEvent().
+             * @return 0 on success, -1 on invalid reference
              */
-            void releaseEvent(uint64_t reference);
+            int releaseEvent(uint64_t reference);
 
             /**
              * @internal
@@ -312,6 +313,7 @@ class fastclusterfinder;
             uint32_t         m_pciePacketSize;
             bool             m_called_with_bar;
             bool            *m_release_map;
+            uint64_t         m_release_map_entries;
             pthread_mutex_t  m_releaseEnable;
             pthread_mutex_t  m_getEventEnable;
 

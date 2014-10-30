@@ -269,13 +269,15 @@ namespace LIBRARY_NAME
         }
 
         m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
+        printf("m_raw_event_buffer: %p\n", m_raw_event_buffer);
         m_done             = false;
         m_event_callback   = NULL;
         m_status_callback  = NULL;
         m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
-        m_release_map      = new bool[m_reportBuffer->getPhysicalSize()/sizeof(librorc_event_descriptor)];
+        m_release_map_entries = m_reportBuffer->getMaxRBEntries();
+        m_release_map      = new bool[m_release_map_entries];
 
-        for(uint64_t i = 0; i<(m_reportBuffer->getPhysicalSize()/sizeof(librorc_event_descriptor)); i++)
+        for(uint64_t i = 0; i < m_release_map_entries; i++)
         { m_release_map[i] = false; }
         return 0;
     }
@@ -566,13 +568,16 @@ namespace LIBRARY_NAME
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
-    void
+    int
     event_stream::releaseEvent(uint64_t reference)
     {
+        if( reference >= m_release_map_entries )
+        { return -1; }
         pthread_mutex_lock(&m_releaseEnable);
             m_release_map[reference] = true;
             setBufferOffsets();
         pthread_mutex_unlock(&m_releaseEnable);
+        return 0;
     }
 
     uint64_t
