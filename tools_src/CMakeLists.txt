@@ -75,6 +75,11 @@ add_executable( buffer_alloc_test
 target_link_libraries( buffer_alloc_test rorc ${EXTRA_LIBS})
 #INSTALL(TARGETS buffer_alloc_test RUNTIME DESTINATION bin )
 
+add_executable( buffer_access_test
+  ${LIBRORC_SOURCE_DIR}/tools_src/buffer_handling/buffer_access_test.cpp)
+target_link_libraries( buffer_access_test rorc ${EXTRA_LIBS})
+#INSTALL(TARGETS buffer_access_test RUNTIME DESTINATION bin )
+
 # Build DMA monitor
 add_executable( dma_monitor ${LIBRORC_SOURCE_DIR}/tools_src/dma_monitor/dma_monitor.cpp)
 target_link_libraries( dma_monitor rorc ${EXTRA_LIBS})
