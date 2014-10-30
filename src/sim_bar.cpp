@@ -540,8 +540,9 @@ sim_bar::sockMonitor()
         uint64_t buffer_id = 0;
         if( getOffset(addr, &buffer_id, &offset) )
         {
-            std::cout << "ERROR: Could not find physical address "
-                 << addr << std::endl;
+            std::cout << "ERROR: Could not find physical address 0x"
+                 << std::hex << addr << std::dec << std::endl;
+            abort();
         }
         else
         {
@@ -549,7 +550,7 @@ sim_bar::sockMonitor()
 
             try
             {
-                buf = new buffer(m_parent_dev, buffer_id, 1);
+                buf = new buffer(m_parent_dev, buffer_id, 0);
             }
             catch(...)
             {
@@ -598,8 +599,9 @@ sim_bar::sockMonitor()
 
         if( getOffset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
         {
-            std::cout << "ERROR: Could not find physical address "
-                 << addr << std::endl;
+            std::cout << "ERROR: Could not find physical address 0x"
+                  << std::hex << addr << std::dec << std::endl;
+            abort();
         }
         else
         {
