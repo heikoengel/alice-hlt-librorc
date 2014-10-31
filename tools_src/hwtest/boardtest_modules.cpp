@@ -858,7 +858,6 @@ testDmaChannel
 
     char logdirectory[] = "/tmp";
     
-    librorc_event_callback event_callback = eventTestCallBack;
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
     librorc::high_level_event_stream *eventStream;
@@ -866,7 +865,7 @@ testDmaChannel
     { exit(-1); }
 
     configureDataSource(eventStream, opts);
-    eventStream->setEventCallback(event_callback);
+    eventStream->setEventCallback(eventTestCallBack);
 
     /** enable EBDM + RBDM + PKT */
     link->setPciReg(RORC_REG_DMA_CTRL,

@@ -41,6 +41,23 @@ namespace LIBRARY_NAME
     #define STAT_INTERVAL 0.00001
 #endif
 
+    typedef uint64_t (*event_callback)
+    (
+         void*,
+         librorc_event_descriptor,
+         const uint32_t*,
+         librorcChannelStatus*
+    );
+
+    typedef uint64_t (*status_callback)
+    (
+         timeval,
+         timeval,
+         librorcChannelStatus*,
+         uint64_t,
+         uint64_t
+    );
+
     class device;
     class bar;
     class event_stream;
@@ -89,7 +106,7 @@ namespace LIBRARY_NAME
              *        layout).
              */
             void
-            setEventCallback(librorc_event_callback event_callback)
+            setEventCallback(event_callback event_callback)
             { m_event_callback = event_callback; }
 
             /**
@@ -100,7 +117,7 @@ namespace LIBRARY_NAME
              *        layout).
              */
             void
-            setStatusCallback(librorc_status_callback status_callback)
+            setStatusCallback(status_callback status_callback)
             { m_status_callback = status_callback; }
 
             /**
@@ -119,8 +136,8 @@ namespace LIBRARY_NAME
             timeval      m_current_time;
 
         protected:
-            librorc_event_callback m_event_callback;
-            librorc_status_callback m_status_callback;
+            event_callback m_event_callback;
+            status_callback m_status_callback;
 
             uint64_t dwordOffset(librorc_event_descriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
