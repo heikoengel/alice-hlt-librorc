@@ -35,6 +35,12 @@
 
 namespace LIBRARY_NAME
 {
+#ifndef MODELSIM
+    #define STAT_INTERVAL 1.0
+#else
+    #define STAT_INTERVAL 0.00001
+#endif
+
     class device;
     class bar;
     class event_stream;

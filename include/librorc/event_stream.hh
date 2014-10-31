@@ -43,23 +43,11 @@
 #define LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL        6
 #define LIBRORC_EVENT_STREAM_ERROR_ES_TYPE_NOT_AVAILABLE  8
 
-#define MAX_EVENTS_PER_ITERATION 0x0
-
-/** Buffer Sizes (in Bytes) **/
-#ifndef MODELSIM
-    #define EBUFSIZE (((uint64_t)1) << 28)
-    #define STAT_INTERVAL 1.0
-#else
-    #define EBUFSIZE (((uint64_t)1) << 19)
-    #define STAT_INTERVAL 0.00001
-#endif
-
 /** Shared mem key offset **/
 #define SHM_KEY_OFFSET 2048
 /** Shared mem device offset **/
 #define SHM_DEV_OFFSET 32
 
-#define EVENT_INDEX_UNDEFINED 0xffffffffffffffff
 
 typedef struct
 {
@@ -71,7 +59,6 @@ typedef struct
     uint64_t shadow_index;
     uint64_t set_offset_count;
     uint64_t error_count;
-//    uint64_t last_id;
     uint32_t channel;
     uint32_t device;
 }librorcChannelStatus;
@@ -124,8 +111,8 @@ class fastclusterfinder;
 
              event_stream
              (
-                int32_t       deviceId,
-                int32_t       channelId,
+                uint32_t      deviceId,
+                uint32_t      channelId,
                 LibrorcEsType esType
              );
 
@@ -134,7 +121,7 @@ class fastclusterfinder;
              (
                 device          *dev,
                 bar             *bar,
-                int32_t          channelId,
+                uint32_t         channelId,
                 LibrorcEsType    esType
              );
 #endif
@@ -245,8 +232,8 @@ class fastclusterfinder;
             void deinitializeDmaBuffers();
 
         protected:
-            int32_t          m_deviceId;
-            int32_t          m_channelId;
+            uint32_t         m_deviceId;
+            uint32_t         m_channelId;
             uint32_t         m_fwtype;
             uint32_t         m_linktype;
             LibrorcEsType    m_esType;

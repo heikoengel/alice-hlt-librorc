@@ -52,10 +52,12 @@
 namespace LIBRARY_NAME
 {
 
+#define EVENT_INDEX_UNDEFINED 0xffffffffffffffff
+
     event_stream::event_stream
     (
-        int32_t       deviceId,
-        int32_t       channelId,
+        uint32_t       deviceId,
+        uint32_t       channelId,
         LibrorcEsType esType
     )
     {
@@ -73,7 +75,7 @@ namespace LIBRARY_NAME
     (
         device *dev,
         bar    *bar,
-        int32_t          channelId,
+        uint32_t          channelId,
         LibrorcEsType    esType
     )
     {
@@ -136,7 +138,7 @@ namespace LIBRARY_NAME
 
         /** check if selected channel is available in current FW */
         m_sm = new sysmon(m_bar1);
-        if( (uint32_t)m_channelId >= m_sm->numberOfChannels() )
+        if( m_channelId >= m_sm->numberOfChannels() )
         {
             throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL;
         }
@@ -383,7 +385,7 @@ namespace LIBRARY_NAME
 
         m_channel_status->index        = EVENT_INDEX_UNDEFINED;
         m_channel_status->shadow_index = 0;
-        m_channel_status->channel      = (unsigned int)m_channelId;
+        m_channel_status->channel      = m_channelId;
         m_channel_status->device       = m_deviceId;
     }
 

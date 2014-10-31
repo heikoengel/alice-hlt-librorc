@@ -39,6 +39,7 @@ using namespace std;
 
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
+#define EBUFSIZE (((uint64_t)1) << 28) // 256 MB
 
 void
 alloc_channel
@@ -54,8 +55,9 @@ int main( int argc, char *argv[])
 
     if(argc == 2)
     {
+        // argv[1] is size in MB
         sscanf(argv[1], "%lu", &DefaultSize);
-        DefaultSize = DefaultSize * 1024 * 1024;
+        DefaultSize <<= 20; //convert MB to byte
     }
 
     for(uint16_t DeviceId=0; DeviceId<UINT16_MAX; DeviceId++)

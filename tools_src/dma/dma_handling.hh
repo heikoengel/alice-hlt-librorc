@@ -79,6 +79,13 @@ sigaction(SIGINT, &sigIntHandler, NULL);
 /** maximum channel number allowed **/
 #define MAX_CHANNEL 11
 
+/** Buffer Sizes (in Bytes) **/
+#ifndef MODELSIM
+    #define EBUFSIZE (((uint64_t)1) << 28)
+#else
+    #define EBUFSIZE (((uint64_t)1) << 19)
+#endif
+
 /** Struct to store command line parameters */
 typedef struct
 {
