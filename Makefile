@@ -1,15 +1,22 @@
 TARGETS=release debug sim_release sim_debug
 
+NPROCS=1
+OS=$(shell uname -s)
+
+ifeq ($(OS),Linux)
+  NPROCS=$(shell grep -c ^processor /proc/cpuinfo)
+endif
+
 all: $(TARGETS)
 
 $(TARGETS):
-	$(MAKE) -j16 -C build/$@
+	$(MAKE) -j$(NPROCS) -C build/$@
 
 install:
 	$(MAKE) -C build/release install
 
 rpm:
-	$(MAKE) -j16 -C build/release package
+	$(MAKE) -j$(NPROCS) -C build/release package
 	cp build/release/*.rpm .
 
 doc:
