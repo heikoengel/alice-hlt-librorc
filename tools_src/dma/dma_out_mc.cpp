@@ -107,20 +107,20 @@ int main(int argc, char *argv[])
     uint64_t last_bytes_received[MAX_CHANNELS];
     uint64_t last_events_received[MAX_CHANNELS];
 
-    librorc::event_stream *eventStream[MAX_CHANNELS];
+    librorc::high_level_event_stream *hlEventStream[MAX_CHANNELS];
     for(i=0; i<nChannels; i++ )
     {
         cout << "Prepare Event Stream " << i << endl;
-        if( !(eventStream[i] = prepareEventStream(dev, bar, opts[i])) )
+        if( !(hlEventStream[i] = prepareEventStream(dev, bar, opts[i])) )
         { exit(-1); }
 
-        eventStream[i]->setEventCallback(event_callback);
+        hlEventStream[i]->setEventCallback(event_callback);
 
         last_bytes_received[i] = 0;
         last_events_received[i] = 0;
     }
 
-    eventStream[0]->printDeviceStatus();
+    hlEventStream[0]->printDeviceStatus();
 
     /** make clear what will be checked*/
     int32_t sanity_check_mask = CHK_SIZES;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
     librorc::event_generator generators[MAX_CHANNELS];
     for(i=0; i<nChannels; i++)
-    { generators[i] = librorc::event_generator(eventStream[i]); }
+    { generators[i] = librorc::event_generator(hlEventStream[i]); }
 
     librorc::event_sanity_checker checkers[MAX_CHANNELS];
     for(i=0; i<nChannels; i++)
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
             (opts[i].useRefFile) /** is DDL reference file enabled? */
             ?   librorc::event_sanity_checker
             (
-             eventStream[i]->m_eventBuffer,
+             hlEventStream[i]->m_eventBuffer,
              opts[i].channelId,
              sanity_check_mask,
              logdirectory,
@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
             )
             :   librorc::event_sanity_checker
             (
-             eventStream[i]->m_eventBuffer,
+             hlEventStream[i]->m_eventBuffer,
              opts[i].channelId,
              sanity_check_mask,
              logdirectory
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 
     /** Capture starting time */
     timeval start_time;
-    eventStream[0]->m_bar1->gettime(&start_time, 0);
+    hlEventStream[0]->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval current_time = start_time;
 
@@ -186,11 +186,11 @@ int main(int argc, char *argv[])
                 { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", nevents);}
             }
 
-            result = eventStream[i]->handleChannelData( (void*)&(checkers[i]) );
+            result = hlEventStream[i]->handleChannelData( (void*)&(checkers[i]) );
             refill[i] = (result!=0) ? 1 : 0;
         }
 
-        eventStream[0]->m_bar1->gettime(&current_time, 0);
+        hlEventStream[0]->m_bar1->gettime(&current_time, 0);
 
         if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
         {
@@ -201,26 +201,26 @@ int main(int argc, char *argv[])
                 (
                  last_time,
                  current_time,
-                 eventStream[i]->m_channel_status,
+                 hlEventStream[i]->m_channel_status,
                  last_events_received[i],
                  last_bytes_received[i]
                 );
 
-                last_bytes_received[i]  = eventStream[i]->m_channel_status->bytes_received;
-                last_events_received[i] = eventStream[i]->m_channel_status->n_events;
+                last_bytes_received[i]  = hlEventStream[i]->m_channel_status->bytes_received;
+                last_events_received[i] = hlEventStream[i]->m_channel_status->n_events;
             }
             last_time = current_time;
         }
     }
 
     timeval end_time;
-    eventStream[0]->m_bar1->gettime(&end_time, 0);
+    hlEventStream[0]->m_bar1->gettime(&end_time, 0);
 
     for ( i=0; i<nChannels; i++ )
     {
         printFinalStatusLine
         (
-            eventStream[i]->m_channel_status,
+            hlEventStream[i]->m_channel_status,
             opts[i],
             start_time,
             end_time
@@ -230,19 +230,19 @@ int main(int argc, char *argv[])
         // wait for pending transfers to complete (dma_busy->0)
 
         // disable EBDM Engine
-        eventStream[i]->m_channel->setEbdmEnable(0);
+        hlEventStream[i]->m_channel->setEbdmEnable(0);
 
         // disable RBDM
-        eventStream[i]->m_channel->setRbdmEnable(0);
+        hlEventStream[i]->m_channel->setRbdmEnable(0);
 
         // reset DFIFO, disable DMA PKT
-        eventStream[i]->m_channel->setDMAConfig(0X00000002);
+        hlEventStream[i]->m_channel->setDMAConfig(0X00000002);
 
         // clear reportbuffer
-        memset(eventStream[i]->m_reportBuffer->getMem(), 0, eventStream[i]->m_reportBuffer->getMappingSize());
+        memset(hlEventStream[i]->m_reportBuffer->getMem(), 0, hlEventStream[i]->m_reportBuffer->getMappingSize());
 
         /** Cleanup */
-        delete eventStream[i];
+        delete hlEventStream[i];
     }
 
     delete sm;

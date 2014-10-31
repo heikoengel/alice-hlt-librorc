@@ -59,14 +59,15 @@ parameters:                                                           \n\
         --file [filename]       DDL reference file                    \n\
         --help                  Show this text                        \n"
 
-#define DMA_ABORT_HANDLER librorc::event_stream *eventStream = NULL; \
+#define DMA_ABORT_HANDLER                                            \
+librorc::high_level_event_stream *hlEventStream = NULL;              \
 void abort_handler( int s )                                          \
 {                                                                    \
     printf("Caught signal %d\n", s);                                 \
-    if( eventStream->m_done==true )                                  \
+    if( hlEventStream->m_done==true )                                \
     { exit(-1); }                                                    \
     else                                                             \
-    { eventStream->m_done = true; }                                  \
+    { hlEventStream->m_done = true; }                                \
 }
 
 #define DMA_ABORT_HANDLER_REGISTER struct sigaction sigIntHandler;   \
@@ -99,9 +100,9 @@ bool checkDeviceID(int32_t deviceID, char *argv);
 bool checkChannelID(int32_t channelID, char *argv);
 bool checkEventSize(uint32_t eventSize, char *argv);
 
-librorc::event_stream *prepareEventStream(DMAOptions opts);
+librorc::high_level_event_stream *prepareEventStream(DMAOptions opts);
 #ifdef LIBRORC_INTERNAL
-librorc::event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
+librorc::high_level_event_stream *prepareEventStream(librorc::device *dev, librorc::bar *bar, DMAOptions opts);
 #endif
 
 uint64_t
@@ -136,14 +137,14 @@ printFinalStatusLine
 void
 configureDataSource
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 );
 
 void
 unconfigureDataSource
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 );
 #endif /** DMA_HANDLING_H */

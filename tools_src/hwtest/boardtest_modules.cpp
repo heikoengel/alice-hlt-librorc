@@ -861,7 +861,7 @@ testDmaChannel
     librorc_event_callback event_callback = eventTestCallBack;
     librorc::link *link = new librorc::link(bar, opts.channelId);
 
-    librorc::event_stream *eventStream;
+    librorc::high_level_event_stream *eventStream;
     if( !(eventStream = prepareEventStream(dev, bar, opts)) )
     { exit(-1); }
 

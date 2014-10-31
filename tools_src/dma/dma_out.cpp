@@ -97,16 +97,16 @@ int main( int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    eventStream = prepareEventStream(opts);
-    if( !eventStream )
+    hlEventStream = prepareEventStream(opts);
+    if( !hlEventStream )
     { exit(-1); }
 
-    configureDataSource(eventStream, opts);
+    configureDataSource(hlEventStream, opts);
 
-    eventStream->printDeviceStatus();
+    hlEventStream->printDeviceStatus();
 
-    //eventStream->setEventCallback(eventCallBack);
-    eventStream->setEventCallback(NULL);
+    //hlEventStream->setEventCallback(eventCallBack);
+    hlEventStream->setEventCallback(NULL);
 
     int32_t sanity_check_mask = CHK_SIZES|CHK_SOE;
     if(opts.useRefFile)
@@ -115,14 +115,14 @@ int main( int argc, char *argv[])
     { sanity_check_mask |= CHK_PATTERN | CHK_ID; }
 
 
-    //librorc::event_generator eventGen(eventStream);
+    //librorc::event_generator eventGen(hlEventStream);
 
     librorc::event_sanity_checker checker =
         (opts.useRefFile)
         ?
             librorc::event_sanity_checker
             (
-                eventStream->m_eventBuffer,
+                hlEventStream->m_eventBuffer,
                 opts.channelId,
                 sanity_check_mask,
                 logdirectory,
@@ -131,7 +131,7 @@ int main( int argc, char *argv[])
         :
             librorc::event_sanity_checker
             (
-                eventStream->m_eventBuffer,
+                hlEventStream->m_eventBuffer,
                 opts.channelId,
                 sanity_check_mask,
                 logdirectory
@@ -139,12 +139,12 @@ int main( int argc, char *argv[])
         ;
 
 //    uint64_t number_of_events = eventGen.fillEventBuffer(opts.eventSize);
-//    uint64_t result = eventStream->eventLoop((void*)&checker);
+//    uint64_t result = hlEventStream->eventLoop((void*)&checker);
 
     // fill EB
-    const uint32_t EVENT_SIZE = eventStream->m_eventBuffer->size();//0x404;
+    const uint32_t EVENT_SIZE = hlEventStream->m_eventBuffer->size();//0x404;
     const uint64_t event_id = 0;
-    uint32_t *eb = eventStream->m_eventBuffer->getMem();
+    uint32_t *eb = hlEventStream->m_eventBuffer->getMem();
     eb[0] = 0xffffffff;
     eb[1] = event_id & 0xfff;
     eb[2] = ((event_id>>12) & 0x00ffffff);
@@ -158,7 +158,7 @@ int main( int argc, char *argv[])
 
     /** capture starting time */
     timeval start_time;
-    eventStream->m_bar1->gettime(&start_time, 0);
+    hlEventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval cur_time  = start_time;
 
@@ -173,7 +173,7 @@ int main( int argc, char *argv[])
     uint64_t                  reference            = 0;
 
     /** wait for RB entry */
-    while(!eventStream->m_done)
+    while(!hlEventStream->m_done)
     {
         if( opts.datasource==ES_SRC_DMA)
         {
@@ -188,43 +188,43 @@ int main( int argc, char *argv[])
             //if( pending < 256 )
             {
                 std::vector<librorc_sg_entry> list;
-                if( !eventStream->m_eventBuffer->composeSglistFromBufferSegment(0, eventSize, &list) )
+                if( !hlEventStream->m_eventBuffer->composeSglistFromBufferSegment(0, eventSize, &list) )
                 { cout << "Failed to get event sglist" << endl; }
-                eventStream->m_channel->announceEvent(list);
+                hlEventStream->m_channel->announceEvent(list);
                 waitForDone = true;
                 pending++;
             }
             else
             {
-                if( eventStream->getNextEvent(&report, &event, &reference) )
+                if( hlEventStream->getNextEvent(&report, &event, &reference) )
                 {
                     if( (report->reported_event_size>>30)&1 || (report->calc_event_size>>30) )
                     {
                         printf("ERROR: T:%d, S:%d\n", (report->reported_event_size>>30)&1, (report->calc_event_size>>30) );
                     }
                     waitForDone=false;
-                    eventStream->m_channel_status->bytes_received += (report->calc_event_size << 2);
-                    eventStream->m_channel_status->n_events++;
-                    eventStream->releaseEvent(reference);
+                    hlEventStream->m_channel_status->bytes_received += (report->calc_event_size << 2);
+                    hlEventStream->m_channel_status->n_events++;
+                    hlEventStream->releaseEvent(reference);
                     pending--;
                 }
                 //else
                 //{ usleep(100); }
             }
 
-            eventStream->m_bar1->gettime(&cur_time, 0);
+            hlEventStream->m_bar1->gettime(&cur_time, 0);
 
             // print status line each second
             if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
             {
                 /*printf("CH%d: Events OUT: %10ld, Size: %8.3f GB",
-                        opts.channelId, eventStream->m_channel_status->n_events,
-                        (double)eventStream->m_channel_status->bytes_received/(double)(1<<30));*/
+                        opts.channelId, hlEventStream->m_channel_status->n_events,
+                        (double)hlEventStream->m_channel_status->bytes_received/(double)(1<<30));*/
                 double throughput, rate;
 
-                if(eventStream->m_channel_status->bytes_received-last_bytes_received)
+                if(hlEventStream->m_channel_status->bytes_received-last_bytes_received)
                 {
-                    throughput = (double)(eventStream->m_channel_status->bytes_received-last_bytes_received)/
+                    throughput = (double)(hlEventStream->m_channel_status->bytes_received-last_bytes_received)/
                             gettimeofdayDiff(last_time, cur_time);
                     //printf(" Rate: %9.3f MB/s", rate);
                 }
@@ -234,12 +234,12 @@ int main( int argc, char *argv[])
                     //printf(" Rate: -");
                 }
 
-                if(eventStream->m_channel_status->n_events - last_events_received)
+                if(hlEventStream->m_channel_status->n_events - last_events_received)
                 {
-                    rate = (double)(eventStream->m_channel_status->n_events-last_events_received)/
+                    rate = (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
                             gettimeofdayDiff(last_time, cur_time);
                     /*printf(" (%.3f kHz)",
-                            (double)(eventStream->m_channel_status->n_events-last_events_received)/
+                            (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
                             gettimeofdayDiff(last_time, cur_time)/1000.0);*/
                 }
                 else
@@ -248,10 +248,10 @@ int main( int argc, char *argv[])
                     rate = 0;
                 }
 
-                //printf(" Errors: %ld\n", eventStream->m_channel_status->error_count);
+                //printf(" Errors: %ld\n", hlEventStream->m_channel_status->error_count);
                 last_time = cur_time;
-                last_bytes_received  = eventStream->m_channel_status->bytes_received;
-                last_events_received = eventStream->m_channel_status->n_events;
+                last_bytes_received  = hlEventStream->m_channel_status->bytes_received;
+                last_events_received = hlEventStream->m_channel_status->n_events;
                 number_of_samples++;
                 number_of_samples &= 0x3;
 
@@ -260,7 +260,7 @@ int main( int argc, char *argv[])
                 /*if(number_of_samples==0x3)
                 {
                     eventSize = nextEventSize(eventSize);
-                    if( eventSize >= eventStream->m_eventBuffer->size() )
+                    if( eventSize >= hlEventStream->m_eventBuffer->size() )
                     { eventSize = 0x100; }
                 }*/
 
@@ -269,19 +269,19 @@ int main( int argc, char *argv[])
         else
         {
             /** Data is generated from PG */
-            eventStream->m_bar1->gettime(&cur_time, 0);
+            hlEventStream->m_bar1->gettime(&cur_time, 0);
 
             // print status line each second
             if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
             {
-                eventStream->m_channel_status->n_events = eventStream->m_link->ddlReg(RORC_REG_DDL_EC);
+                hlEventStream->m_channel_status->n_events = hlEventStream->m_link->ddlReg(RORC_REG_DDL_EC);
                 printf("CH%d: Events OUT via PG: %10ld",
-                        opts.channelId, eventStream->m_channel_status->n_events);
+                        opts.channelId, hlEventStream->m_channel_status->n_events);
 
-                if(eventStream->m_channel_status->n_events - last_events_received)
+                if(hlEventStream->m_channel_status->n_events - last_events_received)
                 {
                     printf(" EventRate: %.3f kHz",
-                            (double)(eventStream->m_channel_status->n_events-last_events_received)/
+                            (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
                             gettimeofdayDiff(last_time, cur_time)/1000.0);
                 }
                 else
@@ -289,26 +289,26 @@ int main( int argc, char *argv[])
 
                 printf("\n");
                 last_time = cur_time;
-                last_events_received = eventStream->m_channel_status->n_events;
+                last_events_received = hlEventStream->m_channel_status->n_events;
             }
         }
     }
 
     // EOR
     timeval end_time;
-    eventStream->m_bar1->gettime(&end_time, 0);
+    hlEventStream->m_bar1->gettime(&end_time, 0);
 
-    printFinalStatusLine(eventStream->m_channel_status, opts, start_time, end_time);
+    printFinalStatusLine(hlEventStream->m_channel_status, opts, start_time, end_time);
 
     // disable SIU
     // TODO: this should happen after stopping the data source,
-    // which is currently in eventStream::~event_stream()
-    unconfigureDataSource(eventStream, opts);
+    // which is currently in hlEventStream::~high_level_event_stream()
+    unconfigureDataSource(hlEventStream, opts);
 
     // clear reportbuffer
-    //memset(eventStream->m_reportBuffer->getMem(), 0, eventStream->m_reportBuffer->getMappingSize());
+    //memset(hlEventStream->m_reportBuffer->getMem(), 0, hlEventStream->m_reportBuffer->getMappingSize());
 
-    delete eventStream;
+    delete hlEventStream;
 
     return 1;
 }

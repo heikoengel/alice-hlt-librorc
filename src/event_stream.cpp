@@ -111,9 +111,6 @@ namespace LIBRARY_NAME
     void
     event_stream::initMembers()
     {
-        m_done             = false;
-        m_event_callback   = NULL;
-        m_status_callback  = NULL;
         m_raw_event_buffer = NULL;
         m_eventBuffer      = NULL;
         m_reportBuffer     = NULL;
@@ -269,9 +266,6 @@ namespace LIBRARY_NAME
         }
 
         m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-        m_done             = false;
-        m_event_callback   = NULL;
-        m_status_callback  = NULL;
         m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
         m_max_rb_entries   = m_reportBuffer->getMaxRBEntries();
         m_release_map      = new bool[m_max_rb_entries];
@@ -392,95 +386,6 @@ namespace LIBRARY_NAME
     }
 
 
-
-    void
-    event_stream::printDeviceStatus()
-    {
-        printf("EventBuffer size: 0x%lx bytes\n", m_eventBuffer->getPhysicalSize());
-        printf("ReportBuffer size: 0x%lx bytes\n", m_reportBuffer->getPhysicalSize());
-        printf("Bus %x, Slot %x, Func %x\n", m_dev->getBus(), m_dev->getSlot(), m_dev->getFunc() );
-
-        try
-        {
-            std::cout << "CRORC FPGA" << std::endl
-                 << "Firmware Rev. : " << std::hex << std::setw(8)
-                 << m_sm->FwRevision()  << std::dec << std::endl
-                 << "Firmware Date : " << std::hex << std::setw(8)
-                 << m_sm->FwBuildDate() << std::dec << std::endl;
-        }
-        catch(...)
-        { std::cout << "Firmware Rev. and Date not available!" << std::endl; }
-    }
-
-
-
-    uint64_t
-    event_stream::eventLoop(void *user_data)
-    {
-        m_last_bytes_received  = 0;
-        m_last_events_received = 0;
-
-        /** Capture starting time */
-        m_bar1->gettime(&m_start_time, 0);
-        m_last_time     = m_start_time;
-        m_current_time  = m_start_time;
-
-        uint64_t result = 0;
-        while( !m_done )
-        {
-            m_bar1->gettime(&m_current_time, 0);
-
-            result = handleChannelData(user_data);
-
-            if(gettimeofdayDiff(m_last_time, m_current_time)>STAT_INTERVAL)
-            {
-                m_status_callback
-                ? m_status_callback
-                  (
-                      m_last_time,
-                      m_current_time,
-                      m_channel_status,
-                      m_last_events_received,
-                      m_last_bytes_received
-                  ) : 0;
-
-                m_last_bytes_received  = m_channel_status->bytes_received;
-                m_last_events_received = m_channel_status->n_events;
-                m_last_time = m_current_time;
-            }
-
-            if(result == 0)
-            { usleep(200); } /** no events available */
-
-        }
-
-        m_bar1->gettime(&m_end_time, 0);
-
-        return result;
-    }
-
-
-
-    uint64_t
-    event_stream::dwordOffset(librorc_event_descriptor report_entry)
-    {
-        return(report_entry.offset / 4);
-    }
-
-
-
-    uint64_t
-    event_stream::getEventIdFromCdh(uint64_t offset)
-    {
-        // TODO: no event/offset size check here - prone to segmentation faults!
-        uint64_t cur_event_id = (uint32_t) * (m_raw_event_buffer + offset + 2) & 0x00ffffff;
-        cur_event_id <<= 12;
-        cur_event_id |= (uint32_t) * (m_raw_event_buffer + offset + 1) & 0x00000fff;
-        return cur_event_id;
-    }
-
-
-
     bool
     event_stream::getNextEvent
     (
@@ -528,7 +433,7 @@ namespace LIBRARY_NAME
 
 
     void
-    event_stream::setBufferOffsets()
+    event_stream::updateBufferOffsets()
     {
         if(m_release_map[m_channel_status->shadow_index] != true)
         { return; }
@@ -574,97 +479,11 @@ namespace LIBRARY_NAME
         { return -1; }
         pthread_mutex_lock(&m_releaseEnable);
             m_release_map[reference] = true;
-            setBufferOffsets();
+            updateBufferOffsets();
         pthread_mutex_unlock(&m_releaseEnable);
         return 0;
     }
 
-    uint64_t
-    event_stream::handleEvent
-    (
-        uint64_t                  events_processed,
-        void                     *user_data,
-        librorc_event_descriptor *report,
-        const uint32_t           *event,
-        uint64_t                 *events_per_iteration
-    )
-    {
-
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "New RB Entry: offset=0x%lx, calcSize=0x%x, repSize=0x%x\n",
-                report->offset, report->calc_event_size, report->reported_event_size);
-
-        events_processed++;
-
-        if( m_event_callback != NULL )
-        { m_event_callback(user_data, *report, event, m_channel_status); }
-
-        m_channel_status->bytes_received += (m_reports[m_channel_status->index].calc_event_size << 2);
-        m_channel_status->n_events++;
-        *events_per_iteration = *events_per_iteration + 1;
-        DEBUG_PRINTF
-        (
-            PDADEBUG_CONTROL_FLOW,
-            "CH %d - Event, %d DWs\n",
-            m_channel_status->channel,
-            report->calc_event_size
-        );
-
-        return events_processed;
-    }
-
-    uint64_t
-    event_stream::handleChannelData(void *user_data)
-    {
-        uint64_t                  events_processed     = 0;
-        librorc_event_descriptor *report               = NULL;
-        const uint32_t           *event                = 0;
-        uint64_t                  events_per_iteration = 0;
-        uint64_t                  reference            = 0;
-        uint64_t                  init_reference       = 0;
-
-        /** New event(s) received */
-        if( getNextEvent(&report, &event, &init_reference) )
-        {
-            events_processed =
-                handleEvent
-                (
-                    events_processed,
-                    user_data,
-                    report,
-                    event,
-                    &events_per_iteration
-                );
-
-            /** handle all following entries */
-            while( getNextEvent(&report, &event, &reference) )
-            {
-                events_processed =
-                    handleEvent
-                    (
-                        events_processed,
-                        user_data,
-                        report,
-                        event,
-                        &events_per_iteration
-                    );
-
-                releaseEvent(reference);
-            }
-
-            releaseEvent(init_reference);
-
-            if(events_per_iteration > m_channel_status->max_epi)
-            { m_channel_status->max_epi = events_per_iteration; }
-
-            if(events_per_iteration < m_channel_status->min_epi)
-            { m_channel_status->min_epi = events_per_iteration; }
-
-            events_per_iteration = 0;
-            m_channel_status->set_offset_count++;
-        }
-
-        return events_processed;
-    }
 
     const uint32_t*
     event_stream::getRawEvent(librorc_event_descriptor report)

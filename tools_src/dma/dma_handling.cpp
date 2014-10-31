@@ -219,16 +219,16 @@ bool checkEventSize(uint32_t eventSize, char *argv)
 
 
 
-librorc::event_stream *
+librorc::high_level_event_stream *
 prepareEventStream
 (
     DMAOptions opts
 )
 {
-    librorc::event_stream *eventStream = NULL;
+    librorc::high_level_event_stream *hlEventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(opts.deviceId, opts.channelId, opts.esType); }
+    { hlEventStream = new librorc::high_level_event_stream(opts.deviceId, opts.channelId, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
@@ -238,22 +238,22 @@ prepareEventStream
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     {
         /** override for max read request size to 128B for Supermicro */
-        if( eventStream->overridePciePacketSize(128) )
+        if( hlEventStream->overridePciePacketSize(128) )
         {
             cout << "Failed to override PCIe packet size" << endl;
             return NULL;
         }
     }
 
-    if( eventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
+    if( hlEventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
     { return NULL; }
 
-    return(eventStream);
+    return(hlEventStream);
 }
 
 
 
-librorc::event_stream *
+librorc::high_level_event_stream *
 prepareEventStream
 (
     librorc::device *dev,
@@ -261,10 +261,10 @@ prepareEventStream
     DMAOptions opts
 )
 {
-    librorc::event_stream *eventStream = NULL;
+    librorc::high_level_event_stream *hlEventStream = NULL;
 
     try
-    { eventStream = new librorc::event_stream(dev, bar, opts.channelId, opts.esType); }
+    { hlEventStream = new librorc::high_level_event_stream(dev, bar, opts.channelId, opts.esType); }
     catch( int error )
     {
         cout << "ERROR: failed to initialize event stream." << endl;
@@ -274,17 +274,17 @@ prepareEventStream
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     {
         /** override for max read request size to 128B for Supermicro */
-        if( eventStream->overridePciePacketSize(128) )
+        if( hlEventStream->overridePciePacketSize(128) )
         {
             cout << "Failed to override PCIe packet size" << endl;
             return NULL;
         }
     }
 
-    if( eventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
+    if( hlEventStream->initializeDma(2*opts.channelId, EBUFSIZE) )
     { return NULL; }
 
-    return(eventStream);
+    return(hlEventStream);
 }
 
 
@@ -399,12 +399,12 @@ printFinalStatusLine
 void
 configurePatternGenerator
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
     )
 {
     librorc::patterngenerator *pg =
-        eventStream->getPatternGenerator();
+        hlEventStream->getPatternGenerator();
     if( pg )
     {
         pg->configureMode(
@@ -430,12 +430,12 @@ configurePatternGenerator
 void
 unconfigurePatternGenerator
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
     )
 {
     librorc::patterngenerator *pg =
-        eventStream->getPatternGenerator();
+        hlEventStream->getPatternGenerator();
     if( pg )
     {
         pg->disable();
@@ -453,12 +453,12 @@ unconfigurePatternGenerator
 void
 configureDiu
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::diu *diu =
-        eventStream->getDiu();
+        hlEventStream->getDiu();
     if( diu )
     {
         diu->useAsDataSource();
@@ -491,15 +491,15 @@ configureDiu
 void
 unconfigureDiu
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
     )
 {
     librorc::diu *diu =
-        eventStream->getDiu();
+        hlEventStream->getDiu();
     if( diu )
     {
-        if(diu->linkUp())
+        if(opts.datasource==ES_SRC_SIU && diu->linkUp())
         { diu->sendFeeEndOfBlockTransferCmd(); }
         diu->setEnable(0);
     }
@@ -516,12 +516,12 @@ unconfigureDiu
 void
 configureRawReadout
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::ddl *rawddl =
-        eventStream->getRawReadout();
+        hlEventStream->getRawReadout();
     if( rawddl )
     {
         rawddl->setEnable(1);
@@ -539,12 +539,12 @@ configureRawReadout
 void
 unconfigureRawReadout
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::ddl *rawddl =
-        eventStream->getRawReadout();
+        hlEventStream->getRawReadout();
     if( rawddl )
     {
         rawddl->setEnable(0);
@@ -563,12 +563,12 @@ unconfigureRawReadout
 void
 configureSiu
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::siu *siu =
-        eventStream->getSiu();
+        hlEventStream->getSiu();
     if( siu )
     {
         siu->setReset(0);
@@ -587,12 +587,12 @@ configureSiu
 void
 unconfigureSiu
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::siu *siu =
-        eventStream->getSiu();
+        hlEventStream->getSiu();
     if( siu )
     {
         /** TODO: send EOBTR? */
@@ -609,17 +609,17 @@ unconfigureSiu
 
 
 /**
- * configure FCF if available for current eventStream
+ * configure FCF if available for current hlEventStream
  **/
 void
 configureFcf
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::fastclusterfinder *fcf =
-        eventStream->getFastClusterFinder();
+        hlEventStream->getFastClusterFinder();
     if( fcf )
     {
         fcf->setState(1, 0); // reset, not enabled
@@ -646,12 +646,12 @@ configureFcf
 void
 unconfigureFcf
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
     librorc::fastclusterfinder *fcf =
-        eventStream->getFastClusterFinder();
+        hlEventStream->getFastClusterFinder();
     if( fcf )
     {
         fcf->setState(1, 0); // reset, not enabled
@@ -663,44 +663,44 @@ unconfigureFcf
 
 void
 configureDataSource
-(
-    librorc::event_stream *eventStream,
+    (
+        librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
-    eventStream->m_link->waitForGTXDomain();
-    eventStream->m_link->setFlowControlEnable(1);
-    eventStream->m_link->setChannelActive(1);
+    hlEventStream->m_link->waitForGTXDomain();
+    hlEventStream->m_link->setFlowControlEnable(1);
+    hlEventStream->m_link->setChannelActive(1);
 
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
     {
-        configureSiu(eventStream, opts);
+        configureSiu(hlEventStream, opts);
     }
 
     /** configure FCF if available */
-    configureFcf(eventStream, opts);
+    configureFcf(hlEventStream, opts);
 
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
-        { configurePatternGenerator(eventStream, opts); }
+        { configurePatternGenerator(hlEventStream, opts); }
         break;
 
         case ES_SRC_SIU:
         case ES_SRC_DIU:
-        { configureDiu(eventStream, opts); }
+        { configureDiu(hlEventStream, opts); }
         break;
 
         case ES_SRC_DMA:
-        { eventStream->m_link->setDefaultDataSource(); }
+        { hlEventStream->m_link->setDefaultDataSource(); }
         break;
 
         case ES_SRC_RAW:
-        { configureRawReadout(eventStream, opts); }
+        { configureRawReadout(hlEventStream, opts); }
         break;
 
         case ES_SRC_DDR3:
-        { eventStream->m_link->setDataSourceDdr3DataReplay(); }
+        { hlEventStream->m_link->setDataSourceDdr3DataReplay(); }
         break;
 
         default: // "none" or invalid or unspecified
@@ -711,29 +711,29 @@ configureDataSource
 void
 unconfigureDataSource
 (
-    librorc::event_stream *eventStream,
+    librorc::high_level_event_stream *hlEventStream,
     DMAOptions opts
 )
 {
-    eventStream->m_link->setFlowControlEnable(0);
-    eventStream->m_link->setChannelActive(0);
+    hlEventStream->m_link->setFlowControlEnable(0);
+    hlEventStream->m_link->setChannelActive(0);
 
-    unconfigureFcf(eventStream, opts);
+    unconfigureFcf(hlEventStream, opts);
 
     switch(opts.datasource)
     {
         case ES_SRC_HWPG:
-        { unconfigurePatternGenerator(eventStream, opts); }
+        { unconfigurePatternGenerator(hlEventStream, opts); }
         break;
 
         case ES_SRC_DIU:
         case ES_SRC_SIU:
-        { unconfigureDiu(eventStream, opts); }
+        { unconfigureDiu(hlEventStream, opts); }
         break;
 
         case ES_SRC_RAW:
             {
-                unconfigureRawReadout(eventStream, opts);
+                unconfigureRawReadout(hlEventStream, opts);
             }
             break;
 
@@ -742,6 +742,6 @@ unconfigureDataSource
     }    
     
     if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
-    { unconfigureSiu(eventStream, opts); }
+    { unconfigureSiu(hlEventStream, opts); }
 
 }

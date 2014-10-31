@@ -11,6 +11,7 @@ set( LIBRORC_LIBRARY_SOURCE
 "${LIBRORC_SOURCE_DIR}/src/microcontroller.cpp"
 "${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
 "${LIBRORC_SOURCE_DIR}/src/event_stream.cpp"
+"${LIBRORC_SOURCE_DIR}/src/high_level_event_stream.cpp"
 "${LIBRORC_SOURCE_DIR}/src/event_sanity_checker.cpp"
 "${LIBRORC_SOURCE_DIR}/src/patterngenerator.cpp"
 "${LIBRORC_SOURCE_DIR}/src/fastclusterfinder.cpp"

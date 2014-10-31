@@ -140,7 +140,6 @@ class fastclusterfinder;
 #endif
 
             ~event_stream();
-            void initMembers();
 
             /**
              * Check if selected channel is available in current
@@ -149,43 +148,6 @@ class fastclusterfinder;
              * throws exception if check fails.
              **/
             void checkLinkTypeCompatibility();
-
-            /**
-             * Print the current device status.
-             */
-            void printDeviceStatus();
-
-            /**
-             * High level interface to read out an event stream. Calls an event_callback
-             * for each new event in the buffer.  setEventCallback must be called before
-             * this one.
-             * @param [in] user_data
-             *        Free form pointer to some userdata which needs to be used inside the
-             *        callback.
-             */
-            uint64_t eventLoop(void *user_data);
-
-            /**
-             * Set event callback which is called by eventLoop(void *user_data). This callback
-             * is basically called every time when a new event arrives in the event buffer.
-             * @param [in] event_callback
-             *        Callback function pointer (see event_stream.hh for the function pointer
-             *        layout).
-             */
-            void
-            setEventCallback(librorc_event_callback event_callback)
-            { m_event_callback = event_callback; }
-
-            /**
-             * Set the status callback. This callback is basically used to gather statistics
-             * to the user of the library. The callback does not need to be set (it is optional)
-             * @param [in] status_callback
-             *        Callback function pointer (see event_stream.hh for the function pointer
-             *        layout).
-             */
-            void
-            setStatusCallback(librorc_status_callback status_callback)
-            { m_status_callback = status_callback; }
 
             /**
              * Get the pointers to the next event in the event buffer. This routine cann be
@@ -223,12 +185,6 @@ class fastclusterfinder;
              * @return 0 on success, -1 on invalid reference
              */
             int releaseEvent(uint64_t reference);
-
-            /**
-             * @internal
-             */
-            uint64_t handleChannelData(void *user_data);
-
 
             /**
              * get PatternGenerator instance for current event_stream
@@ -275,8 +231,6 @@ class fastclusterfinder;
             int overridePciePacketSize( uint32_t pciePacketSize );
 
             /** Member Variables */
-
-
             bar         *m_bar1;
             buffer      *m_eventBuffer;
             buffer      *m_reportBuffer;
@@ -284,31 +238,17 @@ class fastclusterfinder;
             sysmon      *m_sm;
             dma_channel *m_channel;
             link        *m_link;
-
-            bool         m_done;
-            uint64_t     m_last_bytes_received;
-            uint64_t     m_last_events_received;
-
-            timeval      m_start_time;
-            timeval      m_end_time;
-            timeval      m_last_time;
-            timeval      m_current_time;
-
             librorcChannelStatus *m_channel_status;
 
-            int
-            initializeDma
-            (
-                uint64_t      eventBufferId,
-                uint64_t      eventBufferSize
-            );
-
-            int  initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize );
+            int initializeDma(uint64_t eventBufferId, uint64_t eventBufferSize);
+            int initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize);
             void deinitializeDmaBuffers();
 
         protected:
             int32_t          m_deviceId;
             int32_t          m_channelId;
+            uint32_t         m_fwtype;
+            uint32_t         m_linktype;
             LibrorcEsType    m_esType;
             uint32_t         m_pciePacketSize;
             bool             m_called_with_bar;
@@ -320,33 +260,12 @@ class fastclusterfinder;
             volatile uint32_t        *m_raw_event_buffer;
             librorc_event_descriptor *m_reports;
 
-            uint32_t  m_fwtype;
-            uint32_t  m_linktype;
-
-            librorc_event_callback  m_event_callback;
-            librorc_status_callback m_status_callback;
-
-            uint64_t        m_last_event_buffer_offset;
-
+            void     initMembers();
             int      initializeDmaChannel();
-
             void     prepareSharedMemory();
             void     deleteParts();
-            uint64_t dwordOffset(librorc_event_descriptor report_entry);
-            uint64_t getEventIdFromCdh(uint64_t offset);
-            void     setBufferOffsets();
-
-            uint64_t
-            handleEvent
-            (
-                uint64_t                  events_processed,
-                void                     *user_data,
-                librorc_event_descriptor *report,
-                const uint32_t           *event,
-                uint64_t                 *events_per_iteration
-            );
-
-            void clearSharedMemory();
+            void     updateBufferOffsets();
+            void     clearSharedMemory();
 
             const
             uint32_t* getRawEvent(librorc_event_descriptor report);

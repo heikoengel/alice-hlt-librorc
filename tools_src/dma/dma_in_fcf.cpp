@@ -222,23 +222,23 @@ int main(int argc, char *argv[])
     uint64_t last_bytes_received;
     uint64_t last_events_received;
 
-    librorc::event_stream *eventStream;
+    librorc::event_stream *hlEventStream;
     cout << "Prepare ES" << endl;
 
-    eventStream = prepareEventStream(dev, bar, opts);
-    if( !eventStream )
+    hlEventStream = prepareEventStream(dev, bar, opts);
+    if( !hlEventStream )
     { exit(-1); }
 
-    eventStream->setEventCallback(event_callback);
+    hlEventStream->setEventCallback(event_callback);
 
     last_bytes_received = 0;
     last_events_received = 0;
 
-    eventStream->printDeviceStatus();
+    hlEventStream->printDeviceStatus();
 
 
     librorc::fastclusterfinder *fcf =
-        eventStream->getFastClusterFinder();
+        hlEventStream->getFastClusterFinder();
     if( !fcf )
     {
         cout << "Clusterfinder not available for this FW/Channel!"
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
         (opts.useRefFile)
         ?   librorc::event_sanity_checker
             (
-                eventStream->m_eventBuffer,
+                hlEventStream->m_eventBuffer,
                 opts.channelId,
                 sanity_check_mask,
                 logdirectory,
@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
             )
         :   librorc::event_sanity_checker
             (
-                eventStream->m_eventBuffer,
+                hlEventStream->m_eventBuffer,
                 opts.channelId,
                 sanity_check_mask,
                 logdirectory
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
 
     /** Capture starting time */
     timeval start_time;
-    eventStream->m_bar1->gettime(&start_time, 0);
+    hlEventStream->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval current_time = start_time;
 
@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
     /** Event loop */
     while( !done )
     {
-        result = eventStream->handleChannelData( (void*)&(checker) );
+        result = hlEventStream->handleChannelData( (void*)&(checker) );
 
         if( result )
         {
@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
                 dr->setEnable(1);
         }
 
-        eventStream->m_bar1->gettime(&current_time, 0);
+        hlEventStream->m_bar1->gettime(&current_time, 0);
 
         if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
         {
@@ -332,23 +332,23 @@ int main(int argc, char *argv[])
                 (
                  last_time,
                  current_time,
-                 eventStream->m_channel_status,
+                 hlEventStream->m_channel_status,
                  last_events_received,
                  last_bytes_received
                 );
 
-            last_bytes_received  = eventStream->m_channel_status->bytes_received;
-            last_events_received = eventStream->m_channel_status->n_events;
+            last_bytes_received  = hlEventStream->m_channel_status->bytes_received;
+            last_events_received = hlEventStream->m_channel_status->n_events;
             last_time = current_time;
         }
     }
 
     timeval end_time;
-    eventStream->m_bar1->gettime(&end_time, 0);
+    hlEventStream->m_bar1->gettime(&end_time, 0);
 
     printFinalStatusLine
     (
-        eventStream->m_channel_status,
+        hlEventStream->m_channel_status,
         opts,
         start_time,
         end_time
@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
     delete dr;
     delete sm;
     delete link;
-    delete eventStream;
+    delete hlEventStream;
     delete bar;
     delete dev;
     return result;

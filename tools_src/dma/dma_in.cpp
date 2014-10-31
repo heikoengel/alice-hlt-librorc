@@ -64,16 +64,16 @@ int main(int argc, char *argv[])
 
     DMA_ABORT_HANDLER_REGISTER
 
-    eventStream = prepareEventStream(opts);
-    if( !eventStream )
+    hlEventStream = prepareEventStream(opts);
+    if( !hlEventStream )
     { exit(-1); }
 
-    configureDataSource(eventStream, opts);
+    configureDataSource(hlEventStream, opts);
 
-    eventStream->printDeviceStatus();
+    hlEventStream->printDeviceStatus();
 
-    eventStream->setEventCallback(eventCallBack);
-    eventStream->setStatusCallback(printStatusLine);
+    hlEventStream->setEventCallback(eventCallBack);
+    hlEventStream->setStatusCallback(printStatusLine);
 
     /** make clear what will be checked*/
     //int32_t sanity_check_mask = CHK_SIZES|CHK_SOE|CHK_EOE;
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         (opts.useRefFile)
         ?   librorc::event_sanity_checker
             (
-                eventStream->m_eventBuffer,
+                hlEventStream->m_eventBuffer,
                 opts.channelId,
                 sanity_check_mask,
                 logdirectory,
@@ -99,26 +99,26 @@ int main(int argc, char *argv[])
             )
         :   librorc::event_sanity_checker
             (
-                eventStream->m_eventBuffer,
+                hlEventStream->m_eventBuffer,
                 opts.channelId,
                 sanity_check_mask,
                 logdirectory
             ) ;
 
-    uint64_t result = eventStream->eventLoop((void*)&checker);
+    uint64_t result = hlEventStream->eventLoop((void*)&checker);
 
-    unconfigureDataSource(eventStream, opts);
+    unconfigureDataSource(hlEventStream, opts);
 
     printFinalStatusLine
     (
-        eventStream->m_channel_status,
+        hlEventStream->m_channel_status,
         opts,
-        eventStream->m_start_time,
-        eventStream->m_end_time
+        hlEventStream->m_start_time,
+        hlEventStream->m_end_time
     );
 
     /** Cleanup */
-    delete eventStream;
+    delete hlEventStream;
 
     return result;
 }
