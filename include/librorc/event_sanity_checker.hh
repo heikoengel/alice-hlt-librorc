@@ -35,8 +35,6 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
-#include <librorc/buffer.hh>
-#include <librorc/dma_channel.hh>
 #include <librorc/event_stream.hh>
 
 /** limit the number of corrupted events to be written to disk **/
@@ -66,6 +64,10 @@
 
 namespace LIBRARY_NAME
 {
+
+#define EVENT_ID_UNDEFINED 0xfffffffffffffffful
+
+class buffer;
 class ddl_reference_file;
 
     class event_sanity_checker
@@ -143,12 +145,12 @@ class ddl_reference_file;
                      char               *m_log_base_dir;
 
                      /** check() portion */
-                     uint32_t  m_event_index;
                      uint32_t *m_event;
                      uint32_t  m_reported_event_size;
                      uint32_t  m_calc_event_size;
                      uint32_t  m_error_flag;
                      uint32_t  m_comletion_status;
+                     uint64_t  m_last_event_id;
 
             int
             dumpError
@@ -237,8 +239,7 @@ class ddl_reference_file;
             checkForLostEvents
             (
                 volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index,
-                         int64_t                   last_id
+                         uint64_t                  report_buffer_index
             );
 
             uint32_t

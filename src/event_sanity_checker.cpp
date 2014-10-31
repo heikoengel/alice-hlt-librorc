@@ -71,6 +71,7 @@ namespace LIBRARY_NAME
             (
                 librorcChannelStatus    *channel_status,
                 uint64_t                 event_id,
+                uint64_t                 last_event_id,
                 librorc::buffer         *event_buffer,
                 uint32_t                 error_bit_mask,
                 librorc_event_descriptor report
@@ -78,11 +79,11 @@ namespace LIBRARY_NAME
             {
                 if (channel_status->error_count < MAX_FILES_TO_DISK)
                 {
-                    uint32_t                  file_index          = channel_status->error_count;
-                                              m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
+                    uint32_t file_index = channel_status->error_count;
+                    m_raw_event_buffer  = (uint32_t *)event_buffer->getMem();
 
                     openFiles(file_index, channel_status);
-                    dumpReportBufferEntryToLog(event_id, channel_status, report);
+                    dumpReportBufferEntryToLog(event_id, last_event_id, channel_status, report);
                     dumpErrorTypeToLog(error_bit_mask);
 
                     //TODO : review this bool (dump event if something fails)?
@@ -152,6 +153,7 @@ namespace LIBRARY_NAME
             dumpReportBufferEntryToLog
             (
                 uint64_t                  event_id,
+                uint64_t                  last_event_id,
                 librorcChannelStatus     *channel_status,
                 librorc_event_descriptor  report
             )
@@ -167,7 +169,7 @@ namespace LIBRARY_NAME
                     report.reported_event_size,
                     report.offset,
                     event_id,
-                    channel_status->last_id
+                    last_event_id
                 );
             }
 
@@ -364,11 +366,10 @@ event_sanity_checker::event_sanity_checker
     m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
     m_channel_id          = channel_id;
     m_check_mask          = check_mask;
-    m_event_index         = 0;
     m_event               = NULL;
     m_reported_event_size = 0;
     m_log_base_dir        = log_base_dir;
-
+    m_last_event_id       = EVENT_ID_UNDEFINED;
     m_ddl                 = NULL;
 };
 
@@ -387,11 +388,10 @@ event_sanity_checker::event_sanity_checker
     m_raw_event_buffer    = (uint32_t *)(event_buffer->getMem());
     m_channel_id          = channel_id;
     m_check_mask          = check_mask;
-    m_event_index         = 0;
     m_event               = NULL;
     m_reported_event_size = 0;
     m_log_base_dir        = log_base_dir;
-
+    m_last_event_id       = EVENT_ID_UNDEFINED;
     m_ddl                 = new ddl_reference_file(ddl_reference_file_path);
 };
 
@@ -415,26 +415,22 @@ event_sanity_checker::check
 {
     uint64_t                  report_buffer_index =  channel_status->index;
     librorc_event_descriptor *report_pointer      =  &report;
-    //int64_t                   last_id             =  channel_status->last_id;
 
     m_event               = rawEventPointer(report_pointer);
     m_reported_event_size = reportedEventSize(report_pointer);
     m_calc_event_size     = calculatedEventSize(report_pointer);
-    m_event_index         = 0;
     m_error_flag          = errorFlag(report_pointer);
     m_comletion_status    = completionStatus(report_pointer);
 
-    int      error_code   = 0;
-    {
-        error_code |= !(m_check_mask & CHK_DIU_ERR) ? 0 : checkDiuError(report_buffer_index);
-        error_code |= !(m_check_mask & CHK_CMPL)    ? 0 : checkCompletion(report_buffer_index);
-        error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_pointer, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_pointer, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_pointer, report_buffer_index);
-        error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_pointer, report_buffer_index);
-        //error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index, last_id);
-    }
+    int error_code   = 0;
+    error_code |= !(m_check_mask & CHK_DIU_ERR) ? 0 : checkDiuError(report_buffer_index);
+    error_code |= !(m_check_mask & CHK_CMPL)    ? 0 : checkCompletion(report_buffer_index);
+    error_code |= !(m_check_mask & CHK_SIZES)   ? 0 : compareCalculatedToReportedEventSizes(report_pointer, report_buffer_index);
+    error_code |= !(m_check_mask & CHK_SOE)     ? 0 : checkStartOfEvent(report_pointer, report_buffer_index);
+    error_code |= !(m_check_mask & CHK_PATTERN) ? 0 : checkPattern(report_pointer, report_buffer_index);
+    error_code |= !(m_check_mask & CHK_FILE)    ? 0 : compareWithReferenceDdlFile(report_pointer, report_buffer_index);
+    error_code |= !(m_check_mask & CHK_EOE)     ? 0 : checkEndOfEvent(report_pointer, report_buffer_index);
+    error_code |= !(m_check_mask & CHK_ID)      ? 0 : checkForLostEvents(report_pointer, report_buffer_index);
 
     if(error_code != 0)
     {
@@ -447,6 +443,7 @@ event_sanity_checker::check
         (
            channel_status,
            event_id,
+           m_last_event_id,
            m_event_buffer,
            error_code,
            report
@@ -463,7 +460,7 @@ event_sanity_checker::check
     librorcChannelStatus     *channel_status
 )
 {
-    uint64_t event_id = 0;//getEventIdFromCdh(dwordOffset(&report));
+    uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));
     check(report, channel_status, event_id);
     return event_id;
 }
@@ -714,18 +711,18 @@ event_sanity_checker::compareWithReferenceDdlFile
         return_value |= CHK_FILE;
     }
 
-    for(m_event_index = 0; m_event_index<m_calc_event_size; m_event_index++)
+    for(uint64_t index = 0; index<m_calc_event_size; index++)
     {
-        if( m_event[m_event_index] != ddl_mapping[m_event_index] )
+        if( m_event[index] != ddl_mapping[index] )
         {
             DEBUG_PRINTF
             (
                 PDADEBUG_ERROR,
                 "ERROR: Event[%ld][%d] expected %08x read %08x\n",
                 report_buffer_index,
-                m_event_index,
-                ddl_mapping[m_event_index],
-                m_event[m_event_index]
+                index,
+                ddl_mapping[index],
+                m_event[index]
             );
             return_value |= CHK_FILE;
         }
@@ -749,9 +746,8 @@ event_sanity_checker::checkEndOfEvent
         DEBUG_PRINTF
         (
             PDADEBUG_ERROR,
-            "ERROR: could not find matching reported event size "
-            "at Event[%d] expected %08x found %08x\n",
-            m_event_index,
+            "ERROR: could not find matching reported event size, "
+            "expected %08x, found %08x\n",
             m_reported_event_size,
             eoe_length
         );
@@ -766,27 +762,25 @@ int
 event_sanity_checker::checkForLostEvents
 (
     volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index,
-             int64_t                   last_id
+             uint64_t                  report_buffer_index
 )
 {
     uint64_t cur_event_id = getEventIdFromCdh(dwordOffset(report_buffer));
+    int result = 0;
 
-    if
-    (
-        (last_id != -1) &&
-        ((cur_event_id & 0xfffffffff) != ((last_id + 1) & 0xfffffffff))
-    )
+    if ( (m_last_event_id != EVENT_ID_UNDEFINED) &&
+        (cur_event_id != ((m_last_event_id + 1) & 0xffffffffful)) )
     {
         DEBUG_PRINTF
         (
             PDADEBUG_ERROR,
             "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, current ID: %ld\n",
-            m_channel_id, last_id, cur_event_id
+            m_channel_id, m_last_event_id, cur_event_id
         );
-        return CHK_ID;
+        result = CHK_ID;
     }
-    return 0;
+    m_last_event_id = cur_event_id;
+    return result;
 }
 
 

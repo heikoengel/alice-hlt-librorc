@@ -71,7 +71,7 @@ typedef struct
     uint64_t shadow_index;
     uint64_t set_offset_count;
     uint64_t error_count;
-    uint64_t last_id;
+//    uint64_t last_id;
     uint32_t channel;
     uint32_t device;
 }librorcChannelStatus;

@@ -383,7 +383,6 @@ namespace LIBRARY_NAME
 
         m_channel_status->index        = EVENT_INDEX_UNDEFINED;
         m_channel_status->shadow_index = 0;
-        m_channel_status->last_id      = EVENT_INDEX_UNDEFINED;
         m_channel_status->channel      = (unsigned int)m_channelId;
         m_channel_status->device       = m_deviceId;
     }
@@ -418,7 +417,6 @@ namespace LIBRARY_NAME
             m_channel_status->index   =  tmp_index;
             *reference                =  m_channel_status->index;
             *report                   = &m_reports[m_channel_status->index];
-            //m_channel_status->last_id =  getEventIdFromCdh(dwordOffset(**report));
             *event                    =  getRawEvent(**report);
         pthread_mutex_unlock(&m_getEventEnable);
         return true;
