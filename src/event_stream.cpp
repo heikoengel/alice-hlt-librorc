@@ -68,6 +68,7 @@ namespace LIBRARY_NAME
         prepareSharedMemory();
     }
 
+
     event_stream::event_stream
     (
         device *dev,
@@ -86,6 +87,7 @@ namespace LIBRARY_NAME
         initMembers();
         prepareSharedMemory();
     }
+
 
     int
     event_stream::initializeDma
@@ -205,6 +207,7 @@ namespace LIBRARY_NAME
         }
     }
 
+
     void
     event_stream::checkLinkTypeCompatibility()
     {
@@ -229,6 +232,7 @@ namespace LIBRARY_NAME
             throw LIBRORC_EVENT_STREAM_ERROR_ES_TYPE_NOT_AVAILABLE;
         }
     }
+
 
     int
     event_stream::initializeDmaBuffers
@@ -274,6 +278,7 @@ namespace LIBRARY_NAME
         { m_release_map[i] = false; }
         return 0;
     }
+
 
     void
     event_stream::deinitializeDmaBuffers()
@@ -339,7 +344,6 @@ namespace LIBRARY_NAME
     }
 
 
-
     void
     event_stream::prepareSharedMemory()
     {
@@ -367,7 +371,6 @@ namespace LIBRARY_NAME
         m_channel_status = (librorcChannelStatus*)shm;
         clearSharedMemory();
     }
-
 
 
     void
@@ -421,6 +424,7 @@ namespace LIBRARY_NAME
         return true;
     }
 
+
     void
     event_stream::updateChannelStatus
     (
@@ -472,10 +476,11 @@ namespace LIBRARY_NAME
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
+
     int
     event_stream::releaseEvent(uint64_t reference)
     {
-        if( reference >= m_max_rb_entries)
+        if( reference >= m_max_rb_entries )
         { return -1; }
         pthread_mutex_lock(&m_releaseEnable);
             m_release_map[reference] = true;
@@ -504,41 +509,44 @@ namespace LIBRARY_NAME
         { return NULL; }
     }
 
+
     diu*
     event_stream::getDiu()
     {
-        if(m_linktype==RORC_CFG_LINK_TYPE_DIU)
+        if( m_linktype == RORC_CFG_LINK_TYPE_DIU )
         { return new diu(m_link); }
         else
         { return NULL; }
     }
 
+
     siu*
     event_stream::getSiu()
     {
-        if(m_linktype==RORC_CFG_LINK_TYPE_SIU)
+        if( m_linktype == RORC_CFG_LINK_TYPE_SIU )
         { return new siu(m_link); }
         else
         { return NULL; }
     }
 
+
     fastclusterfinder*
     event_stream::getFastClusterFinder()
     {
-        if(m_fwtype==RORC_CFG_PROJECT_hlt_in_fcf &&
-                m_linktype==RORC_CFG_LINK_TYPE_DIU)
+        if( m_fwtype == RORC_CFG_PROJECT_hlt_in_fcf &&
+                m_linktype == RORC_CFG_LINK_TYPE_DIU )
         { return new fastclusterfinder(m_link); }
         else
         { return NULL; }
     }
 
+
     ddl*
     event_stream::getRawReadout()
     {
-        if(m_linktype==RORC_CFG_LINK_TYPE_VIRTUAL)
+        if( m_linktype == RORC_CFG_LINK_TYPE_VIRTUAL )
         { return new ddl(m_link); }
         else
         { return NULL; }
     }
-
 }
