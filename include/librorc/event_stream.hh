@@ -313,7 +313,7 @@ class fastclusterfinder;
             uint32_t         m_pciePacketSize;
             bool             m_called_with_bar;
             bool            *m_release_map;
-            uint64_t         m_release_map_entries;
+            uint64_t         m_max_rb_entries;
             pthread_mutex_t  m_releaseEnable;
             pthread_mutex_t  m_getEventEnable;
 

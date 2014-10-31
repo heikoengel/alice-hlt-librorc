@@ -269,15 +269,14 @@ namespace LIBRARY_NAME
         }
 
         m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-        printf("m_raw_event_buffer: %p\n", m_raw_event_buffer);
         m_done             = false;
         m_event_callback   = NULL;
         m_status_callback  = NULL;
         m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
-        m_release_map_entries = m_reportBuffer->getMaxRBEntries();
-        m_release_map      = new bool[m_release_map_entries];
+        m_max_rb_entries   = m_reportBuffer->getMaxRBEntries();
+        m_release_map      = new bool[m_max_rb_entries];
 
-        for(uint64_t i = 0; i < m_release_map_entries; i++)
+        for(uint64_t i = 0; i < m_max_rb_entries; i++)
         { m_release_map[i] = false; }
         return 0;
     }
@@ -498,7 +497,7 @@ namespace LIBRARY_NAME
             else
             {
                 tmp_index
-                    = (m_channel_status->index < m_reportBuffer->getMaxRBEntries()-1)
+                    = (m_channel_status->index < m_max_rb_entries-1)
                     ? (m_channel_status->index+1) : 0;
             }
 
@@ -553,7 +552,7 @@ namespace LIBRARY_NAME
             counter++;
 
             m_channel_status->shadow_index
-                = (m_channel_status->shadow_index < m_reportBuffer->getMaxRBEntries()-1)
+                = (m_channel_status->shadow_index < m_max_rb_entries-1)
                 ? (m_channel_status->shadow_index+1) : 0;
 
             if(m_channel_status->shadow_index==0)
@@ -571,7 +570,7 @@ namespace LIBRARY_NAME
     int
     event_stream::releaseEvent(uint64_t reference)
     {
-        if( reference >= m_release_map_entries )
+        if( reference >= m_max_rb_entries)
         { return -1; }
         pthread_mutex_lock(&m_releaseEnable);
             m_release_map[reference] = true;
