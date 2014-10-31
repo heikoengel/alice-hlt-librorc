@@ -431,7 +431,8 @@ namespace LIBRARY_NAME
         librorc_event_descriptor *report
     )
     {
-        m_channel_status->bytes_received += (report->calc_event_size << 2);
+        uint32_t calc_event_size = (report->calc_event_size & 0x3fffffff);
+        m_channel_status->bytes_received += (calc_event_size << 2);
         m_channel_status->n_events++;
     }
 
