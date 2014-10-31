@@ -97,7 +97,7 @@ class ddl_reference_file;
             check
             (
                 librorc_event_descriptor  report,
-                librorcChannelStatus     *channel_status,
+                ChannelStatus            *channel_status,
                 uint64_t                  event_id
             );
 
@@ -105,7 +105,7 @@ class ddl_reference_file;
             check
             (
                 librorc_event_descriptor  report,
-                librorcChannelStatus     *channel_status
+                ChannelStatus            *channel_status
             );
 
             /**

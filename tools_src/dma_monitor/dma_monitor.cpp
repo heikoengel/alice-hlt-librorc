@@ -126,7 +126,7 @@ int main( int argc, char *argv[])
     uint64_t       last_bytes_received[LIBRORC_MAX_DMA_CHANNELS];
     uint64_t       last_events_received[LIBRORC_MAX_DMA_CHANNELS];
     uint64_t       channel_bytes[LIBRORC_MAX_DMA_CHANNELS];
-    librorcChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
+    librorc::ChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
     int32_t        shID[LIBRORC_MAX_DMA_CHANNELS];
     char          *shm[LIBRORC_MAX_DMA_CHANNELS];
 
@@ -137,7 +137,7 @@ int main( int argc, char *argv[])
         channel_bytes[i] = 0;
 
         shID[i] = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + i,
-                sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+                sizeof(librorc::ChannelStatus), IPC_CREAT | 0666);
         if( shID[i]==-1)
         {
             perror("shmget");
@@ -153,7 +153,7 @@ int main( int argc, char *argv[])
         }
 
         chstats[i] = NULL;
-        chstats[i] = (librorcChannelStatus*)shm[i];
+        chstats[i] = (librorc::ChannelStatus*)shm[i];
     }
 
     /** capture starting time */

@@ -69,7 +69,7 @@ namespace LIBRARY_NAME
             void
             dump
             (
-                librorcChannelStatus    *channel_status,
+                ChannelStatus           *channel_status,
                 uint64_t                 event_id,
                 uint64_t                 last_event_id,
                 librorc::buffer         *event_buffer,
@@ -117,8 +117,8 @@ namespace LIBRARY_NAME
             void
             openFiles
             (
-                uint32_t              file_index,
-                librorcChannelStatus *channel_status
+                uint32_t       file_index,
+                ChannelStatus *channel_status
             )
             {
                 int lengthOfDestinationFilePath =
@@ -154,7 +154,7 @@ namespace LIBRARY_NAME
             (
                 uint64_t                  event_id,
                 uint64_t                  last_event_id,
-                librorcChannelStatus     *channel_status,
+                ChannelStatus            *channel_status,
                 librorc_event_descriptor  report
             )
             {
@@ -409,7 +409,7 @@ void
 event_sanity_checker::check
 (
     librorc_event_descriptor  report,
-    librorcChannelStatus     *channel_status,
+    ChannelStatus            *channel_status,
     uint64_t                  event_id
 )
 {
@@ -457,7 +457,7 @@ uint64_t
 event_sanity_checker::check
 (
     librorc_event_descriptor  report,
-    librorcChannelStatus     *channel_status
+    ChannelStatus            *channel_status
 )
 {
     uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));

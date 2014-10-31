@@ -48,7 +48,7 @@ parameters: \n\
 
 
 typedef struct {
-    librorcChannelStatus chstats[LIBRORC_MAX_DMA_CHANNELS];
+    librorc::ChannelStatus chstats[LIBRORC_MAX_DMA_CHANNELS];
     timeval time;
 } tChannelSnapshot;
 
@@ -102,7 +102,7 @@ setEventSize
 tChannelSnapshot
 getSnapshot
 (
-    librorcChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS]
+    librorc::ChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS]
 )
 {
     tChannelSnapshot chss;
@@ -113,7 +113,7 @@ getSnapshot
     for ( int i=0; i<LIBRORC_MAX_DMA_CHANNELS; i++ )
     {
         memcpy(&(chss.chstats[i]), chstats[i], 
-                sizeof(librorcChannelStatus));
+                sizeof(librorc::ChannelStatus));
     }
     return chss;
 }
@@ -174,7 +174,7 @@ nextEventSize
 int main( int argc, char *argv[])
 {
     int32_t DeviceId = -1;
-    librorcChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
+    librorc::ChannelStatus *chstats[LIBRORC_MAX_DMA_CHANNELS];
     int32_t        shID[LIBRORC_MAX_DMA_CHANNELS];
     char          *shm[LIBRORC_MAX_DMA_CHANNELS];
     uint32_t       chID;
@@ -227,7 +227,7 @@ int main( int argc, char *argv[])
     {
 
         shID[chID] = shmget(SHM_KEY_OFFSET + DeviceId*SHM_DEV_OFFSET + chID,
-                sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+                sizeof(librorc::ChannelStatus), IPC_CREAT | 0666);
         if( shID[chID]==-1)
         {
             perror("shmget");
@@ -243,7 +243,7 @@ int main( int argc, char *argv[])
         }
 
         chstats[chID] = NULL;
-        chstats[chID] = (librorcChannelStatus*)shm[chID];
+        chstats[chID] = (librorc::ChannelStatus*)shm[chID];
     }
 
 

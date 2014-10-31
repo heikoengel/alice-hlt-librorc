@@ -355,7 +355,7 @@ namespace LIBRARY_NAME
         #ifdef SHM
             int shID =
                 shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
-                    sizeof(librorcChannelStatus), IPC_CREAT | 0666);
+                    sizeof(ChannelStatus), IPC_CREAT | 0666);
             if(shID==-1)
             { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
 
@@ -365,12 +365,12 @@ namespace LIBRARY_NAME
             { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
         #else
             #pragma message "Compiling without SHM"
-            shm = (char*)malloc(sizeof(librorcChannelStatus));
+            shm = (char*)malloc(sizeof(ChannelStatus));
             if(shm == NULL)
             { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
         #endif
 
-        m_channel_status = (librorcChannelStatus*)shm;
+        m_channel_status = (ChannelStatus*)shm;
         clearSharedMemory();
     }
 
@@ -381,7 +381,7 @@ namespace LIBRARY_NAME
         if(m_channel_status==NULL)
         { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
 
-        memset(m_channel_status, 0, sizeof(librorcChannelStatus));
+        memset(m_channel_status, 0, sizeof(ChannelStatus));
 
         m_channel_status->index        = EVENT_INDEX_UNDEFINED;
         m_channel_status->shadow_index = 0;

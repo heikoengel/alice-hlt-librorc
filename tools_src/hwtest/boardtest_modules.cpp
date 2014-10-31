@@ -786,7 +786,7 @@ eventTestCallBack
     void                     *userdata,
     librorc_event_descriptor  report,
     const uint32_t           *event,
-    librorcChannelStatus     *channel_status
+    librorc::ChannelStatus   *channel_status
 )
 {
     librorc::event_sanity_checker *checker = (librorc::event_sanity_checker*)userdata;
@@ -799,10 +799,10 @@ eventTestCallBack
 void
 checkDmaTestResults
 (
-    librorcChannelStatus *chstats,
-    timeval               start_time,
-    timeval               end_time,
-    int                   verbose
+    librorc::ChannelStatus *chstats,
+    timeval                 start_time,
+    timeval                 end_time,
+    int                     verbose
 )
 {
     if ( chstats->bytes_received == 0 )

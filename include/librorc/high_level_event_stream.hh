@@ -46,14 +46,14 @@ namespace LIBRARY_NAME
          void*,
          librorc_event_descriptor,
          const uint32_t*,
-         librorcChannelStatus*
+         ChannelStatus*
     );
 
     typedef uint64_t (*status_callback)
     (
          timeval,
          timeval,
-         librorcChannelStatus*,
+         ChannelStatus*,
          uint64_t,
          uint64_t
     );

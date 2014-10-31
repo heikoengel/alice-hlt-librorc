@@ -49,21 +49,6 @@
 #define SHM_DEV_OFFSET 32
 
 
-typedef struct
-{
-    uint64_t n_events;
-    uint64_t bytes_received;
-    uint64_t min_epi;
-    uint64_t max_epi;
-    uint64_t index;
-    uint64_t shadow_index;
-    uint64_t set_offset_count;
-    uint64_t error_count;
-    uint32_t channel;
-    uint32_t device;
-}librorcChannelStatus;
-
-
 namespace LIBRARY_NAME
 {
 
@@ -78,6 +63,20 @@ class diu;
 class siu;
 class ddl;
 class fastclusterfinder;
+
+typedef struct
+{
+    uint64_t n_events;
+    uint64_t bytes_received;
+    uint64_t min_epi;
+    uint64_t max_epi;
+    uint64_t index;
+    uint64_t shadow_index;
+    uint64_t set_offset_count;
+    uint64_t error_count;
+    uint32_t channel;
+    uint32_t device;
+}ChannelStatus;
 
     /**
      * @class event_stream
@@ -208,7 +207,7 @@ class fastclusterfinder;
             sysmon      *m_sm;
             dma_channel *m_channel;
             link        *m_link;
-            librorcChannelStatus *m_channel_status;
+            ChannelStatus *m_channel_status;
 
             int initializeDma(uint64_t eventBufferId, uint64_t eventBufferSize);
             int initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize);

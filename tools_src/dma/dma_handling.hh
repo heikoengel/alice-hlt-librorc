@@ -118,26 +118,26 @@ eventCallBack
     void                     *userdata,
     librorc_event_descriptor  report,
     const uint32_t           *event,
-    librorcChannelStatus     *channel_status
+    librorc::ChannelStatus    *channel_status
 );
 
 uint64_t
 printStatusLine
 (
-    timeval               last_time,
-    timeval               cur_time,
-    librorcChannelStatus *chstats,
-    uint64_t              last_events_received,
-    uint64_t              last_bytes_received
+    timeval                 last_time,
+    timeval                 cur_time,
+    librorc::ChannelStatus *chstats,
+    uint64_t                last_events_received,
+    uint64_t                last_bytes_received
 );
 
 void
 printFinalStatusLine
 (
-    librorcChannelStatus *chstats,
-    DMAOptions            opts,
-    timeval               start_time,
-    timeval               end_time
+    librorc::ChannelStatus *chstats,
+    DMAOptions              opts,
+    timeval                 start_time,
+    timeval                 end_time
 );
 
 
