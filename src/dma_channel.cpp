@@ -421,18 +421,6 @@ dma_channel::disable()
     return (timeout!=0) ? 0 : -1;
 }
 
-uint32_t
-dma_channel::isEBDMEnabled()
-{
-    return ((DMAConfig()>>DMACTRL_EBDM_ENABLE_BIT) & 0x01);
-}
-
-unsigned int
-dma_channel::isRBDMEnabled()
-{
-    return ((DMAConfig()>>DMACTRL_RBDM_ENABLE_BIT) & 0x01);
-}
-
 void
 dma_channel::setEbdmEnable
 (

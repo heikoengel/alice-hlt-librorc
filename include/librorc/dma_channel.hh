@@ -300,11 +300,6 @@ namespace LIBRARY_NAME
             void setDMAConfig(uint32_t config);
 
             /**
-             * Printout the state of the DMA engine to the console
-             * */
-            void printDMAState();
-
-            /**
              * Fill state of the HLT_OUT event descriptor FIFO
              * @return number of entries in FIFO
              **/
@@ -414,18 +409,6 @@ namespace LIBRARY_NAME
             uint64_t getRBSize();
 
             /****** ATOMICS **************************************************************/
-
-            /**
-             * get Enable Bit of the Event Buffer Descriptor Manager
-             * @return enable bit
-             **/
-            uint32_t isEBDMEnabled();
-
-            /**
-             * get Enable Bit of Report Buffer Descriptor Manager
-             * @return enable bit
-             **/
-            uint32_t isRBDMEnabled();
 
             /**
              * Read out the current DMA configuration
