@@ -238,14 +238,27 @@ namespace LIBRARY_NAME
             /**
              * set default datasource
              **/
-            void
-            setDefaultDataSource();
+            void setDefaultDataSource();
 
             /**
              * set DDR3 Data Replay as data source
              **/
-            void
-            setDataSourceDdr3DataReplay();
+            void setDataSourceDdr3DataReplay();
+
+            /**
+             * set Pattern Generator as data source
+             **/
+            void setDataSourcePatternGenerator();
+
+            /**
+             * set DIU as data source
+             **/
+            void setDataSourceDiu();
+
+            /**
+             * use PCIe as data source (SIU only)
+             **/
+            void setDataSourcePcie();
 
 
             /**
@@ -317,6 +330,8 @@ namespace LIBRARY_NAME
             bar      *m_bar;
             uint32_t  m_base;
             uint32_t  m_link_number;
+
+            void setDataSourceMux( uint32_t value );
 };
 
 }

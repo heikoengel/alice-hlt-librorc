@@ -308,21 +308,29 @@ namespace LIBRARY_NAME
         return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
     }
 
-    void
-    link::setDataSourceDdr3DataReplay()
+    void link::setDefaultDataSource()
+    { setDataSourceMux(0); }
+
+    void link::setDataSourceDiu()
+    { setDataSourceMux(0); }
+
+    void link::setDataSourcePcie()
+    { setDataSourceMux(0); }
+
+    void link::setDataSourceDdr3DataReplay()
+    { setDataSourceMux(1); }
+
+    void link::setDataSourcePatternGenerator()
+    { setDataSourceMux(2); }
+
+
+    /**************** protected ******************/
+
+    void link::setDataSourceMux( uint32_t value )
     {
-        // set MUX to DDR3 DataReplay:
         uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(3<<16);
-        ddlctrl |= (1<<16); // set MUX to 1
-        setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
-    }
-
-    void
-    link::setDefaultDataSource()
-    {
-        uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
-        ddlctrl &= ~(3<<16); // set MUX to 0
+        ddlctrl |= ((value&3)<<16);
         setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
