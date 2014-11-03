@@ -42,38 +42,32 @@
 #define LIBRORC_DMA_TO_DEVICE     1
 #define LIBRORC_DMA_BIDIRECTIONAL 0
 
-#define DMA_MODE 32
-
-#if DMA_MODE==32
-typedef struct
-__attribute__((__packed__))
-librorc_event_descriptor_struct
-{
-    volatile uint64_t offset;
-    volatile uint32_t reported_event_size;
-    volatile uint32_t calc_event_size;
-    volatile uint64_t dummy;   /** do not use! */
-    volatile uint64_t dummy2;  /** do not use! */
-} librorc_event_descriptor;
-#endif
-
-typedef struct
-librorc_sg_entry_struct
-{
-    uint64_t pointer;
-    uint64_t length;
-} librorc_sg_entry;
-
 
 typedef struct PciDevice_struct        PciDevice;
 typedef struct DMABuffer_struct        DMABuffer;
 typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
 
 
-
-
 namespace LIBRARY_NAME
 {
+
+typedef struct
+ScatterGatherEntryStruct
+{
+    uint64_t pointer;
+    uint64_t length;
+} ScatterGatherEntry;
+
+typedef struct
+__attribute__((__packed__))
+EventDescriptorStruct
+{
+    volatile uint64_t offset;
+    volatile uint32_t reported_event_size;
+    volatile uint32_t calc_event_size;
+    volatile uint64_t dummy;   /** do not use! */
+    volatile uint64_t dummy2;  /** do not use! */
+} EventDescriptor;
 
 class device;
 class dma_channel;
@@ -205,7 +199,7 @@ class buffer_sglist_programmer;
              * Get the scatter gather list for SG-DMA.
              * @return Vector of librorc_sg_entry.
              */
-            std::vector<librorc_sg_entry>
+            std::vector<ScatterGatherEntry>
             sgList()
             { return m_sglist_vector; }
 
@@ -215,7 +209,7 @@ class buffer_sglist_programmer;
              **/
             uint64_t
             getMaxRBEntries()
-            { return( size()/sizeof(librorc_event_descriptor) ); }
+            { return( size()/sizeof(EventDescriptor) ); }
 
 
             /**
@@ -264,7 +258,7 @@ class buffer_sglist_programmer;
             (
                  uint64_t offset,
                  uint64_t size,
-                 std::vector<librorc_sg_entry> *list
+                 std::vector<ScatterGatherEntry> *list
             );
         /**
          * @internal
@@ -275,7 +269,7 @@ class buffer_sglist_programmer;
             DMABuffer        *m_buffer;
             DMABuffer_SGNode *m_sglist;
 
-            std::vector<librorc_sg_entry> m_sglist_vector;
+            std::vector<ScatterGatherEntry> m_sglist_vector;
 
             uint32_t         *m_mem;
             uint64_t          m_id;

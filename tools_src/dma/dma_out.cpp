@@ -168,7 +168,7 @@ int main( int argc, char *argv[])
     bool waitForDone = false;
     uint32_t eventSize = 0x1000;
     uint64_t pending = 0;
-    librorc_event_descriptor *report               = NULL;
+    librorc::EventDescriptor *report               = NULL;
     const uint32_t           *event                = 0;
     uint64_t                  reference            = 0;
 
@@ -187,7 +187,7 @@ int main( int argc, char *argv[])
             if( !waitForDone )
             //if( pending < 256 )
             {
-                std::vector<librorc_sg_entry> list;
+                std::vector<librorc::ScatterGatherEntry> list;
                 if( !hlEventStream->m_eventBuffer->composeSglistFromBufferSegment(0, eventSize, &list) )
                 { cout << "Failed to get event sglist" << endl; }
                 hlEventStream->m_channel->announceEvent(list);

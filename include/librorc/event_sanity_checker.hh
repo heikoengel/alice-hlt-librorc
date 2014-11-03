@@ -96,16 +96,16 @@ class ddl_reference_file;
             void
             check
             (
-                librorc_event_descriptor  report,
-                ChannelStatus            *channel_status,
-                uint64_t                  event_id
+                EventDescriptor  report,
+                ChannelStatus   *channel_status,
+                uint64_t         event_id
             );
 
             uint64_t
             check
             (
-                librorc_event_descriptor  report,
-                ChannelStatus            *channel_status
+                EventDescriptor  report,
+                ChannelStatus   *channel_status
             );
 
             /**
@@ -125,15 +125,15 @@ class ddl_reference_file;
             /**
              * Dump reportbuffer entry to console
              * @param reportbuffer pointer to reportbuffer
-             * @param index of current librorc_event_descriptor within reportbuffer
+             * @param index of current EventDescriptor within reportbuffer
              * @param DMA channel number
              **/
             void
             dumpReportBufferEntry
             (
-                volatile librorc_event_descriptor *reportbuffer,
-                         uint64_t                  index,
-                         uint32_t                  channel_number
+                volatile EventDescriptor *reportbuffer,
+                         uint64_t         index,
+                         uint32_t         channel_number
             );
 
         protected:
@@ -155,16 +155,16 @@ class ddl_reference_file;
             int
             dumpError
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index,
-                         int32_t                   check_id
+                volatile EventDescriptor *report_buffer,
+                         uint64_t         report_buffer_index,
+                         int32_t          check_id
             );
 
             int
             compareCalculatedToReportedEventSizes
             (
-                volatile librorc_event_descriptor *reportbuffer,
-                         uint64_t                  report_buffer_index
+                volatile EventDescriptor *reportbuffer,
+                         uint64_t         report_buffer_index
             );
 
             /** Each event has a CommonDataHeader (CDH) consisting of 8 DWs,
@@ -173,8 +173,8 @@ class ddl_reference_file;
             int
             checkStartOfEvent
             (
-                volatile librorc_event_descriptor *reportbuffer,
-                         uint64_t                  report_buffer_index
+                volatile EventDescriptor *reportbuffer,
+                         uint64_t         report_buffer_index
             );
 
             /**
@@ -193,28 +193,28 @@ class ddl_reference_file;
             int
             checkPattern
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
+                volatile EventDescriptor *report_buffer,
+                         uint64_t         report_buffer_index
             );
 
 
             int
             compareWithReferenceDdlFile
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
+                volatile EventDescriptor *report_buffer,
+                         uint64_t         report_buffer_index
             );
 
             int
             checkDiuError
             (
-                         uint64_t                  report_buffer_index
+                         uint64_t         report_buffer_index
             );
 
             int
             checkCompletion
             (
-                         uint64_t                  report_buffer_index
+                         uint64_t         report_buffer_index
             );
 
             /**
@@ -227,8 +227,8 @@ class ddl_reference_file;
             int
             checkEndOfEvent
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
+                volatile EventDescriptor *report_buffer,
+                         uint64_t         report_buffer_index
             );
 
             /**
@@ -238,27 +238,27 @@ class ddl_reference_file;
             int
             checkForLostEvents
             (
-                volatile librorc_event_descriptor *report_buffer,
-                         uint64_t                  report_buffer_index
+                volatile EventDescriptor *report_buffer,
+                         uint64_t         report_buffer_index
             );
 
             uint32_t
-            reportedEventSize(volatile librorc_event_descriptor *report_buffer);
+            reportedEventSize(volatile EventDescriptor *report_buffer);
 
             uint32_t
-            errorFlag(volatile librorc_event_descriptor *report_buffer);
+            errorFlag(volatile EventDescriptor *report_buffer);
 
             uint32_t
-            completionStatus(volatile librorc_event_descriptor *report_buffer);
+            completionStatus(volatile EventDescriptor *report_buffer);
 
             uint32_t
-            calculatedEventSize(volatile librorc_event_descriptor *report_buffer);
+            calculatedEventSize(volatile EventDescriptor *report_buffer);
 
             uint32_t*
-            rawEventPointer(volatile librorc_event_descriptor *report_buffer);
+            rawEventPointer(volatile EventDescriptor *report_buffer);
 
             uint64_t
-            dwordOffset(volatile librorc_event_descriptor *report_buffer);
+            dwordOffset(volatile EventDescriptor *report_buffer);
 
             /**
              *  Get EventID from CDH:

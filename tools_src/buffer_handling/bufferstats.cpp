@@ -122,7 +122,7 @@ int main( int argc, char *argv[])
     {
         cout << "SGList:" << endl;
         /** print scatter-gather list */
-        vector<librorc_sg_entry> sglist = buf->sgList();
+        vector<librorc::ScatterGatherEntry> sglist = buf->sgList();
         for ( uint64_t i=0; i< sglist.size(); i++ )
         {
             uint32_t addr_high = sglist[i].pointer>>32;

@@ -130,7 +130,7 @@ namespace LIBRARY_NAME
     }
 
     uint64_t
-    high_level_event_stream::dwordOffset(librorc_event_descriptor report_entry)
+    high_level_event_stream::dwordOffset(EventDescriptor report_entry)
     {
         return(report_entry.offset / 4);
     }
@@ -150,11 +150,11 @@ namespace LIBRARY_NAME
     uint64_t
     high_level_event_stream::handleEvent
     (
-        uint64_t                  events_processed,
-        void                     *user_data,
-        librorc_event_descriptor *report,
-        const uint32_t           *event,
-        uint64_t                 *events_per_iteration
+        uint64_t         events_processed,
+        void            *user_data,
+        EventDescriptor *report,
+        const uint32_t  *event,
+        uint64_t        *events_per_iteration
     )
     {
 
@@ -182,12 +182,12 @@ namespace LIBRARY_NAME
     uint64_t
     high_level_event_stream::handleChannelData(void *user_data)
     {
-        uint64_t                  events_processed     = 0;
-        librorc_event_descriptor *report               = NULL;
-        const uint32_t           *event                = 0;
-        uint64_t                  events_per_iteration = 0;
-        uint64_t                  reference            = 0;
-        uint64_t                  init_reference       = 0;
+        uint64_t         events_processed     = 0;
+        EventDescriptor *report               = NULL;
+        const uint32_t  *event                = 0;
+        uint64_t         events_per_iteration = 0;
+        uint64_t         reference            = 0;
+        uint64_t         init_reference       = 0;
 
         /** New event(s) received */
         if( getNextEvent(&report, &event, &init_reference) )
@@ -234,7 +234,7 @@ namespace LIBRARY_NAME
     }
 
     const uint32_t*
-    high_level_event_stream::getRawEvent(librorc_event_descriptor report)
+    high_level_event_stream::getRawEvent(EventDescriptor report)
     {
         return (const uint32_t*)&m_raw_event_buffer[report.offset/4];
     }

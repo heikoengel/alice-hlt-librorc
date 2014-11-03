@@ -166,7 +166,7 @@ buffer::connect()
 
     for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
     {
-        librorc_sg_entry entry;
+        ScatterGatherEntry entry;
         entry.pointer = (uint64_t)sg->d_pointer,
         entry.length  = sg->length;
         m_sglist_vector.push_back(entry);
@@ -237,7 +237,7 @@ buffer::offsetToPhysAddr
     uint64_t *rem_sg_length
 )
 {
-    std::vector<librorc_sg_entry>::iterator iter;
+    std::vector<ScatterGatherEntry>::iterator iter;
     uint64_t reference_offset = 0;
     for( iter=m_sglist_vector.begin(); iter!=m_sglist_vector.end(); iter++ )
     {
@@ -261,7 +261,7 @@ buffer::physAddrToOffset
     uint64_t *offset
 )
 {
-    std::vector<librorc_sg_entry>::iterator iter;
+    std::vector<ScatterGatherEntry>::iterator iter;
     uint64_t reference_offset = 0;
     for( iter=m_sglist_vector.begin(); iter!=m_sglist_vector.end(); iter++ )
     {
@@ -281,7 +281,7 @@ buffer::composeSglistFromBufferSegment
 (
     uint64_t offset,
     uint64_t size,
-    std::vector<librorc_sg_entry> *list
+    std::vector<ScatterGatherEntry> *list
 )
 {
     uint64_t rem_size = size;
@@ -306,8 +306,8 @@ buffer::composeSglistFromBufferSegment
         if( segment_length >= rem_size )
         { segment_length = rem_size; }
 
-        // add this as a new librorc_sg_entry
-        librorc_sg_entry entry;
+        // add this as a new ScatterGatherEntry
+        ScatterGatherEntry entry;
         entry.pointer = phys_addr;
         entry.length = segment_length;
         list->push_back(entry);

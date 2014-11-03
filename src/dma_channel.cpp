@@ -288,8 +288,8 @@ namespace LIBRARY_NAME
                 m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
                 m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
 
-                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_reportBuffer, sizeof(librorc_event_descriptor));
-                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_reportBuffer, sizeof(librorc_event_descriptor));
+                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_reportBuffer, sizeof(EventDescriptor));
+                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_reportBuffer, sizeof(EventDescriptor));
 
                 m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
             }
@@ -635,7 +635,7 @@ dma_channel::pushSglistEntryToRAM
     uint32_t ctrl
 )
 {
-    librorc_sg_entry_config sg_entry;
+    ScatterGatherEntryRegisterMapping sg_entry;
     /** Convert sg list into CRORC compatible format */
     sg_entry.sg_addr_low  = (uint32_t)(sg_addr & 0xffffffff);
     sg_entry.sg_addr_high = (uint32_t)(sg_addr >> 32);
@@ -678,7 +678,7 @@ dma_channel::pushSglistEntryToRAM
         {
             m_reportBuffer->clear();
             m_last_rbdm_offset
-                = m_reportBuffer->getPhysicalSize() - sizeof(librorc_event_descriptor);
+                = m_reportBuffer->getPhysicalSize() - sizeof(EventDescriptor);
         }
 
         if(m_eventBuffer != NULL)
@@ -813,10 +813,10 @@ dma_channel::pushSglistEntryToRAM
     void
     dma_channel::announceEvent
     (
-        std::vector<librorc_sg_entry> sglist
+        std::vector<ScatterGatherEntry> sglist
     )
     {
-        std::vector<librorc_sg_entry>::iterator iter;
+        std::vector<ScatterGatherEntry>::iterator iter;
         for(iter=sglist.begin(); iter!=sglist.end(); iter++)
         {
             uint32_t ctrl = SGCTRL_WRITE_ENABLE | SGCTRL_TARGET_EBDMRAM;

@@ -258,7 +258,7 @@ namespace LIBRARY_NAME
 
             uint64_t reportBufferSize
                 = (m_eventBuffer->getPhysicalSize()/ m_pciePacketSize)
-                * sizeof(librorc_event_descriptor);
+                * sizeof(EventDescriptor);
 
             // ReportBuffer uses by default EventBuffer-ID + 1
             m_reportBuffer =
@@ -272,7 +272,7 @@ namespace LIBRARY_NAME
         }
 
         m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
-        m_reports          = (librorc_event_descriptor*)m_reportBuffer->getMem();
+        m_reports          = (EventDescriptor*)m_reportBuffer->getMem();
         m_max_rb_entries   = m_reportBuffer->getMaxRBEntries();
         m_release_map      = new bool[m_max_rb_entries];
 
@@ -393,9 +393,9 @@ namespace LIBRARY_NAME
     bool
     event_stream::getNextEvent
     (
-        librorc_event_descriptor **report,
-        const uint32_t           **event,
-        uint64_t                  *reference
+        EventDescriptor **report,
+        const uint32_t  **event,
+        uint64_t         *reference
     )
     {
         pthread_mutex_lock(&m_getEventEnable);
@@ -428,7 +428,7 @@ namespace LIBRARY_NAME
     void
     event_stream::updateChannelStatus
     (
-        librorc_event_descriptor *report
+        EventDescriptor *report
     )
     {
         uint32_t calc_event_size = (report->calc_event_size & 0x3fffffff);
@@ -456,7 +456,7 @@ namespace LIBRARY_NAME
                 m_reports[m_channel_status->shadow_index].offset;
 
             report_buffer_offset =
-                ((m_channel_status->shadow_index)*sizeof(librorc_event_descriptor))
+                ((m_channel_status->shadow_index)*sizeof(EventDescriptor))
                     % m_reportBuffer->getPhysicalSize();
 
             counter++;
@@ -467,13 +467,13 @@ namespace LIBRARY_NAME
 
             if(m_channel_status->shadow_index==0)
             {
-                memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+                memset(&m_reports[shadow_index], 0, counter*sizeof(EventDescriptor));
                 counter      = 0;
                 shadow_index = 0;
             }
         }
 
-        memset(&m_reports[shadow_index], 0, counter*sizeof(librorc_event_descriptor));
+        memset(&m_reports[shadow_index], 0, counter*sizeof(EventDescriptor));
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
     }
 
@@ -492,7 +492,7 @@ namespace LIBRARY_NAME
 
 
     const uint32_t*
-    event_stream::getRawEvent(librorc_event_descriptor report)
+    event_stream::getRawEvent(EventDescriptor report)
     {
         return (const uint32_t*)&m_raw_event_buffer[report.offset/4];
     }

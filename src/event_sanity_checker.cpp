@@ -69,12 +69,12 @@ namespace LIBRARY_NAME
             void
             dump
             (
-                ChannelStatus           *channel_status,
-                uint64_t                 event_id,
-                uint64_t                 last_event_id,
-                librorc::buffer         *event_buffer,
-                uint32_t                 error_bit_mask,
-                librorc_event_descriptor report
+                ChannelStatus   *channel_status,
+                uint64_t         event_id,
+                uint64_t         last_event_id,
+                buffer          *event_buffer,
+                uint32_t         error_bit_mask,
+                EventDescriptor  report
             )
             {
                 if (channel_status->error_count < MAX_FILES_TO_DISK)
@@ -152,10 +152,10 @@ namespace LIBRARY_NAME
             void
             dumpReportBufferEntryToLog
             (
-                uint64_t                  event_id,
-                uint64_t                  last_event_id,
-                ChannelStatus            *channel_status,
-                librorc_event_descriptor  report
+                uint64_t         event_id,
+                uint64_t         last_event_id,
+                ChannelStatus   *channel_status,
+                EventDescriptor  report
             )
             {
                 fprintf
@@ -193,8 +193,8 @@ namespace LIBRARY_NAME
             bool
             calculatedIsLargerThanPhysical
             (
-                librorc_event_descriptor  report,
-                buffer                   *event_buffer
+                EventDescriptor  report,
+                buffer          *event_buffer
             )
             {
                 return (report.calc_event_size & 0x3fffffff) > (event_buffer->getPhysicalSize() >> 2);
@@ -203,8 +203,8 @@ namespace LIBRARY_NAME
             bool
             dumpCalculatedIsLargerThanPhysicalToLog
             (
-                librorc_event_descriptor  report,
-                buffer                   *event_buffer
+                EventDescriptor  report,
+                buffer           *event_buffer
             )
             {
                 fprintf
@@ -222,8 +222,8 @@ namespace LIBRARY_NAME
             bool
             offsetIsLargerThanPhysical
             (
-                librorc_event_descriptor  report,
-                buffer                   *event_buffer
+                EventDescriptor  report,
+                buffer           *event_buffer
             )
             {
                 return (report.offset > event_buffer->getPhysicalSize());
@@ -233,8 +233,8 @@ namespace LIBRARY_NAME
             bool
             dumpOffsetIsLargerThanPhysicalToLog
             (
-                librorc_event_descriptor  report,
-                buffer                   *event_buffer
+                EventDescriptor  report,
+                buffer           *event_buffer
             )
             {
                 fprintf
@@ -252,8 +252,8 @@ namespace LIBRARY_NAME
             void
             dumpEventToLog
             (
-                uint32_t                  error_bit_mask,
-                librorc_event_descriptor  report
+                uint32_t         error_bit_mask,
+                EventDescriptor  report
             )
             {
                 uint32_t i;
@@ -408,13 +408,13 @@ event_sanity_checker::~event_sanity_checker()
 void
 event_sanity_checker::check
 (
-    librorc_event_descriptor  report,
-    ChannelStatus            *channel_status,
-    uint64_t                  event_id
+    EventDescriptor  report,
+    ChannelStatus   *channel_status,
+    uint64_t         event_id
 )
 {
-    uint64_t                  report_buffer_index =  channel_status->index;
-    librorc_event_descriptor *report_pointer      =  &report;
+    uint64_t         report_buffer_index =  channel_status->index;
+    EventDescriptor *report_pointer      =  &report;
 
     m_event               = rawEventPointer(report_pointer);
     m_reported_event_size = reportedEventSize(report_pointer);
@@ -456,8 +456,8 @@ event_sanity_checker::check
 uint64_t
 event_sanity_checker::check
 (
-    librorc_event_descriptor  report,
-    ChannelStatus            *channel_status
+    EventDescriptor  report,
+    ChannelStatus   *channel_status
 )
 {
     uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));
@@ -495,9 +495,9 @@ event_sanity_checker::dumpEvent
 void
 event_sanity_checker::dumpReportBufferEntry
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  index,
-             uint32_t                  channel_number
+    volatile EventDescriptor *report_buffer,
+             uint64_t         index,
+             uint32_t         channel_number
 )
 {
     DEBUG_PRINTF
@@ -515,9 +515,9 @@ event_sanity_checker::dumpReportBufferEntry
 int
 event_sanity_checker::dumpError
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index,
-             int32_t                   error_code
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index,
+             int32_t          error_code
 )
 {
     dumpEvent(m_raw_event_buffer, dwordOffset(report_buffer), m_calc_event_size);
@@ -530,8 +530,8 @@ event_sanity_checker::dumpError
 int
 event_sanity_checker::compareCalculatedToReportedEventSizes
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index
 )
 {
     if(m_calc_event_size != m_reported_event_size)
@@ -542,7 +542,7 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
                         "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
                 report_buffer_index, m_calc_event_size, m_reported_event_size,
                 report_buffer->offset,
-                report_buffer_index * sizeof(librorc_event_descriptor));
+                report_buffer_index * sizeof(EventDescriptor));
         return CHK_SIZES;
     }
 
@@ -598,8 +598,8 @@ event_sanity_checker::checkCompletion
 int
 event_sanity_checker::checkStartOfEvent
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index
 )
 {
     if((uint32_t) * (m_event) != 0xffffffff)
@@ -608,7 +608,7 @@ event_sanity_checker::checkStartOfEvent
                 "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
                         "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
                 (uint32_t) * (m_event), report_buffer->offset,
-                report_buffer_index * sizeof(librorc_event_descriptor));
+                report_buffer_index * sizeof(EventDescriptor));
         return CHK_SOE;
     }
 
@@ -648,8 +648,8 @@ event_sanity_checker::nextPgWord
 int
 event_sanity_checker::checkPattern
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index
 )
 {
     if( m_calc_event_size<=4 )
@@ -690,8 +690,8 @@ event_sanity_checker::checkPattern
 int
 event_sanity_checker::compareWithReferenceDdlFile
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index
 )
 {
     int return_value = 0;
@@ -735,8 +735,8 @@ event_sanity_checker::compareWithReferenceDdlFile
 int
 event_sanity_checker::checkEndOfEvent
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index
 )
 {
     uint32_t eoeword = (uint32_t) *(m_event + m_calc_event_size);
@@ -761,8 +761,8 @@ event_sanity_checker::checkEndOfEvent
 int
 event_sanity_checker::checkForLostEvents
 (
-    volatile librorc_event_descriptor *report_buffer,
-             uint64_t                  report_buffer_index
+    volatile EventDescriptor *report_buffer,
+             uint64_t         report_buffer_index
 )
 {
     uint64_t cur_event_id = getEventIdFromCdh(dwordOffset(report_buffer));
@@ -786,7 +786,7 @@ event_sanity_checker::checkForLostEvents
 
 uint32_t
 event_sanity_checker::reportedEventSize
-(volatile librorc_event_descriptor *report_buffer)
+(volatile EventDescriptor *report_buffer)
 {
     /** upper two bits are reserved for flags */
     return(report_buffer->reported_event_size & 0x3fffffff);
@@ -796,7 +796,7 @@ event_sanity_checker::reportedEventSize
 
 uint32_t
 event_sanity_checker::calculatedEventSize
-(volatile librorc_event_descriptor *report_buffer)
+(volatile EventDescriptor *report_buffer)
 {
     /** upper two bits are reserved for flags */
     return(report_buffer->calc_event_size & 0x3fffffff);
@@ -806,7 +806,7 @@ event_sanity_checker::calculatedEventSize
 
 uint32_t
 event_sanity_checker::errorFlag
-(volatile librorc_event_descriptor *report_buffer)
+(volatile EventDescriptor *report_buffer)
 {
     /** bit 30 of reported_event_size */
     return( (report_buffer->reported_event_size>>30)&1 );
@@ -816,7 +816,7 @@ event_sanity_checker::errorFlag
 
 uint32_t
 event_sanity_checker::completionStatus
-(volatile librorc_event_descriptor *report_buffer)
+(volatile EventDescriptor *report_buffer)
 {
     /** bits [31:30] of calc_event_size */
     return(report_buffer->calc_event_size>>30);
@@ -825,7 +825,7 @@ event_sanity_checker::completionStatus
 
 
 uint32_t*
-event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor *report_buffer)
+event_sanity_checker::rawEventPointer(volatile EventDescriptor *report_buffer)
 {
     return (uint32_t*)&m_raw_event_buffer[dwordOffset(report_buffer)];
 }
@@ -833,7 +833,7 @@ event_sanity_checker::rawEventPointer(volatile librorc_event_descriptor *report_
 
 
 uint64_t
-event_sanity_checker::dwordOffset(volatile librorc_event_descriptor *report_buffer)
+event_sanity_checker::dwordOffset(volatile EventDescriptor *report_buffer)
 {
     return(report_buffer->offset / 4);
 }

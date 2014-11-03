@@ -135,9 +135,9 @@ typedef struct
             bool
             getNextEvent
             (
-                librorc_event_descriptor **report,
-                const uint32_t           **event,
-                uint64_t                  *reference
+                EventDescriptor **report,
+                const uint32_t  **event,
+                uint64_t         *reference
             );
 
             /**
@@ -145,7 +145,7 @@ typedef struct
              * This adjusts bytes_received and n_events.
              * @param report received reportbuffer descriptor
              **/
-            void updateChannelStatus( librorc_event_descriptor *report);
+            void updateChannelStatus( EventDescriptor *report);
 
             /**
              * Release the event which was obtained by getNextEvent().
@@ -226,8 +226,8 @@ typedef struct
             pthread_mutex_t  m_releaseEnable;
             pthread_mutex_t  m_getEventEnable;
 
-            volatile uint32_t        *m_raw_event_buffer;
-            librorc_event_descriptor *m_reports;
+            volatile uint32_t *m_raw_event_buffer;
+            EventDescriptor   *m_reports;
 
             void     initMembers();
             int      initializeDmaChannel();
@@ -237,7 +237,7 @@ typedef struct
             void     clearSharedMemory();
 
             const
-            uint32_t* getRawEvent(librorc_event_descriptor report);
+            uint32_t* getRawEvent(EventDescriptor report);
 
     };
 

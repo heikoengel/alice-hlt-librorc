@@ -293,7 +293,7 @@ uint64_t
 eventCallBack
 (
     void                     *userdata,
-    librorc_event_descriptor  report,
+    librorc::EventDescriptor  report,
     const uint32_t           *event,
     librorc::ChannelStatus   *channel_status
 )

@@ -90,13 +90,6 @@ namespace LIBRARY_NAME
                 LibrorcEsType esType
              );
 
-            typedef struct
-            __attribute__((__packed__))
-            {
-                uint32_t sg_addr_low;  /** lower part of sg address **/
-                uint32_t sg_addr_high; /** higher part of sg address **/
-                uint32_t sg_len;       /** total length of sg entry in bytes **/
-            } librorc_sg_entry_config;
 
             virtual ~dma_channel();
 
@@ -344,7 +337,7 @@ namespace LIBRARY_NAME
             void
             announceEvent
             (
-                 std::vector<librorc_sg_entry> sglist
+                 std::vector<ScatterGatherEntry> sglist
             );
 
         protected:
@@ -459,6 +452,16 @@ namespace LIBRARY_NAME
              **/
             uint32_t getSuspend();
 
+            /**
+             * struct mapping a ScatterGatherEntry to device registers
+             **/
+            typedef struct
+            __attribute__((__packed__))
+            {
+                uint32_t sg_addr_low;  /** lower part of sg address **/
+                uint32_t sg_addr_high; /** higher part of sg address **/
+                uint32_t sg_len;       /** total length of sg entry in bytes **/
+            } ScatterGatherEntryRegisterMapping;
     };
 
 }

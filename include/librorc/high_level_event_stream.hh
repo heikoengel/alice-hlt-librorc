@@ -44,7 +44,7 @@ namespace LIBRARY_NAME
     typedef uint64_t (*event_callback)
     (
          void*,
-         librorc_event_descriptor,
+         EventDescriptor,
          const uint32_t*,
          ChannelStatus*
     );
@@ -139,21 +139,21 @@ namespace LIBRARY_NAME
             event_callback m_event_callback;
             status_callback m_status_callback;
 
-            uint64_t dwordOffset(librorc_event_descriptor report_entry);
+            uint64_t dwordOffset(EventDescriptor report_entry);
             uint64_t getEventIdFromCdh(uint64_t offset);
 
             uint64_t
             handleEvent
             (
-                uint64_t                  events_processed,
-                void                     *user_data,
-                librorc_event_descriptor *report,
-                const uint32_t           *event,
-                uint64_t                 *events_per_iteration
+                uint64_t         events_processed,
+                void            *user_data,
+                EventDescriptor *report,
+                const uint32_t  *event,
+                uint64_t        *events_per_iteration
             );
 
             const
-            uint32_t* getRawEvent(librorc_event_descriptor report);
+            uint32_t* getRawEvent(EventDescriptor report);
 
 
     };
