@@ -25,31 +25,35 @@
 
 #define HELP_TEXT                                                              \
   "crorc_sensors usage: \n"                                                    \
-  "  -h|--help        print this help text\n"                                  \
-  "  -d|--device [id] select target C-RORC device. Uses device 0 if not\n"     \
-  "                   specified\n"                                             \
-  "  -l|--list        list all available sensors\n"                            \
-  "  -a|--all         print all sensor values\n"                               \
-  "  -q|--qsfp [id]   select QSFP module. [id] can be 0..2\n"                  \
-  "  --fpga_temp      print FPGA Temperature in Degree Celsius\n"              \
-  "  --fpga_fw_rev    print FPGA Firmware Revision\n"                          \
-  "  --fpga_fw_date   print FPGA Firmware Date\n"                              \
-  "  --fpga_uptime    print FPGA Uptime in Seconds\n"                          \
-  "  --fpga_fw_descr  print Firmware Description string\n"                     \
-  "  --fpga_vcc_int   print FPGA Core Voltage in V\n"                          \
-  "  --fpga_vcc_aux   print FPGA Auxilliary Voltage in V\n"                    \
-  "  --fan_speed       print FPGA Fan RPM or 0 if stopped\n"                   \
-  "  --pcie_slot      print PCIe Domain:Bus:Slot.Funtion numbers\n"            \
-  "  --pcie_lanes     print number of PCIe lanes used for C-RORC\n"            \
-  "  --pcie_gen       print PCIe Generation used for C-RORC\n"                 \
-  "  --pcie_tx_error  print PCIe TX Error Count\n"                             \
-  "  --pcie_ill_req   print PCIe Illegal Request Count\n"                      \
-  "  --smbus_slv_addr print SMBus Slave Address for Configuration\n"           \
-  "                   Controller access\n"                                     \
-  "  --num_qsfps      print number of QSFP modules installed\n"                \
-  "  --num_dma_ch     print number of DMA channels supported by firmware\n"    \
-  "  --num_ddls       print number of DDLs supported by firmware\n"            \
-  "  --qsfp_temp      print QSFP Module temperature. requires --qsfp\n"        \
+  "  -h|--help            print this help text\n"                              \
+  "  -d|--device [id]     select target C-RORC device. Uses device 0 if not\n" \
+  "                       specified\n"                                         \
+  "  -l|--list            list all available sensors\n"                        \
+  "  -a|--all             print all sensor values\n"                           \
+  "  -q|--qsfp [id]       select QSFP module. [id] can be 0..2\n"              \
+  "  --fpga_temp          print FPGA Temperature in Degree Celsius\n"          \
+  "  --fpga_fw_rev        print FPGA Firmware Revision\n"                      \
+  "  --fpga_fw_date       print FPGA Firmware Date\n"                          \
+  "  --fpga_uptime        print FPGA Uptime in Seconds\n"                      \
+  "  --fpga_fw_descr      print Firmware Description string\n"                 \
+  "  --fpga_vcc_int       print FPGA Core Voltage in V\n"                      \
+  "  --fpga_vcc_aux       print FPGA Auxilliary Voltage in V\n"                \
+  "  --fan_speed          print FPGA Fan RPM or 0 if stopped\n"                \
+  "  --pcie_slot          print PCIe Domain:Bus:Slot.Funtion numbers\n"        \
+  "  --pcie_lanes         print number of PCIe lanes used for C-RORC\n"        \
+  "  --pcie_gen           print PCIe Generation used for C-RORC\n"             \
+  "  --pcie_tx_error      print PCIe TX Error Count\n"                         \
+  "  --pcie_ill_req       print PCIe Illegal Request Count\n"                  \
+  "  --smbus_slv_addr     print SMBus Slave Address for Configuration\n"       \
+  "                       Controller access\n"                                 \
+  "  --num_qsfps          print number of QSFP modules installed\n"            \
+  "  --num_dma_ch         print number of DMA channels supported by "          \
+  "                       firmware\n"                                          \
+  "  --num_ddls           print number of DDLs supported by firmware\n"        \
+  "  --qsfp_temp          print QSFP Module temperature. requires --qsfp\n"    \
+  "  --ddr_ctrl0_bitrate  print DDR3 Controller 0 bitrate\n"                   \
+  "  --ddr_mod0_available check if DDR3 module is installed in socket 0\n"     \
+  "  --ddr_mod1_available check if DDR3 module is installed in socket 1\n"     \
   "\n"
 
 const char *composeFormat(const char *name, const char *fmt, int withName) {
