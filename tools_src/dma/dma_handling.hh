@@ -97,7 +97,7 @@ typedef struct
     uint32_t      datasource;
     bool          useRefFile;
     bool          loadFcfMappingRam;
-    LibrorcEsType esType;
+    librorc::EventStreamDirection esType;
 } DMAOptions;
 
 

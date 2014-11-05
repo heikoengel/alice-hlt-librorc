@@ -56,9 +56,9 @@ namespace LIBRARY_NAME
 
     event_stream::event_stream
     (
-        uint32_t       deviceId,
-        uint32_t       channelId,
-        LibrorcEsType esType
+        uint32_t deviceId,
+        uint32_t channelId,
+        EventStreamDirection esType
     )
     {
         m_deviceId        = deviceId;
@@ -75,8 +75,8 @@ namespace LIBRARY_NAME
     (
         device *dev,
         bar    *bar,
-        uint32_t          channelId,
-        LibrorcEsType    esType
+        uint32_t channelId,
+        EventStreamDirection esType
     )
     {
         m_dev             = dev;
@@ -152,10 +152,10 @@ namespace LIBRARY_NAME
         // get default pciePacketSize from device
         switch(m_esType)
         {
-            case LIBRORC_ES_TO_DEVICE:
+            case kEventStreamToDevice:
                 m_pciePacketSize = m_dev->maxReadRequestSize();
                 break;
-            case LIBRORC_ES_TO_HOST:
+            case kEventStreamToHost:
                 m_pciePacketSize = m_dev->maxPayloadSize();
                 break;
             default:
@@ -216,10 +216,10 @@ namespace LIBRARY_NAME
         bool fwOK;
         switch(m_esType)
         {
-            case LIBRORC_ES_TO_HOST:
+            case kEventStreamToHost:
             { fwOK = (m_linktype!=RORC_CFG_LINK_TYPE_SIU); }
             break;
-            case LIBRORC_ES_TO_DEVICE:
+            case kEventStreamToDevice:
             { fwOK = (m_linktype==RORC_CFG_LINK_TYPE_SIU); }
             break;
             default:
@@ -299,7 +299,7 @@ namespace LIBRARY_NAME
     {
         if( (pciePacketSize == 0) || (pciePacketSize % 4) )
         { return -1; }
-        if( m_esType==LIBRORC_ES_TO_HOST )
+        if( m_esType==kEventStreamToHost)
         {
             // DMA to Host: 256B write requests max.
             if ( pciePacketSize > 256 )

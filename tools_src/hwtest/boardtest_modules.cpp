@@ -815,7 +815,7 @@ checkDmaTestResults
     }
     else
     {
-        float timediff = gettimeofdayDiff(start_time, end_time);
+        float timediff = librorc::gettimeofdayDiff(start_time, end_time);
         float mbytes = (float)chstats->bytes_received / (float)(1<<20);
         float dma_rate = mbytes / timediff;
         if ( dma_rate < DMA_RATE_MIN || dma_rate > DMA_RATE_MAX )
@@ -854,7 +854,7 @@ testDmaChannel
     opts.channelId = channel_id;
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
-    opts.esType = LIBRORC_ES_TO_HOST;
+    opts.esType = librorc::kEventStreamToHost;
 
     char logdirectory[] = "/tmp";
     
@@ -887,7 +887,7 @@ testDmaChannel
     eventStream->m_bar1->gettime(&start_time, 0);
     timeval current_time = start_time;
     
-    while( gettimeofdayDiff(start_time, current_time) < timeout )
+    while( librorc::gettimeofdayDiff(start_time, current_time) < timeout )
     {
         eventStream->handleChannelData( (void*)&(checker) );
         eventStream->m_bar1->gettime(&current_time, 0);

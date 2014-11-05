@@ -72,12 +72,12 @@ evaluateArguments(int argc, char *argv[])
     argv[0] = app_name;
 
     /** dma_in defaults **/
-    ret.esType = LIBRORC_ES_TO_HOST;
+    ret.esType = librorc::kEventStreamToHost;
     ret.datasource = ES_SRC_NONE;
 
     if( 0 == strcmp(app_name, "dma_out") )
     {
-        ret.esType = LIBRORC_ES_TO_DEVICE;
+        ret.esType = librorc::kEventStreamToDevice;
         ret.datasource = ES_SRC_NONE;
     }
 
@@ -114,21 +114,21 @@ evaluateArguments(int argc, char *argv[])
                 if( 0 == strcmp(optarg, "pg") )
                 { ret.datasource = ES_SRC_HWPG; break; }
                 else if( 0 == strcmp(optarg, "diu") &&
-                        ret.esType!=LIBRORC_ES_TO_DEVICE )
+                        ret.esType!=librorc::kEventStreamToDevice )
                 { ret.datasource = ES_SRC_DIU; break; }
                 else if( 0 == strcmp(optarg, "siu") &&
-                        ret.esType!=LIBRORC_ES_TO_DEVICE )
+                        ret.esType!=librorc::kEventStreamToDevice )
                 { ret.datasource = ES_SRC_SIU; break; }
                 else if( 0 == strcmp(optarg, "ddr3") &&
-                        ret.esType!=LIBRORC_ES_TO_DEVICE)
+                        ret.esType!=librorc::kEventStreamToDevice)
                 { ret.datasource = ES_SRC_DDR3; break; }
                 else if( 0 == strcmp(optarg, "none") )
                 { ret.datasource = ES_SRC_NONE; break; }
                 else if( 0 == strcmp(optarg, "dma") &&
-                        ret.esType!=LIBRORC_ES_TO_HOST)
+                        ret.esType!=librorc::kEventStreamToHost)
                 { ret.datasource = ES_SRC_DMA; break; }
                 else if( 0 == strcmp(optarg, "raw") &&
-                        ret.esType!=LIBRORC_ES_TO_DEVICE)
+                        ret.esType!=librorc::kEventStreamToDevice)
                 { ret.datasource = ES_SRC_RAW; break; }
                 else
                 {
@@ -149,7 +149,7 @@ evaluateArguments(int argc, char *argv[])
 
             case 'm':
             {
-                if( ret.esType!=LIBRORC_ES_TO_HOST )
+                if( ret.esType!=librorc::kEventStreamToHost )
                 {
                     cout << "FCF is not available for this datastream"
                          << endl;
@@ -235,7 +235,7 @@ prepareEventStream
         return(NULL);
     }
 
-    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    if( opts.esType==librorc::kEventStreamToDevice && opts.datasource != ES_SRC_NONE)
     {
         /** override for max read request size to 128B for Supermicro */
         if( hlEventStream->overridePciePacketSize(128) )
@@ -271,7 +271,7 @@ prepareEventStream
         return(NULL);
     }
 
-    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    if( opts.esType==librorc::kEventStreamToDevice && opts.datasource != ES_SRC_NONE)
     {
         /** override for max read request size to 128B for Supermicro */
         if( hlEventStream->overridePciePacketSize(128) )
@@ -317,7 +317,7 @@ printStatusLine
     uint64_t                last_bytes_received
 )
 {
-    if(gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
+    if(librorc::gettimeofdayDiff(last_time, current_time)>STAT_INTERVAL)
     {
         printf
         (
@@ -333,7 +333,7 @@ printStatusLine
             (
                 " Data Rate: %9.3f MB/s",
                 (double)(channel_status->bytes_received - last_bytes_received)/
-                gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
+                librorc::gettimeofdayDiff(last_time, current_time)/(double)(1<<20)
             );
         }
         else
@@ -345,7 +345,7 @@ printStatusLine
             (
                 " EventRate: %9.3f kHz",
                 (double)(channel_status->n_events - last_events_received)/
-                gettimeofdayDiff(last_time, current_time)/1000.0
+                librorc::gettimeofdayDiff(last_time, current_time)/1000.0
             );
         }
         else
@@ -373,8 +373,8 @@ printFinalStatusLine
         "%ld Byte / %ld events in %.2f sec -> %.1f MB/s.\n",
         chstats->bytes_received,
         chstats->n_events,
-        gettimeofdayDiff(start_time, end_time),
-        ((float)chstats->bytes_received/gettimeofdayDiff(start_time, end_time))/(float)(1<<20)
+        librorc::gettimeofdayDiff(start_time, end_time),
+        ((float)chstats->bytes_received/librorc::gettimeofdayDiff(start_time, end_time))/(float)(1<<20)
     );
 
     if(!chstats->set_offset_count)
@@ -672,7 +672,7 @@ configureDataSource
     hlEventStream->m_link->setFlowControlEnable(1);
     hlEventStream->m_link->setChannelActive(1);
 
-    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    if( opts.esType==librorc::kEventStreamToDevice && opts.datasource != ES_SRC_NONE)
     {
         configureSiu(hlEventStream, opts);
     }
@@ -741,7 +741,7 @@ unconfigureDataSource
         break;
     }    
     
-    if( opts.esType==LIBRORC_ES_TO_DEVICE && opts.datasource != ES_SRC_NONE)
+    if( opts.esType==librorc::kEventStreamToDevice && opts.datasource != ES_SRC_NONE)
     { unconfigureSiu(hlEventStream, opts); }
 
 }

@@ -215,7 +215,7 @@ int main( int argc, char *argv[])
             hlEventStream->m_bar1->gettime(&cur_time, 0);
 
             // print status line each second
-            if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
+            if(librorc::gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
             {
                 /*printf("CH%d: Events OUT: %10ld, Size: %8.3f GB",
                         opts.channelId, hlEventStream->m_channel_status->n_events,
@@ -225,7 +225,7 @@ int main( int argc, char *argv[])
                 if(hlEventStream->m_channel_status->bytes_received-last_bytes_received)
                 {
                     throughput = (double)(hlEventStream->m_channel_status->bytes_received-last_bytes_received)/
-                            gettimeofdayDiff(last_time, cur_time);
+                            librorc::gettimeofdayDiff(last_time, cur_time);
                     //printf(" Rate: %9.3f MB/s", rate);
                 }
                 else
@@ -237,10 +237,10 @@ int main( int argc, char *argv[])
                 if(hlEventStream->m_channel_status->n_events - last_events_received)
                 {
                     rate = (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
-                            gettimeofdayDiff(last_time, cur_time);
+                            librorc::gettimeofdayDiff(last_time, cur_time);
                     /*printf(" (%.3f kHz)",
                             (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
-                            gettimeofdayDiff(last_time, cur_time)/1000.0);*/
+                            librorc:: gettimeofdayDiff(last_time, cur_time)/1000.0);*/
                 }
                 else
                 {
@@ -272,7 +272,7 @@ int main( int argc, char *argv[])
             hlEventStream->m_bar1->gettime(&cur_time, 0);
 
             // print status line each second
-            if(gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
+            if(librorc::gettimeofdayDiff(last_time, cur_time)>STAT_INTERVAL)
             {
                 hlEventStream->m_channel_status->n_events = hlEventStream->m_link->ddlReg(RORC_REG_DDL_EC);
                 printf("CH%d: Events OUT via PG: %10ld",
@@ -282,7 +282,7 @@ int main( int argc, char *argv[])
                 {
                     printf(" EventRate: %.3f kHz",
                             (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
-                            gettimeofdayDiff(last_time, cur_time)/1000.0);
+                            librorc::gettimeofdayDiff(last_time, cur_time)/1000.0);
                 }
                 else
                 { printf(" ( - )"); }

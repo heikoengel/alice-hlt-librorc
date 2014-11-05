@@ -95,7 +95,7 @@ typedef struct
              (
                 uint32_t      deviceId,
                 uint32_t      channelId,
-                LibrorcEsType esType
+                EventStreamDirection esType
              );
 
 #ifdef LIBRORC_INTERNAL
@@ -104,7 +104,7 @@ typedef struct
                 device          *dev,
                 bar             *bar,
                 uint32_t         channelId,
-                LibrorcEsType    esType
+                EventStreamDirection    esType
              );
 #endif
 
@@ -218,7 +218,7 @@ typedef struct
             uint32_t         m_channelId;
             uint32_t         m_fwtype;
             uint32_t         m_linktype;
-            LibrorcEsType    m_esType;
+            EventStreamDirection m_esType;
             uint32_t         m_pciePacketSize;
             bool             m_called_with_bar;
             bool            *m_release_map;

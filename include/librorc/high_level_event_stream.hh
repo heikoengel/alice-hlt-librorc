@@ -67,18 +67,18 @@ namespace LIBRARY_NAME
         public:
             high_level_event_stream
             (
-                 int32_t       deviceId,
-                 int32_t       channelId,
-                 LibrorcEsType esType
+                 int32_t              deviceId,
+                 int32_t              channelId,
+                 EventStreamDirection esType
             );
 
 #ifdef LIBRORC_INTERNAL
              high_level_event_stream
              (
-                device          *dev,
-                bar             *bar,
-                int32_t          channelId,
-                LibrorcEsType    esType
+                device               *dev,
+                bar                  *bar,
+                int32_t               channelId,
+                EventStreamDirection  esType
              );
 #endif
             ~high_level_event_stream();

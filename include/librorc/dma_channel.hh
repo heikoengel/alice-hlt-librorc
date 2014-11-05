@@ -79,7 +79,7 @@ namespace LIBRARY_NAME
                 bar      *bar,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer,
-                LibrorcEsType esType
+                EventStreamDirection esType
              );
 
 
@@ -313,7 +313,7 @@ namespace LIBRARY_NAME
             bar      *m_bar;
             uint32_t  m_channel_number;
             uint32_t  m_outFifoDepth;
-            LibrorcEsType m_esType;
+            EventStreamDirection m_esType;
 
             dma_channel_configurator *m_channelConfigurator;
 
@@ -326,7 +326,7 @@ namespace LIBRARY_NAME
                 uint32_t  channel_number,
                 buffer   *eventBuffer,
                 buffer   *reportBuffer,
-                LibrorcEsType esType
+                EventStreamDirection esType
             );
 
             void prepareBuffers();

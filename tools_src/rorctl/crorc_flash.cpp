@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
   bool do_flash_to_file = false;
 
   bool do_erase_flash = false;
-  librorc_verbosity_enum verbose = LIBRORC_VERBOSE_OFF;
+  librorc::librorc_verbosity_enum verbose = librorc::LIBRORC_VERBOSE_OFF;
   bool do_print_status = true;
 
   int arg;
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
       do_print_status = true;
       break;
     case 'v':
-      verbose = LIBRORC_VERBOSE_ON;
+      verbose = librorc::LIBRORC_VERBOSE_ON;
       break;
     default:
       cout << "ERROR: Unknown parameter (" << arg << ")" << endl;

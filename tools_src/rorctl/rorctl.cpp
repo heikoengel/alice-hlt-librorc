@@ -101,7 +101,7 @@ typedef struct
     uint64_t                device_number;
     uint64_t                chip_select;
     char                   *filename;
-    librorc_verbosity_enum  verbose;
+    librorc::librorc_verbosity_enum  verbose;
     librorc::device        *dev;
 }confopts;
 
@@ -165,7 +165,7 @@ int main
         NOT_SET,
         NOT_SET,
         NULL,
-        LIBRORC_VERBOSE_OFF,
+        librorc::LIBRORC_VERBOSE_OFF,
         NULL
     };
 
@@ -287,7 +287,7 @@ int main
 
                 case 'v':
                 {
-                    options.verbose = LIBRORC_VERBOSE_ON;
+                    options.verbose = librorc::LIBRORC_VERBOSE_ON;
                 }
                 break;
 

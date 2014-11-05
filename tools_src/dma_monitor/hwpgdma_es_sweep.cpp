@@ -140,7 +140,7 @@ getSnapshotDiff
         sd.events += (current.chstats[chID].n_events -
                 last.chstats[chID].n_events);
     }
-    sd.time = gettimeofdayDiff(last.time, current.time);
+    sd.time = librorc::gettimeofdayDiff(last.time, current.time);
     return sd;
 }
 

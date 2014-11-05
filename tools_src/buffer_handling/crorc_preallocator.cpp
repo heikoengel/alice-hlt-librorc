@@ -90,7 +90,7 @@ alloc_channel
     {
         eventStream =
             new librorc::event_stream
-                (Dev->getDeviceId(), ChannelID, LIBRORC_ES_TO_HOST);
+                (Dev->getDeviceId(), ChannelID, librorc::kEventStreamToHost);
         eventStream->initializeDmaBuffers( 2*ChannelID, size);
     }
     catch( int error )

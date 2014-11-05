@@ -178,13 +178,13 @@ namespace LIBRARY_NAME
 
 dma_channel::dma_channel
 (
-    uint32_t  channel_number,
-    uint32_t  pcie_packet_size,
-    device   *dev,
-    bar      *bar,
-    buffer   *eventBuffer,
-    buffer   *reportBuffer,
-    LibrorcEsType esType
+    uint32_t              channel_number,
+    uint32_t              pcie_packet_size,
+    device               *dev,
+    bar                  *bar,
+    buffer               *eventBuffer,
+    buffer               *reportBuffer,
+    EventStreamDirection  esType
 )
 {
     initMembers(pcie_packet_size, dev, bar, channel_number, eventBuffer, reportBuffer, esType);
@@ -463,13 +463,13 @@ dma_channel::pushSglistEntryToRAM
     void
     dma_channel::initMembers
     (
-        uint32_t  pcie_packet_size,
-        device   *dev,
-        bar      *bar,
-        uint32_t  channel_number,
-        buffer   *eventBuffer,
-        buffer   *reportBuffer,
-        LibrorcEsType esType
+        uint32_t              pcie_packet_size,
+        device               *dev,
+        bar                  *bar,
+        uint32_t              channel_number,
+        buffer               *eventBuffer,
+        buffer               *reportBuffer,
+        EventStreamDirection  esType
     )
     {
         m_channel_number = channel_number;
@@ -505,13 +505,13 @@ dma_channel::pushSglistEntryToRAM
         if( (m_eventBuffer==NULL) || (m_reportBuffer==NULL) )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
-        if( m_esType == LIBRORC_ES_TO_HOST )
+        if( m_esType == kEventStreamToHost )
         {
             if(configureBufferDescriptorRam(m_eventBuffer, 0) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
 
-        if( m_esType == LIBRORC_ES_TO_DEVICE )
+        if( m_esType == kEventStreamToDevice)
         { m_outFifoDepth = outFifoDepth(); }
 
         if(configureBufferDescriptorRam(m_reportBuffer, 1) < 0)

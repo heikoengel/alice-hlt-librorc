@@ -40,9 +40,9 @@ namespace LIBRARY_NAME
 {
     high_level_event_stream::high_level_event_stream
     (
-        int32_t       deviceId,
-        int32_t       channelId,
-        LibrorcEsType esType
+        int32_t              deviceId,
+        int32_t              channelId,
+        EventStreamDirection esType
     ) : event_stream( deviceId, channelId, esType )
     {
         m_done             = false;
@@ -52,10 +52,10 @@ namespace LIBRARY_NAME
 
     high_level_event_stream::high_level_event_stream
     (
-        device *dev,
-        bar    *bar,
-        int32_t       channelId,
-        LibrorcEsType esType
+        device               *dev,
+        bar                  *bar,
+        int32_t               channelId,
+        EventStreamDirection  esType
     ) : event_stream( dev, bar, channelId, esType )
     {
         m_done             = false;

@@ -305,12 +305,13 @@ countDown
     cur_time = start_time;
     last_time = start_time;
 
-    while( gettimeofdayDiff(start_time, cur_time) < time )
+    while( librorc::gettimeofdayDiff(start_time, cur_time) < time )
     {
         bar->gettime(&cur_time, 0);
-        if( gettimeofdayDiff(last_time, cur_time) > COUNTDOWN_INTERVAL )
+        double timediff = librorc::gettimeofdayDiff(last_time, cur_time);
+        if( timediff > COUNTDOWN_INTERVAL )
         {
-            cout << "\r" << (int)(time - gettimeofdayDiff(start_time, cur_time))
+            cout << "\r" << (int)(time - timediff)
                  << " sec. remaining..." << flush;
             last_time = cur_time;
         }

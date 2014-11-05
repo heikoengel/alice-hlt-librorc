@@ -37,6 +37,9 @@
 
 #define LIBRARY_NAME librorc
 
+namespace LIBRARY_NAME
+{
+
 enum librorc_verbosity_enum
 {
     LIBRORC_VERBOSE_OFF = 0,
@@ -48,12 +51,11 @@ typedef enum librorc_verbosity_enum librorc_verbosity;
 #define PAGE_MASK ~(sysconf(_SC_PAGESIZE) - 1)
 #define PAGE_SIZE sysconf(_SC_PAGESIZE)
 
-
 typedef enum
 {
-    LIBRORC_ES_TO_HOST,
-    LIBRORC_ES_TO_DEVICE,
-} LibrorcEsType;
+    kEventStreamToHost,
+    kEventStreamToDevice,
+} EventStreamDirection;
 
 
 /**
@@ -80,6 +82,8 @@ gettimeofdayDiff
     }
 
     return (double)((double)diff.tv_sec + (double)((double)diff.tv_usec / 1000000));
+}
+
 }
 
 #endif /** LIBRORC_DEFINES_H */
