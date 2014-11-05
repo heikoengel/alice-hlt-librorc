@@ -43,11 +43,7 @@
 
 namespace LIBRARY_NAME
 {
-    class bar;
-    class device;
     class link;
-    class dma_channel_configurator;
-
 
     /**
      * @brief DMA channel management class
@@ -63,7 +59,6 @@ namespace LIBRARY_NAME
      **/
     class dma_channel
     {
-        friend class dma_channel_configurator;
 
 #define SGCTRL_WRITE_ENABLE (1<<31)
 #define SGCTRL_TARGET_EBDMRAM (0<<30)
@@ -73,13 +68,7 @@ namespace LIBRARY_NAME
         public:
              dma_channel
              (
-                uint32_t  channel_number,
-                uint32_t  pcie_packet_size,
-                device   *dev,
-                bar      *bar,
-                buffer   *eventBuffer,
-                buffer   *reportBuffer,
-                EventStreamDirection esType
+                link *link
              );
 
 
@@ -88,6 +77,25 @@ namespace LIBRARY_NAME
             void enable();
             int disable();
 
+            /**
+             * configure DMA channel registers
+             * This loads the scatter gather lists for ReportBuffer and
+             * EventBuffer into the device and sets all configuration
+             * registers required for DMA operation.
+             * @param pointer to buffer instance to be used as EventBuffer
+             * @param pointer to buffer instance to be used as ReportBuffer
+             * @param esDir event stream data direction flag
+             * @param pcie_packet_size maximum PCIe packet size to be used
+             * @return 0 on success, -1 on error
+             **/
+            int
+            configure
+            (
+                buffer *eventBuffer,
+                buffer *reportBuffer,
+                EventStreamDirection esDir,
+                uint32_t pcie_packet_size
+            );
 
             void
             setBufferOffsetsOnDevice
@@ -149,94 +157,11 @@ namespace LIBRARY_NAME
              **/
             uint64_t getLastEBOffset();
 
-
             /**
              * get last report buffer read offset written to channel
              * @return 64bit offset in report buffer file
              **/
             uint64_t getLastRBOffset();
-
-            /**
-             * set DW in EBDM
-             * @param addr address in EBDM component
-             * @param data data to be writtem
-             **/
-            void
-            setEBDM
-            (
-                uint32_t addr,
-                uint32_t data
-            );
-
-            /**
-             * get DW from EBDM
-             * @param addr address in EBDM component
-             * @return data read from EBDM
-             **/
-            uint32_t getEBDM(uint32_t addr);
-
-            /**
-             * set DW in RBDM
-             * @param addr address in RBDM component
-             * @param data data to be writtem
-             **/
-            void
-            setRBDM
-            (
-                uint32_t addr,
-                uint32_t data
-            );
-
-            /**
-             * get DW from RBDM
-             * @param addr address in RBDM component
-             * @return data read from RBDM
-             **/
-            uint32_t getRBDM(uint32_t addr);
-
-            /**
-             * set DW in EBDRAM
-             * @param addr address in EBDRAM component
-             * @param data data to be writtem
-             **/
-            void
-            setEBDRAM
-            (
-                uint32_t addr,
-                uint32_t data
-            );
-
-            /**
-             * get DW from EBDRAM
-             * @param addr address in EBDRAM component
-             * @return data read from EBDRAM
-             **/
-            uint32_t getEBDRAM(uint32_t addr);
-
-            /**
-             * set DW in RBDRAM
-             * @param addr address in RBDRAM component
-             * @param data data to be writtem
-             **/
-            void
-            setRBDRAM
-            (
-                uint32_t addr,
-                uint32_t data
-            );
-
-            /**
-             * get DW from RBDRAM
-             * @param addr address in RBDRAM component
-             * @return data read from RBDRAM
-             **/
-            uint32_t getRBDRAM(uint32_t addr);
-
-            //TODO: make this protected and mark using classes as friend
-            link* getLink();
-
-
-/** TODO: This is stuff which is slated to be protected soon, but is used by several apps */
 
             /**
              * Set maximum PCIe packet size. This is the maximum payload size for
@@ -260,85 +185,6 @@ namespace LIBRARY_NAME
              * Set Enable Bit of the ReportBufferDescriptorManager
              **/
             void setRbdmEnable( uint32_t enable );
-
-            /**
-             * setDMAConfig set the DMA Controller operation mode
-             * @param config Bit mapping:
-             **/
-            void setDMAConfig(uint32_t config);
-
-            /**
-             * Fill state of the HLT_OUT event descriptor FIFO
-             * @return number of entries in FIFO
-             **/
-            uint32_t outFifoFillState();
-
-            /**
-             * Maximum number of outstanding HLT_OUT event descriptor
-             * FIFO entries (= FIFO depth). Make sure outFifoFillState()
-             * never exceeds outFifoDepth().
-             * @return maximum number of FIFO entries.
-             **/
-            uint32_t outFifoDepth();
-
-            void
-            pushSglistEntryToRAM
-            (
-                uint64_t sg_addr,
-                uint32_t sg_len,
-                uint32_t ctrl
-            );
-
-            /**
-             * announce an event to be read by the HLT-OUT firmware and
-             * pushed out via SIU.
-             * @param sglist vector of librorc_sg_entry containing the
-             * pysical start addresses and lengths of the event blocks.
-             * Use buffer::composeSglistFromBufferSegment to get from
-             * buffer offset and length to this scatter-gather list.
-             **/
-            void
-            announceEvent
-            (
-                 std::vector<ScatterGatherEntry> sglist
-            );
-
-        protected:
-            uint64_t  m_last_ebdm_offset;
-            uint64_t  m_last_rbdm_offset;
-
-            buffer   *m_eventBuffer;
-            buffer   *m_reportBuffer;
-            link     *m_link;
-            bar      *m_bar;
-            uint32_t  m_channel_number;
-            uint32_t  m_outFifoDepth;
-            EventStreamDirection m_esType;
-
-            dma_channel_configurator *m_channelConfigurator;
-
-            void
-            initMembers
-            (
-                uint32_t  pcie_packet_size,
-                device   *dev,
-                bar      *bar,
-                uint32_t  channel_number,
-                buffer   *eventBuffer,
-                buffer   *reportBuffer,
-                EventStreamDirection esType
-            );
-
-            void prepareBuffers();
-
-            /**
-             * Copy scatterlist from librorc::buffer into the BufferDescriptorManager
-             * of the CRORC, to be used either as ReportBuffer or as EventBuffer.
-             * @param buf librorc::buffer instance to be used as destination buffer
-             * @param target_ram 0 for EventBuffer, 1 for ReportBuffer
-             * @return 0 on sucess, -1 on error
-             **/
-            int configureBufferDescriptorRam(buffer *buf, uint32_t target_ram);
 
             /**
              * get number of Scatter Gather entries for the Event buffer
@@ -367,15 +213,6 @@ namespace LIBRARY_NAME
              **/
             uint64_t getRBSize();
 
-            /****** ATOMICS **************************************************************/
-
-            /**
-             * Read out the current DMA configuration
-             * @return DMA Packetizer Configuration and Status
-             **/
-            uint32_t DMAConfig();
-
-
             /**
              * set DMA engine suspend
              * @param value suspend value to be set. set to 1 before
@@ -387,12 +224,85 @@ namespace LIBRARY_NAME
                  uint32_t value
             );
 
-
             /**
              * get current suspend value
              * @return suspend bit [0/1]
              **/
             uint32_t getSuspend();
+
+            /**
+             * Fill state of the HLT_OUT event descriptor FIFO
+             * @return number of entries in FIFO
+             **/
+            uint32_t outFifoFillState();
+
+            /**
+             * Maximum number of outstanding HLT_OUT event descriptor
+             * FIFO entries (= FIFO depth). Make sure outFifoFillState()
+             * never exceeds outFifoDepth().
+             * @return maximum number of FIFO entries.
+             **/
+            uint32_t outFifoDepth();
+
+            /**
+             * announce an event to be read by the HLT-OUT firmware and
+             * pushed out via SIU.
+             * @param sglist vector of librorc_sg_entry containing the
+             * pysical start addresses and lengths of the event blocks.
+             * Use buffer::composeSglistFromBufferSegment to get from
+             * buffer offset and length to this scatter-gather list.
+             **/
+            void
+            announceEvent
+            (
+                 std::vector<ScatterGatherEntry> sglist
+            );
+
+        protected:
+            link     *m_link;
+            uint64_t  m_last_ebdm_offset;
+            uint64_t  m_last_rbdm_offset;
+            uint32_t  m_pci_tag;
+            uint32_t  m_outFifoDepth;
+            EventStreamDirection m_esType;
+
+            /**
+             * Copy scatterlist from librorc::buffer into the BufferDescriptorManager
+             * of the CRORC, to be used either as ReportBuffer or as EventBuffer.
+             * @param buf librorc::buffer instance to be used as destination buffer
+             * @param target_ram 0 for EventBuffer, 1 for ReportBuffer
+             * @return 0 on sucess, -1 on error
+             **/
+            int configureBufferDescriptorRam(buffer *buf, uint32_t target_ram);
+
+            void
+            configureDmaChannelRegisters
+            (
+                buffer *eventBuffer,
+                buffer *reportBuffer,
+                uint32_t pcie_packet_size
+            );
+
+            void
+            pushSglistEntryToRAM
+            (
+                uint64_t sg_addr,
+                uint32_t sg_len,
+                uint32_t ctrl
+            );
+
+            /**
+             * Read out the current DMA configuration
+             * @return DMA Packetizer Configuration and Status
+             **/
+            uint32_t DMAConfig();
+
+            /**
+             * setDMAConfig set the DMA Controller operation mode
+             * @param config Bit mapping:
+             **/
+            void setDMAConfig(uint32_t config);
+
 
             /**
              * struct mapping a ScatterGatherEntry to device registers

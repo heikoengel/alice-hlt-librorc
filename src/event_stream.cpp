@@ -325,20 +325,10 @@ namespace LIBRARY_NAME
         if( m_eventBuffer==NULL || m_reportBuffer==NULL )
         { return -1; }
 
-        try
-        {
-            m_channel = new dma_channel
-                (
-                 m_channelId,
-                 m_pciePacketSize,
-                 m_dev,
-                 m_bar1,
-                 m_eventBuffer,
-                 m_reportBuffer,
-                 m_esType
-                );
-        }
-        catch(...)
+        m_channel = new dma_channel(m_link);
+        int ret = m_channel->configure(
+                m_eventBuffer, m_reportBuffer, m_esType, m_pciePacketSize);
+        if( ret < 0 )
         { return -1; }
 
         m_channel->enable();
