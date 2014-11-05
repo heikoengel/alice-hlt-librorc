@@ -46,6 +46,12 @@ namespace LIBRARY_NAME
 #define DMACTRL_SUSPEND_BIT 10
 #define DMACTRL_SYNC_SWRDPTRS_BIT 31
 
+#define SGCTRL_WRITE_ENABLE (1<<31)
+#define SGCTRL_TARGET_EBDMRAM (0<<30)
+#define SGCTRL_TARGET_RBDMRAM (1<<30)
+#define SGCTRL_EOE_FLAG (1<<0)
+
+
 typedef struct
 __attribute__((__packed__))
 {
@@ -70,9 +76,18 @@ __attribute__((__packed__))
 } DmaChannelConfigRegisters;
 
 
+typedef struct
+__attribute__((__packed__))
+{
+    uint32_t sg_addr_low;  /** lower part of sg address **/
+    uint32_t sg_addr_high; /** higher part of sg address **/
+    uint32_t sg_len;       /** total length of sg entry in bytes **/
+} ScatterGatherEntryRegisterMapping;
+
+
 dma_channel::dma_channel
 (
-    link                 *link
+    link *link
 )
 {
     m_link    = link;

@@ -59,22 +59,18 @@ namespace LIBRARY_NAME
      **/
     class dma_channel
     {
-
-#define SGCTRL_WRITE_ENABLE (1<<31)
-#define SGCTRL_TARGET_EBDMRAM (0<<30)
-#define SGCTRL_TARGET_RBDMRAM (1<<30)
-#define SGCTRL_EOE_FLAG (1<<0)
-
         public:
-             dma_channel
-             (
-                link *link
-             );
+             dma_channel( link *link );
+            ~dma_channel();
 
-
-            virtual ~dma_channel();
-
+            /**
+             * enable DMA engine
+             **/
             void enable();
+
+            /**
+             * disable DMA engine
+             **/
             int disable();
 
             /**
@@ -264,7 +260,6 @@ namespace LIBRARY_NAME
             uint64_t  m_last_rbdm_offset;
             uint32_t  m_pci_tag;
             uint32_t  m_outFifoDepth;
-            EventStreamDirection m_esType;
 
             /**
              * Copy scatterlist from librorc::buffer into the BufferDescriptorManager
@@ -303,17 +298,6 @@ namespace LIBRARY_NAME
              **/
             void setDMAConfig(uint32_t config);
 
-
-            /**
-             * struct mapping a ScatterGatherEntry to device registers
-             **/
-            typedef struct
-            __attribute__((__packed__))
-            {
-                uint32_t sg_addr_low;  /** lower part of sg address **/
-                uint32_t sg_addr_high; /** higher part of sg address **/
-                uint32_t sg_len;       /** total length of sg entry in bytes **/
-            } ScatterGatherEntryRegisterMapping;
     };
 
 }

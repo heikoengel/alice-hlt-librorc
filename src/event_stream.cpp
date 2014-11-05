@@ -173,6 +173,7 @@ namespace LIBRARY_NAME
 
     event_stream::~event_stream()
     {
+        m_channel->disable();
         deleteParts();
 
         if(m_channel_status!=NULL)
