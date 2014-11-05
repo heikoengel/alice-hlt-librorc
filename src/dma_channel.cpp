@@ -51,41 +51,40 @@ namespace LIBRARY_NAME
     /** Class that configures a DMA channel which already has a stored scatter gather list */
     #define DMA_CHANNEL_CONFIGURATOR_ERROR 1
     #define SYNC_SOFTWARE_READ_POINTERS (1 << 31)
-    #define SET_CHANNEL_AS_PCIE_TAG (m_channel_id << 16)
+
+    typedef struct
+    __attribute__((__packed__))
+    {
+        volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
+        volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
+        volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
+        volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
+        volatile uint32_t dma_ctrl;                        /** DMA control register **/
+    } SwReadPointerRegisters;
+
+    typedef struct
+    __attribute__((__packed__))
+    {
+        volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
+        volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
+        volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
+        volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
+        volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
+        volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
+        volatile SwReadPointerRegisters swptrs;            /** struct for read pointers and control register **/
+    } DmaChannelConfigRegisters;
 
     class dma_channel_configurator
     {
         public:
-            typedef struct
-            __attribute__((__packed__))
-            {
-                volatile uint32_t ebdm_software_read_pointer_low;  /** EBDM read pointer low **/
-                volatile uint32_t ebdm_software_read_pointer_high; /** EBDM read pointer high **/
-                volatile uint32_t rbdm_software_read_pointer_low;  /** RBDM read pointer low **/
-                volatile uint32_t rbdm_software_read_pointer_high; /** RBDM read pointer high **/
-                volatile uint32_t dma_ctrl;                        /** DMA control register **/
-            } librorc_buffer_software_pointers;
 
-            typedef struct
-            __attribute__((__packed__))
-            {
-                volatile uint32_t ebdm_n_sg_config;                /** EBDM number of sg entries **/
-                volatile uint32_t ebdm_buffer_size_low;            /** EBDM buffer size low (in bytes) **/
-                volatile uint32_t ebdm_buffer_size_high;           /** EBDM buffer size high (in bytes) **/
-                volatile uint32_t rbdm_n_sg_config;                /** RBDM number of sg entries **/
-                volatile uint32_t rbdm_buffer_size_low;            /** RBDM buffer size low (in bytes) **/
-                volatile uint32_t rbdm_buffer_size_high;           /** RBDM buffer size high (in bytes) **/
-                volatile librorc_buffer_software_pointers swptrs;  /** struct for read pointers nad control register **/
-            } librorc_channel_config;
 
             dma_channel_configurator
             (
                 uint32_t     pcie_packet_size,
-                uint32_t     channel_id,
-                uint32_t     base,
                 buffer      *eventBuffer,
                 buffer      *reportBuffer,
-                bar         *bar,
+                link        *link,
                 dma_channel *dmaChannel
             )
             {
@@ -93,9 +92,8 @@ namespace LIBRARY_NAME
                 m_pcie_packet_size = pcie_packet_size;
                 m_eventBuffer      = eventBuffer;
                 m_reportBuffer     = reportBuffer;
-                m_channel_id       = channel_id;
-                m_base             = base;
-                m_bar              = bar;
+                m_link             = link;
+                m_pci_tag          = (m_link->linkNumber()<<16); // set channel ID as tag
             }
 
             int32_t configure()
@@ -103,31 +101,12 @@ namespace LIBRARY_NAME
                 try
                 {
                     fillConfigurationStructure();
-                    setPciePacketSize(m_pcie_packet_size);
+                    m_dma_channel->setPciePacketSize(m_pcie_packet_size);
                     copyConfigToDevice();
                 }
                 catch(...){ return -1; }
 
                 return(0);
-            }
-
-            void setPciePacketSize(uint32_t packet_size)
-            {
-                m_pcie_packet_size = packet_size;
-                checkPacketSize();
-                /**
-                 * The packet size is located in RORC_REG_DMA_PKT_SIZE:
-                 * max_packet_size = RORC_REG_DMA_PKT_SIZE[9:0]
-                 * packet_size is in bytes, but the FW expects #DWs -> divide size by 4
-                 * write stuff to channel after this
-                 */
-                m_dma_channel->getLink()->setPciReg
-                    (RORC_REG_DMA_PKT_SIZE, ((packet_size >> 2) & 0x3ff) );
-            }
-
-            uint32_t pciePacketSize()
-            {
-                return(m_pcie_packet_size);
             }
 
             void setOffsets
@@ -136,7 +115,7 @@ namespace LIBRARY_NAME
                 uint64_t rboffset
             )
             {
-                librorc_buffer_software_pointers offsets;
+                SwReadPointerRegisters offsets;
                 offsets.ebdm_software_read_pointer_low  = (uint32_t)(eboffset & 0xffffffff);
                 offsets.ebdm_software_read_pointer_high = (uint32_t)(eboffset>>32 & 0xffffffff);
                 offsets.rbdm_software_read_pointer_low  = (uint32_t)(rboffset & 0xffffffff);
@@ -144,17 +123,12 @@ namespace LIBRARY_NAME
 
                 offsets.dma_ctrl =
                     SYNC_SOFTWARE_READ_POINTERS | // sync pointers)
-                    SET_CHANNEL_AS_PCIE_TAG | // set channel ID as tag
+                    m_pci_tag | // set channel ID as tag
                     (1<<DMACTRL_EBDM_ENABLE_BIT)  | // enable EB
                     (1<<DMACTRL_RBDM_ENABLE_BIT)  | // enable RB
                     (1<<0);   // enable DMA engine
 
-                m_bar->memcopy
-                (
-                    (librorc_bar_address)(m_base + RORC_REG_EBDM_SW_READ_POINTER_L),
-                    &offsets,
-                    sizeof(librorc_buffer_software_pointers)
-                );
+                m_link->memcopy( RORC_REG_EBDM_SW_READ_POINTER_L, &offsets, sizeof(offsets) );
             }
 
         protected:
@@ -162,89 +136,40 @@ namespace LIBRARY_NAME
             buffer                 *m_eventBuffer;
             buffer                 *m_reportBuffer;
             uint32_t                m_pcie_packet_size;
-            uint32_t                m_channel_id;
-            librorc_channel_config  m_config;
-            uint32_t                m_base;
-            bar                    *m_bar;
-
-            void checkPacketSize()
-            {
-                /*
-                 * Rules
-                 * - multiple of 4DWs / 16 bytes
-                 * - must not be zero
-                 * - less or equal 512 for HLT_OUT
-                 * - less or equal for HLT_IN
-                 **/
-                if( (m_pcie_packet_size & 0xf) || (m_pcie_packet_size==0) ||
-                        (m_pcie_packet_size>512 && m_dma_channel->m_esType==LIBRORC_ES_TO_DEVICE) ||
-                        (m_pcie_packet_size>256 && m_dma_channel->m_esType==LIBRORC_ES_TO_HOST) )
-                { throw DMA_CHANNEL_CONFIGURATOR_ERROR; }
-            }
+            uint32_t                m_pci_tag;
+            DmaChannelConfigRegisters m_config;
+            link                   *m_link;
 
             void fillConfigurationStructure()
             {
+                uint64_t eb_size = m_eventBuffer->getPhysicalSize();
                 m_config.ebdm_n_sg_config      = m_eventBuffer->getnSGEntries();
-                m_config.ebdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_eventBuffer);
-                m_config.ebdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_eventBuffer);
+                m_config.ebdm_buffer_size_low  = (eb_size & 0xffffffff);
+                m_config.ebdm_buffer_size_high = (eb_size >> 32);
 
+                uint64_t rb_size = m_reportBuffer->getPhysicalSize();
                 m_config.rbdm_n_sg_config      = m_reportBuffer->getnSGEntries();
-                m_config.rbdm_buffer_size_low  = bufferDescriptorManagerBufferSizeLow(m_reportBuffer);
-                m_config.rbdm_buffer_size_high = bufferDescriptorManagerBufferSizeHigh(m_reportBuffer);
+                m_config.rbdm_buffer_size_low  = (rb_size & 0xffffffff);
+                m_config.rbdm_buffer_size_high = (rb_size >> 32);
 
-                m_config.swptrs.ebdm_software_read_pointer_low  = softwareReadPointerLow(m_eventBuffer, m_pcie_packet_size);
-                m_config.swptrs.ebdm_software_read_pointer_high = softwareReadPointerHigh(m_eventBuffer, m_pcie_packet_size);
+                uint64_t ebrdptr = eb_size - m_pcie_packet_size;
+                m_config.swptrs.ebdm_software_read_pointer_low  = (ebrdptr & 0xffffffff);
+                m_config.swptrs.ebdm_software_read_pointer_high = (ebrdptr >> 32);
 
-                m_config.swptrs.rbdm_software_read_pointer_low  = softwareReadPointerLow(m_reportBuffer, sizeof(EventDescriptor));
-                m_config.swptrs.rbdm_software_read_pointer_high = softwareReadPointerHigh(m_reportBuffer, sizeof(EventDescriptor));
+                uint64_t rbrdptr = rb_size - sizeof(EventDescriptor);
+                m_config.swptrs.rbdm_software_read_pointer_low  = (rbrdptr & 0xffffffff);
+                m_config.swptrs.rbdm_software_read_pointer_high = (rbrdptr >> 32);
 
-                m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | SET_CHANNEL_AS_PCIE_TAG;
-            }
-
-            uint32_t
-            bufferDescriptorManagerBufferSizeLow(buffer *buffer)
-            {
-                return(buffer->getPhysicalSize() & 0xffffffff);
-            }
-
-            uint32_t
-            bufferDescriptorManagerBufferSizeHigh(buffer *buffer)
-            {
-                return(buffer->getPhysicalSize() >> 32);
-            }
-
-            uint32_t
-            softwareReadPointerLow
-            (
-                buffer   *buffer,
-                uint32_t  offset
-            )
-            {
-                return( (buffer->getPhysicalSize() - offset) & 0xffffffff );
-            }
-
-            uint32_t
-            softwareReadPointerHigh
-            (
-                buffer   *buffer,
-                uint32_t  offset
-            )
-            {
-                return( (buffer->getPhysicalSize() - offset) >> 32 );
+                m_config.swptrs.dma_ctrl = SYNC_SOFTWARE_READ_POINTERS | m_pci_tag;
             }
 
             void copyConfigToDevice()
             {
-                m_bar->memcopy
-                (
-                    (librorc_bar_address)(m_base+RORC_REG_EBDM_N_SG_CONFIG),
-                    &m_config,
-                    sizeof(librorc_channel_config)
-                );
+                m_link->memcopy( RORC_REG_EBDM_N_SG_CONFIG, &m_config, sizeof(m_config) );
                 DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-                        "Setting ptrs: RBDM=%016lx EBDM=%016lx\n",
-                        (((uint64_t)m_config.swptrs.rbdm_software_read_pointer_high<<32)+m_config.swptrs.rbdm_software_read_pointer_low),
-                        (((uint64_t)m_config.swptrs.ebdm_software_read_pointer_high<<32)+m_config.swptrs.ebdm_software_read_pointer_low));
+                        "Setting ptrs: RBDM=%08x%08x EBDM=%08x%08x\n",
+                        m_config.swptrs.rbdm_software_read_pointer_high, m_config.swptrs.rbdm_software_read_pointer_low,
+                        m_config.swptrs.ebdm_software_read_pointer_high, m_config.swptrs.ebdm_software_read_pointer_low);
             }
     };
 
@@ -390,13 +315,18 @@ dma_channel::setPciePacketSize
     uint32_t packet_size
 )
 {
-    m_channelConfigurator->setPciePacketSize(packet_size);
+    /**
+     * The packet size is located in RORC_REG_DMA_PKT_SIZE[9:0].
+     * packet_size is in bytes, but the FW expects #DWs -> divide size by 4
+     */
+    uint32_t packet_size_words = ((packet_size >> 2) & 0x3ff);
+    m_link->setPciReg(RORC_REG_DMA_PKT_SIZE, packet_size_words );
 }
 
 uint32_t
 dma_channel::pciePacketSize()
 {
-    return m_channelConfigurator->pciePacketSize();
+    return m_link->pciReg(RORC_REG_DMA_PKT_SIZE);
 }
 
 
@@ -547,7 +477,6 @@ dma_channel::pushSglistEntryToRAM
     )
     {
         m_channel_number = channel_number;
-        //m_dev            = dev;
         m_bar            = bar;
         m_eventBuffer    = eventBuffer;
         m_reportBuffer   = reportBuffer;
@@ -570,8 +499,7 @@ dma_channel::pushSglistEntryToRAM
 
         m_channelConfigurator
             = new dma_channel_configurator
-                (pcie_packet_size, channel_number, m_link->base(),
-                    m_eventBuffer, m_reportBuffer, m_bar, this);
+                (pcie_packet_size, m_eventBuffer, m_reportBuffer, m_link, this);
     }
 
 

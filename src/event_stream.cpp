@@ -297,7 +297,7 @@ namespace LIBRARY_NAME
     int
     event_stream::overridePciePacketSize( uint32_t pciePacketSize )
     {
-        if( pciePacketSize % 4 )
+        if( (pciePacketSize == 0) || (pciePacketSize % 4) )
         { return -1; }
         if( m_esType==LIBRORC_ES_TO_HOST )
         {
