@@ -201,9 +201,6 @@ dma_channel::~dma_channel()
     if(m_reportBuffer != NULL)
     { m_reportBuffer->clear(); }
 
-    if(m_sm != NULL)
-    { delete m_sm; }
-
     if(m_link != NULL)
     { delete m_link; }
 }
@@ -481,7 +478,6 @@ dma_channel::pushSglistEntryToRAM
         m_eventBuffer    = eventBuffer;
         m_reportBuffer   = reportBuffer;
         m_link           = new link(bar, channel_number);
-        m_sm             = new sysmon(bar);
         m_esType         = esType;
 
         if(m_reportBuffer != NULL)
@@ -507,9 +503,6 @@ dma_channel::pushSglistEntryToRAM
     void
     dma_channel::prepareBuffers()
     {
-        if( m_channel_number >= m_sm->numberOfChannels() )
-        { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
-
         if( (m_eventBuffer==NULL) || (m_reportBuffer==NULL) )
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 

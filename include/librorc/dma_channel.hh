@@ -35,15 +35,10 @@
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 #include <librorc/link.hh>
-#include <librorc/sysmon.hh>
 #include <librorc/buffer.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
 #define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_FAILED                   2
-#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_PATTERN_GENERATOR_FAILED 3
-#define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_PATTERN_GENERATOR_FAILED  4
-#define LIBRORC_DMA_CHANNEL_ERROR_ENABLE_GTX_FAILED               5
-#define LIBRORC_DMA_CHANNEL_ERROR_CLOSE_GTX_FAILED                6
 
 #define LIBRORC_DMA_CHANNEL_TIMEOUT 10000
 
@@ -53,7 +48,6 @@ namespace LIBRARY_NAME
     class buffer;
     class device;
     class link;
-    class sysmon;
     class dma_channel_configurator;
 
 
@@ -215,18 +209,6 @@ namespace LIBRARY_NAME
             );
 
             /**
-             * memcpy into EBDRAM
-             * @param startaddr address in EBDRAM component
-             * @param dma_desc pointer to dma descriptor
-             * */
-            void
-            memcpyEBDRAMentry
-            (
-                uint32_t                startaddr,
-                struct rorcfs_dma_desc *dma_desc
-            );
-
-            /**
              * get DW from EBDRAM
              * @param addr address in EBDRAM component
              * @return data read from EBDRAM
@@ -243,18 +225,6 @@ namespace LIBRARY_NAME
             (
                 uint32_t addr,
                 uint32_t data
-            );
-
-            /**
-             * memcpy into RBDRAM
-             * @param startaddr address in EBDRAM component
-             * @param dma_desc pointer to dma descriptor
-             * */
-            void
-            memcpyRBDRAMentry
-            (
-                uint32_t                startaddr,
-                struct rorcfs_dma_desc *dma_desc
             );
 
             /**
@@ -342,7 +312,6 @@ namespace LIBRARY_NAME
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
             link     *m_link;
-            sysmon   *m_sm;
             bar      *m_bar;
             uint32_t  m_channel_number;
             uint32_t  m_outFifoDepth;
