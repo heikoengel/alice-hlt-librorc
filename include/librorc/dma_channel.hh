@@ -339,7 +339,6 @@ namespace LIBRARY_NAME
             uint64_t  m_last_ebdm_offset;
             uint64_t  m_last_rbdm_offset;
 
-            device   *m_dev;
             buffer   *m_eventBuffer;
             buffer   *m_reportBuffer;
             link     *m_link;
@@ -366,20 +365,13 @@ namespace LIBRARY_NAME
             void prepareBuffers();
 
             /**
-             * Copy scatterlist from librorc::buffer into the EventBufferDescriptorManager
-             * of the CRORC
-             * @param buf librorc::buffer instance to be used as event destination buffer
-             * @return 0 on sucess, -1 on errors, -EFBIG if more than 2048 sg-entries
+             * Copy scatterlist from librorc::buffer into the BufferDescriptorManager
+             * of the CRORC, to be used either as ReportBuffer or as EventBuffer.
+             * @param buf librorc::buffer instance to be used as destination buffer
+             * @param target_ram 0 for EventBuffer, 1 for ReportBuffer
+             * @return 0 on sucess, -1 on error
              **/
-            int32_t programSglistForEventBuffer(buffer *buf);
-
-            /**
-             * Copy scatterlist from librorc::buffer into the ReportBufferDescriptorManager
-             * of the CRORC
-             * @param buf librorc::buffer instance to be used as report destination buffer
-             * @return 0 on sucess, -1 on errors
-             **/
-            int32_t programSglistForReportBuffer(buffer *buf);
+            int configureBufferDescriptorRam(buffer *buf, uint32_t target_ram);
 
             /**
              * get number of Scatter Gather entries for the Event buffer

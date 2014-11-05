@@ -34,11 +34,11 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
+#include <librorc/bar.hh>
 
 
 namespace LIBRARY_NAME
 {
-    class bar;
     class device;
 
     /**
@@ -134,6 +134,22 @@ namespace LIBRARY_NAME
              * @return data read from PKT
              **/
             uint32_t pciReg(uint32_t addr);
+
+            /**
+             * memcopy data to link registers. This is a wrapper around
+             * bar::memcopy using m_base offset on the target register.
+             * @param target target register in link memory range. Don't add the
+             * link offset manually!
+             * @param source source data
+             * @param num number of bytes to be written
+             **/
+            void
+            memcopy
+            (
+                 librorc_bar_address  target,
+                 const void          *source,
+                 size_t               num
+            );
 
             /**
              * get GTX clock domain status

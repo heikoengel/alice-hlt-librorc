@@ -45,101 +45,8 @@
 namespace LIBRARY_NAME
 {
 
-    /** Class that programs a scatter-gather list into a device */
-    #define BUFFER_SGLIST_PROGRAMMER_ERROR 1
     #define DMACTRL_EBDM_ENABLE_BIT 2
     #define DMACTRL_RBDM_ENABLE_BIT 3
-
-    class buffer_sglist_programmer
-    {
-        public:
-
-            buffer_sglist_programmer
-            (
-                dma_channel *dmaChannel,
-                buffer      *buf,
-                uint32_t     target
-            )
-            {
-                m_buffer         = buf;
-                m_channel        = dmaChannel;
-                m_link           = dmaChannel->getLink();
-                m_bdcfg          = 0;
-                m_sglist         = NULL;
-                m_target_ram     = target;
-            }
-
-            int32_t program()
-            {
-                try
-                {
-                    readSelectedRAMStatus();
-                    CheckSglistFitsIntoDescriptorRAM();
-                    getSglistFromPDA();
-                    programSglistIntoDescriptorRAM();
-                }
-                catch(...){ return -1; }
-
-                return(0);
-            }
-
-
-        protected:
-            uint32_t                 m_target_ram;
-            buffer                  *m_buffer;
-            uint32_t                 m_bdcfg;
-            DMABuffer_SGNode        *m_sglist;
-            link                    *m_link;
-            dma_channel             *m_channel;
-
-            void readSelectedRAMStatus()
-            {
-                switch(m_target_ram)
-                {
-                    case 0:
-                        { m_bdcfg = m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG); }
-                        break;
-                    case 1:
-                        { m_bdcfg = m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG); }
-                        break;
-                    default:
-                    { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
-                }
-            }
-
-            void CheckSglistFitsIntoDescriptorRAM()
-            {
-                if(m_buffer->getnSGEntries() >= (m_bdcfg >> 16) )
-                { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
-            }
-
-            void getSglistFromPDA()
-            {
-                if(PDA_SUCCESS != DMABuffer_getSGList(m_buffer->getPDABuffer(), &m_sglist) )
-                { throw BUFFER_SGLIST_PROGRAMMER_ERROR; }
-            }
-
-            void programSglistIntoDescriptorRAM()
-            {
-                uint64_t i = 0;
-                uint32_t ctrl;
-                // write scatter gather list into BufferDescriptorRAM
-                for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
-                {
-                    ctrl = SGCTRL_WRITE_ENABLE | (uint32_t)i;
-                    ctrl |= (m_target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
-                    m_channel->pushSglistEntryToRAM((uint64_t)sg->d_pointer, sg->length, ctrl);
-                    i++;
-                }
-                // clear trailing descriptor entry
-                ctrl = SGCTRL_WRITE_ENABLE | (uint32_t)i;
-                ctrl |= (m_target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
-                m_channel->pushSglistEntryToRAM(0, 0, ctrl);
-            }
-
-    };
-
-
 
     /** Class that configures a DMA channel which already has a stored scatter gather list */
     #define DMA_CHANNEL_CONFIGURATOR_ERROR 1
@@ -502,13 +409,7 @@ dma_channel::setEBOffset
     uint64_t offset
 )
 {
-    m_bar->memcopy
-    (
-        (librorc_bar_address)(m_link->base() + RORC_REG_EBDM_SW_READ_POINTER_L),
-        &offset,
-        sizeof(offset)
-    );
-
+    m_link->memcopy( RORC_REG_EBDM_SW_READ_POINTER_L, &offset, sizeof(offset) );
     setDMAConfig( DMAConfig() | (1<<31) );
     m_last_ebdm_offset = offset;
 }
@@ -555,15 +456,8 @@ dma_channel::setRBOffset
     uint64_t offset
 )
 {
-    m_bar->memcopy
-    (
-        (librorc_bar_address)(m_link->base()+RORC_REG_RBDM_SW_READ_POINTER_L),
-        &offset,
-        sizeof(offset)
-    );
-
+    m_link->memcopy( RORC_REG_RBDM_SW_READ_POINTER_L, &offset, sizeof(offset) );
     setDMAConfig( DMAConfig() | (1<<31) );
-
     m_last_rbdm_offset = offset;
 }
 
@@ -630,8 +524,7 @@ dma_channel::pushSglistEntryToRAM
     sg_entry.sg_len       = (uint32_t)(sg_len & 0xffffffff);
 
     /** Write librorc_dma_desc to RORC BufferDescriptorManager */
-    m_link->getBar()->memcopy
-        ( (librorc_bar_address)(m_link->base()+RORC_REG_SGENTRY_ADDR_LOW), &sg_entry, sizeof(sg_entry) );
+    m_link->memcopy( RORC_REG_SGENTRY_ADDR_LOW, &sg_entry, sizeof(sg_entry) );
     // write to CTRL may only happen once, so this is not included into the memcopy
     m_link->setPciReg(RORC_REG_SGENTRY_CTRL, ctrl);
 }
@@ -654,7 +547,7 @@ dma_channel::pushSglistEntryToRAM
     )
     {
         m_channel_number = channel_number;
-        m_dev            = dev;
+        //m_dev            = dev;
         m_bar            = bar;
         m_eventBuffer    = eventBuffer;
         m_reportBuffer   = reportBuffer;
@@ -694,14 +587,14 @@ dma_channel::pushSglistEntryToRAM
 
         if( m_esType == LIBRORC_ES_TO_HOST )
         {
-            if(programSglistForEventBuffer(m_eventBuffer) < 0)
+            if(configureBufferDescriptorRam(m_eventBuffer, 0) < 0)
             { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
         }
 
         if( m_esType == LIBRORC_ES_TO_DEVICE )
         { m_outFifoDepth = outFifoDepth(); }
 
-        if(programSglistForReportBuffer(m_reportBuffer) < 0)
+        if(configureBufferDescriptorRam(m_reportBuffer, 1) < 0)
         { throw LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED; }
 
         if( m_channelConfigurator->configure() < 0)
@@ -715,29 +608,41 @@ dma_channel::pushSglistEntryToRAM
     }
 
 
-
-    int32_t
-    dma_channel::programSglistForEventBuffer
+    int
+    dma_channel::configureBufferDescriptorRam
     (
-        buffer *buf
+        buffer *buf,
+        uint32_t target_ram
     )
     {
-        buffer_sglist_programmer
-            programmer(this, buf, 0);
-        return(programmer.program());
-    }
+        if( target_ram > 1 )
+        { return -1; }
 
+        // get maximum number of scatter gather entries supported in DMA channel firmware
+        uint32_t srcreg = (target_ram) ? RORC_REG_RBDM_N_SG_CONFIG : RORC_REG_EBDM_N_SG_CONFIG;
+        uint32_t bdcfg = m_link->pciReg(srcreg);
+        if(buf->getnSGEntries() >= (bdcfg >> 16) )
+        { return -1; }
 
-
-    int32_t
-    dma_channel::programSglistForReportBuffer
-    (
-        buffer *buf
-    )
-    {
-        buffer_sglist_programmer
-            programmer(this, buf, 1);
-        return(programmer.program());
+        // get scatter gather list from PDA
+        std::vector<ScatterGatherEntry> sglist = buf->sgList();
+        std::vector<ScatterGatherEntry>::iterator iter;
+        uint32_t entry_addr = 0;
+        uint32_t ctrl;
+        // write scatter gather list into BufferDescriptorRAM
+        for(iter=sglist.begin(); iter!=sglist.end(); iter++)
+        {
+            // TODO: handle sg->length > 32bit
+            ctrl = SGCTRL_WRITE_ENABLE | entry_addr;
+            ctrl |= (target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
+            pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
+            entry_addr++;
+        }
+        // clear trailing descriptor entry
+        ctrl = SGCTRL_WRITE_ENABLE | entry_addr;
+        ctrl |= (target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
+        pushSglistEntryToRAM(0, 0, ctrl);
+        return 0;
     }
 
 

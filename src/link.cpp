@@ -112,6 +112,17 @@ namespace LIBRARY_NAME
     }
 
 
+    void
+    link::memcopy
+    (
+        librorc_bar_address  target,
+        const void          *source,
+        size_t               num
+    )
+    {
+        m_bar->memcopy(m_base+target, source, num);
+    }
+
 
     void
     link::clearDmaStallCount()
