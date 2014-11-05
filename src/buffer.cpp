@@ -276,6 +276,7 @@ buffer::physAddrToOffset
     return false;
 }
 
+
 bool
 buffer::composeSglistFromBufferSegment
 (
@@ -286,18 +287,26 @@ buffer::composeSglistFromBufferSegment
 {
     uint64_t rem_size = size;
     uint64_t cur_offset = offset;
+    uint64_t page_mask = PAGE_SIZE - 1;
+
     while(rem_size > 0)
     {
         uint64_t phys_addr;
         uint64_t segment_length;
 
-        // get physical address and remaining length of current sg entry
+        // get physical address and remaining segment length of current offset
         if( !offsetToPhysAddr(cur_offset, &phys_addr, &segment_length) )
         {
             DEBUG_PRINTF( PDADEBUG_ERROR, "Failed to convert offset %llx "
                     " to pysical address\n", cur_offset);
             return false;
         }
+
+        // A PCIe read request may never cross a page boundary:
+        // if the physical address is not on a page boundary,
+        // go to the next boundary first
+        if( phys_addr & page_mask )
+        { segment_length = PAGE_SIZE - (phys_addr & page_mask); }
 
         // reduce segment length to a 32bit value if larger
         if( segment_length>>32 )
