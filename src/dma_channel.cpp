@@ -33,10 +33,9 @@
 #include <librorc/dma_channel.hh>
 
 #include <librorc/device.hh>
-#include <librorc/bar_proto.hh>
-#include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 #include <librorc/buffer.hh>
+#include <librorc/link.hh>
 
 #include <pda.h>
 

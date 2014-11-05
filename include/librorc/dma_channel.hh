@@ -34,7 +34,6 @@
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
-#include <librorc/link.hh>
 #include <librorc/buffer.hh>
 
 #define LIBRORC_DMA_CHANNEL_ERROR_CONSTRUCTOR_FAILED              1
@@ -45,7 +44,6 @@
 namespace LIBRARY_NAME
 {
     class bar;
-    class buffer;
     class device;
     class link;
     class dma_channel_configurator;
