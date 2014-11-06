@@ -85,9 +85,13 @@ void print_ddlstate(uint32_t i, crorc *rorc) {
   cout << "DDL" << i << " Status" << endl;
   cout << "\tReset       : " << rorc->m_ddl[i]->getReset() << endl;
   cout << "\tIF-Enable   : " << rorc->m_ddl[i]->getEnable() << endl;
+  cout << "\tLink Full   : " << rorc->m_ddl[i]->linkFull() << endl;
+  cout << "\tDMA Deadtime: " << rorc->m_ddl[i]->getDmaDeadtime() << endl;
+  cout << "\tEventcount  : " << rorc->m_ddl[i]->getEventcount() << endl;
   if (rorc->m_diu[i] != NULL) {
-    cout << "\tLink Up     : " << rorc->m_diu[i]->linkUp() << endl
-         << "\tLast Command: 0x" << hex << rorc->m_diu[i]->lastDiuCommand()
+    cout << "\tLink Up     : " << rorc->m_diu[i]->linkUp() << endl;
+    cout << "\tDDL Deadtime: " << rorc->m_diu[i]->getDdlDeadtime() << endl;
+    cout << "\tLast Command: 0x" << hex << rorc->m_diu[i]->lastDiuCommand()
          << dec << endl;
     cout << "\tLast FESTW: 0x" << hex
          << rorc->m_diu[i]->lastFrontEndStatusWord() << dec << endl;
@@ -98,9 +102,14 @@ void print_ddlstate(uint32_t i, crorc *rorc) {
     cout << "\tLast IFSTW: 0x" << hex
          << rorc->m_diu[i]->lastInterfaceStatusWord() << dec << endl;
   }
-  cout << "\tLink Full   : " << rorc->m_ddl[i]->linkFull() << endl;
-  cout << "\tDeadtime    : " << rorc->m_ddl[i]->getDeadtime() << endl;
-  cout << "\tEventcount  : " << rorc->m_ddl[i]->getEventcount() << endl;
+  if (rorc->m_siu[i] != NULL) {
+    cout << "\tDDL Deadtime: " << rorc->m_siu[i]->getDdlDeadtime() << endl;
+    cout << "\tLast FECW: 0x" << hex
+         << rorc->m_siu[i]->lastFrontEndCommandWord() << dec << endl;
+    cout << "IFFIFOEmpty: " << rorc->m_siu[i]->isInterfaceFifoEmpty() << endl;
+    cout << "IFFIFOFull : " << rorc->m_siu[i]->isInterfaceFifoFull() << endl;
+    cout << "SourceEmpty: " << rorc->m_siu[i]->isSourceEmpty() << endl;
+  }
 }
 
 typedef struct {
@@ -493,11 +502,13 @@ int main(int argc, char *argv[]) {
     for (uint32_t i = ch_start; i <= ch_end; i++) {
       if (rorc->m_diu[i] != NULL) {
         rorc->m_diu[i]->clearAllLastStatusWords();
+        rorc->m_diu[i]->clearDdlDeadtime();
       } else if (rorc->m_siu[i] != NULL) {
         rorc->m_siu[i]->clearLastFrontEndCommandWord();
+        rorc->m_siu[i]->clearDdlDeadtime();
       }
       rorc->m_ddl[i]->clearEventcount();
-      rorc->m_ddl[i]->clearDeadtime();
+      rorc->m_ddl[i]->clearDmaDeadtime();
     }
   }
 

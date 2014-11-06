@@ -52,6 +52,14 @@ namespace LIBRARY_NAME
     }
 
     uint32_t
+    siu::getDdlDeadtime()
+    { return m_link->ddlReg(RORC_REG_DDL_DEADTIME); }
+
+    void
+    siu::clearDdlDeadtime()
+    { m_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0); }
+
+    uint32_t
     siu::lastFrontEndCommandWord()
     {
         return m_link->ddlReg(RORC_REG_DDL_FESTW);

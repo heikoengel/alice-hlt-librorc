@@ -88,19 +88,17 @@ namespace LIBRARY_NAME
             getEnable();
 
             /**
-             * get DDL deadtime
-             * @return deadtime in clock cycles. For HLT_IN this is the
-             * number of cycles where XOFF was active -> should not
-             * increase. For HLT_OUT this is the number of cycles where
-             * DMA data is available but SIU is busy -> should increase.
+             * get DMA deadtime
+             * @return number of cycles when DMA input FIFO was full while
+             * DDL channel was active
              **/
             uint32_t
-            getDeadtime();
+            getDmaDeadtime();
 
             /**
-             * clear DDL deadtime counter */
+             * clear DMA deadtime counter */
             void
-            clearDeadtime();
+            clearDmaDeadtime();
             
             /**
              * get num,ber of events received (DIU) or transmitted (SIU)

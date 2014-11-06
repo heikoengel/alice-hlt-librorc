@@ -166,7 +166,8 @@ main
                         diu->setReset(1);
                         diu->setEnable(0);
                         diu->clearEventcount();
-                        diu->clearDeadtime();
+                        diu->clearDdlDeadtime();
+                        diu->clearDmaDeadtime();
                         diu->clearAllLastStatusWords();
                         delete diu;
 
@@ -186,7 +187,8 @@ main
                         siu->setReset(1);
                         siu->setEnable(0);
                         siu->clearEventcount();
-                        siu->clearDeadtime();
+                        siu->clearDdlDeadtime();
+                        siu->clearDmaDeadtime();
                         delete siu;
                     }
                     break;
@@ -195,7 +197,7 @@ main
                     {
                         librorc::ddl *ddlraw = new librorc::ddl(link);
                         ddlraw->setEnable(0);
-                        ddlraw->clearDeadtime();
+                        ddlraw->clearDmaDeadtime();
                         delete ddlraw;
                     }
                     break;

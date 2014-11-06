@@ -352,7 +352,8 @@ int main
                     {
                         librorc::diu *diu = new librorc::diu(current_link);
                         diu->clearAllLastStatusWords();
-                        diu->clearDeadtime();
+                        diu->clearDdlDeadtime();
+                        diu->clearDmaDeadtime();
                         diu->clearEventcount();
                         delete diu;
                     }
@@ -362,7 +363,8 @@ int main
                     {
                         librorc::siu *siu = new librorc::siu(current_link);
                         siu->clearLastFrontEndCommandWord();
-                        siu->clearDeadtime();
+                        siu->clearDdlDeadtime();
+                        siu->clearDmaDeadtime();
                         siu->clearEventcount();
                         delete siu;
                     }
@@ -371,7 +373,7 @@ int main
                 case RORC_CFG_LINK_TYPE_VIRTUAL:
                     {
                         librorc::ddl *ddl = new librorc::ddl(current_link);
-                        ddl->clearDeadtime();
+                        ddl->clearDmaDeadtime();
                         ddl->clearEventcount();
                         delete ddl;
                     }

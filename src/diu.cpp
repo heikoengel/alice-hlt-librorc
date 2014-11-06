@@ -69,6 +69,13 @@ namespace LIBRARY_NAME
         clearLastInterfaceStatusWord();
     }
 
+    uint32_t
+    diu::getDdlDeadtime()
+    { return m_link->ddlReg(RORC_REG_DDL_DEADTIME); }
+
+    void
+    diu::clearDdlDeadtime()
+    { m_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0); }
 
     /**********************************************************
      *             Protocol Level  DDL Status and Control

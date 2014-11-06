@@ -89,6 +89,19 @@ namespace LIBRARY_NAME
             void
             clearAllLastStatusWords();
 
+            /**
+             * get DDL deadtime
+             * @return deadtime in clock cycles. For HLT_IN this is the
+             * number of cycles where XOFF was active -> should not
+             * increase.
+             **/
+            uint32_t
+            getDdlDeadtime();
+
+            /**
+             * clear DDL deadtime counter */
+            void
+            clearDdlDeadtime();
 
 
             /**********************************************************

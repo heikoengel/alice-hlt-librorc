@@ -60,6 +60,19 @@ namespace LIBRARY_NAME
             linkOpen();
 
             /**
+             * get DDL deadtime
+             * @return deadtime in clock cycles. For HLT_OUT this is the
+             * number of cycles where DMA data is available but SIU is busy
+             * -> should increase.
+             **/
+            uint32_t
+            getDdlDeadtime();
+
+            /**
+             * clear DDL deadtime counter */
+            void
+            clearDdlDeadtime();
+            /**
              * get last FrontEnd Command Word sent to SIU
              * @return last FrontEnd Command Word
              **/

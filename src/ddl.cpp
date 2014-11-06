@@ -64,25 +64,17 @@ namespace LIBRARY_NAME
         m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
-
     uint32_t
     ddl::getReset()
-    {
-        return (m_link->ddlReg(RORC_REG_DDL_CTRL)>>31);
-    }
-
+    { return (m_link->ddlReg(RORC_REG_DDL_CTRL)>>31); }
 
     uint32_t
-    ddl::getDeadtime()
-    {
-        return m_link->ddlReg(RORC_REG_DDL_DEADTIME);
-    }
+    ddl::getDmaDeadtime()
+    { return m_link->ddlReg(RORC_REG_DDL_DMA_DEADTIME); }
 
     void
-    ddl::clearDeadtime()
-    {
-        m_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0);
-    }
+    ddl::clearDmaDeadtime()
+    { m_link->setDdlReg(RORC_REG_DDL_DMA_DEADTIME, 0); }
 
     void
     ddl::setEnable
