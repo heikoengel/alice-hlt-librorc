@@ -183,16 +183,30 @@ namespace LIBRARY_NAME
             void setRbdmEnable( uint32_t enable );
 
             /**
-             * get number of Scatter Gather entries for the Event buffer
-             * @return number of entries
+             * get current number of Scatter Gather entries for the Event buffer
+             * @return current number of entries
              **/
-            uint32_t getEBDMnSGEntries();
+            uint32_t getEBDMNumberOfSgEntries();
 
             /**
-             * get number of Scatter Gather entries for the Report buffer
-             * @return number of entries
+             * get maximum number of Scatter Gather entries supported for the
+             * Event buffer
+             * @return maximum number of entries
              **/
-            uint32_t getRBDMnSGEntries();
+            uint32_t getEBDMMaxSgEntries();
+
+            /**
+             * get current number of Scatter Gather entries for the Report buffer
+             * @return current number of entries
+             **/
+            uint32_t getRBDMNumberOfSgEntries();
+
+            /**
+             * get maximum number of Scatter Gather entries supported for the
+             * Report buffer
+             * @return maximum number of entries
+             **/
+            uint32_t getRBDMMaxSgEntries();
 
             /**
              * get buffer size set in EBDM. This returns the size of the
@@ -269,6 +283,12 @@ namespace LIBRARY_NAME
              * @return 0 on sucess, -1 on error
              **/
             int configureBufferDescriptorRam(buffer *buf, uint32_t target_ram);
+
+            std::vector<ScatterGatherEntry>
+            prepareSgList
+            (
+                 std::vector<ScatterGatherEntry> list
+            );
 
             void
             configureDmaChannelRegisters

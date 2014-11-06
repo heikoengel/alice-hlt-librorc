@@ -103,10 +103,11 @@ namespace LIBRARY_NAME
             DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA buffers");
             return -1;
         }
-        if( initializeDmaChannel() != 0 )
+        int result = initializeDmaChannel();
+        if( result != 0 )
         {
             DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA channel");
-            return -1;
+            return result;
         }
         return 0;
     }
@@ -264,7 +265,7 @@ namespace LIBRARY_NAME
             // ReportBuffer uses by default EventBuffer-ID + 1
             m_reportBuffer =
                 new buffer
-                (m_dev, reportBufferSize, (m_eventBuffer->getID()+1), 1);
+                (m_dev, reportBufferSize, (eventBufferId+1), 1);
         }
         catch(...)
         {
@@ -329,8 +330,8 @@ namespace LIBRARY_NAME
         m_channel = new dma_channel(m_link);
         int ret = m_channel->configure(
                 m_eventBuffer, m_reportBuffer, m_esType, m_pciePacketSize);
-        if( ret < 0 )
-        { return -1; }
+        if( ret != 0 )
+        { return ret; }
 
         m_channel->enable();
         return 0;

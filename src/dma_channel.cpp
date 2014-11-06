@@ -308,19 +308,22 @@ dma_channel::configure
     uint32_t pcie_packet_size
 )
 {
+    int result;
     if( eventBuffer==0 || reportBuffer==0 )
-    { return -1; }
+    { return ENODEV; }
 
     if( esDir == kEventStreamToHost )
     {
-        if( configureBufferDescriptorRam(eventBuffer, 0) < 0)
-        { return -1; }
+        result = configureBufferDescriptorRam(eventBuffer, 0);
+        if( result != 0 )
+        { return result; }
     }
     else
     { m_outFifoDepth = outFifoDepth(); }
 
-    if( configureBufferDescriptorRam(reportBuffer, 1) < 0 )
-    { return -1; }
+    result = configureBufferDescriptorRam(reportBuffer, 1);
+    if( result != 0 )
+    { return result; }
 
     configureDmaChannelRegisters(eventBuffer, reportBuffer, pcie_packet_size);
 
@@ -329,13 +332,23 @@ dma_channel::configure
 
 
 uint32_t
-dma_channel::getEBDMnSGEntries()
-{ return m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff; }
+dma_channel::getEBDMNumberOfSgEntries()
+{ return (m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG) & 0x0000ffff); }
 
 
 uint32_t
-dma_channel::getRBDMnSGEntries()
-{ return m_link->pciReg(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff; }
+dma_channel::getEBDMMaxSgEntries()
+{ return (m_link->pciReg(RORC_REG_EBDM_N_SG_CONFIG) >> 16); }
+
+
+uint32_t
+dma_channel::getRBDMNumberOfSgEntries()
+{ return (m_link->pciReg(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff); }
+
+
+uint32_t
+dma_channel::getRBDMMaxSgEntries()
+{ return (m_link->pciReg(RORC_REG_RBDM_N_SG_CONFIG) >> 16); }
 
 
 uint64_t
@@ -396,6 +409,39 @@ dma_channel::announceEvent
 
 /**************************** protected **********************************/
 
+std::vector<ScatterGatherEntry>
+dma_channel::prepareSgList
+(
+    std::vector<ScatterGatherEntry> list
+)
+{
+    std::vector<ScatterGatherEntry> newlist;
+    std::vector<ScatterGatherEntry>::iterator iter;
+    uint64_t cur_offset;
+    uint64_t rem_size;
+    ScatterGatherEntry entry;
+
+    for(iter=list.begin(); iter!=list.end(); iter++) {
+        cur_offset = iter->pointer;
+        rem_size = iter->length;
+        // split any segment >4GB / 32bit address width
+        // into several smaller segments
+        while( rem_size>>32 )
+        {
+            entry.pointer = cur_offset;
+            entry.length = (((uint64_t)1)<<32) - PAGE_SIZE;
+            newlist.push_back(entry);
+            rem_size -= entry.length;
+            cur_offset += entry.length;
+        }
+        entry.pointer = cur_offset;
+        entry.length = rem_size;
+        newlist.push_back(entry);
+    }
+    return newlist;
+}
+
+
 int
 dma_channel::configureBufferDescriptorRam
 (
@@ -404,23 +450,26 @@ dma_channel::configureBufferDescriptorRam
 )
 {
     if( target_ram > 1 )
-    { return -1; }
+    { return EINVAL; }
 
-    // get maximum number of scatter gather entries supported in DMA channel firmware
-    uint32_t srcreg = (target_ram) ? RORC_REG_RBDM_N_SG_CONFIG : RORC_REG_EBDM_N_SG_CONFIG;
-    uint32_t bdcfg = m_link->pciReg(srcreg);
-    if(buf->getnSGEntries() >= (bdcfg >> 16) )
-    { return -1; }
+    // get maximum number of scatter gather entries supported in DMA channel
+    // firmware
+    uint32_t max_num_sg =
+        (target_ram) ? getRBDMMaxSgEntries() : getEBDMMaxSgEntries();
 
-    // get scatter gather list from PDA
-    std::vector<ScatterGatherEntry> sglist = buf->sgList();
-    std::vector<ScatterGatherEntry>::iterator iter;
+    // get scatter gather list from PDA and prepare it for the DMA channel
+    std::vector<ScatterGatherEntry> sglist = prepareSgList(buf->sgList());
+
+    // make sure scatter gather list fits into RAM
+    if(sglist.size() >= max_num_sg )
+    { return EFBIG; }
+
     uint32_t entry_addr = 0;
     uint32_t ctrl;
     // write scatter gather list into BufferDescriptorRAM
+    std::vector<ScatterGatherEntry>::iterator iter;
     for(iter=sglist.begin(); iter!=sglist.end(); iter++)
     {
-        // TODO: handle sg->length > 32bit
         ctrl = SGCTRL_WRITE_ENABLE | entry_addr;
         ctrl |= (target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
         pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
