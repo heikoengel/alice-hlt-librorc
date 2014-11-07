@@ -36,6 +36,10 @@
 #include "defines.hh"
 #include <librorc/buffer.hh>
 
+
+namespace LIBRARY_NAME
+{
+
 #define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED     1
 #define LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED   2
 #define LIBRORC_EVENT_STREAM_ERROR_BUSY                   4
@@ -47,10 +51,6 @@
 #define SHM_KEY_OFFSET 2048
 /** Shared mem device offset **/
 #define SHM_DEV_OFFSET 32
-
-
-namespace LIBRARY_NAME
-{
 
 class buffer;
 class device;
@@ -200,34 +200,32 @@ typedef struct
             int overridePciePacketSize( uint32_t pciePacketSize );
 
             /** Member Variables */
-            bar         *m_bar1;
-            buffer      *m_eventBuffer;
-            buffer      *m_reportBuffer;
-            device      *m_dev;
-            sysmon      *m_sm;
-            dma_channel *m_channel;
-            link        *m_link;
+            device        *m_dev; // for device IDs
+            bar           *m_bar1; // for gettime()
+            sysmon        *m_sm;
+            buffer        *m_reportBuffer;
+            buffer        *m_eventBuffer; // for event_sanity_checker
+            dma_channel   *m_channel;
+            link          *m_link;
             ChannelStatus *m_channel_status;
 
             int initializeDma(uint64_t eventBufferId, uint64_t eventBufferSize);
             int initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize);
-            void deinitializeDmaBuffers();
-
         protected:
-            uint32_t         m_deviceId;
-            uint32_t         m_channelId;
-            uint32_t         m_fwtype;
-            uint32_t         m_linktype;
-            EventStreamDirection m_esType;
-            uint32_t         m_pciePacketSize;
-            bool             m_called_with_bar;
-            bool            *m_release_map;
-            uint64_t         m_max_rb_entries;
-            pthread_mutex_t  m_releaseEnable;
-            pthread_mutex_t  m_getEventEnable;
+            uint32_t  m_deviceId;
+            uint32_t  m_channelId;
+            uint32_t  m_fwtype;
+            uint32_t  m_linktype;
+            uint32_t  m_pciePacketSize;
+            bool      m_called_with_bar;
+            bool     *m_release_map;
+            uint64_t  m_max_rb_entries;
 
-            volatile uint32_t *m_raw_event_buffer;
-            EventDescriptor   *m_reports;
+            pthread_mutex_t      m_releaseEnable;
+            pthread_mutex_t      m_getEventEnable;
+            volatile uint32_t   *m_raw_event_buffer;
+            EventDescriptor     *m_reports;
+            EventStreamDirection m_esType;
 
             void     initMembers();
             int      initializeDmaChannel();

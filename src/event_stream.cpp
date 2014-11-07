@@ -47,7 +47,6 @@
 #include <librorc/siu.hh>
 #include <librorc/patterngenerator.hh>
 
-#include <librorc/event_sanity_checker.hh>
 
 namespace LIBRARY_NAME
 {
@@ -119,7 +118,6 @@ namespace LIBRARY_NAME
         m_raw_event_buffer = NULL;
         m_eventBuffer      = NULL;
         m_reportBuffer     = NULL;
-        m_channel          = NULL;
         m_release_map      = NULL;
 
         if( !m_called_with_bar )
@@ -140,13 +138,12 @@ namespace LIBRARY_NAME
         /** check if selected channel is available in current FW */
         m_sm = new sysmon(m_bar1);
         if( m_channelId >= m_sm->numberOfChannels() )
-        {
-            throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL;
-        }
-        m_fwtype                  = m_sm->firmwareType();
-        m_link                    = new link(m_bar1, m_channelId);
-        m_channel                 = new dma_channel(m_link);
-        m_linktype                = m_link->linkType();
+        { throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL; }
+
+        m_fwtype   = m_sm->firmwareType();
+        m_link     = new link(m_bar1, m_channelId);
+        m_channel  = new dma_channel(m_link);
+        m_linktype = m_link->linkType();
 
         if( m_channel->getEnable() )
         { throw LIBRORC_EVENT_STREAM_ERROR_BUSY; }
@@ -202,7 +199,12 @@ namespace LIBRARY_NAME
         { delete m_channel; }
         if( m_link )
         { delete m_link; }
-        deinitializeDmaBuffers();
+        if( m_eventBuffer )
+        { delete m_eventBuffer; }
+        if( m_reportBuffer )
+        { delete m_reportBuffer; }
+        if( m_release_map )
+        { delete[] m_release_map; }
         if( !m_called_with_bar )
         {
             if( m_bar1 )
@@ -282,18 +284,6 @@ namespace LIBRARY_NAME
         for(uint64_t i = 0; i < m_max_rb_entries; i++)
         { m_release_map[i] = false; }
         return 0;
-    }
-
-
-    void
-    event_stream::deinitializeDmaBuffers()
-    {
-        if( m_eventBuffer )
-        { delete m_eventBuffer; }
-        if( m_reportBuffer )
-        { delete m_reportBuffer; }
-        if( m_release_map )
-        { delete[] m_release_map; }
     }
 
 
