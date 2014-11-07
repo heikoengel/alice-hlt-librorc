@@ -49,7 +49,6 @@ namespace LIBRARY_NAME
     };
 
 
-
     void
     link::setGtxReg
     (
@@ -61,13 +60,11 @@ namespace LIBRARY_NAME
     }
 
 
-
     uint32_t
     link::gtxReg(uint32_t addr)
     {
         return m_bar->get32(m_base+(1<<RORC_REGFILE_GTX_SEL)+addr);
     }
-
 
 
     void
@@ -81,13 +78,11 @@ namespace LIBRARY_NAME
     }
 
 
-
     uint32_t
     link::ddlReg(uint32_t addr)
     {
         return m_bar->get32(m_base+(1<<RORC_REGFILE_DDL_SEL)+addr);
     }
-
 
 
     void
@@ -99,7 +94,6 @@ namespace LIBRARY_NAME
     {
         m_bar->set32((m_base + addr), data);
     }
-
 
 
     uint32_t
@@ -123,18 +117,6 @@ namespace LIBRARY_NAME
         m_bar->memcopy(m_base+target, source, num);
     }
 
-
-    void
-    link::clearDmaStallCount()
-    {
-        setPciReg(RORC_REG_DMA_STALL_CNT, 0);
-    }
-
-    void
-    link::clearEventCount()
-    {
-        setPciReg(RORC_REG_DMA_N_EVENTS_PROCESSED, 0);
-    }
 
     bool
     link::isGtxDomainReady()
@@ -177,6 +159,7 @@ namespace LIBRARY_NAME
         return ((gtxsyncsts & stsmask) == expected_value);
     }
 
+
     void
     link::clearAllGtxErrorCounters()
     {
@@ -185,73 +168,11 @@ namespace LIBRARY_NAME
         setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
     }
 
+
     uint32_t
     link::linkType()
     {
         return ((pciReg(RORC_REG_GTX_ASYNC_CFG)>>12) & 3);
-    }
-
-
-    uint32_t
-    link::dmaStallCount()
-    {
-        return pciReg(RORC_REG_DMA_STALL_CNT);
-    }
-
-    void
-    link::clearAllDmaCounters()
-    {
-        clearEventCount();
-        clearDmaStallCount();
-    }
-
-    void
-    link::clearBDMPtrMatchFlags()
-    {
-        uint32_t dmacfg = pciReg(RORC_REG_DMA_CTRL);
-        dmacfg |= (1<<11);
-        dmacfg |= (1<<12);
-        setPciReg(RORC_REG_DMA_CTRL, dmacfg);
-    }
-
-
-    uint32_t
-    link::dmaNumberOfEventsProcessed()
-    {
-        return pciReg(RORC_REG_DMA_N_EVENTS_PROCESSED);
-    }
-
-    uint32_t
-    link::getRBDMnSGEntries()
-    {
-        return pciReg(RORC_REG_RBDM_N_SG_CONFIG) & 0x0000ffff;
-    }
-
-    uint64_t
-    link::getEBSize()
-    {
-        return ((uint64_t)pciReg(RORC_REG_EBDM_BUFFER_SIZE_H) << 32) +
-               (uint64_t)pciReg(RORC_REG_EBDM_BUFFER_SIZE_L);
-    }
-
-
-    uint64_t
-    link::getRBSize()
-    {
-        return ((uint64_t)pciReg(RORC_REG_RBDM_BUFFER_SIZE_H) << 32) +
-               (uint64_t)pciReg(RORC_REG_RBDM_BUFFER_SIZE_L);
-    }
-
-    void
-    link::disableDmaEngine()
-    {
-        setPciReg(RORC_REG_DMA_CTRL, 0X00000002);
-    }
-
-    bool
-    link::dmaEngineIsActive()
-    {
-        return ((pciReg(RORC_REG_DMA_CTRL) & 0x1)==0x1);
     }
 
 
@@ -293,11 +214,13 @@ namespace LIBRARY_NAME
         setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
+
     bool
     link::channelIsActive()
     {
         return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<3)) != 0 );
     }
+
 
     bool
     link::flowControlIsEnabled()
@@ -319,17 +242,22 @@ namespace LIBRARY_NAME
         return( (ddlReg(RORC_REG_DDL_CTRL) & (1<<24)) != 0 );
     }
 
+
     void link::setDefaultDataSource()
     { setDataSourceMux(0); }
+
 
     void link::setDataSourceDiu()
     { setDataSourceMux(0); }
 
+
     void link::setDataSourcePcie()
     { setDataSourceMux(0); }
 
+
     void link::setDataSourceDdr3DataReplay()
     { setDataSourceMux(1); }
+
 
     void link::setDataSourcePatternGenerator()
     { setDataSourceMux(2); }

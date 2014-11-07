@@ -145,9 +145,10 @@ namespace LIBRARY_NAME
         }
         m_fwtype                  = m_sm->firmwareType();
         m_link                    = new link(m_bar1, m_channelId);
+        m_channel                 = new dma_channel(m_link);
         m_linktype                = m_link->linkType();
 
-        if( m_link->dmaEngineIsActive() )
+        if( m_channel->getEnable() )
         { throw LIBRORC_EVENT_STREAM_ERROR_BUSY; }
 
         // get default pciePacketSize from device
@@ -327,7 +328,6 @@ namespace LIBRARY_NAME
         if( m_eventBuffer==NULL || m_reportBuffer==NULL )
         { return -1; }
 
-        m_channel = new dma_channel(m_link);
         int ret = m_channel->configure(
                 m_eventBuffer, m_reportBuffer, m_esType, m_pciePacketSize);
         if( ret != 0 )

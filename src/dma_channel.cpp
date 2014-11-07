@@ -108,13 +108,16 @@ dma_channel::enable()
     setDMAConfig( dmacfg );
 }
 
+uint32_t
+dma_channel::getEnable()
+{ return ((DMAConfig() >> DMACTRL_ENABLE_BIT) & 1); }
 
 int
 dma_channel::disable()
 {
     uint32_t timeout = LIBRORC_DMA_CHANNEL_TIMEOUT;
     // suspend DMA transfer only if active
-    if( m_link->dmaEngineIsActive() )
+    if( getEnable() )
     {
         setSuspend(1);
 
@@ -384,6 +387,66 @@ dma_channel::setSuspend
 uint32_t
 dma_channel::getSuspend()
 { return ((DMAConfig()>>DMACTRL_SUSPEND_BIT) & 1); }
+
+
+uint32_t
+dma_channel::readAndClearPtrStallFlags()
+{
+    uint32_t dmacfg = DMAConfig();
+    uint32_t stallflags = ( (dmacfg>>11) & 3 );
+    if ( stallflags != 0 )
+    {
+        dmacfg |= (3<<11);
+        setDMAConfig(dmacfg);
+    }
+    return stallflags;
+}
+
+
+uint32_t
+dma_channel::stallCount()
+{ return m_link->pciReg(RORC_REG_DMA_STALL_CNT); }
+
+
+void
+dma_channel::clearStallCount()
+{ m_link->setPciReg(RORC_REG_DMA_STALL_CNT, 0); }
+
+
+uint32_t
+dma_channel::eventCount()
+{ return m_link->pciReg(RORC_REG_DMA_N_EVENTS_PROCESSED); }
+
+
+void
+dma_channel::clearEventCount()
+{ m_link->setPciReg(RORC_REG_DMA_N_EVENTS_PROCESSED, 0); }
+
+
+void
+dma_channel::setRateLimit
+(
+    uint32_t rate,
+    uint32_t pcie_gen
+)
+{
+    uint32_t clk_freq = (pcie_gen==2) ? 250000000 : 125000000;
+    uint32_t waittime = (rate!=0) ? (clk_freq/rate) : 0;
+    m_link->setPciReg(RORC_REG_DMA_RATE_LIMITER_WAITTIME, waittime);
+}
+
+
+uint32_t
+dma_channel::rateLimit
+(
+    uint32_t pcie_gen
+)
+{
+    uint32_t clk_freq = (pcie_gen==2) ? 250000000 : 125000000;
+    uint32_t waittime = m_link->pciReg(RORC_REG_DMA_RATE_LIMITER_WAITTIME);
+    uint32_t rate = (waittime!=0) ? (clk_freq/waittime) : 0;
+    return rate;
+}
 
 
 /*******************************************************************

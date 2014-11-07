@@ -143,6 +143,7 @@ main
         librorc::link *link = new librorc::link(bar, i);
         librorc::gtx *gtx = new librorc::gtx(link);
         uint32_t link_type = link->linkType();
+        librorc::dma_channel *ch = new librorc::dma_channel(link);
 
 
         if ( do_full_reset )
@@ -225,14 +226,28 @@ main
                 dr->setReset(1);
                 delete dr;
             }
+
+            if( link_type == RORC_CFG_LINK_TYPE_DIU ||
+                    link_type == RORC_CFG_LINK_TYPE_VIRTUAL )
+            {
+                // EventFilter
+                librorc::eventfilter *filter = new librorc::eventfilter(link);
+                filter->disable();
+                filter->setFilterMask(0);
+                delete filter;
+            }
         }
 
         link->setChannelActive(0);
-        link->disableDmaEngine();
-        link->clearAllDmaCounters();
-        link->clearBDMPtrMatchFlags();
+        link->setFlowControlEnable(0);
+        ch->disable();
+        ch->clearStallCount();
+        ch->clearEventCount();
+        ch->readAndClearPtrStallFlags();
+        ch->setRateLimit(0);
 
         delete gtx;
+        delete ch;
         delete link;
     }
 

@@ -53,7 +53,7 @@ namespace LIBRARY_NAME
                 uint32_t  link_number
             );
 
-            virtual ~link(){};
+            ~link(){};
 
 
             /**
@@ -169,66 +169,6 @@ namespace LIBRARY_NAME
              * & !gtx_in_rst
             **/
             void waitForGTXDomain();
-
-
-
-            /**********************************************************
-             *             To be moved to dma_channel
-             * *******************************************************/
-
-            /** clear DMA stall count */
-            void clearDmaStallCount();
-
-            /** clear Event Count */
-            void clearEventCount();
-
-            void clearAllDmaCounters();
-
-            uint32_t dmaStallCount();
-
-            uint32_t dmaNumberOfEventsProcessed();
-
-            /**
-             * get number of Scatter Gather entries for the Event buffer
-             * @return number of entries
-             **/
-            uint32_t getEBDMnSGEntries();
-
-            /**
-             * get number of Scatter Gather entries for the Report buffer
-             * @return number of entries
-             **/
-            uint32_t getRBDMnSGEntries();
-
-            /**
-             * get buffer size set in EBDM. This returns the size of the
-             * DMA buffer set in the DMA enginge and has to be the physical
-             * size of the associated DMA buffer.
-             * @return buffer size in bytes
-             **/
-            uint64_t getEBSize();
-
-            /**
-             * get buffer size set in RBDM. As the RB is not overmapped this size
-             * should be equal to the sysfs file size and buf->getRBSize()
-             * @return buffer size in bytes
-             **/
-            uint64_t getRBSize();
-
-            /**
-             * kill DMA engine.
-             **/
-            void disableDmaEngine();
-
-            /**
-             * check if DMA engine is running.
-             * @return true if running, false if stopped
-             **/
-            bool dmaEngineIsActive();
-
-            void clearBDMPtrMatchFlags();
-
-
 
 
             /**********************************************************

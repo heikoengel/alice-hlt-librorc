@@ -192,42 +192,33 @@ int main
         /** Create DMA channel and bind channel to BAR1 */
         librorc::link *current_link
             = new librorc::link(bar, chID);
+        librorc::dma_channel *ch = new librorc::dma_channel(current_link);
 
         if(do_status)
         {
             cout << "CH" << dec << chID << " - DMA Stall Count: 0x"
-                 << hex << current_link->dmaStallCount()
+                 << hex << ch->stallCount()
                  << "; #Events processed: 0x"
-                 << current_link->dmaNumberOfEventsProcessed()
+                 << ch->eventCount()
                  << endl;
         }
 
         if(do_clear)
         {
-            current_link->clearDmaStallCount();
-            current_link->clearEventCount();
+            ch->clearStallCount();
+            ch->clearEventCount();
+            ch->readAndClearPtrStallFlags();
         }
 
         if ( do_reset )
-        {
-            current_link->setPciReg(RORC_REG_DMA_CTRL, 0x00000002);
-        }
+        { ch->disable(); }
 
         if ( do_ratelimit )
         {
-            uint32_t waittime;
-            uint32_t clk_freq = (pcie_gen==2) ? 250000000 : 125000000;
-            if(ratelimit==0)
-            { waittime = 0; }
-            else
-            {
-                double event_period = 1.0/ratelimit;
-                double clock_period = 1.0/clk_freq;
-                waittime = (uint32_t)(event_period/clock_period);
-            }
-            current_link->setPciReg(RORC_REG_DMA_RATE_LIMITER_WAITTIME, waittime);
+            ch->setRateLimit(ratelimit, pcie_gen);
         }
 
+        delete ch;
         delete current_link;
     }
 

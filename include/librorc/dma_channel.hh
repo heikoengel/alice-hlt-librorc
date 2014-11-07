@@ -74,6 +74,11 @@ namespace LIBRARY_NAME
             int disable();
 
             /**
+             * get enable state of the DMA engine
+             **/
+            uint32_t getEnable();
+
+            /**
              * configure DMA channel registers
              * This loads the scatter gather lists for ReportBuffer and
              * EventBuffer into the device and sets all configuration
@@ -239,6 +244,56 @@ namespace LIBRARY_NAME
              * @return suspend bit [0/1]
              **/
             uint32_t getSuspend();
+
+            /**
+             * read and clear DMA pointer stall flags. These flags get set if
+             * a device-to-DMA-buffer write is delayed because the software read
+             * pointer points to the next write location. This happens when the
+             * software cannot handle the incoming data rate.
+             * @return 2 bit stall flags: if bit 0 is set the EventBuffer pointer
+             * stalled, if bit 1 is set the ReportBuffer pointer stalled.
+             **/
+            uint32_t readAndClearPtrStallFlags();
+
+
+            /**
+             * get DMA stall count. This counter increments if the Multiplexer from
+             * DMA Engine to PCIe Interface is busy. This happens when the overall
+             * data volume summed over all DMA channels is exceeding the PCIe link
+             * capacity.
+             * @return DMA stall count in number of clock cycles
+             **/
+            uint32_t stallCount();
+
+            /**
+             * clear the DMA stall counter
+             **/
+            void clearStallCount();
+
+            /**
+             * get current event count
+             * @return number of events handled
+             **/
+            uint32_t eventCount();
+
+            /**
+             * clear event counter
+             **/
+            void clearEventCount();
+
+            /**
+             * set DMA readout event rate limit
+             * @param rate upper limit on event readout rate in Hz. Set to 0
+             * to disable the rate limit.
+             * @param pcie_gen PCIe generation, allowed values: 1, 2(default)
+             **/
+            void setRateLimit( uint32_t rate, uint32_t pcie_gen = 2 );
+
+            /**
+             * get DMA readout event rate limit
+             * @return event rate limit in Hz, 0 if no limit is set.
+             **/
+            uint32_t rateLimit( uint32_t pcie_gen = 2 );
 
             /**
              * Fill state of the HLT_OUT event descriptor FIFO

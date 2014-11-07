@@ -52,18 +52,16 @@ namespace LIBRARY_NAME
 
 
             /**
-             * enable the filter. Note: the filter has to be enabled to
-             * allow any data to go through, even if no events are dropped.
+             * enable the event filter. Events will only pass according to
+             * the current filter mask setting or when they are marked as
+             * software events
              **/
             void
             enable();
 
 
             /**
-             * disable the filter. An event stream with a disabled filter
-             * will not provide any data to the DMA engine and will not
-             * signal busy/XOFF to the data source. Disable any unused raw
-             * readout channels to avoid backpressure.
+             * disable the filter. Any event will pass the filter.
              **/
             void
             disable();
@@ -107,7 +105,7 @@ namespace LIBRARY_NAME
              * If the result is !=0 the event payload is dropped and
              * the CDH is modified to signal this change.
              * Set to 0 to read out all events, set 1 to read out
-             * every second event, 3 for every third, 7 for every
+             * every second event, 3 for every fourth, etc.
              * fourth, etc...
              **/
             void
