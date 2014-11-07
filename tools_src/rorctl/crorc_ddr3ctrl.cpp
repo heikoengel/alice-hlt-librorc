@@ -46,8 +46,8 @@ using namespace std;
   "-t|--spd-timing         print SPD timing register values\n"                 \
   "-s|--controllerstatus   print controller initialization status\n"           \
   "Data Replay related:\n"                                                     \
-  "-c|--channel [id]       select target replay channel. If no channel is "    \
-  "                        selected all replay options are applied to all "    \
+  "-c|--channel [id]       select target replay channel. If no channel is \n"  \
+  "                        selected all replay options are applied to all \n"  \
   "                        available channels\n"                               \
   "-R|--channelreset [0,1] set/unset replay channel reset\n"                   \
   "-f|--file [path]        file to be loaded into DDR3\n"                      \
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
   if (argc > 1) {
     while (1) {
       int opt =
-          getopt_long(argc, argv, "hn:m:r:tsc:f:O:C:e:DP", long_options, NULL);
+          getopt_long(argc, argv, "hn:m:r:tsc:f:O:C:e:DPR:", long_options, NULL);
       if (opt == -1) {
         break;
       }
@@ -269,7 +269,7 @@ int main(int argc, char *argv[]) {
         cout << "\tWrite Levelling Error: " << ((ddrctrl >> (off + 8)) & 1)
              << endl;
         cout << "\tMax. Controller Capacity: "
-             << sm->ddr3ControllerMaxModuleSize(moduleId) << " Bytes" << endl;
+             << (sm->ddr3ControllerMaxModuleSize(moduleId)<<20) << " MB" << endl;
 
         if (sm->firmwareIsHltHardwareTest()) {
           uint32_t rdcnt, wrcnt;
@@ -297,9 +297,9 @@ int main(int argc, char *argv[]) {
         cout << "SPD Revision     : " << hex << setw(1) << setfill('0')
              << (spdrev >> 4) << "." << (spdrev & 0x0f) << endl;
         cout << "DRAM Device Type : 0x" << hex << setw(2) << setfill('0')
-             << sm->ddr3SpdRead(moduleId, 0x02) << endl;
+             << (int)sm->ddr3SpdRead(moduleId, 0x02) << endl;
         cout << "Module Type      : 0x" << hex << setw(2) << setfill('0')
-             << sm->ddr3SpdRead(moduleId, 0x03) << endl;
+             << (int)sm->ddr3SpdRead(moduleId, 0x03) << endl;
         uint32_t density = sm->ddr3SpdRead(moduleId, 0x04);
         uint32_t ba_bits = (((density >> 4) & 0x7) + 3);
         uint32_t sd_cap = 256 * (1 << (density & 0xf));
@@ -387,7 +387,7 @@ int main(int argc, char *argv[]) {
 
   // any DataReplay related options set?
   if (sSetOneshot || sSetContinuous || sSetChannelEnable || sSetDisableReplay ||
-      sFileToDdr3) {
+      sFileToDdr3 || sSetReplayStatus ) {
 
     uint32_t nchannels = getNumberOfReplayChannels(bar, sm);
     uint32_t startChannel, endChannel;
