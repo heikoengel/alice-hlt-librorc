@@ -237,9 +237,11 @@ buffer::offsetToPhysAddr
     uint64_t *rem_sg_length
 )
 {
-    std::vector<ScatterGatherEntry>::iterator iter;
+    std::vector<ScatterGatherEntry>::iterator iter, end;
     uint64_t reference_offset = 0;
-    for( iter=m_sglist_vector.begin(); iter!=m_sglist_vector.end(); iter++ )
+    iter = m_sglist_vector.begin();
+    end = m_sglist_vector.end();
+    while( iter != end )
     {
         if( offset>=reference_offset && offset<(reference_offset+iter->length) )
         {
@@ -249,6 +251,7 @@ buffer::offsetToPhysAddr
         }
         else
         { reference_offset += iter->length; }
+        iter++;
     }
     return false;
 }
@@ -261,9 +264,11 @@ buffer::physAddrToOffset
     uint64_t *offset
 )
 {
-    std::vector<ScatterGatherEntry>::iterator iter;
+    std::vector<ScatterGatherEntry>::iterator iter, end;
     uint64_t reference_offset = 0;
-    for( iter=m_sglist_vector.begin(); iter!=m_sglist_vector.end(); iter++ )
+    iter = m_sglist_vector.begin();
+    end = m_sglist_vector.end();
+    while( iter != end )
     {
         if( phys_addr>=iter->pointer && phys_addr<(iter->pointer+iter->length) )
         {
@@ -272,6 +277,7 @@ buffer::physAddrToOffset
         }
         else
         { reference_offset += iter->length; }
+        iter++;
     }
     return false;
 }

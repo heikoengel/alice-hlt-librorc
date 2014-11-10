@@ -476,15 +476,18 @@ int main(int argc, char *argv[]) {
 
       if (sFileToDdr3) {
         uint32_t next_addr = ddr3_ch_start_addr;
-        vector<string>::iterator iter;
+        vector<string>::iterator iter, end;
+        iter = list_of_filenames.begin();
+        end = list_of_filenames.end();
 
         /** iterate over list of files */
-        for (iter = list_of_filenames.begin(); iter != list_of_filenames.end();
-             iter++) {
-          bool is_last_event = (iter == (list_of_filenames.end() - 1));
-          const char *filename = (*iter).c_str();
-          next_addr =
-              fileToRam(sm, channelId, filename, next_addr, is_last_event);
+        while( iter != end )
+        {
+            bool is_last_event = (iter == (list_of_filenames.end() - 1));
+            const char *filename = (*iter).c_str();
+            next_addr =
+                fileToRam(sm, channelId, filename, next_addr, is_last_event);
+            iter++;
         }
         cout << "Done." << endl;
       }

@@ -458,14 +458,17 @@ dma_channel::announceEvent
     std::vector<ScatterGatherEntry> sglist
 )
 {
-    std::vector<ScatterGatherEntry>::iterator iter;
-    for(iter=sglist.begin(); iter!=sglist.end(); iter++)
+    std::vector<ScatterGatherEntry>::iterator iter, end;
+    iter = sglist.begin();
+    end = sglist.end();
+    while( iter != end )
     {
         uint32_t ctrl = SGCTRL_WRITE_ENABLE | SGCTRL_TARGET_EBDMRAM;
         // add EOE flag for last entry
         if( (iter+1) == sglist.end() )
         { ctrl |= SGCTRL_EOE_FLAG; }
         pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
+        iter++;
     }
 }
 
@@ -479,12 +482,15 @@ dma_channel::prepareSgList
 )
 {
     std::vector<ScatterGatherEntry> newlist;
-    std::vector<ScatterGatherEntry>::iterator iter;
+    std::vector<ScatterGatherEntry>::iterator iter, end;
+    iter = list.begin();
+    end = list.end();
     uint64_t cur_offset;
     uint64_t rem_size;
     ScatterGatherEntry entry;
 
-    for(iter=list.begin(); iter!=list.end(); iter++) {
+    while( iter != end )
+    {
         cur_offset = iter->pointer;
         rem_size = iter->length;
         // split any segment >4GB / 32bit address width
@@ -500,6 +506,7 @@ dma_channel::prepareSgList
         entry.pointer = cur_offset;
         entry.length = rem_size;
         newlist.push_back(entry);
+        iter++;
     }
     return newlist;
 }
@@ -530,13 +537,16 @@ dma_channel::configureBufferDescriptorRam
     uint32_t entry_addr = 0;
     uint32_t ctrl;
     // write scatter gather list into BufferDescriptorRAM
-    std::vector<ScatterGatherEntry>::iterator iter;
-    for(iter=sglist.begin(); iter!=sglist.end(); iter++)
+    std::vector<ScatterGatherEntry>::iterator iter, end;
+    iter = sglist.begin();
+    end = sglist.end();
+    while( iter != end )
     {
         ctrl = SGCTRL_WRITE_ENABLE | entry_addr;
         ctrl |= (target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
         pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
         entry_addr++;
+        iter++;
     }
     // clear trailing descriptor entry
     ctrl = SGCTRL_WRITE_ENABLE | entry_addr;
