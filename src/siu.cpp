@@ -34,15 +34,8 @@
 namespace LIBRARY_NAME
 {
 
-    siu::siu( link *link ) : ddl(link)
-    {
-        m_link = link;
-    }
-
-    siu::~siu()
-    {
-        m_link = NULL;
-    }
+    siu::siu( link *link ) : ddl(link){}
+    siu::~siu(){}
 
     bool
     siu::linkOpen()

@@ -112,7 +112,6 @@ namespace LIBRARY_NAME
             isSourceEmpty();
 
         protected:
-            link *m_link;
     };
 }
 #endif

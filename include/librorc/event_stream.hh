@@ -108,7 +108,7 @@ typedef struct
              );
 #endif
 
-            ~event_stream();
+            virtual ~event_stream();
 
             /**
              * Check if selected channel is available in current

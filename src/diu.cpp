@@ -33,16 +33,8 @@
 
 namespace LIBRARY_NAME
 {
-    diu::diu( link *link ) : ddl(link)
-    {
-        m_link = link;
-    }
-
-
-    diu::~diu()
-    {
-        m_link = NULL;
-    }
+    diu::diu( link *link ) : ddl(link){}
+    diu::~diu(){}
 
 
     bool

@@ -47,7 +47,7 @@ namespace LIBRARY_NAME
     {
         public:
             ddl( link *link );
-            ~ddl();
+            virtual ~ddl();
 
             /**
              * check if DDL link is full

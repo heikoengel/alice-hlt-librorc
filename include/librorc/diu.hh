@@ -344,8 +344,6 @@ namespace LIBRARY_NAME
 
 
         protected:
-            link *m_link;
-
             /**
              * HLT_IN: wait for DIU StatusWord. This is called by
              * waitFor***StatusWord().
