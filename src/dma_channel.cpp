@@ -91,7 +91,7 @@ dma_channel::dma_channel
 )
 {
     m_link    = link;
-    m_pci_tag = m_link->linkNumber(); // use channel ID as PCIe tag
+    m_pci_tag = (m_link->linkNumber() << 16); // use channel ID as PCIe tag
 }
 
 
