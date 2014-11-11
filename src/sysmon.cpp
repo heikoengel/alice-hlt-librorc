@@ -1015,7 +1015,7 @@ namespace LIBRARY_NAME
             throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID;
         }
 
-        uint32_t controller_select = (channel>6) ? 1 : 0;
+        uint32_t controller_select = (channel>5) ? 1 : 0;
         uint8_t channel_select = controller_select ?
             (1<<(channel-6)) : (1<<channel);
 
@@ -1049,8 +1049,10 @@ namespace LIBRARY_NAME
 
         /** wait for write_done */
         uint32_t timeout = LIBRORC_SYSMON_DR_TIMEOUT;
-        while( !(m_bar->get32(RORC_REG_DATA_REPLAY_CTRL) &
-                LIBRORC_DATA_REPLAY_WRITE_DONE) )
+        uint32_t write_done_flag = (controller_select)
+            ? LIBRORC_DATA_REPLAY_C1_WRITE_DONE :
+            LIBRORC_DATA_REPLAY_C0_WRITE_DONE;
+        while( !(m_bar->get32(RORC_REG_DATA_REPLAY_CTRL) & write_done_flag) )
         {
             if (timeout==0)
             { throw LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT; }

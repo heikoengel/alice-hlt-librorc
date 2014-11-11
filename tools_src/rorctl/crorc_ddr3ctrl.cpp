@@ -39,8 +39,8 @@ using namespace std;
   "-h|--help               show this help\n"                                   \
   "-n|--device [id]        select target device (required)\n"                  \
   "Module Status related:\n"                                                   \
-  "-m|--module [0,1]       select target DDR3 module. If no module is "        \
-  "                        selected all module options are applied to both "   \
+  "-m|--module [0,1]       select target DDR3 module. If no module is \n"      \
+  "                        selected all module options are applied to both \n" \
   "                        modules\n"                                          \
   "-r|--modulereset [0,1]  set/unset module reset\n"                           \
   "-t|--spd-timing         print SPD timing register values\n"                 \
@@ -252,7 +252,10 @@ int main(int argc, char *argv[]) {
 
       if (sStatus) {
         uint32_t off = (16 * moduleId);
-        cout << endl << "Controller " << moduleId << " Status:" << endl;
+        bool OK = ((ddrctrl & 0x1ff) == 0x9e);
+        const char* status = (OK) ? "OK" : "ERROR";
+        cout << endl << "Controller " << moduleId << " Status: "
+             << status << endl;
         cout << "\tReset: " << ((ddrctrl >> off) & 1) << endl;
         cout << "\tPhyInitDone: " << ((ddrctrl >> (off + 1)) & 1) << endl;
         cout << "\tPLL Lock: " << ((ddrctrl >> (off + 2)) & 1) << endl;
@@ -269,7 +272,7 @@ int main(int argc, char *argv[]) {
         cout << "\tWrite Levelling Error: " << ((ddrctrl >> (off + 8)) & 1)
              << endl;
         cout << "\tMax. Controller Capacity: "
-             << (sm->ddr3ControllerMaxModuleSize(moduleId)<<20) << " MB" << endl;
+             << (sm->ddr3ControllerMaxModuleSize(moduleId)>>20) << " MB" << endl;
 
         if (sm->firmwareIsHltHardwareTest()) {
           uint32_t rdcnt, wrcnt;
@@ -392,12 +395,12 @@ int main(int argc, char *argv[]) {
     uint32_t nchannels = getNumberOfReplayChannels(bar, sm);
     uint32_t startChannel, endChannel;
 
-    if (channelId >= nchannels) {
-      cerr << "ERROR: invalid channel selected: " << channelId << endl;
-      abort();
-    } else if (channelId == 0xffffffff) {
+    if (channelId == 0xffffffff) {
       startChannel = 0;
       endChannel = nchannels - 1;
+    } else if (channelId >= nchannels) {
+      cerr << "ERROR: invalid channel selected: " << channelId << endl;
+      abort();
     } else {
       startChannel = channelId;
       endChannel = channelId;
@@ -426,7 +429,7 @@ int main(int argc, char *argv[]) {
        * DDLs 0 to 5 are fed from SO-DIMM 0
        * DDLs 6 to 11 are fed from DO-DIMM 1
        **/
-      uint32_t controllerId = (channelId < 6) ? 0 : 1;
+      uint32_t controllerId = (chId < 6) ? 0 : 1;
 
       /** skip channel if no DDR3 module was detected */
       if (!module_size[controllerId]) {
@@ -443,17 +446,18 @@ int main(int argc, char *argv[]) {
        * 1/(8*8) = 2^(-6) => shift right by 6 bit
        **/
       uint32_t ddr3_ch_start_addr;
+      uint32_t module_ch = (controllerId==0) ? chId : (chId-6);
       if (max_ctrl_size[controllerId] >= module_size[controllerId]) {
-        ddr3_ch_start_addr = channelId * (module_size[controllerId] >> 6);
+        ddr3_ch_start_addr = module_ch * (module_size[controllerId] >> 6);
       } else {
-        ddr3_ch_start_addr = channelId * (max_ctrl_size[controllerId] >> 6);
+        ddr3_ch_start_addr = module_ch * (max_ctrl_size[controllerId] >> 6);
       }
 
       /** create link instance */
-      librorc::link *link = new librorc::link(bar, channelId);
+      librorc::link *link = new librorc::link(bar, chId);
 
       if (!link->isGtxDomainReady()) {
-        cout << "WARNING: Channel " << channelId
+        cout << "WARNING: Channel " << chId
              << " clock not ready - skipping..." << endl;
         continue;
       }
@@ -483,10 +487,10 @@ int main(int argc, char *argv[]) {
         /** iterate over list of files */
         while( iter != end )
         {
-            bool is_last_event = (iter == (list_of_filenames.end() - 1));
+            bool is_last_event = (iter == (end - 1));
             const char *filename = (*iter).c_str();
             next_addr =
-                fileToRam(sm, channelId, filename, next_addr, is_last_event);
+                fileToRam(sm, chId, filename, next_addr, is_last_event);
             iter++;
         }
         cout << "Done." << endl;
@@ -515,7 +519,7 @@ int main(int argc, char *argv[]) {
           dr->setReset(0);
         } else if (!dr->isEnabled()) {
           // not in reset, not enabled, this is where we want to end
-          cout << "Channel " << channelId << " is not enabled, skipping..."
+          cout << "Channel " << chId << " is not enabled, skipping..."
                << endl;
         } else {
           // enable OneShot if not already enabled
@@ -540,7 +544,7 @@ int main(int argc, char *argv[]) {
       } // sSetDisableReplay
 
       if (sSetReplayStatus) {
-        printChannelStatus(channelId, dr, ddr3_ch_start_addr);
+        printChannelStatus(chId, dr, ddr3_ch_start_addr);
       }
 
     } // for-loop over selected channels
@@ -622,7 +626,20 @@ uint32_t fileToRam(librorc::sysmon *sm, uint32_t channelId,
                                      channelId,      // channel
                                      is_last_event); // last event
   } catch (int e) {
-    cout << "Exception " << e << " while writing event to RAM:" << endl
+      const char* reason;
+    switch(e) {
+        case LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT:
+            reason = "Timeout";
+            break;
+        case LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID:
+            reason = "Invalid Channel";
+            break;
+        default:
+            reason = "unknown";
+            break;
+    }
+
+    cout << reason << " Exception (" << e << ") while writing event to RAM:" << endl
          << "File " << filename << " Channel " << channelId << " Addr " << hex
          << addr << dec << " LastEvent " << is_last_event << endl;
     abort();
