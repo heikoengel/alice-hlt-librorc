@@ -78,10 +78,6 @@ namespace LIBRARY_NAME
     {
         uint32_t firmware_revision
             = m_bar->get32(RORC_REG_FIRMWARE_REVISION);
-
-        if(firmware_revision == 0xffffffff)
-        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
-
         return firmware_revision;
     }
 
@@ -92,10 +88,6 @@ namespace LIBRARY_NAME
     {
         uint32_t date
             = m_bar->get32(RORC_REG_FIRMWARE_DATE);
-
-        if(date == 0xffffffff)
-        { throw LIBRORC_SYSMON_ERROR_PCI_PROBLEM; }
-
         return date;
     }
 
@@ -833,6 +825,35 @@ namespace LIBRARY_NAME
         return m_i2c_hsmode;
     }
 
+
+    void
+    sysmon::ddr3SetReset
+    (
+        uint32_t controller,
+        uint32_t value
+    )
+    {
+        uint32_t ctrl = controller&1;
+        uint32_t ddrctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        /** clear reset bits */
+        ddrctrl &= ~(1<<(16*ctrl));
+        /** set new values */
+        ddrctrl |= (value&1)<<(16*ctrl);
+        /** write back new value */
+        m_bar->set32(RORC_REG_DDR3_CTRL, ddrctrl);
+    }
+
+
+    uint32_t
+    sysmon::ddr3GetReset
+    (
+        uint32_t controller
+    )
+    {
+        uint32_t ddrctrl = m_bar->get32(RORC_REG_DDR3_CTRL);
+        uint32_t ctrl = controller&1;
+        return ((ddrctrl>>(16*ctrl)) & 1);
+    }
 
 
     uint32_t

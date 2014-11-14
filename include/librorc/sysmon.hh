@@ -413,6 +413,19 @@ namespace LIBRARY_NAME
             i2c_get_mode();
 
 
+            void
+            ddr3SetReset
+            (
+                uint32_t controller,
+                uint32_t value
+            );
+
+            uint32_t
+            ddr3GetReset
+            (
+                uint32_t controller
+            );
+
             /**
              * write event to DDR3 memory
              * @param event_data pointer to data
