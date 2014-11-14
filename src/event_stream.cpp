@@ -323,6 +323,8 @@ namespace LIBRARY_NAME
         if( ret != 0 )
         { return ret; }
 
+        m_reportBuffer->clear();
+
         m_channel->enable();
         return 0;
     }
