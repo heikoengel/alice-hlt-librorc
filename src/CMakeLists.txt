@@ -1,27 +1,31 @@
-set( LIBRORC_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/src/device.cpp"
-"${LIBRORC_SOURCE_DIR}/src/bar.cpp"
-"${LIBRORC_SOURCE_DIR}/src/buffer.cpp"
-"${LIBRORC_SOURCE_DIR}/src/device.cpp"
-"${LIBRORC_SOURCE_DIR}/src/dma_channel.cpp"
-"${LIBRORC_SOURCE_DIR}/src/link.cpp"
-"${LIBRORC_SOURCE_DIR}/src/flash.cpp"
-"${LIBRORC_SOURCE_DIR}/src/sysmon.cpp"
-"${LIBRORC_SOURCE_DIR}/src/refclk.cpp"
-"${LIBRORC_SOURCE_DIR}/src/microcontroller.cpp"
-"${LIBRORC_SOURCE_DIR}/src/sim_bar.cpp"
-"${LIBRORC_SOURCE_DIR}/src/event_stream.cpp"
-"${LIBRORC_SOURCE_DIR}/src/high_level_event_stream.cpp"
-"${LIBRORC_SOURCE_DIR}/src/event_sanity_checker.cpp"
-"${LIBRORC_SOURCE_DIR}/src/patterngenerator.cpp"
-"${LIBRORC_SOURCE_DIR}/src/fastclusterfinder.cpp"
-"${LIBRORC_SOURCE_DIR}/src/datareplaychannel.cpp"
-"${LIBRORC_SOURCE_DIR}/src/ddl.cpp"
-"${LIBRORC_SOURCE_DIR}/src/diu.cpp"
-"${LIBRORC_SOURCE_DIR}/src/siu.cpp"
-"${LIBRORC_SOURCE_DIR}/src/gtx.cpp"
-"${LIBRORC_SOURCE_DIR}/src/eventfilter.cpp"
-)
+PROJECT(librorc)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
-add_library(LIBRORC_OBJECTS OBJECT ${LIBRORC_LIBRARY_SOURCE})
-set_target_properties( LIBRORC_OBJECTS PROPERTIES POSITION_INDEPENDENT_CODE ON )
+SET( LIBRORC_LIBRARY_SOURCE
+  bar.cpp
+  buffer.cpp
+  datareplaychannel.cpp
+  ddl.cpp
+  device.cpp
+  diu.cpp
+  dma_channel.cpp
+  event_sanity_checker.cpp
+  event_stream.cpp
+  eventfilter.cpp
+  fastclusterfinder.cpp
+  flash.cpp
+  gtx.cpp
+  high_level_event_stream.cpp
+  link.cpp
+  microcontroller.cpp
+  patterngenerator.cpp
+  refclk.cpp
+  sim_bar.cpp
+  siu.cpp
+  sysmon.cpp
+  )
+
+ADD_LIBRARY(rorc SHARED ${LIBRORC_LIBRARY_SOURCE})
+TARGET_LINK_LIBRARIES( rorc pthread pci ${EXTRA_LIBS})
+SET_TARGET_PROPERTIES( rorc PROPERTIES VERSION ${VERSION} SOVERSION 0)
+INSTALL(TARGETS rorc LIBRARY DESTINATION lib)

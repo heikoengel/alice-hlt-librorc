@@ -2,7 +2,6 @@
 
 VERSION=`cat CMakeLists.txt | grep "set(VERSION" | awk '{print $2}' | cut -d")" -f1 | cut -d"\"" -f2`
 INSTALL_PATH="/usr/"
-MODE="SHARED"
 BASEDIR=`pwd`/`dirname $0`
 NOSHM="-DSHM=ON"
 
@@ -10,7 +9,6 @@ helptext()
 {
     echo "Valid options are :"
     echo "--prefix=[path_to_install_locations]"
-    echo "--static"
     echo "--noshm"
 }
 
@@ -23,10 +21,6 @@ do
     case "$COMMAND" in
         --prefix)
             INSTALL_PATH=$VALUE
-        ;;
-
-        --static)
-            MODE="STATIC"
         ;;
 
         --noshm)
@@ -51,18 +45,14 @@ mkdir -p $BASEDIR/build
 mkdir -p $BASEDIR/build/debug
 mkdir -p $BASEDIR/build/release
 mkdir -p $BASEDIR/build/sim_debug
-mkdir -p $BASEDIR/build/sim_release
 
 cd $BASEDIR/build/release
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release $NOSHM -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release $NOSHM ../../
 
 cd $BASEDIR/build/debug
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug $NOSHM -DLIBMODE=$MODE ../../
-
-cd $BASEDIR/build/sim_release
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DMODELSIM=ON $NOSHM -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug $NOSHM ../../
 
 cd $BASEDIR/build/sim_debug
-cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DMODELSIM=ON $NOSHM -DLIBMODE=$MODE ../../
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH -DCMAKE_BUILD_TYPE=Debug -DMODELSIM=ON $NOSHM ../../
 
 cd $BASEDIR

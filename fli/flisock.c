@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <mti.h>                    // MTI Headers & Prototypes
+#include "mti.h"                    // MTI Headers & Prototypes
 
 //========================== Sockets Definitions ======================
 #include <unistd.h>

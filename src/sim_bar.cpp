@@ -33,7 +33,6 @@
 #include <librorc/sim_bar.hh>
 #include <librorc/buffer.hh>
 
-#include <mti.h>
 #include <pda.h>
 #include <pthread.h>
 

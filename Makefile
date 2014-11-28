@@ -1,4 +1,4 @@
-TARGETS=release debug sim_release sim_debug
+TARGETS=release debug sim_debug
 
 NPROCS=1
 OS=$(shell uname -s)

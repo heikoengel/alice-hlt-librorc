@@ -1,6 +1,3 @@
-set( FLISOCK_LIBRARY_SOURCE
-"${LIBRORC_SOURCE_DIR}/fli/flisock.c"
-)
-
-add_library(FLI_OBJECTS OBJECT ${FLISOCK_LIBRARY_SOURCE})
-set_target_properties( FLI_OBJECTS PROPERTIES POSITION_INDEPENDENT_CODE ON )
+project(flisock)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+add_library(fli SHARED flisock.c)
