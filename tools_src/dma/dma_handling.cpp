@@ -75,7 +75,7 @@ evaluateArguments(int argc, char *argv[])
     ret.esType = librorc::kEventStreamToHost;
     ret.datasource = ES_SRC_NONE;
 
-    if( 0 == strcmp(app_name, "dma_out") )
+    if( 0 == strncmp(app_name, "dma_out", strlen("dma_out")) )
     {
         ret.esType = librorc::kEventStreamToDevice;
         ret.datasource = ES_SRC_NONE;
@@ -267,7 +267,7 @@ prepareEventStream
     { hlEventStream = new librorc::high_level_event_stream(dev, bar, opts.channelId, opts.esType); }
     catch( int error )
     {
-        cout << "ERROR: failed to initialize event stream." << endl;
+        cout << "ERROR: failed to initialize event stream: " << error << endl;
         return(NULL);
     }
 
@@ -715,7 +715,9 @@ unconfigureDataSource
     DMAOptions opts
 )
 {
-    hlEventStream->m_link->setFlowControlEnable(0);
+    if( opts.esType==librorc::kEventStreamToHost )
+    { hlEventStream->m_link->setFlowControlEnable(0); }
+
     hlEventStream->m_link->setChannelActive(0);
 
     unconfigureFcf(hlEventStream, opts);

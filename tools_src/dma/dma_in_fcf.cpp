@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
     dr->setReset(1);
 
     cout << "Waiting for phy_init_done..." << endl;
-    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
+    while ( !sm->ddr3ModuleInitReady(0) )
     { usleep(100); }
 
 

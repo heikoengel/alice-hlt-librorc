@@ -36,6 +36,11 @@
 #define LIBRORC_INTERNAL
 
 #include <librorc.h>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <sstream>
+
 #include "dma_handling.hh"
 
 using namespace std;
@@ -54,6 +59,57 @@ void abort_handler( int s )
 
 
 
+uint32_t fileToRam
+(
+ librorc::sysmon *sm,
+ const char* filename,
+ uint32_t chId,
+ uint32_t addr,
+ bool last_event
+)
+{
+    int fd_in = open(filename, O_RDONLY);
+    uint32_t next_addr = 0;
+    if ( fd_in==-1 )
+    {
+        cout << "ERROR: Failed to open input file" << endl;
+        abort();
+    }
+    struct stat fd_in_stat;
+    fstat(fd_in, &fd_in_stat);
+
+    uint32_t *event = (uint32_t *)mmap(NULL, fd_in_stat.st_size,
+            PROT_READ, MAP_SHARED, fd_in, 0);
+    if ( event == MAP_FAILED )
+    {
+        cout << "ERROR: failed to mmap input file" << endl;
+        abort();
+    }
+    cout << "Ch " << chId << ": Writing " << filename << " to DDR3..." << endl;
+    try {
+        next_addr = sm->ddr3DataReplayEventToRam(
+                event,
+                (fd_in_stat.st_size>>2), // num_dws
+                addr, // ddr3 start address
+                chId, // channel
+                last_event); // last event
+    }
+    catch( int e )
+    {
+        cout << "Exception while writing event: " << e << endl;
+        abort();
+    }
+
+    munmap(event, fd_in_stat.st_size);
+    close(fd_in);
+
+    return next_addr;
+}
+
+
+
+
+
 int main(int argc, char *argv[])
 {
     char logdirectory[] = "/tmp";
@@ -65,6 +121,10 @@ int main(int argc, char *argv[])
         checkChannelID(opts.channelId, argv[0])
     ) )
     { exit(-1); }
+
+    if( !opts.useRefFile ) {
+        exit(-1);
+    }
 
 
     DMA_ABORT_HANDLER_REGISTER
@@ -89,12 +149,49 @@ int main(int argc, char *argv[])
         abort();
     }
 
+    librorc::link *link[MAX_CHANNELS];
+    librorc::datareplaychannel *dr[MAX_CHANNELS];
+
+    for(int i=0; i < MAX_CHANNELS; i++) {
+        link[i] = new librorc::link(bar, i);
+        dr[i] = new librorc::datareplaychannel(link[i]);
+    }
+
+    librorc::sysmon *sm = NULL;
+    try
+    {
+        sm = new librorc::sysmon(bar);
+    }
+    catch(...)
+    {
+        cout << "ERROR: failed to initialize sysmon" << endl;
+        abort();
+    }
+
+    sm->ddr3SetReset(0, 0);
+    sm->ddr3SetReset(1, 0);
+
+    cout << "Waiting for phy_init_done..." << endl;
+    while ( !(bar->get32(RORC_REG_DDR3_CTRL) & (1<<1)) )
+    { usleep(100); }
+
     uint64_t last_bytes_received[MAX_CHANNELS];
     uint64_t last_events_received[MAX_CHANNELS];
 
     librorc::high_level_event_stream *hlEventStream[MAX_CHANNELS];
+
+    for(int i=0; i < MAX_CHANNELS; i++) {
+        uint32_t ch_start_addr = (i % 6)*0x02000000;
+        fileToRam(sm, opts.refname, i, ch_start_addr, true);
+    }
+
+    /** wait until GTX domain is up */
+    cout << "Waiting for GTX domain..." << endl;
+    link[0]->waitForGTXDomain();
+
     for(int i=0; i < MAX_CHANNELS; i++) {
         // reset Data Replay
+        dr[i]->setReset(1);
         opts.channelId = i;
         hlEventStream[i] = prepareEventStream(dev, bar, opts);
         if( !hlEventStream[i] )
@@ -105,7 +202,19 @@ int main(int argc, char *argv[])
         last_bytes_received[i] = 0;
         last_events_received[i] = 0;
 
-        configureDataSource(hlEventStream[i], opts);
+        hlEventStream[i]->m_channel->setRateLimit(40000, 2);
+
+        link[i]->setDataSourceDdr3DataReplay();
+        link[i]->setFlowControlEnable(1);
+        link[i]->setChannelActive(1);
+
+        uint32_t ch_start_addr = (i % 6)*0x02000000;
+        dr[i]->setStartAddress(ch_start_addr);
+
+        dr[i]->setModeContinuous(1);
+        dr[i]->setModeOneshot(0);
+        dr[i]->setReset(0);
+        dr[i]->setEnable(1);
     }
 
     /** make clear what will be checked*/
@@ -138,7 +247,11 @@ int main(int argc, char *argv[])
     hlEventStream[0]->m_bar1->gettime(&start_time, 0);
     timeval last_time = start_time;
     timeval current_time = start_time;
-
+#if 0
+    timeval disable_time = start_time;
+    bool trigger_en = false;
+    uint64_t eventcount = 0;
+#endif
 
     /** Event loop */
     while( !done )
@@ -159,8 +272,49 @@ int main(int argc, char *argv[])
                 last_bytes_received[i]  = hlEventStream[i]->m_channel_status->bytes_received;
                 last_events_received[i] = hlEventStream[i]->m_channel_status->n_events;
             }
+            cout << "----------------" << endl;
             last_time = current_time;
         }
+
+#if 0
+        if(!trigger_en) {
+            for(int i=0; i < MAX_CHANNELS; i++) {
+                dr[i]->setModeOneshot(0);
+                dr[i]->setEnable(1);
+            }
+            trigger_en = true;
+        } else {
+            for(int i=0; i < MAX_CHANNELS; i++) {
+                dr[i]->setModeOneshot(1);
+            }
+            trigger_en = false;
+        }
+#endif
+
+
+#if 0
+        if(trigger_en && librorc::gettimeofdayDiff(disable_time, current_time)>2*STAT_INTERVAL)
+        {
+            cout << "Re-Enabling Replay" << endl;
+            for(int i=0; i < MAX_CHANNELS; i++) {
+                dr[i]->setModeOneshot(0);
+                dr[i]->setEnable(1);
+            }
+            trigger_en = false;
+        }
+
+        uint64_t events_diff = hlEventStream[0]->m_channel_status->n_events - eventcount;
+        if( !trigger_en && events_diff>10 )
+        {
+            cout << "Disabling Replay" << endl;
+            for(int i=0; i < MAX_CHANNELS; i++) {
+                dr[i]->setModeOneshot(1);
+            }
+            disable_time = current_time;
+            eventcount = hlEventStream[0]->m_channel_status->n_events;
+            trigger_en = true;
+        }
+#endif
     }
 
     timeval end_time;
@@ -184,9 +338,12 @@ int main(int argc, char *argv[])
              start_time,
              end_time
             );
-        unconfigureDataSource(hlEventStream[i], opts);
+        dr[i]->setReset(1);
+        delete dr[i];
+        delete link[i];
         delete hlEventStream[i];
     }
+    delete sm;
     delete bar;
     delete dev;
     return result;

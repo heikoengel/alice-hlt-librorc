@@ -108,28 +108,10 @@ int main( int argc, char *argv[])
     //hlEventStream->setEventCallback(eventCallBack);
     hlEventStream->setEventCallback(NULL);
 
-    int32_t sanity_check_mask = CHK_SIZES|CHK_SOE;
-    if(opts.useRefFile)
-    { sanity_check_mask |= CHK_FILE; }
-    else
-    { sanity_check_mask |= CHK_PATTERN | CHK_ID; }
-
-
-    //librorc::event_generator eventGen(hlEventStream);
+    int32_t sanity_check_mask = CHK_SIZES|CHK_CMPL;
 
     librorc::event_sanity_checker checker =
-        (opts.useRefFile)
-        ?
-            librorc::event_sanity_checker
-            (
-                hlEventStream->m_eventBuffer,
-                opts.channelId,
-                sanity_check_mask,
-                logdirectory,
-                opts.refname
-            )
-        :
-            librorc::event_sanity_checker
+        librorc::event_sanity_checker
             (
                 hlEventStream->m_eventBuffer,
                 opts.channelId,
@@ -141,20 +123,61 @@ int main( int argc, char *argv[])
 //    uint64_t number_of_events = eventGen.fillEventBuffer(opts.eventSize);
 //    uint64_t result = hlEventStream->eventLoop((void*)&checker);
 
-    // fill EB
-    const uint32_t EVENT_SIZE = hlEventStream->m_eventBuffer->size();//0x404;
-    const uint64_t event_id = 0;
-    uint32_t *eb = hlEventStream->m_eventBuffer->getMem();
-    eb[0] = 0xffffffff;
-    eb[1] = event_id & 0xfff;
-    eb[2] = ((event_id>>12) & 0x00ffffff);
-    eb[3] = 0x00000000; // PGMode / participating subdetectors
-    eb[4] = 0x00000000; // mini event id, error flags, MBZ
-    eb[5] = 0xaffeaffe; // trigger classes low
-    eb[6] = 0x00000000; // trigger classes high, MBZ, ROI
-    eb[7] = 0xdeadbeaf; // ROI high
-    for( uint32_t i=8; i<(EVENT_SIZE/4); i++ )
-    { eb[i] = i-8; }
+    uint32_t eventSize;
+    uint32_t *eventBuffer = hlEventStream->m_eventBuffer->getMem();
+
+    if( opts.useRefFile )
+    {
+        // load reffile into EB
+        int fd = open(opts.refname, O_RDONLY);
+        if( fd == -1 )
+        {
+            cout << "ERROR: Failed to open input file " << opts.refname
+                 << endl;
+            abort();
+        }
+        struct stat fd_stat;
+        fstat(fd, &fd_stat);
+
+        if( (uint64_t)fd_stat.st_size > hlEventStream->m_eventBuffer->getPhysicalSize() )
+        {
+            cout << "ERROR: Input file does not fit into EventBuffer" << endl;
+            abort();
+        }
+
+        uint32_t *event = (uint32_t *)mmap(NULL, fd_stat.st_size,
+                PROT_READ, MAP_SHARED, fd, 0);
+        if ( event == MAP_FAILED )
+        {
+            cout << "ERROR: failed to mmap input file" << endl;
+            abort();
+        }
+
+        memcpy(eventBuffer, event, fd_stat.st_size);
+        eventSize = fd_stat.st_size;
+
+        munmap(event, fd_stat.st_size);
+        close(fd);
+    }
+    else
+    {
+        // fill EB with pattern data
+        const uint64_t eventBufferSize = hlEventStream->m_eventBuffer->getPhysicalSize();//0x404;
+        const uint64_t event_id = 0;
+        eventBuffer[0] = 0xffffffff;
+        eventBuffer[1] = event_id & 0xfff;
+        eventBuffer[2] = ((event_id>>12) & 0x00ffffff);
+        eventBuffer[3] = 0x00000000; // PGMode / participating subdetectors
+        eventBuffer[4] = 0x00000000; // mini event id, error flags, MBZ
+        eventBuffer[5] = 0xaffeaffe; // trigger classes low
+        eventBuffer[6] = 0x00000000; // trigger classes high, MBZ, ROI
+        eventBuffer[7] = 0xdeadbeaf; // ROI high
+        for( uint64_t i=8; i<(eventBufferSize/4); i++ )
+        { eventBuffer[i] = i-8; }
+
+        // set initial event size
+        eventSize = opts.eventSize;
+    }
 
     /** capture starting time */
     timeval start_time;
@@ -166,7 +189,6 @@ int main( int argc, char *argv[])
     uint64_t last_events_received = 0;
     uint64_t number_of_samples = 0;
     bool waitForDone = false;
-    uint32_t eventSize = 0x1000;
     uint64_t pending = 0;
     librorc::EventDescriptor *report               = NULL;
     const uint32_t           *event                = 0;
@@ -177,13 +199,6 @@ int main( int argc, char *argv[])
     {
         if( opts.datasource==ES_SRC_DMA)
         {
-            /** Data is fed via DMA */
-            /*number_of_events = eventGen.fillEventBuffer(opts.eventSize);
-
-            if( number_of_events > 0 )
-            { DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "Pushed %ld events into EB\n", number_of_events); }
-            */
-
             if( !waitForDone )
             //if( pending < 256 )
             {
@@ -198,13 +213,15 @@ int main( int argc, char *argv[])
             {
                 if( hlEventStream->getNextEvent(&report, &event, &reference) )
                 {
-                    if( (report->reported_event_size>>30)&1 || (report->calc_event_size>>30) )
-                    {
-                        printf("ERROR: T:%d, S:%d\n", (report->reported_event_size>>30)&1, (report->calc_event_size>>30) );
-                    }
+                    uint32_t timeout_flag = (report->reported_event_size>>30)&1;
+                    uint32_t cmpl_flag = (report->calc_event_size>>30);
+                    if( timeout_flag || cmpl_flag )
+                    { printf("ERROR: T:%d, S:%d\n", timeout_flag, cmpl_flag ); }
+
+                    checker.check(*report, hlEventStream->m_channel_status, hlEventStream->m_channel_status->n_events);
+
                     waitForDone=false;
-                    hlEventStream->m_channel_status->bytes_received += (report->calc_event_size << 2);
-                    hlEventStream->m_channel_status->n_events++;
+                    hlEventStream->updateChannelStatus(report);
                     hlEventStream->releaseEvent(reference);
                     pending--;
                 }
@@ -221,47 +238,41 @@ int main( int argc, char *argv[])
                         opts.channelId, hlEventStream->m_channel_status->n_events,
                         (double)hlEventStream->m_channel_status->bytes_received/(double)(1<<30));*/
                 double throughput, rate;
+                uint64_t bytes_received = hlEventStream->m_channel_status->bytes_received - last_bytes_received;
+                uint64_t events_received = hlEventStream->m_channel_status->n_events - last_events_received;
 
-                if(hlEventStream->m_channel_status->bytes_received-last_bytes_received)
-                {
-                    throughput = (double)(hlEventStream->m_channel_status->bytes_received-last_bytes_received)/
-                            librorc::gettimeofdayDiff(last_time, cur_time);
-                    //printf(" Rate: %9.3f MB/s", rate);
-                }
+                if(bytes_received)
+                { throughput = (double)(bytes_received)/librorc::gettimeofdayDiff(last_time, cur_time); }
                 else
-                {
-                    throughput = 0;
-                    //printf(" Rate: -");
-                }
+                { throughput = 0; }
 
-                if(hlEventStream->m_channel_status->n_events - last_events_received)
-                {
-                    rate = (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
-                            librorc::gettimeofdayDiff(last_time, cur_time);
-                    /*printf(" (%.3f kHz)",
-                            (double)(hlEventStream->m_channel_status->n_events-last_events_received)/
-                            librorc:: gettimeofdayDiff(last_time, cur_time)/1000.0);*/
-                }
+                if(events_received)
+                { rate = (double)(events_received)/librorc::gettimeofdayDiff(last_time, cur_time); }
                 else
-                {
-                    //printf(" ( - )");
-                    rate = 0;
-                }
+                { rate = 0; }
 
-                //printf(" Errors: %ld\n", hlEventStream->m_channel_status->error_count);
+                // create csv output
+                // printf("%d, %f, %f\n", eventSize, throughput, rate);
+
+                // create nice output
+                printf("CH%d: Events OUT: %10ld, Size: %8.3f GB",
+                        opts.channelId, hlEventStream->m_channel_status->n_events,
+                        hlEventStream->m_channel_status->bytes_received/(double)(1<<30));
+                printf(" Rate: %9.3f MB/s", throughput/(double)(1<<20));
+                printf(" (%.3f kHz)", rate/1000.0);
+                printf(" Errors: %ld\n", hlEventStream->m_channel_status->error_count);
+
                 last_time = cur_time;
                 last_bytes_received  = hlEventStream->m_channel_status->bytes_received;
                 last_events_received = hlEventStream->m_channel_status->n_events;
                 number_of_samples++;
                 number_of_samples &= 0x3;
 
-                printf("%d, %f, %f\n", eventSize, throughput, rate);
-
                 /*if(number_of_samples==0x3)
                 {
                     eventSize = nextEventSize(eventSize);
-                    if( eventSize >= hlEventStream->m_eventBuffer->size() )
-                    { eventSize = 0x100; }
+                    if( eventSize >= hlEventStream->m_eventBuffer->getPhysicalSize() )
+                    { eventSize = opts.eventSize; }
                 }*/
 
             }
