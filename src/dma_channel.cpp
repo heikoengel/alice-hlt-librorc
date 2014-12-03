@@ -102,7 +102,8 @@ dma_channel::~dma_channel()
 void
 dma_channel::enable()
 {
-    uint32_t dmacfg = (1<<DMACTRL_EBDM_ENABLE_BIT) |
+    uint32_t dmacfg = DMAConfig();
+    dmacfg |= (1<<DMACTRL_EBDM_ENABLE_BIT) |
         (1<<DMACTRL_RBDM_ENABLE_BIT) |
         (1<<DMACTRL_ENABLE_BIT);
     setDMAConfig( dmacfg );
