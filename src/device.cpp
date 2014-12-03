@@ -42,7 +42,7 @@ device::device(int32_t device_index)
 {
     PDAInit();
 
-    if(PDACheckVersion(8,0,2) != PDA_SUCCESS)
+    if(PDACheckVersion(8,1,4) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
 
     /** A list of PCI ID to which PDA has to attach. */
