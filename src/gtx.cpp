@@ -421,7 +421,7 @@ namespace LIBRARY_NAME {
     {
         // read current value at drp_addr
         uint16_t drp_data_orig = drpRead(drp_addr);
-        uint16_t bitmask = (((uint32_t)1)<<field_bit)-1;
+        uint16_t bitmask = (((uint32_t)1)<<field_width)-1;
         // clear previous field data
         uint16_t drp_data_new = drp_data_orig & ~(bitmask<<field_bit);
         // set new field data at field_bit
