@@ -70,6 +70,7 @@ namespace LIBRARY_NAME
             while(!done() && timeout)
             {
                 usleep(100);
+                timeout--;
             }
             if(!timeout)
             {

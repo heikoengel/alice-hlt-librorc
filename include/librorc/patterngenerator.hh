@@ -46,7 +46,7 @@
 #define PG_PATTERN_SHIFT  1 /** Shifts the value to the left, the leftmost bit is inserted on the right side */
 #define PG_PATTERN_TOGGLE 3 /** Toggles between the value and the negated value : 0x000000A5 -> 0xffffff5A */
 
-#define LIBRORC_PG_TIMEOUT 10000
+#define LIBRORC_PG_TIMEOUT 1000
 
 
 namespace LIBRARY_NAME
