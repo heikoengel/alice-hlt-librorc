@@ -49,7 +49,7 @@ namespace LIBRARY_NAME
     bool
     ddl::linkFull()
     {
-        return ( (m_link->ddlReg(RORC_REG_DDL_CTRL) & (1<<4)) != 0 );
+        return ( ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>4) & 1) != 1 );
     }
 
     void
