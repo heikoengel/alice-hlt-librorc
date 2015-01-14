@@ -52,32 +52,9 @@ namespace LIBRARY_NAME
 
 
             /**
-             * enable the event filter. Events will only pass according to
-             * the current filter mask setting or when they are marked as
-             * software events
-             **/
-            void
-            enable();
-
-
-            /**
-             * disable the filter. Any event will pass the filter.
-             **/
-            void
-            disable();
-
-
-            /**
-             * get current filter state
-             * @return true when enabled, false when disabled
-             **/
-            bool
-            isEnabled();
-
-
-            /**
              * Set the 'Filter all' flag: If enabled, the event payload
-             * is stripped for any incoming event.
+             * is stripped for any incoming data event. Software events
+             * are not touched.
              * The CDH for each incoming event is still transmitted to the
              * DMA engine.
              * @param filter_all set true to enable, false to disable
@@ -94,7 +71,7 @@ namespace LIBRARY_NAME
              * @return true when enabled, false when disabled.
              **/
             bool
-            filterAll();
+            getFilterAll();
             
 
             /**
@@ -104,9 +81,7 @@ namespace LIBRARY_NAME
              * If the result is 0 the event is fully read out.
              * If the result is !=0 the event payload is dropped and
              * the CDH is modified to signal this change.
-             * Set to 0 to read out all events, set 1 to read out
-             * every second event, 3 for every fourth, etc.
-             * fourth, etc...
+             * Set to 0 to read out all events.
              **/
             void
             setFilterMask
@@ -120,7 +95,7 @@ namespace LIBRARY_NAME
              * @return 24 bit filter mask.
              **/
             uint32_t
-            filterMask();
+            getFilterMask();
 
         protected:
             link *m_link;

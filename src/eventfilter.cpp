@@ -44,28 +44,6 @@ namespace LIBRARY_NAME
     }
 
     void
-    eventfilter::enable()
-    {
-        uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
-        filterctrl |= (1<<31);
-        m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
-    }
-
-    void
-    eventfilter::disable()
-    {
-        uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
-        filterctrl &= ~(1<<31);
-        m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
-    }
-
-    bool
-    eventfilter::isEnabled()
-    {
-        return (m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL)>>31 != 0);
-    }
-
-    void
     eventfilter::setFilterAll
     (
         bool filter_all
@@ -73,16 +51,16 @@ namespace LIBRARY_NAME
     {
         uint32_t filterctrl = m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL);
         if(filter_all)
-        { filterctrl |= (1<<24); }
+        { filterctrl |= (1<<31); }
         else
-        { filterctrl &= ~(1<<24); }
+        { filterctrl &= ~(1<<31); }
         m_link->setDdlReg(RORC_REG_DDL_FILTER_CTRL, filterctrl);
     }
 
     bool
-    eventfilter::filterAll()
+    eventfilter::getFilterAll()
     {
-        return (((m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL)>>24)&1) != 0);
+        return (((m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL)>>31)&1) != 0);
     }
 
     void
@@ -98,7 +76,7 @@ namespace LIBRARY_NAME
     }
 
     uint32_t
-    eventfilter::filterMask()
+    eventfilter::getFilterMask()
     {
         return (m_link->ddlReg(RORC_REG_DDL_FILTER_CTRL) & 0x00ffffff);
     }
