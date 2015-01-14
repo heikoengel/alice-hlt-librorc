@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 
 set( REQUIRED_PDA_VERSION "8:1:4" )
-set( VERSION "8.0.0" )
+set( VERSION "9.0.1" )
 
 set( CMAKE_CXX_FLAGS "-Wall" )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
