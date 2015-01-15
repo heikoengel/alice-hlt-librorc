@@ -43,6 +43,17 @@
 namespace LIBRARY_NAME
 {
 
+#define QSFP_I2C_SLVADDR        0x50
+#define I2C_READ                (1<<1)
+#define I2C_WRITE               (1<<2)
+#define DDR3_SPD_SLVADDR        0x50
+
+#define SYSMON_DR_TIMEOUT 10000
+#define DATA_REPLAY_C0_WRITE_DONE (1<<0)
+#define DATA_REPLAY_C1_WRITE_DONE (1<<1)
+#define DATA_REPLAY_EOE (1<<8)
+#define DATA_REPLAY_END (1<<9)
+
 
     sysmon::sysmon
     (
@@ -1070,10 +1081,10 @@ namespace LIBRARY_NAME
         m_bar->set32(RORC_REG_DATA_REPLAY_CTRL, drctrl);
 
         /** wait for write_done */
-        uint32_t timeout = LIBRORC_SYSMON_DR_TIMEOUT;
+        uint32_t timeout = SYSMON_DR_TIMEOUT;
         uint32_t write_done_flag = (controller_select)
-            ? LIBRORC_DATA_REPLAY_C1_WRITE_DONE :
-            LIBRORC_DATA_REPLAY_C0_WRITE_DONE;
+            ? DATA_REPLAY_C1_WRITE_DONE :
+            DATA_REPLAY_C0_WRITE_DONE;
         while( !(m_bar->get32(RORC_REG_DATA_REPLAY_CTRL) & write_done_flag) )
         {
             if (timeout==0)
