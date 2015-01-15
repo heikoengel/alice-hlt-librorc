@@ -29,6 +29,14 @@
  *
  **/
 
+#include <iostream>
+#include <iomanip>
+#include <unistd.h> //usleep
+#include <cstdlib> //calloc
+#include <cstdio> //fopen
+#include <sys/stat.h> //stat
+#include <fcntl.h> //open
+
 #include <librorc/flash.hh>
 #include <librorc/bar.hh>
 

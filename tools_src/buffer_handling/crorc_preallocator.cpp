@@ -29,6 +29,7 @@
  *
  **/
 
+#include <cstdio>
 #include <librorc.h>
 
 #ifndef UINT16_MAX

@@ -79,7 +79,7 @@ int main()
         {
             sum += bh[j];
         }
-        printf("%lx\n", sum);
+        cout << hex << sum << endl;
         delete buf;
     }
 

@@ -29,6 +29,10 @@
  *
  **/
 
+#include <pda.h>
+#include <pthread.h>
+#include <sys/shm.h>
+
 #define LIBRORC_INTERNAL
 #include <librorc/event_stream.hh>
 

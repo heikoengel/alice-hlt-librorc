@@ -34,6 +34,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <unistd.h>
 
 #include "librorc.h"
 

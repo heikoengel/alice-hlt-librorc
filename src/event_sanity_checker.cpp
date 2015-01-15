@@ -34,6 +34,13 @@
  * mapping of the RORCs PCIe address space
  */
 
+#include <iostream>
+#include <cstdio>
+#include <pda.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
 #include <librorc/event_sanity_checker.hh>
 
 namespace LIBRARY_NAME

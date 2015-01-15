@@ -29,6 +29,8 @@
  *
  **/
 
+#include <iostream>
+#include <cstdio>
 #include <getopt.h>
 #include <pda.h>
 #include <librorc.h>

@@ -32,8 +32,8 @@
 #ifndef LIBRORC_BUFFER_H
 #define LIBRORC_BUFFER_H
 
-#include "librorc/include_ext.hh"
-#include "defines.hh"
+#include <vector>
+#include <librorc/defines.hh>
 
 #define LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED  1
 

@@ -32,6 +32,26 @@
 #ifndef LIBRORC_H
 #define LIBRORC_H
 
-    #include <librorc/include_int.hh>
+#include "librorc/registers.h"
+#include "librorc/defines.hh"
+#include "librorc/device.hh"
+#include "librorc/bar.hh"
+#include "librorc/buffer.hh"
+#include "librorc/flash.hh"
+#include "librorc/sysmon.hh"
+#include "librorc/refclk.hh"
+#include "librorc/microcontroller.hh"
+#include "librorc/dma_channel.hh"
+#include "librorc/event_stream.hh"
+#include "librorc/high_level_event_stream.hh"
+#include "librorc/event_sanity_checker.hh"
+#include "librorc/patterngenerator.hh"
+#include "librorc/fastclusterfinder.hh"
+#include "librorc/datareplaychannel.hh"
+#include "librorc/ddl.hh"
+#include "librorc/diu.hh"
+#include "librorc/siu.hh"
+#include "librorc/gtx.hh"
+#include "librorc/eventfilter.hh"
 
 #endif /** LIBRORC_H */

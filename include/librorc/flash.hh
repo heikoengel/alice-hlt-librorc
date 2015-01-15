@@ -32,8 +32,7 @@
 #ifndef LIBRORC_FLASH_H
 #define LIBRORC_FLASH_H
 
-#include "librorc/include_ext.hh"
-#include "librorc/defines.hh"
+#include <librorc/defines.hh>
 
 
 #define FLASH_SIZE 16777216

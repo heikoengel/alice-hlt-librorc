@@ -33,6 +33,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <getopt.h>
 
 #include "librorc.h"
 

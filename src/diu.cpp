@@ -30,9 +30,13 @@
  **/
 
 #include <librorc/diu.hh>
+#include <librorc/registers.h>
+#include <librorc/link.hh>
+#include <pda.h>
 
 namespace LIBRARY_NAME
 {
+
     diu::diu( link *link ) : ddl(link){}
     diu::~diu(){}
 

@@ -32,8 +32,8 @@
 #ifndef LIBRORC_MICROCONTROLLER_H
 #define LIBRORC_MICROCONTROLLER_H
 
-#include "include_ext.hh"
-#include "defines.hh"
+#include <stdlib.h>
+#include <librorc/defines.hh>
 
 #define LIBRORC_UC_ERROR_CONSTRUCTOR_FAILED 1
 #define LIBRORC_UC_SPI_NOT_IMPLEMENTED 2

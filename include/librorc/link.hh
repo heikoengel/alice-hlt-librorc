@@ -32,7 +32,6 @@
 #ifndef LIBRORC_LINK_H
 #define LIBRORC_LINK_H
 
-#include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 #include <librorc/bar.hh>
 

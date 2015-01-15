@@ -33,8 +33,6 @@
 #ifndef LIBRORC_DDR3DATAREPLAY_H
 #define LIBRORC_DDR3DATAREPLAY_H
 
-#include <librorc/include_ext.hh>
-#include <librorc/link.hh>
 #include <librorc/defines.hh>
 #include <librorc/registers.h>
 

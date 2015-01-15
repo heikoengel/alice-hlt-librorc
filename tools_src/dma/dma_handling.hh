@@ -35,6 +35,7 @@
 #include <sys/shm.h>
 #include <signal.h>
 #include <getopt.h>
+#include <cstdio>
 #include <librorc.h>
 
 #define ES_SRC_NONE 0

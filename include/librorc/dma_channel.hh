@@ -32,7 +32,6 @@
 #ifndef LIBRORC_DMA_CHANNEL_H
 #define LIBRORC_DMA_CHANNEL_H
 
-#include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 #include <librorc/buffer.hh>
 

@@ -30,9 +30,11 @@
  **/
 
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <unistd.h>
 
 #include "librorc.h"
 

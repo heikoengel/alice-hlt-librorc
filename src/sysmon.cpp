@@ -32,6 +32,9 @@
  * called from parallel processes. This may result in deadlocks or
  * data corruption.
  * */
+#include <cstdio>
+#include <cstdlib>
+#include <unistd.h>
 
 #include <librorc/sysmon.hh>
 #include <librorc/registers.h>

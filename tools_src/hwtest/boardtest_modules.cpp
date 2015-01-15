@@ -29,7 +29,9 @@
  *
  **/
 
-
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
 #include "crorc-smbus-ctrl.hh"
 #include "boardtest_modules.hh"
 #include "../dma/dma_handling.hh"

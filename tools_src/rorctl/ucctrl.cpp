@@ -29,10 +29,15 @@
  *
  **/
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "librorc.h"
 

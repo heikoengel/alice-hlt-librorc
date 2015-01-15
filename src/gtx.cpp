@@ -27,8 +27,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
+#include <pda.h>
 #include <librorc/gtx.hh>
 #include <librorc/link.hh>
+#include <librorc/registers.h>
 
 /** Conversions between PLL values and their register representations */
 static inline

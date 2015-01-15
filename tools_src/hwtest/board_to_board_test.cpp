@@ -29,6 +29,8 @@
  *
  **/
 
+#include <iomanip>
+#include <getopt.h>
 #include <librorc.h>
 #include "board_to_board_test_modules.hh"
 

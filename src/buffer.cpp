@@ -29,10 +29,13 @@
  *
  **/
 
+#include <pda.h>
+#include <vector>
+#include <sys/mman.h>
+#include <string.h>
+
 #include <librorc/buffer.hh>
 #include <librorc/device.hh>
-
-#include <pda.h>
 
 namespace LIBRARY_NAME
 {

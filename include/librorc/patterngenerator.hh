@@ -32,9 +32,6 @@
 #ifndef LIBRORC_PATTERNGENERATOR_H
 #define LIBRORC_PATTERNGENERATOR_H
 
-#include <librorc/include_ext.hh>
-#include <librorc/link.hh>
-#include <librorc/registers.h>
 #include <librorc/defines.hh>
 
 

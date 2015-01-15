@@ -36,8 +36,8 @@
 #ifndef LIBRORC_DEVICE_H
 #define LIBRORC_DEVICE_H
 
-#include "include_ext.hh"
-#include "defines.hh"
+#include <iostream>
+#include <librorc/defines.hh>
 
 
 typedef struct DeviceOperator_struct DeviceOperator;

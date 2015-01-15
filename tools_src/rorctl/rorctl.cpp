@@ -31,18 +31,12 @@
 
 #define __STDC_FORMAT_MACROS
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <unistd.h>
-#include <ctype.h>
-#include <string.h>
-#include <assert.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <inttypes.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>

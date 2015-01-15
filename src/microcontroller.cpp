@@ -29,6 +29,10 @@
  *
  **/
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <pda.h>
+
 #include <librorc/microcontroller.hh>
 #include <librorc/bar.hh>
 #include <librorc/registers.h>

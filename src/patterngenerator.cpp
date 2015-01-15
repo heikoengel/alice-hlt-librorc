@@ -28,8 +28,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  **/
+#include <unistd.h> //usleep
 
 #include <librorc/patterngenerator.hh>
+#include <librorc/link.hh>
+#include <librorc/registers.h>
 
 namespace LIBRARY_NAME
 {

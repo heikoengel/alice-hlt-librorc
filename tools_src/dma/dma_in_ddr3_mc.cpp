@@ -40,6 +40,10 @@
 #include <fstream>
 #include <cstdlib>
 #include <sstream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 #include "dma_handling.hh"
 

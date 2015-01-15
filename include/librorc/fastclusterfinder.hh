@@ -32,8 +32,9 @@
 #ifndef LIBRORC_FASTCLUSTERFINDER_H
 #define LIBRORC_FASTCLUSTERFINDER_H
 
+#include <iostream>
 #include <librorc/defines.hh>
-#include <librorc/link.hh>
+//#include <librorc/link.hh>
 #include <librorc/registers.h>
 
 namespace LIBRARY_NAME

@@ -29,7 +29,8 @@
  *
  **/
 
-#include<librorc/datareplaychannel.hh>
+#include <librorc/datareplaychannel.hh>
+#include <librorc/link.hh>
 
 namespace LIBRARY_NAME
 {

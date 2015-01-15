@@ -29,8 +29,7 @@
  *
  **/
 
-#include "include_ext.hh"
-#include "defines.hh"
+#include <librorc/defines.hh>
 
 #ifndef LIBRORC_REFCLK_H
 #define LIBRORC_REFCLK_H

@@ -30,6 +30,7 @@
  **/
 
 #define LIBRORC_INTERNAL
+#include <cstdio>
 #include "dma_handling.hh"
 
 using namespace std;

@@ -37,7 +37,8 @@
 #ifndef LIBRORC_BAR_IMPL_HW_H
 #define LIBRORC_BAR_IMPL_HW_H
 
-#include <librorc/include_ext.hh>
+#include <pda.h>
+
 #include <librorc/defines.hh>
 #include <librorc/bar.hh>
 
@@ -49,11 +50,6 @@ namespace LIBRARY_NAME
     /**
      * @brief Represents a Base Address Register (BAR) file
      * mapping of the RORCs PCIe address space
-     *
-     * Create a new crorc_bar object after initializing your
-     * librorc::device instance. <br>Once your bar_impl_hw instance is
-     * initialized (with init()) you can use get() and set() to
-     * read from and/or write to the device.
      */
     class bar_impl_hw
     {
@@ -70,16 +66,16 @@ namespace LIBRARY_NAME
             memcopy
             (
                 bar_address  target,
-                const void          *source,
-                size_t               num
+                const void  *source,
+                size_t       num
             );
 
             void
             memcopy
             (
-                void                *target,
+                void        *target,
                 bar_address  source,
-                size_t               num
+                size_t       num
             );
 
             uint32_t get32( bar_address address );
@@ -116,12 +112,12 @@ namespace LIBRARY_NAME
 
         protected:
             Bar *m_pda_bar;
-  device *m_parent_dev;
-  PciDevice *m_pda_pci_device;
-  pthread_mutex_t m_mtx;
-  int32_t m_number;
-  uint8_t *m_bar;
-  size_t m_size;
+            device *m_parent_dev;
+            PciDevice *m_pda_pci_device;
+            pthread_mutex_t m_mtx;
+            int32_t m_number;
+            uint8_t *m_bar;
+            size_t m_size;
     };
 
 }

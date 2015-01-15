@@ -29,9 +29,11 @@
  *
  **/
 
+#include <math.h>
+#include <pda.h>
+
 #include <librorc/refclk.hh>
 #include <librorc/sysmon.hh>
-#include <math.h>
 
 namespace LIBRARY_NAME
 {

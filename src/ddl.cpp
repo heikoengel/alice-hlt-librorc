@@ -30,6 +30,8 @@
  **/
 
 #include <librorc/ddl.hh>
+#include <librorc/link.hh>
+#include <librorc/registers.h>
 
 namespace LIBRARY_NAME
 {

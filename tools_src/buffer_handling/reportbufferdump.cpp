@@ -17,7 +17,8 @@
  * http://www.gnu.org/copyleft/gpl.html
  *
  * */
-
+#include <cstdio>
+#include <unistd.h>
 #include <librorc.h>
 
 using namespace std;

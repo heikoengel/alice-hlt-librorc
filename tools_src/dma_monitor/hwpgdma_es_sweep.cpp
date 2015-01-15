@@ -29,8 +29,9 @@
  *
  **/
 
+#include <cstdio>
 #include <sys/shm.h>
-#include <getopt.h>
+#include <unistd.h>
 #include <librorc.h>
 
 using namespace std;

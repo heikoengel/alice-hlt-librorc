@@ -29,6 +29,7 @@
  *
  **/
 
+#include <unistd.h>
 #include "fmc_tester.hh"
 
 using namespace std;

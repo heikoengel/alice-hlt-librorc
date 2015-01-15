@@ -34,7 +34,6 @@
 #include <iostream>
 #include <iomanip>
 #include <getopt.h>
-#include <stdint.h>
 
 #include "librorc.h"
 

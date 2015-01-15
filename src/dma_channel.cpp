@@ -29,6 +29,7 @@
  *
  **/
 
+#include <pda.h>
 #include <librorc/dma_channel.hh>
 #include <librorc/registers.h>
 #include <librorc/buffer.hh>

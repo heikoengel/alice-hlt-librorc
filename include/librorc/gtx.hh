@@ -31,8 +31,6 @@
 #define LIBRORC_GTX_H
 
 #include <librorc/defines.hh>
-#include <librorc/registers.h>
-#include <librorc/include_ext.hh>
 
 #define LIBRORC_GTX_FULL_RESET 1
 #define LIBRORC_GTX_RX_RESET 2

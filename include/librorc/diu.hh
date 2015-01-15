@@ -32,6 +32,7 @@
 #ifndef LIBRORC_DIU_H
 #define LIBRORC_DIU_H
 
+#include <iostream>
 #include <librorc/defines.hh>
 #include <librorc/ddl.hh>
 
@@ -52,7 +53,6 @@
 namespace LIBRARY_NAME
 {
     class link;
-    class ddl;
 
     /**
      * @brief Destination Interface Unit (DIU) control class

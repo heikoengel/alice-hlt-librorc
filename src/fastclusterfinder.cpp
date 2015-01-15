@@ -29,9 +29,12 @@
  *
  **/
 
-#include <librorc/fastclusterfinder.hh>
+#include <stdlib.h>
+#include <pda.h>
 #include <fstream>
 #include <sstream>
+#include <librorc/fastclusterfinder.hh>
+#include <librorc/link.hh>
 
 namespace LIBRARY_NAME
 {

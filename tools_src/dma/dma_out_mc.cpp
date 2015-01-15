@@ -31,6 +31,10 @@
 
 #define LIBRORC_INTERNAL
 
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <librorc.h>
 
 #include "dma_handling.hh"

@@ -30,6 +30,8 @@
  **/
 
 #include <librorc/siu.hh>
+#include <librorc/registers.h>
+#include <librorc/link.hh>
 
 namespace LIBRARY_NAME
 {

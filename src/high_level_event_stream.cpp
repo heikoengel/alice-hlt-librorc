@@ -28,6 +28,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
 
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+#include <iomanip>
+#include <pthread.h>
+#include <unistd.h>
+#include <pda.h>
+
 #define LIBRORC_INTERNAL
 #include <librorc/high_level_event_stream.hh>
 #include <librorc/event_stream.hh>

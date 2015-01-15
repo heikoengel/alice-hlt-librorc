@@ -29,6 +29,10 @@
  *
  **/
 
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
+#include <fcntl.h>
 #include "crorc-smbus-ctrl.hh"
 
 using namespace std;

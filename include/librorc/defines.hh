@@ -34,6 +34,7 @@
 
 #include <time.h>
 #include <sys/time.h>
+#include <stdint.h>
 
 #define LIBRARY_NAME librorc
 

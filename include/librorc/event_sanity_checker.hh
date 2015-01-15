@@ -33,7 +33,6 @@
 #ifndef LIBRORC_EVENT_SANITY_CHECKER_H
 #define LIBRORC_EVENT_SANITY_CHECKER_H
 
-#include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
 #include <librorc/event_stream.hh>
 

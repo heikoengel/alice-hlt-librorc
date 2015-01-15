@@ -30,10 +30,14 @@
  **/
 
 #define __STDC_LIMIT_MACROS
-#include <stdint.h>
+#include <iomanip>
+#include <signal.h>
+#include <cstdio>
 
 #include <sys/shm.h>
 #include <getopt.h>
+#include <unistd.h>
+
 #include <librorc.h>
 
 using namespace std;

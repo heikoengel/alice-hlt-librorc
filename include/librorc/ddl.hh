@@ -33,8 +33,6 @@
 #define LIBRORC_DDL_H
 
 #include <librorc/defines.hh>
-#include<librorc/link.hh>
-#include<librorc/registers.h>
 
 namespace LIBRARY_NAME
 {

@@ -38,7 +38,6 @@
 namespace LIBRARY_NAME
 {
     class link;
-    class ddl;
 
     /**
      * @brief Source Interface Unit (SIU) control class

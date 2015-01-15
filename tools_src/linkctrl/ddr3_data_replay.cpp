@@ -29,8 +29,15 @@
  *
  **/
 
+#include <iostream>
+#include <iomanip>
 #include <librorc.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <vector>
+#include <getopt.h>
+#include <unistd.h>
 
 using namespace std;
 

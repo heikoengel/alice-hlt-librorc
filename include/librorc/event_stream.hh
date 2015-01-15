@@ -32,8 +32,7 @@
 #ifndef LIBRORC_EVENT_STREAM_H
 #define LIBRORC_EVENT_STREAM_H
 
-#include <librorc/include_ext.hh>
-#include "defines.hh"
+#include <librorc/defines.hh>
 #include <librorc/buffer.hh>
 
 
@@ -52,7 +51,6 @@ namespace LIBRARY_NAME
 /** Shared mem device offset **/
 #define SHM_DEV_OFFSET 32
 
-class buffer;
 class device;
 class bar;
 class sysmon;

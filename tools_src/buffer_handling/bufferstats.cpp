@@ -30,6 +30,9 @@
  **/
 
 #include <pda.h>
+#include <iostream>
+#include <iomanip>
+#include <cstdio>
 #include <librorc.h>
 
 using namespace std;

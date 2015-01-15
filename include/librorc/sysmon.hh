@@ -29,8 +29,9 @@
  *
  **/
 
-#include "include_ext.hh"
-#include "defines.hh"
+#include <iostream>
+#include <cstring>
+#include <librorc/defines.hh>
 
 #ifndef LIBRORC_SYSMON_H
 #define LIBRORC_SYSMON_H
