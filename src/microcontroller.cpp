@@ -39,6 +39,28 @@
 
 namespace LIBRARY_NAME
 {
+/**
+ * prescaler defines SCK pulse width as number of FPGA clock cycles.
+ * SCK pulse width has to be >2 uC CPU cycles. uC starts up with
+ * 1 MHz CPU frequency -> min SCK width >2us.
+ * Having a 250MHz FPGA clock this results in the following values:
+ * | prescaler | SCK width | SPI bitrate |
+ * |-----------|-----------|-------------|
+ * |      1000 |      4 us |   ~125 kbps |
+ * |       500 |      2 us |   ~250 kbps |
+ * */
+#define UC_SPI_PRESCALER 1000
+
+#define UC_SPI_PROG_ENABLE 0xac530000
+#define UC_SPI_READ_SIG    0x30000000
+#define UC_SPI_ERASE_CHIP  0xac800000
+#define UC_SPI_EXT_ADDR    0x4d000000
+#define UC_SPI_PROG_HIGH   0x48000000
+#define UC_SPI_PROG_LOW    0x40000000
+#define UC_SPI_WRITE_PAGE  0x4c000000
+#define UC_SPI_READ_LOW    0x20000000
+#define UC_SPI_READ_HIGH   0x28000000
+
     microcontroller::microcontroller
     (
         bar *parent_bar
