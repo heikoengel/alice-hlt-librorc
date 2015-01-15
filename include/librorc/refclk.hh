@@ -40,17 +40,7 @@ namespace LIBRARY_NAME
 #define LIBRORC_REFCLK_ERROR_CONSTRUCTOR_FAILED  1
 #define LIBRORC_REFCLK_ERROR_INVALID_PARAMETER 2
 
-#define LIBRORC_REFCLK_I2C_CHAIN 4
-#define LIBRORC_REFCLK_I2C_SLAVE 0x55
 #define LIBRORC_REFCLK_DEFAULT_FOUT 212.500
-
-
-    /** Register 135 Pin Mapping */
-#define M_RECALL (1<<0)
-#define M_FREEZE (1<<5)
-#define M_NEWFREQ (1<<6)
-    /** Register 137 Pin Mapping */
-#define FREEZE_DCO (1<<4)
 
     typedef struct
     {
@@ -165,59 +155,6 @@ namespace LIBRARY_NAME
             waitForClearance
             (
                 uint8_t flag
-            );
-            /**
-             * convert 48bit hex value to float, see Si570 UG
-             **/
-            double
-            hex2float
-            (
-                uint64_t value
-            );
-
-            /**
-             * convert float to 48bit hex value, see Si570 UG
-             **/
-            uint64_t
-            float2hex
-            (
-                double value
-            );
-
-            /**
-             * convert encoding to logical value for HsDiv
-             **/
-            int32_t
-            hsdiv_reg2val
-            (
-                uint32_t hs_reg
-            );
-
-            /**
-             * convert logical value to encoding for HsDiv
-             **/
-            int32_t
-            hsdiv_val2reg
-            (
-                uint32_t hs_val
-            );
-
-            /**
-             * convert encoding to logical value for N1
-             **/
-            int32_t
-            n1_reg2val
-            (
-                uint32_t n1_reg
-            );
-
-            /**
-             * convert logical value to encoding for N1
-             **/
-            int32_t
-            n1_val2reg
-            (
-                uint32_t n1_val
             );
 
             /**

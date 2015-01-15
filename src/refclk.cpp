@@ -37,7 +37,69 @@
 
 namespace LIBRARY_NAME
 {
+#define LIBRORC_REFCLK_I2C_CHAIN 4
+#define LIBRORC_REFCLK_I2C_SLAVE 0x55
 
+/** Register 135 Pin Mapping */
+#define M_RECALL (1<<0)
+#define M_FREEZE (1<<5)
+#define M_NEWFREQ (1<<6)
+/** Register 137 Pin Mapping */
+#define FREEZE_DCO (1<<4)
+
+    double
+    hex2float
+    (
+        uint64_t value
+    )
+    {
+        return double( value/((double)(1<<28)) );
+    }
+
+    uint64_t
+    float2hex
+    (
+        double value
+    )
+    {
+        return uint64_t(trunc(value*(1<<28)));
+    }
+
+    int32_t
+    hsdiv_reg2val
+    (
+        uint32_t hs_reg
+    )
+    {
+        return hs_reg + 4;
+    }
+
+    int32_t
+    hsdiv_val2reg
+    (
+        uint32_t hs_val
+    )
+    {
+        return hs_val - 4;
+    }
+
+    int32_t
+    n1_reg2val
+    (
+        uint32_t n1_reg
+    )
+    {
+        return n1_reg + 1;
+    }
+
+    int32_t
+    n1_val2reg
+    (
+        uint32_t n1_val
+    )
+    {
+        return n1_val - 1;
+    }
     //------------- public --------------
 
     refclk::refclk
@@ -263,59 +325,6 @@ namespace LIBRARY_NAME
         }
     }
 
-    double
-    refclk::hex2float
-    (
-        uint64_t value
-    )
-    {
-        return double( value/((double)(1<<28)) );
-    }
-
-    uint64_t
-    refclk::float2hex
-    (
-        double value
-    )
-    {
-        return uint64_t(trunc(value*(1<<28)));
-    }
-
-    int32_t
-    refclk::hsdiv_reg2val
-    (
-        uint32_t hs_reg
-    )
-    {
-        return hs_reg + 4;
-    }
-
-    int32_t
-    refclk::hsdiv_val2reg
-    (
-        uint32_t hs_val
-    )
-    {
-        return hs_val - 4;
-    }
-
-    int32_t
-    refclk::n1_reg2val
-    (
-        uint32_t n1_reg
-    )
-    {
-        return n1_reg + 1;
-    }
-
-    int32_t
-    refclk::n1_val2reg
-    (
-        uint32_t n1_val
-    )
-    {
-        return n1_val - 1;
-    }
 
 
     uint8_t
