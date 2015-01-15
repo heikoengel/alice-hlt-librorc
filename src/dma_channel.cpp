@@ -38,6 +38,7 @@
 
 namespace LIBRARY_NAME
 {
+#define DMA_CHANNEL_TIMEOUT 10000
 
 #define DMACTRL_ENABLE_BIT 0
 #define DMACTRL_FIFO_RESET_BIT 1
@@ -117,7 +118,7 @@ dma_channel::getEnable()
 int
 dma_channel::disable()
 {
-    uint32_t timeout = LIBRORC_DMA_CHANNEL_TIMEOUT;
+    uint32_t timeout = DMA_CHANNEL_TIMEOUT;
     // suspend DMA transfer only if active
     if( getEnable() )
     {
@@ -314,7 +315,7 @@ dma_channel::configure
 )
 {
     int result;
-    if( eventBuffer==0 || reportBuffer==0 )
+    if( eventBuffer==NULL || reportBuffer==NULL )
     { return ENODEV; }
 
     if( esDir == kEventStreamToHost )
@@ -470,7 +471,7 @@ dma_channel::announceEvent
         if( (iter+1) == sglist.end() )
         { ctrl |= SGCTRL_EOE_FLAG; }
         pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
-        iter++;
+        ++iter;
     }
 }
 
@@ -508,7 +509,7 @@ dma_channel::prepareSgList
         entry.pointer = cur_offset;
         entry.length = rem_size;
         newlist.push_back(entry);
-        iter++;
+        ++iter;
     }
     return newlist;
 }
@@ -521,9 +522,6 @@ dma_channel::configureBufferDescriptorRam
     uint32_t target_ram
 )
 {
-    if( target_ram > 1 )
-    { return EINVAL; }
-
     // get maximum number of scatter gather entries supported in DMA channel
     // firmware
     uint32_t max_num_sg =
@@ -548,7 +546,7 @@ dma_channel::configureBufferDescriptorRam
         ctrl |= (target_ram) ? SGCTRL_TARGET_RBDMRAM : SGCTRL_TARGET_EBDMRAM;
         pushSglistEntryToRAM(iter->pointer, iter->length, ctrl);
         entry_addr++;
-        iter++;
+        ++iter;
     }
     // clear trailing descriptor entry
     ctrl = SGCTRL_WRITE_ENABLE | entry_addr;
