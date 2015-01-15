@@ -356,11 +356,7 @@ set_led_blink_mode(
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef MODELSIM
-        bar = new librorc::sim_bar(dev, 1);
-    #else
-        bar = new librorc::rorc_bar(dev, 1);
-    #endif
+        bar = new librorc::bar(dev, 1);
     }
     catch(...)
     {
@@ -390,11 +386,7 @@ print_device
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef MODELSIM
-        bar = new librorc::sim_bar(dev, 1);
-    #else
-        bar = new librorc::rorc_bar(dev, 1);
-    #endif
+        bar = new librorc::bar(dev, 1);
     }
     catch(...)
     {
@@ -459,11 +451,7 @@ init_flash
     librorc::bar *bar = NULL;
     try
     {
-    #ifdef MODELSIM
-        bar = new librorc::sim_bar(options.dev, 0);
-    #else
-        bar = new librorc::rorc_bar(options.dev, 0);
-    #endif
+        bar = new librorc::bar(options.dev, 1);
     }
     catch(...)
     {
@@ -528,11 +516,7 @@ show_device_monitor
     librorc::bar *bar1 = NULL;
     try
     {
-    #ifdef MODELSIM
-        bar1 = new librorc::sim_bar(dev, 1);
-    #else
-        bar1 = new librorc::rorc_bar(dev, 1);
-    #endif
+        bar1 = new librorc::bar(dev, 1);
     }
     catch(...)
     {

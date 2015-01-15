@@ -29,12 +29,21 @@
  *
  **/
 
-#include <librorc/device.hh>
-#include <librorc/sim_bar.hh>
-#include <librorc/buffer.hh>
-
 #include <pda.h>
 #include <pthread.h>
+#include <netdb.h>
+#include <sys/mman.h>
+#include <cstring> //memcpy
+#include <cstdlib> //abort
+#include <cstdio> //perror
+
+#include <librorc/device.hh>
+#include <librorc/bar_impl_sim.hh>
+#include <librorc/buffer.hh>
+
+#ifndef MODELSIM_SERVER
+    #define MODELSIM_SERVER "localhost"
+#endif
 
 /**
  * usleep time for FLI read polling
@@ -45,8 +54,7 @@ namespace LIBRARY_NAME
 {
 
 
-
-sim_bar::sim_bar
+bar_impl_sim::bar_impl_sim
 (
     device  *dev,
     int32_t  n
@@ -113,7 +121,7 @@ sim_bar::sim_bar
 
 
 
-sim_bar::~sim_bar()
+bar_impl_sim::~bar_impl_sim()
 {
     close(m_pipefd[0]);
     close(m_pipefd[1]);
@@ -128,9 +136,9 @@ sim_bar::~sim_bar()
 
 
 void
-sim_bar::memcopy
+bar_impl_sim::memcopy
 (
-    librorc_bar_address  target,
+    bar_address  target,
     const void          *source,
     size_t               num
 )
@@ -183,10 +191,10 @@ sim_bar::memcopy
 
 
 void
-sim_bar::memcopy
+bar_impl_sim::memcopy
 (
     void                *target,
-    librorc_bar_address  source,
+    bar_address  source,
     size_t               num
 )
 {
@@ -197,7 +205,7 @@ sim_bar::memcopy
 
 
 
-uint32_t sim_bar::get32(librorc_bar_address address )
+uint32_t bar_impl_sim::get32(bar_address address )
 {
     int      result;
     uint32_t data = 0;
@@ -240,7 +248,7 @@ uint32_t sim_bar::get32(librorc_bar_address address )
 
 
 
-uint16_t sim_bar::get16(librorc_bar_address address )
+uint16_t bar_impl_sim::get16(bar_address address )
 {
     int      result;
     uint16_t data = 0;
@@ -290,9 +298,9 @@ uint16_t sim_bar::get16(librorc_bar_address address )
 
 
 void
-sim_bar::set32
+bar_impl_sim::set32
 (
-    librorc_bar_address address,
+    bar_address address,
     uint32_t data
 )
 {
@@ -334,9 +342,9 @@ sim_bar::set32
 
 
 void
-sim_bar::set16
+bar_impl_sim::set16
 (
-    librorc_bar_address address,
+    bar_address address,
     uint16_t data
 )
 {
@@ -387,7 +395,7 @@ sim_bar::set16
 
 
 int32_t
-sim_bar::gettime
+bar_impl_sim::gettime
 (
     struct timeval *tv,
     struct timezone *tz
@@ -430,7 +438,7 @@ sim_bar::gettime
 
 
 void*
-sim_bar::sockMonitor()
+bar_impl_sim::sockMonitor()
 {
     uint32_t tmpvar = 0;
     while( (tmpvar=readDWfromSock(m_sockfd)) )
@@ -473,7 +481,7 @@ sim_bar::sockMonitor()
 
 
     uint32_t
-    sim_bar::readDWfromSock
+    bar_impl_sim::readDWfromSock
     (
         int sock
     )
@@ -489,7 +497,7 @@ sim_bar::sockMonitor()
         }
         else if (result!=sizeof(uint32_t))
         {
-            std::cout << "ERROR: librorc::sim_bar::readDWfromSock returned "
+            std::cout << "ERROR: librorc::bar_impl_sim::readDWfromSock returned "
                  << result << " bytes" << std::endl;
         }
 
@@ -498,7 +506,7 @@ sim_bar::sockMonitor()
 
 
     void
-    sim_bar::doCompleteToHost
+    bar_impl_sim::doCompleteToHost
     (
         uint16_t msgsize
     )
@@ -516,7 +524,7 @@ sim_bar::sockMonitor()
 
 
     void
-    sim_bar::doWriteToHost
+    bar_impl_sim::doWriteToHost
     (
         uint16_t msgsize
     )
@@ -569,7 +577,7 @@ sim_bar::sockMonitor()
 
 
     void
-    sim_bar::doReadFromHost
+    bar_impl_sim::doReadFromHost
     (
         uint16_t msgsize
     )
@@ -618,7 +626,7 @@ sim_bar::sockMonitor()
 
 
     void
-    sim_bar::doAcknowledgeCompletion
+    bar_impl_sim::doAcknowledgeCompletion
     (
         uint16_t msgsize
     )
@@ -633,7 +641,7 @@ sim_bar::sockMonitor()
 
 
     void
-    sim_bar::doAcknowledgeWrite
+    bar_impl_sim::doAcknowledgeWrite
     (
         uint16_t msgsize
     )
@@ -648,7 +656,7 @@ sim_bar::sockMonitor()
 
 
     void
-    sim_bar::doAcknowledgeTime
+    bar_impl_sim::doAcknowledgeTime
     (
         uint16_t msgsize
     )
@@ -665,7 +673,7 @@ sim_bar::sockMonitor()
 
 
     int
-    sim_bar::getOffset
+    bar_impl_sim::getOffset
     (
         uint64_t  phys_addr,
         uint64_t *buffer_id,
@@ -735,7 +743,7 @@ sim_bar::sockMonitor()
     }
 
 void
-sim_bar::simSetPacketSize
+bar_impl_sim::simSetPacketSize
 (
     uint32_t packet_size
 )
@@ -745,7 +753,7 @@ sim_bar::simSetPacketSize
 
 
 void*
-sim_bar::cmplHandler()
+bar_impl_sim::cmplHandler()
 {
     t_read_req rdreq;
     while( int result = read(m_pipefd[0], &rdreq, sizeof(t_read_req)) )
@@ -849,7 +857,7 @@ sim_bar::cmplHandler()
 
 
 size_t
-sim_bar::size()
+bar_impl_sim::size()
 {
     return m_size;
 }

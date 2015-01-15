@@ -26,93 +26,88 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- *
- * @section DESCRIPTION
- *
- * The rorc_bar class represents a Base Address Register (BAR) file
- * mapping of the RORCs PCIe address space
- */
-
+ **/
 #ifndef LIBRORC_BAR_H
 #define LIBRORC_BAR_H
 
-#include <librorc/include_ext.hh>
-#include <librorc/defines.hh>
-#include <librorc/bar_proto.hh>
+#define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED 1
+
+namespace LIBRARY_NAME {
+class device;
+class bar_impl_hw;
+class bar_impl_sim;
+
+typedef uint64_t bar_address;
+
+class bar {
+public:
+  bar(device *dev, int32_t n);
+  ~bar();
+
+  /**
+   * copy buffer from host to device and vice versa
+   * @param target address
+   * @param source address
+   * @param num number of bytes to be copied to destination
+   * */
+  void memcopy(bar_address target, const void *source, size_t num);
+
+  void memcopy(void *target, bar_address source, size_t num);
+
+  /**
+   * read DWORD from BAR address
+   * @param addr (unsigned int) aligned address within the
+   *              BAR to read from.
+   * @return data read from BAR[addr]
+   **/
+  uint32_t get32(bar_address address);
+
+  /**
+   * read WORD from BAR address
+   * @param addr within the BAR to read from.
+   * @return data read from BAR[addr]
+   **/
+  uint16_t get16(bar_address address);
+
+  /**
+   * write DWORD to BAR address
+   * @param addr (unsigned int) aligned address within the
+   *              BAR to write to
+   * @param data (unsigned int) data word to be written.
+   **/
+  void set32(bar_address address, uint32_t data);
+
+  /**
+   * write WORD to BAR address
+   * @param addr within the BAR to write to
+   * @param data (unsigned int) data word to be written.
+   **/
+  void set16(bar_address address, uint16_t data);
+
+  /**
+   * get current time of day
+   * @param tv pointer to struct timeval
+   * @param tz pointer to struct timezone
+   * @return return value from gettimeof day or zero for FLI simulation
+   **/
+  int32_t gettime(struct timeval *tv, struct timezone *tz);
+
+  /**
+   * get size of mapped BAR. This value is only valid after init()
+   * @return size of mapped BAR in bytes
+   **/
+  size_t size();
+
+  void simSetPacketSize(uint32_t packet_size);
+
+protected:
 
 
-namespace LIBRARY_NAME
-{
-    class device;
-    class dma_channel;
-
-    /**
-     * @brief Represents a Base Address Register (BAR) file
-     * mapping of the RORCs PCIe address space
-     *
-     * Create a new crorc_bar object after initializing your
-     * librorc::device instance. <br>Once your rorc_bar instance is
-     * initialized (with init()) you can use get() and set() to
-     * read from and/or write to the device.
-     */
-    class rorc_bar : public bar
-    {
-        public:
-            rorc_bar
-            (
-                device  *dev,
-                int32_t  n
-            );
-
-            ~rorc_bar();
-
-            void
-            memcopy
-            (
-                librorc_bar_address  target,
-                const void          *source,
-                size_t               num
-            );
-
-            void
-            memcopy
-            (
-                void                *target,
-                librorc_bar_address  source,
-                size_t               num
-            );
-
-            uint32_t get32( librorc_bar_address address );
-            uint16_t get16( librorc_bar_address address );
-
-            void
-            set32
-            (
-                librorc_bar_address address,
-                uint32_t data
-            );
-
-            void
-            set16
-            (
-                librorc_bar_address address,
-                uint16_t data
-            );
-
-            int32_t
-            gettime
-            (
-                struct timeval *tv,
-                struct timezone *tz
-            );
-
-            size_t size();
-
-        protected:
-            Bar *m_pda_bar;
-
-    };
-
+#ifdef MODELSIM
+  bar_impl_sim *p;
+#else
+  bar_impl_hw *p;
+#endif
+};
 }
 #endif /** LIBRORC_BAR_H */

@@ -60,9 +60,8 @@ namespace LIBRARY_NAME
     class device
     {
     friend class buffer;
-    friend class bar;
-    friend class rorc_bar;
-    friend class sim_bar;
+    friend class bar_impl_sim;
+    friend class bar_impl_hw;
 
     public:
          device(int32_t device_index);

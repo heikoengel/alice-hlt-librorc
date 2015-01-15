@@ -34,8 +34,6 @@
 
 #include <librorc/buffer.hh>
 #include <librorc/device.hh>
-#include <librorc/bar_proto.hh>
-#include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 #include <librorc/sysmon.hh>
 #include <librorc/link.hh>
@@ -125,11 +123,7 @@ namespace LIBRARY_NAME
             try
             {
                 m_dev = new device(m_deviceId);
-#ifdef MODELSIM
-                m_bar1 = new sim_bar(m_dev, 1);
-#else
-                m_bar1 = new rorc_bar(m_dev, 1);
-#endif
+                m_bar1 = new bar(m_dev, 1);
             }
             catch(...)
             { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }

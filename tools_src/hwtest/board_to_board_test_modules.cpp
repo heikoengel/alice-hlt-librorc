@@ -56,7 +56,7 @@ initLibrorcInstances
     /** Instantiate a new bar */
     try
     {
-        *bar = new librorc::rorc_bar(*dev, 1);
+        *bar = new librorc::bar(*dev, 1);
     }
     catch(...)
     {

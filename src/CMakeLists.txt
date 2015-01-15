@@ -3,6 +3,8 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
 SET( LIBRORC_LIBRARY_SOURCE
   bar.cpp
+  bar_impl_hw.cpp
+  bar_impl_sim.cpp
   buffer.cpp
   datareplaychannel.cpp
   ddl.cpp
@@ -20,7 +22,6 @@ SET( LIBRORC_LIBRARY_SOURCE
   microcontroller.cpp
   patterngenerator.cpp
   refclk.cpp
-  sim_bar.cpp
   siu.cpp
   sysmon.cpp
   )

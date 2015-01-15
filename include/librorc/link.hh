@@ -146,9 +146,9 @@ namespace LIBRARY_NAME
             void
             memcopy
             (
-                 librorc_bar_address  target,
-                 const void          *source,
-                 size_t               num
+                 bar_address  target,
+                 const void  *source,
+                 size_t       num
             );
 
             /**

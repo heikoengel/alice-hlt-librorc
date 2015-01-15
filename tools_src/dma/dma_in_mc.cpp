@@ -76,11 +76,7 @@ int main(int argc, char *argv[])
     try
     {
         dev = new librorc::device(opts.deviceId);
-#ifdef MODELSIM
-        bar = new librorc::sim_bar(dev, 1);
-#else
-        bar = new librorc::rorc_bar(dev, 1);
-#endif
+        bar = new librorc::bar(dev, 1);
 
     }
     catch(...)

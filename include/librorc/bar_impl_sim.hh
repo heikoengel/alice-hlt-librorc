@@ -29,12 +29,12 @@
  *
  **/
 
-#ifndef SIM_BAR_H
-#define SIM_BAR_H
+#ifndef LIBRORC_BAR_IMPL_SIM_H
+#define LIBRORC_BAR_IMPL_SIM_H
 
 #include <librorc/include_ext.hh>
 #include <librorc/defines.hh>
-#include <librorc/bar_proto.hh>
+#include <librorc/bar.hh>
 
 /**
  * FLI_CMD bit definitions
@@ -62,27 +62,27 @@ namespace LIBRARY_NAME
      * @brief Represents a simulated Base Address Register
      * (BAR) file mapping of the RORCs PCIe address space
      *
-     * Create a new sim_bar object after initializing your
-     * librorc::device instance. <br>Once your sim_bar instance is
+     * Create a new bar_impl_sim object after initializing your
+     * librorc::device instance. <br>Once your bar_impl_sim instance is
      * initialized (with init()) you can use get() and set() to
      * read from and/or write to the device.
      */
-    class sim_bar : public bar
+    class bar_impl_sim
     {
         public:
-            sim_bar
+            bar_impl_sim
             (
                 device  *dev,
                 int32_t  n
             );
 
              virtual
-            ~sim_bar();
+            ~bar_impl_sim();
 
             void
             memcopy
             (
-                librorc_bar_address  target,
+                bar_address  target,
                 const void          *source,
                 size_t               num
             );
@@ -91,25 +91,25 @@ namespace LIBRARY_NAME
             memcopy
             (
                 void                *target,
-                librorc_bar_address  source,
+                bar_address  source,
                 size_t               num
             );
 
-            uint32_t get32(librorc_bar_address address );
+            uint32_t get32(bar_address address );
 
-            uint16_t get16(librorc_bar_address address );
+            uint16_t get16(bar_address address );
 
             void
             set32
             (
-                librorc_bar_address address,
+                bar_address address,
                 uint32_t data
             );
 
             void
             set16
             (
-                librorc_bar_address address,
+                bar_address address,
                 uint16_t data
             );
 
@@ -130,6 +130,12 @@ namespace LIBRARY_NAME
 
 
         private:
+  device *m_parent_dev;
+  PciDevice *m_pda_pci_device;
+  pthread_mutex_t m_mtx;
+  int32_t m_number;
+  uint8_t *m_bar;
+  size_t m_size;
 
             int      m_sockfd;
             int      m_pipefd[2];
@@ -152,14 +158,14 @@ namespace LIBRARY_NAME
             static void*
             sock_monitor_helper(void * This)
             {
-                ((sim_bar *)This)->sockMonitor();
+                ((bar_impl_sim *)This)->sockMonitor();
                 return 0;
             }
 
             static void*
             cmpl_handler_helper(void * This)
             {
-                ((sim_bar *)This)->cmplHandler();
+                ((bar_impl_sim *)This)->cmplHandler();
                 return 0;
             }
 
@@ -258,4 +264,4 @@ __attribute__((__packed__))
 	int32_t  id;            /**< Command-ID */
 } flicmdT;
 
-#endif /** SIM_BAR_H */
+#endif /** LIBRORC_BAR_IMPL_SIM_H */

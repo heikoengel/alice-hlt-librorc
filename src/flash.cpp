@@ -30,8 +30,6 @@
  **/
 
 #include <librorc/flash.hh>
-#include <librorc/bar_proto.hh>
-#include <librorc/sim_bar.hh>
 #include <librorc/bar.hh>
 
 namespace LIBRARY_NAME

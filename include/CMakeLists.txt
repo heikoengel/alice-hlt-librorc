@@ -2,7 +2,8 @@ PROJECT(librorc-devel)
 
 SET( LIBRORC_HEADERS
   librorc/bar.hh
-  librorc/bar_proto.hh
+  librorc/bar_impl_sim.hh
+  librorc/bar_impl_hw.hh
   librorc/buffer.hh
   librorc/datareplaychannel.hh
   librorc/ddl.hh
