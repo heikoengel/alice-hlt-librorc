@@ -254,7 +254,7 @@ buffer::offsetToPhysAddr
         }
         else
         { reference_offset += iter->length; }
-        iter++;
+        ++iter;
     }
     return false;
 }
@@ -280,7 +280,7 @@ buffer::physAddrToOffset
         }
         else
         { reference_offset += iter->length; }
-        iter++;
+        ++iter;
     }
     return false;
 }
