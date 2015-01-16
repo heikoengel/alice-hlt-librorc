@@ -633,7 +633,7 @@ namespace LIBRARY_NAME
             return LIBRORC_SYSMON_QSFP_EXT_RATE_SELECTION;
         }
         /** enh_options[3:2]="01" */
-        else if ( (enh_options & 0x0c)==0x40 )
+        else if ( (enh_options & 0x0c)==0x04 )
         {
             return LIBRORC_SYSMON_QSFP_APT_RATE_SELECTION;
         }
@@ -1019,10 +1019,9 @@ namespace LIBRARY_NAME
     )
     {
         std::string readout = "";
-        char data_r = 0;
         for( uint8_t addr=start_address; addr<=end_address; addr++ )
         {
-            data_r = ddr3SpdRead(module, addr);
+            char data_r = ddr3SpdRead(module, addr);
             readout.append(1, data_r);
         }
         return readout;
@@ -1131,10 +1130,9 @@ namespace LIBRARY_NAME
     )
     {
         std::string *readout = new std::string();
-        char data_r = 0;
         for(uint8_t i=start; i<=end; i++)
         {
-            data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, i);
+            char data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, i);
             readout->append(1, data_r);
         }
         return readout;
