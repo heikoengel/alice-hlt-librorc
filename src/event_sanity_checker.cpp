@@ -35,6 +35,7 @@
  */
 
 #include <iostream>
+#include <cstring>
 #include <cstdio>
 #include <pda.h>
 #include <sys/mman.h>
@@ -62,6 +63,11 @@ namespace LIBRARY_NAME
              file_dumper(char *base_dir)
              {
                  m_base_dir = base_dir;
+                 memset(m_ddl_file_name, 0, 4096);
+                 m_fd_ddl = 0;
+                 memset(m_log_file_name, 0, 4096);
+                 m_fd_log = 0;
+                 m_raw_event_buffer = NULL;
              };
 
             ~file_dumper(){ };
@@ -303,7 +309,7 @@ namespace LIBRARY_NAME
                             m_fd_ddl
                     );
 
-                if( size_written < 0 )
+                if( size_written != (report.calc_event_size & 0x3fffffff) )
                 { throw LIBRORC_FILE_DUMPER_ERROR_LOGGING_EVENT_FAILED; }
             }
 
