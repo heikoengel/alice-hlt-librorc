@@ -526,7 +526,10 @@ flash::dump
 
     FILE *filep = fopen(filename, "w");
     if(filep == NULL)
-    { return -1; }
+    {
+        free(flash_buffer);
+        return -1;
+    }
 
     for(uint64_t i=0; i<flash_words; i++)
     {
@@ -539,7 +542,11 @@ flash::dump
     }
 
     if( fwrite(flash_buffer, FLASH_SIZE, 1, filep) != 1 )
-    { return -1; }
+    {
+        free(flash_buffer);
+        fclose(filep);
+        return -1;
+    }
 
     fclose(filep);
     free(flash_buffer);
