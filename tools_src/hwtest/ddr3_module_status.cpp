@@ -84,10 +84,9 @@ spd_read_string
 )
 {
     string *readout = new string();
-    char data_r = 0;
     for(uint8_t i=start; i<=end; i++)
     {
-        data_r = spd_read(sm, module, i);
+        char data_r = spd_read(sm, module, i);
         readout->append(1, data_r);
     }
     return readout;

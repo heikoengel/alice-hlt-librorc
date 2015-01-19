@@ -853,6 +853,8 @@ testDmaChannel
     opts.eventSize = 0x1000;
     opts.useRefFile = false;
     opts.esType = librorc::kEventStreamToHost;
+    opts.datasource = ES_SRC_HWPG;
+    opts.loadFcfMappingRam = false;
 
     char logdirectory[] = "/tmp";
     

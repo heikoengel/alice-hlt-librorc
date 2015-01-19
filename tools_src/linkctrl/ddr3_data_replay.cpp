@@ -383,7 +383,7 @@ int main
             /** iterate over list of files */
             for( iter = list_of_filenames.begin();
                     iter != list_of_filenames.end();
-                    iter++ )
+                    ++iter )
             {
                 if( iter == (list_of_filenames.end()-1) )
                 { is_last_event = true; }

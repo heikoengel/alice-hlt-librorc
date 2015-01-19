@@ -122,7 +122,7 @@ int main( int argc, char *argv[])
     }
 
     std::vector<librorc::ScatterGatherEntry>::iterator iter;
-    for(iter=list.begin(); iter!=list.end(); iter++)
+    for(iter=list.begin(); iter!=list.end(); ++iter)
     {
         cout << "list physaddr 0x" << hex << iter->pointer
              << " len 0x" << iter->length << endl;

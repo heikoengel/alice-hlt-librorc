@@ -58,7 +58,6 @@ nextEventSize
             case 2:
             case 3:
                 return EventSize + (1<<(i-1));
-                return EventSize + (1<<(i-1));
             case 5:
                 return EventSize + (1<<i);
             case 7:

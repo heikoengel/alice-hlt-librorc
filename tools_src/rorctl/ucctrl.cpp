@@ -380,7 +380,7 @@ main
 
     if (filename)
     {
-        delete filename;
+        free(filename);
     }
 
     return 0;
