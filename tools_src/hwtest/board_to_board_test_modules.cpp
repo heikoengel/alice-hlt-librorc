@@ -284,11 +284,13 @@ clearAllErrorCounters
     for ( uint32_t i=0; i<nchannels; i++ )
     {
         librorc::link *link = new librorc::link(bar, i);
+        librorc::gtx *gtx = new librorc::gtx(link);
         if ( link->isGtxDomainReady() )
         {
-            link->clearAllGtxErrorCounters();
+            gtx->clearErrorCounters();
             link->setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
         }
+        delete gtx;
         delete link;
     }
 }

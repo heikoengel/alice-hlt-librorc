@@ -328,9 +328,9 @@ int main
 #ifdef MODELSIM
         current_link->waitForGTXDomain();
 #endif
-        if ( !current_link->isGtxDomainReady() )
+        if ( !current_link->isDdlDomainReady() )
         {
-            cout << "GTX Domain not ready for channel "
+            cout << "DDL Domain not ready for channel "
                  << chID << " - skipping..." << endl;
             continue;
         }

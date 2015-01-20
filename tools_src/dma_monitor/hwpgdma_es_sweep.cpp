@@ -77,8 +77,8 @@ setEventSize
     librorc::link *current_link
         = new librorc::link(bar, ChannelId);
 
-    /** make sure GTX domain is up and running */
-    if ( !current_link->isGtxDomainReady() )
+    /** make sure DDL domain is up and running */
+    if ( !current_link->isDdlDomainReady() )
     {
         return -1;
     }

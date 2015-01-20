@@ -333,8 +333,8 @@ int main
         librorc::link *current_link
             = new librorc::link(bar, chID);
 
-        /** check if GTX domain is up */
-        if ( !current_link->isGtxDomainReady() )
+        /** check if DDL domain is up */
+        if ( !current_link->isDdlDomainReady() )
         {
             cout << "GTX Domain not ready for channel "
                  << chID << " - skipping..." << endl;

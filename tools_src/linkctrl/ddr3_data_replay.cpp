@@ -349,7 +349,7 @@ int main
         /** create link instance */
         librorc::link *link = new librorc::link(bar, ChannelId);
 
-        if( !link->isGtxDomainReady() ||
+        if( !link->isDdlDomainReady() ||
                 !link->ddr3DataReplayAvailable() )
         {
             cout << "INFO: Data Replay not available on channel "
