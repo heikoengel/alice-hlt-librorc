@@ -157,6 +157,12 @@ namespace LIBRARY_NAME
             bool isGtxDomainReady();
 
             /**
+             * get DDL clock domain status
+             * @return TRUE if up and running, FALSE if down
+             * */
+            bool isDdlDomainReady();
+
+            /**
              * get GTX Link Status
              * @return TRUE if up and running, FALSE if down
              * */
@@ -168,14 +174,6 @@ namespace LIBRARY_NAME
              * & !gtx_in_rst
             **/
             void waitForGTXDomain();
-
-
-            /**********************************************************
-             *             Low Level GTX Status/Control
-             * *******************************************************/
-
-            /** clear all above counters */
-            void clearAllGtxErrorCounters();
 
             /**
              * get link type

@@ -128,14 +128,26 @@ namespace LIBRARY_NAME
             (1<<3) | // TX Reset
             (1<<4) | // TX Reset Done
             (1<<5) | // RX PLL LKDet
-            (1<<8); // GTX in Reset
+            (1<<8); // GTX RX clk in Reset
         uint32_t expected_value = (0<<0) | // no GTX reset
             (0<<1) | // no RX Reset
             (1<<2) | // RX Reset Done==1
             (0<<3) | // no RX Reset
             (1<<4) | // RX Reset Done==1
             (1<<5) | // RX PLL LKDet
-            (0<<8); // GTX not in Reset
+            (0<<8); // GTX RX clk not in Reset
+        return ((gtxasynccfg & stsmask) == expected_value);
+    }
+
+
+    bool
+    link::isDdlDomainReady()
+    {
+        uint32_t gtxasynccfg = pciReg(RORC_REG_GTX_ASYNC_CFG);
+        uint32_t stsmask = (1<<0) | // GTX reset
+            (1<<7); // DDL clk in Reset
+        uint32_t expected_value = (0<<0) | // no GTX reset
+            (0<<7); // DDL clk not in Reset
         return ((gtxasynccfg & stsmask) == expected_value);
     }
 
@@ -157,15 +169,6 @@ namespace LIBRARY_NAME
             (0<<9) | // rxbufstatus[2]==0
             (0<<11); // txbufstatus[1]==0
         return ((gtxsyncsts & stsmask) == expected_value);
-    }
-
-
-    void
-    link::clearAllGtxErrorCounters()
-    {
-        setGtxReg(RORC_REG_GTX_DISPERR_REALIGN_CNT, 0);
-        setGtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT, 0);
-        setGtxReg(RORC_REG_GTX_ERROR_CNT, 0);
     }
 
 

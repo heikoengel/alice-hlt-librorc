@@ -233,41 +233,13 @@ namespace LIBRARY_NAME {
     bool
     gtx::isDomainReady()
     {
-        uint32_t gtxasynccfg = m_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
-        uint32_t stsmask = (1<<0) | // GTX reset
-            (1<<1) | // RX Reset
-            (1<<2) | // RX Reset Done
-            (1<<3) | // TX Reset
-            (1<<4) | // TX Reset Done
-            (1<<5) | // RX PLL LKDet
-            (1<<8); // GTX in Reset
-        uint32_t expected_value = (0<<0) | // no GTX reset
-            (0<<1) | // no RX Reset
-            (1<<2) | // RX Reset Done==1
-            (0<<3) | // no RX Reset
-            (1<<4) | // RX Reset Done==1
-            (1<<5) | // RX PLL LKDet
-            (0<<8); // GTX not in Reset
-        return ((gtxasynccfg & stsmask) == expected_value);
+        return m_link->isGtxDomainReady();
     }
 
     bool
     gtx::isLinkUp()
     {
-        uint32_t gtxsyncsts = m_link->gtxReg(RORC_REG_GTX_CTRL);
-        uint32_t stsmask = (1<<0) | // PHY is ready
-            (1<<1) | // PHY is enabled enable
-            (1<<5) | // GTX byteisaligned
-            (1<<6) | // GTX lossofsync
-            (1<<9) | // GTX rxbufstatus[2]
-            (1<<11); // GTX txbufstatus[1]
-        uint32_t expected_value = (1<<0) | // ready==1
-            (1<<1) | // enable==1
-            (1<<5) | // byteisaligned==1
-            (0<<6) | // lossofsync==0
-            (0<<9) | // rxbufstatus[2]==0
-            (0<<11); // txbufstatus[1]==0
-        return ((gtxsyncsts & stsmask) == expected_value);
+        return m_link->isGtxLinkUp();
     }
 
     void
