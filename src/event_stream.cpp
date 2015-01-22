@@ -99,14 +99,23 @@ namespace LIBRARY_NAME
         uint64_t bufferSize
     )
     {
-        if( initializeDmaBuffers(bufferId, bufferSize) != 0 )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA buffers");
-            return -1;
-        }
-        int result = initializeDmaChannel();
+        int result = initializeDmaBuffers(bufferId, bufferSize);
         if( result != 0 )
         {
+            /** possible return values:
+             * EINVAL: odd bufferId
+             * -1    : librorc::buffer() constructor failed
+             **/
+            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA buffers");
+            return result;
+        }
+        result = initializeDmaChannel();
+        if( result != 0 )
+        {
+            /** possible return values:
+             * ENODEV: on eventbuffer==NULL or reportbuffer==NULL
+             * EFBIG : sglist does not fit into BD-RAM
+             **/
             DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA channel");
             return result;
         }
@@ -246,6 +255,13 @@ namespace LIBRARY_NAME
         uint64_t      eventBufferSize
     )
     {
+        // only allow even eventBufferIds becaus the report buffer ID
+        // is always eventBufferId+1
+        if( eventBufferId & 1 )
+        {
+            return EINVAL;
+        }
+
         try
         {
             // allocate a new buffer if a size was provided, else connect
@@ -314,7 +330,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaChannel()
     {
         if( m_eventBuffer==NULL || m_reportBuffer==NULL )
-        { return -1; }
+        { return ENODEV; }
 
         int ret = m_channel->configure(
                 m_eventBuffer, m_reportBuffer, m_esType, m_pciePacketSize);
