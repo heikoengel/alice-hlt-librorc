@@ -107,7 +107,7 @@ namespace LIBRARY_NAME {
             uint32_t getDisparityErrorCount();
             uint32_t getRealignCount();
             uint32_t getRxNotInTableErrorCount();
-            uint32_t getRxLossOfSignalErrorCount();
+            uint32_t getRxLossOfSyncErrorCount();
 
 
             /**

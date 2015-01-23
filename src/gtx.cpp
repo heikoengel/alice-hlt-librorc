@@ -263,7 +263,7 @@ namespace LIBRARY_NAME {
     { return ((m_link->gtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT))>>16); }
 
     uint32_t
-    gtx::getRxLossOfSignalErrorCount()
+    gtx::getRxLossOfSyncErrorCount()
     { return ((m_link->gtxReg(RORC_REG_GTX_RXNIT_RXLOS_CNT)) & 0xffff); }
 
     uint16_t
