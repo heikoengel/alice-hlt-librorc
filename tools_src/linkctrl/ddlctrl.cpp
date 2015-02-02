@@ -372,7 +372,6 @@ int main
                     {
                         librorc::ddl *ddl = new librorc::ddl(current_link);
                         ddl->clearDmaDeadtime();
-                        ddl->clearEventcount();
                         delete ddl;
                     }
                     break;
