@@ -73,6 +73,14 @@ namespace LIBRARY_NAME
     diu::clearDdlDeadtime()
     { m_link->setDdlReg(RORC_REG_DDL_DEADTIME, 0); }
 
+    uint32_t
+    diu::getEventcount()
+    { return m_link->ddlReg(RORC_REG_DDL_EC); }
+
+    void
+    diu::clearEventcount()
+    { m_link->setDdlReg(RORC_REG_DDL_EC, 0); }
+
     /**********************************************************
      *             Protocol Level  DDL Status and Control
      * *******************************************************/

@@ -97,19 +97,6 @@ namespace LIBRARY_NAME
              * clear DMA deadtime counter */
             void
             clearDmaDeadtime();
-            
-            /**
-             * get num,ber of events received (DIU) or transmitted (SIU)
-             * @return number of events
-             **/
-            uint32_t
-            getEventcount();
-
-            /**
-             * clear DIU/SIU event count
-             **/
-            void
-            clearEventcount();
 
         protected:
             link *m_link;

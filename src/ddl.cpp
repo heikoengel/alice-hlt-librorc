@@ -96,15 +96,4 @@ namespace LIBRARY_NAME
         return (m_link->ddlReg(RORC_REG_DDL_CTRL) & 1);
     }
 
-    uint32_t
-    ddl::getEventcount()
-    {
-        return m_link->ddlReg(RORC_REG_DDL_EC);
-    }
-
-    void
-    ddl::clearEventcount()
-    {
-        m_link->setDdlReg(RORC_REG_DDL_EC, 0);
-    }
 }

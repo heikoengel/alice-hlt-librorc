@@ -71,6 +71,20 @@ namespace LIBRARY_NAME
              * clear DDL deadtime counter */
             void
             clearDdlDeadtime();
+
+            /**
+             * get num,ber of events transmitted via SIU
+             * @return number of events
+             **/
+            uint32_t
+            getEventcount();
+
+            /**
+             * clear SIU event count
+             **/
+            void
+            clearEventcount();
+
             /**
              * get last FrontEnd Command Word sent to SIU
              * @return last FrontEnd Command Word
