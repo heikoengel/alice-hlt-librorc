@@ -46,6 +46,10 @@ namespace LIBRARY_NAME
         return ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>5) & 1);
     }
 
+    bool
+    siu::linkFull()
+    { return ( ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>4) & 1) != 1 ); }
+
     uint32_t
     siu::getDdlDeadtime()
     { return m_link->ddlReg(RORC_REG_DDL_DEADTIME); }

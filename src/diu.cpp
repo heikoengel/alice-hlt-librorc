@@ -40,13 +40,15 @@ namespace LIBRARY_NAME
     diu::diu( link *link ) : ddl(link){}
     diu::~diu(){}
 
-
     bool
     diu::linkUp()
     {
         return ( (m_link->ddlReg(RORC_REG_DDL_CTRL) & (1<<5)) != 0 );
     }
 
+    bool
+    diu::linkFull()
+    { return ( ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>4) & 1) != 1 ); }
 
     void
     diu::clearEventSizeCounter()
@@ -54,7 +56,6 @@ namespace LIBRARY_NAME
         m_link->setDdlReg(RORC_REG_DDL_CTRL,
                 m_link->ddlReg(RORC_REG_DDL_CTRL)|(1<<2));
     }
-
 
     void
     diu::clearAllLastStatusWords()

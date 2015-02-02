@@ -59,6 +59,12 @@ namespace LIBRARY_NAME
             linkOpen();
 
             /**
+             * check if DDL link is full
+             * @return true when full, false when not full
+             **/
+            bool linkFull();
+
+            /**
              * get DDL deadtime
              * @return deadtime in clock cycles. For HLT_OUT this is the
              * number of cycles where DMA data is available but SIU is busy

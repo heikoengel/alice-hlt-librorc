@@ -48,12 +48,6 @@ namespace LIBRARY_NAME
         m_link = NULL;
     }
 
-    bool
-    ddl::linkFull()
-    {
-        return ( ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>4) & 1) != 1 );
-    }
-
     void
     ddl::setReset
     (

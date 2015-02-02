@@ -63,7 +63,6 @@ namespace LIBRARY_NAME
             diu( link *link );
             ~diu();
 
-
             /**
              * check if DIU link is up
              * @return true when up, false when down
@@ -71,6 +70,11 @@ namespace LIBRARY_NAME
             bool
             linkUp();
 
+            /**
+             * check if DDL link is full
+             * @return true when full, false when not full
+             **/
+            bool linkFull();
 
             /**
              * DIU Interface internal counter providing the reported
