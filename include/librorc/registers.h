@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: d3a99c299630c28df6f415e0cffa9ec4c18dc88a
-// short hash: d3a99c2
+// hash: 0a2a7aa78a15b2947c9b7c8ba0333be2e86b56cc
+// short hash: 0a2a7aa
 //
 
-#define RORC_REVISION 0xd3a99c2
-#define RORC_BUILD_DATE 0x20140624
+#define RORC_REVISION 0x0a2a7aa
+#define RORC_BUILD_DATE 0x20150203
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -20,6 +20,8 @@
 #define RORC_REG_SC_REQ_CANCELED 5
 #define RORC_REG_QSFP_LED_CTRL 6
 #define RORC_REG_UPTIME 7
+#define RORC_REG_FPGA_ID_LOW 8
+#define RORC_REG_FPGA_ID_HIGH 9
 #define RORC_REG_DMA_TX_TIMEOUT 10
 #define RORC_REG_I2C_CONFIG 11
 #define RORC_REG_I2C_OPERATION 12
@@ -38,6 +40,7 @@
 #define RORC_REG_DDR3_C0_TESTER_WRCNT 34
 #define RORC_REG_DDR3_C1_TESTER_RDCNT 35
 #define RORC_REG_DDR3_C1_TESTER_WRCNT 36
+#define RORC_REG_DDR3_MODULE 37
 #define RORC_REG_LVDS_CTRL 39
 #define RORC_REG_FMC_CTRL_LOW 40
 #define RORC_REG_FMC_CTRL_MID 41
@@ -89,6 +92,7 @@
 #define RORC_REG_DDL_PG_NUM_EVENTS 11
 #define RORC_REG_FCF_CTRL 12
 #define RORC_REG_DDL_CMD 13
+#define RORC_REG_DDL_SERIAL 14
 #define RORC_REG_DDL_EC 16
 #define RORC_REG_DDL_DEADTIME 17
 #define RORC_REG_DDL_CTSTW 18
@@ -108,6 +112,7 @@
 #define RORC_CFG_PROJECT_hlt_in 0
 #define RORC_CFG_PROJECT_hlt_out 1
 #define RORC_CFG_PROJECT_hlt_in_fcf 2
+#define RORC_CFG_PROJECT_hlt_in_fcf_ddl2 3
 #define RORC_CFG_PROJECT_hwtest 4
 #define RORC_CFG_PROJECT_ibert 5
 #define RORC_CFG_LINK_TYPE_DIU 0
