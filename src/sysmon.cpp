@@ -139,15 +139,17 @@ namespace LIBRARY_NAME
         switch( firmwareType() )
         {
             case RORC_CFG_PROJECT_hlt_in:
-                return "HLT_IN";
+                return "hlt_in";
             case RORC_CFG_PROJECT_hlt_out:
-                return "HLT_OUT";
+                return "hlt_out";
             case RORC_CFG_PROJECT_hlt_in_fcf:
-                return "HLT_IN_FCF";
+                return "hlt_in_fcf";
+            case RORC_CFG_PROJECT_hlt_in_fcf_ddl2:
+                return "hlt_in_fcf_ddl2";
             case RORC_CFG_PROJECT_hwtest:
-                return "HWTEST";
+                return "hwtest";
             case RORC_CFG_PROJECT_ibert:
-                return "IBERT";
+                return "ibert";
             default:
                 return "UNKNOWN";
         }
