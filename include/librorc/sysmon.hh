@@ -234,25 +234,25 @@ namespace LIBRARY_NAME
                 uint8_t reset
             );
 
-            std::string*
+            std::string
             qsfpVendorName
             (
                 uint8_t index
             );
 
-            std::string*
+            std::string
             qsfpPartNumber
             (
                 uint8_t index
             );
 
-            std::string*
+            std::string
             qsfpRevisionNumber
             (
                 uint8_t index
             );
 
-            std::string*
+            std::string
             qsfpSerialNumber
             (
                 uint8_t index
@@ -552,13 +552,6 @@ namespace LIBRARY_NAME
                  uint32_t flags
             );
 
-            /**
-             * i2c_set_config
-             * @param config i2c configuration consisting of
-             * prescaler (31:16) and ctrl (7:0)
-            **/
-            void i2c_set_config(uint32_t config);
-
             void
             i2c_module_start
             (
@@ -578,7 +571,7 @@ namespace LIBRARY_NAME
              * @param end end address
              * @return string
              **/
-            std::string*
+            std::string
             qsfp_i2c_string_readout
             (
                 uint8_t index,

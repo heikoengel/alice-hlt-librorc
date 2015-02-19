@@ -457,7 +457,7 @@ namespace LIBRARY_NAME
 
 
 
-    std::string*
+    std::string
     sysmon::qsfpVendorName
     (
         uint8_t index
@@ -469,7 +469,7 @@ namespace LIBRARY_NAME
 
 
 
-    std::string*
+    std::string
     sysmon::qsfpPartNumber
     (
         uint8_t index
@@ -481,7 +481,7 @@ namespace LIBRARY_NAME
 
 
 
-    std::string*
+    std::string
     sysmon::qsfpSerialNumber
     (
         uint8_t index
@@ -493,7 +493,7 @@ namespace LIBRARY_NAME
 
 
 
-    std::string*
+    std::string
     sysmon::qsfpRevisionNumber
     (
         uint8_t index
@@ -1115,15 +1115,7 @@ namespace LIBRARY_NAME
     }
 
 
-    void
-    sysmon::i2c_set_config( uint32_t config )
-    {
-        m_bar->set32(RORC_REG_I2C_CONFIG, config);
-    }
-
-
-
-    std::string*
+    std::string
     sysmon::qsfp_i2c_string_readout
     (
         uint8_t index,
@@ -1131,11 +1123,11 @@ namespace LIBRARY_NAME
         uint8_t end
     )
     {
-        std::string *readout = new std::string();
+        std::string readout = "";
         for(uint8_t i=start; i<=end; i++)
         {
             char data_r = i2c_read_mem(index, QSFP_I2C_SLVADDR, i);
-            readout->append(1, data_r);
+            readout.append(1, data_r);
         }
         return readout;
     }
