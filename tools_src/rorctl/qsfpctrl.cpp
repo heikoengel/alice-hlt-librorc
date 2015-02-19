@@ -187,14 +187,14 @@ main
     {
         try
         {
-            cout << "Vendor Name   : " << *(sm->qsfpVendorName(qsfp_number))
+            cout << "Vendor Name   : " << sm->qsfpVendorName(qsfp_number)
                  << endl;
-            cout << "Part Number   : " << *(sm->qsfpPartNumber(qsfp_number))
+            cout << "Part Number   : " << sm->qsfpPartNumber(qsfp_number)
                  << endl;
             cout << "Revision      : "
-                 << *(sm->qsfpRevisionNumber(qsfp_number)) << endl;
+                 << sm->qsfpRevisionNumber(qsfp_number) << endl;
             cout << "Serial Number : "
-                 << *(sm->qsfpSerialNumber(qsfp_number)) << endl;
+                 << sm->qsfpSerialNumber(qsfp_number) << endl;
             cout << "Wavelength    : " << sm->qsfpWavelength(qsfp_number)
                  << " nm" << endl;
             cout << "Temperature   : " << sm->qsfpTemperature(qsfp_number)

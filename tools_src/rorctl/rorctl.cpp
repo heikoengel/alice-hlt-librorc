@@ -589,8 +589,8 @@ show_device_monitor
             if( sm->qsfpIsPresent(i) )
             {
                 cout << "Checking QSFP"  << i << " i2c access:"    << endl;
-                cout << "Vendor Name : " << *(sm->qsfpVendorName(i))  << endl;
-                cout << "Part Number : " << *(sm->qsfpPartNumber(i))  << endl;
+                cout << "Vendor Name : " << sm->qsfpVendorName(i)  << endl;
+                cout << "Part Number : " << sm->qsfpPartNumber(i)  << endl;
                 cout << "Temperature : " << sm->qsfpTemperature(i) << "°C" << endl;
             }
         }
