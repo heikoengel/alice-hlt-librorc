@@ -361,10 +361,10 @@ namespace LIBRARY_NAME {
         drpUpdateField(0x39, pll.tx_tdcc_cfg, 14, 2);
     }
 
-    double
+    uint32_t
     gtx::dfeEye()
     {
-        return ((m_link->gtxReg(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200.0/31.0);
+        return ((m_link->gtxReg(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200/31);
     }
 
 

@@ -40,7 +40,7 @@
 #define WAIT_LINK_TEST 20
 #define COUNTDOWN_INTERVAL 1.0
 
-#define GTX_DFE_EYE_DAC_MIN 120.0
+#define GTX_DFE_EYE_DAC_MIN 120
 
 const librorc::gtxpll_settings available_configs[] =
 {
