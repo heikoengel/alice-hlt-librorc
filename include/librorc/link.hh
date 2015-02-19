@@ -213,6 +213,13 @@ namespace LIBRARY_NAME
              **/
             void setDataSourcePcie();
 
+            /**
+             * get description string of current data source selection
+             * @return string of "DDL", "DDR", "PG", "RAW", "PCI" on success
+             * or "UNKNOWN" on error
+             **/
+            const char* getDataSourceDescr();
+
 
             /**
              * Enable/disable Flow Control
@@ -285,6 +292,7 @@ namespace LIBRARY_NAME
             uint32_t  m_link_number;
 
             void setDataSourceMux( uint32_t value );
+            uint32_t getDataSourceMux();
 };
 
 }

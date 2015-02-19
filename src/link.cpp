@@ -265,6 +265,41 @@ namespace LIBRARY_NAME
     void link::setDataSourcePatternGenerator()
     { setDataSourceMux(2); }
 
+    const char* link::getDataSourceDescr()
+    {
+        uint32_t datasource = getDataSourceMux();
+        switch (linkType()) {
+            case RORC_CFG_LINK_TYPE_DIU:
+                switch (datasource) {
+                    case 0:
+                        return "DDL";
+                    case 1:
+                        return "DDR";
+                    case 2:
+                        return "PG";
+                    default:
+                        return "UNKNOWN";
+                }
+            case RORC_CFG_LINK_TYPE_SIU:
+                switch (datasource) {
+                    case 0:
+                    case 1:
+                        return "PCI";
+                    case 2:
+                    case 3:
+                        return "PG";
+                    default:
+                        return "UNKNOWN";
+                }
+            case RORC_CFG_LINK_TYPE_VIRTUAL:
+                return "RAW";
+            case RORC_CFG_LINK_TYPE_LINKTEST:
+            case RORC_CFG_LINK_TYPE_IBERT:
+                return "PG";
+            default:
+                return "UNKNOWN";
+        }
+    }
 
     /**************** protected ******************/
 
@@ -274,6 +309,12 @@ namespace LIBRARY_NAME
         ddlctrl &= ~(3<<16);
         ddlctrl |= ((value&3)<<16);
         setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
+    }
+
+    uint32_t link::getDataSourceMux()
+    {
+        uint32_t ddlctrl = ddlReg(RORC_REG_DDL_CTRL);
+        return ((ddlctrl >> 16) & 3);
     }
 
 }
