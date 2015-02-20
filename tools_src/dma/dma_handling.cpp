@@ -623,7 +623,9 @@ configureFcf
         hlEventStream->getFastClusterFinder();
     if( fcf )
     {
-        fcf->setState(1, 0); // reset, not enabled
+        fcf->setReset(1);
+        fcf->setEnable(0);
+        fcf->setBypass(0);
         fcf->clearErrors();
 #ifndef MODELSIM
         if( opts.loadFcfMappingRam )
@@ -638,7 +640,8 @@ configureFcf
         fcf->setMergerAlgorithm(1);
         fcf->setChargeTolerance(0);
 
-        fcf->setState(0, 1);// not reset, enabled
+        fcf->setReset(0);
+        fcf->setEnable(1);
 
         delete fcf;
     }
@@ -655,7 +658,8 @@ unconfigureFcf
         hlEventStream->getFastClusterFinder();
     if( fcf )
     {
-        fcf->setState(1, 0); // reset, not enabled
+        fcf->setReset(1);
+        fcf->setEnable(0);
         delete fcf;
     }
 }
