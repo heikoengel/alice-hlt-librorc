@@ -51,15 +51,28 @@ namespace LIBRARY_NAME
             ~fastclusterfinder();
 
             /**
-             * set clusterfinder state
-             * When 'reset' is asserted, the clusterfinder will not process
-             * any data: input is ignored, thus no output. This overrides
-             * ant 'enable' setting.
-             * When 'reset' is deasserted, 'enable' controls the behavior:
-             * enable==1: activates the processing,
-             *            raw input -> processed output
-             * enable==0: push any data through without processing it,
-             *            output==input
+             * set Clusterfinder reset
+             * @param val reset
+             **/
+            void setReset( uint32_t val );
+
+            /**
+             * set Clusterfinder enable
+             * @param val enable
+             **/
+            void setEnable( uint32_t val );
+
+            /**
+             * set Clusterfinder bypass
+             * @param val if set to 1, all data is pushed through the
+             * clusterfinder without being touched. Enabling this bypass
+             * allows to read out the raw data from the DDL. Set to 0 to
+             * enable cluster finding.
+             **/
+            void setBypass( uint32_t val );
+
+             /**
+             * legacy wrapper around setReset and setEnable
              * @param reset set clusterfinder reset to 1 or 0
              * @param enable set clusterfinder enable to 1 or 0
              **/
@@ -83,6 +96,13 @@ namespace LIBRARY_NAME
              **/
             bool
             isInReset();
+
+            /**
+             * get current bypass setting
+             * @return true if bypass is active, otherwise false
+             **/
+            bool
+            isBypassed();
 
             /**
              * enable/disable Single Pad Suppression. If enabled, clusters

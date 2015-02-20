@@ -52,16 +52,50 @@ namespace LIBRARY_NAME
      * FastClusterFinder Basic Controls
      ***************************************************/
     void
+    fastclusterfinder::setReset
+    (
+        uint32_t val
+    )
+    {
+        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<15);
+        fcfctrl |= ((val & 1) << 15);
+        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    void
+    fastclusterfinder::setEnable
+    (
+        uint32_t val
+    )
+    {
+        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<0);
+        fcfctrl |= ((val & 1) << 0);
+        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    void
+    fastclusterfinder::setBypass
+    (
+        uint32_t val
+    )
+    {
+        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<13);
+        fcfctrl |= ((val & 1) << 13);
+        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    void
     fastclusterfinder::setState
     (
         uint32_t reset,
         uint32_t enable
     )
     {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~( (1<<0) | (1<<15) );
-        fcfctrl |= ( ((reset&1)<<15) | (enable&1) );
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+        setReset(reset);
+        setEnable(enable);
     }
 
     bool
@@ -76,6 +110,13 @@ namespace LIBRARY_NAME
     {
         uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
         return ((fcfctrl & 0x00008000) == 0x00008000);
+    }
+
+    bool
+    fastclusterfinder::isBypassed()
+    {
+        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+        return (((fcfctrl >> 13) & 1) == 1);
     }
 
 
