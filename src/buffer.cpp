@@ -127,11 +127,20 @@ buffer::buffer
 
     if(overmap == 1)
     {
-        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+        void *map_two = NULL;
+        if(DMABuffer_getMapTwo(m_buffer, &map_two) == PDA_SUCCESS)
         {
-            std::cout << "Wrap mapping failed!" << std::endl;
-            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+            if(map_two == MAP_FAILED)
+            {
+                if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+                {
+                    std::cout << "Wrap mapping failed!" << std::endl;
+                    throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+                }
+            }
         }
+        else
+        { throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED; }
     }
     connect();
 }
