@@ -107,7 +107,6 @@ namespace LIBRARY_NAME
              * EINVAL: odd bufferId
              * -1    : librorc::buffer() constructor failed
              **/
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA buffers");
             return result;
         }
         result = initializeDmaChannel();
@@ -117,7 +116,6 @@ namespace LIBRARY_NAME
              * ENODEV: on eventbuffer==NULL or reportbuffer==NULL
              * EFBIG : sglist does not fit into BD-RAM
              **/
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to initialize DMA channel");
             return result;
         }
         return 0;
@@ -139,14 +137,45 @@ namespace LIBRARY_NAME
                 m_dev = new device(m_deviceId);
                 m_bar1 = new bar(m_dev, 1);
             }
-            catch(...)
-            { throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED; }
+            catch(int e)
+            {
+                switch(e)
+                {
+                    case LIBRORC_DEVICE_ERROR_BUFFER_FREEING_FAILED:
+                        m_errstr = "Failed to free librorc buffers";
+                        break;
+                    case LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH:
+                        m_errstr = "PDA kernel adapter version mismatch";
+                        break;
+                    case LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH:
+                        m_errstr = "libpda version mismatch";
+                        break;
+                    case LIBRORC_DEVICE_ERROR_PDADOP_FAILED:
+                        m_errstr = "failed to get PDA device operator";
+                        break;
+                    case LIBRORC_DEVICE_ERROR_PDADEV_FAILED:
+                        m_errstr = "failed to get PDA PCI device";
+                        break;
+                    case LIBRORC_DEVICE_ERROR_PDAGET_FAILED:
+                        m_errstr = "failed to get PCI params from PDA";
+                        break;
+                    case LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED:
+                        m_errstr = "failed to get BAR map from PDA";
+                        break;
+                    default:
+                        m_errstr = "unknown device exception";
+                }
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
         }
 
         /** check if selected channel is available in current FW */
         m_sm = new sysmon(m_bar1);
         if( m_channelId >= m_sm->numberOfChannels() )
-        { throw LIBRORC_EVENT_STREAM_ERROR_INVALID_CHANNEL; }
+        {
+            m_errstr = "Requested channel not available in FW";
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
 
         m_fwtype   = m_sm->firmwareType();
         m_link     = new link(m_bar1, m_channelId);
@@ -154,7 +183,10 @@ namespace LIBRARY_NAME
         m_linktype = m_link->linkType();
 
         if( m_channel->getEnable() )
-        { throw LIBRORC_EVENT_STREAM_ERROR_BUSY; }
+        {
+            m_errstr = "DMA Engine is already enabled";
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+        }
 
         // get default pciePacketSize from device
         switch(m_esType)
@@ -166,7 +198,8 @@ namespace LIBRARY_NAME
                 m_pciePacketSize = m_dev->maxPayloadSize();
                 break;
             default:
-                throw LIBRORC_EVENT_STREAM_ERROR_INVALID_ES_TYPE;
+                m_errstr = "Invalid event stream type";
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
                 break;
         }
 
@@ -242,9 +275,8 @@ namespace LIBRARY_NAME
 
         if( !fwOK )
         {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "ERROR: selected event stream type \
-                    not available for this channel!");
-            throw LIBRORC_EVENT_STREAM_ERROR_ES_TYPE_NOT_AVAILABLE;
+            m_errstr = "Requested event stream type not available in FW";
+            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
         }
     }
 
@@ -260,6 +292,7 @@ namespace LIBRARY_NAME
         // is always eventBufferId+1
         if( eventBufferId & 1 )
         {
+            m_errstr = "odd librorc buffer ID for event buffer";
             return EINVAL;
         }
 
@@ -285,9 +318,40 @@ namespace LIBRARY_NAME
                 new buffer
                 (m_dev, reportBufferSize, (eventBufferId+1), 1);
         }
-        catch(...)
+        catch(int e)
         {
-            // buffer can throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED
+            switch(e)
+            {
+                case LIBRORC_BUFFER_ERROR_INVALID_SIZE:
+                    m_errstr = "requested buffer with invalid size";
+                    break;
+                case LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED:
+                    m_errstr = "failed to get buffer size from PDA";
+                    break;
+                case LIBRORC_BUFFER_ERROR_GETMAP_FAILED :
+                    m_errstr = "failed to get buffer map from PDA";
+                    break;
+                case LIBRORC_BUFFER_ERROR_GETLIST_FAILED:
+                    m_errstr = "failed to get scatter-gather-list from PDA";
+                    break;
+                case LIBRORC_BUFFER_ERROR_DELETE_FAILED:
+                    m_errstr = "PDA failed to delete buffer";
+                    break;
+                case LIBRORC_BUFFER_ERROR_ALLOC_FAILED:
+                    m_errstr = "PDA failed to allocate buffer";
+                    break;
+                case LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED:
+                    m_errstr = "PDA failed to overmap buffer";
+                    break;
+                case LIBRORC_BUFFER_ERROR_GETBUF_FAILED:
+                    m_errstr = "PDA failed to find buffer";
+                    break;
+                case LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED:
+                    m_errstr = "failed to get wrap-map from PDA";
+                    break;
+                default:
+                    m_errstr = "unknown buffer exception";
+            }
             return -1;
         }
 
@@ -331,12 +395,27 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaChannel()
     {
         if( m_eventBuffer==NULL || m_reportBuffer==NULL )
-        { return ENODEV; }
+        {
+            m_errstr = "cannot configure DMA engine with uninitialized buffers";
+            return ENODEV;
+        }
 
         int ret = m_channel->configure(
                 m_eventBuffer, m_reportBuffer, m_esType, m_pciePacketSize);
+        /** return values:
+         * ENODEV: buffers not initialized
+         * EFBIG: sg-list does not fit into BDRAM
+         **/
         if( ret != 0 )
-        { return ret; }
+        {
+            if( ret == ENODEV )
+            { m_errstr = "cannot configure DMA engine with uninitialized buffers"; }
+            else if( ret == EFBIG )
+            { m_errstr = "scatter-gather list does not fit into onboard buffer"; }
+            else
+            { m_errstr = "unknown error configuring DMA engine"; }
+            return ret;
+        }
 
         m_reportBuffer->clear();
 
@@ -356,17 +435,26 @@ namespace LIBRARY_NAME
                 shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
                     sizeof(ChannelStatus), IPC_CREAT | 0666);
             if(shID==-1)
-            { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+            {
+                m_errstr = "failed to get SysV SHM for librorc ChannelStatus";
+                throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED);
+            }
 
             /** attach to shared memory */
             shm = (char*)shmat(shID, 0, 0);
             if(shm==(char*)-1)
-            { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+            {
+                m_errstr = "failed to attach to SysV SHM for librorc ChannelStatus";
+                throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED);
+            }
         #else
             #pragma message "Compiling without SHM"
             shm = (char*)malloc(sizeof(ChannelStatus));
             if(shm == NULL)
-            { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+            {
+                m_errstr = "Failed to allocate memory for librorc ChannelStatus";
+                throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED);
+            }
         #endif
 
         m_channel_status = (ChannelStatus*)shm;
@@ -378,7 +466,9 @@ namespace LIBRARY_NAME
     event_stream::clearSharedMemory()
     {
         if(m_channel_status==NULL)
-        { throw(LIBRORC_EVENT_STREAM_ERROR_SHARED_MEMORY_FAILED); }
+        {
+            m_errstr = "librorc ChannelStatus is not initialized";
+            throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED); }
 
         memset(m_channel_status, 0, sizeof(ChannelStatus));
 

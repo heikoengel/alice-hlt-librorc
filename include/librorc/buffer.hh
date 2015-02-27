@@ -35,12 +35,15 @@
 #include <vector>
 #include <librorc/defines.hh>
 
-#define LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED  1
-
-//TODO: put this into an enum!
-#define LIBRORC_DMA_FROM_DEVICE   2
-#define LIBRORC_DMA_TO_DEVICE     1
-#define LIBRORC_DMA_BIDIRECTIONAL 0
+#define LIBRORC_BUFFER_ERROR_INVALID_SIZE     1
+#define LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED 2
+#define LIBRORC_BUFFER_ERROR_GETMAP_FAILED    3
+#define LIBRORC_BUFFER_ERROR_GETLIST_FAILED   4
+#define LIBRORC_BUFFER_ERROR_DELETE_FAILED    5
+#define LIBRORC_BUFFER_ERROR_ALLOC_FAILED     6
+#define LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED   7
+#define LIBRORC_BUFFER_ERROR_GETBUF_FAILED    8
+#define LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED 9
 
 
 typedef struct PciDevice_struct        PciDevice;
@@ -143,9 +146,9 @@ class buffer_sglist_programmer;
 
             /**
              * Get the overmapped flag of the buffer.
-             * @return 0 if mapped normally, nonzero if wrap mapped.
+             * @return false if mapped normally, true if wrap mapped.
              **/
-            int32_t isOvermapped(); // TODO : boolean
+            bool isOvermapped();
 
             /**
              * Get physical Buffer size in bytes. Requested buffer
@@ -172,7 +175,7 @@ class buffer_sglist_programmer;
             uint64_t
             getMappingSize()
             {
-                if(isOvermapped() == 1)
+                if(isOvermapped())
                 { return(2*size()); }
                 return size();
             }

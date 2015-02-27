@@ -57,10 +57,7 @@ buffer::buffer
     m_buffer            = NULL;
 
     if( size == 0 )
-    {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "Requested buffer of size 0\n");
-        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-    }
+    { throw LIBRORC_BUFFER_ERROR_INVALID_SIZE; }
 
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     { newAllocNeeded = true; }
@@ -68,18 +65,12 @@ buffer::buffer
     {
         size_t length = 0;
         if(DMABuffer_getLength(m_buffer, &length) != PDA_SUCCESS)
-        {
-            std::cout << "Getting buffer length from PDA totally failed!" << std::endl;
-            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-        }
+        { throw LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED; }
 
         if(size != length)
         {
             if(PciDevice_deleteDMABuffer(m_device, m_buffer) != PDA_SUCCESS)
-            {
-                std::cout << "PDA buffer freeing totally failed!" << std::endl;
-                throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-            }
+            { throw LIBRORC_BUFFER_ERROR_DELETE_FAILED; }
             newAllocNeeded = true;
         }
     }
@@ -92,18 +83,14 @@ buffer::buffer
                 PciDevice_allocDMABuffer
                     (m_device, id, size, PDABUFFER_DIRECTION_BI, &m_buffer)
         )
-        {
-            std::cout << "DMA Buffer allocation failed!" << std::endl;
-            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-        }
+        { throw LIBRORC_BUFFER_ERROR_ALLOC_FAILED; }
     }
 
     if(overmap == 1)
     {
-        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
-        {
-            std::cout << "Wrap mapping failed!" << std::endl;
-            throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
+        if(!isOvermapped()) {
+            if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+            { throw LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED; }
         }
     }
 
@@ -123,24 +110,12 @@ buffer::buffer
     m_device = dev->getPdaPciDevice();
 
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
-    { throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED; }
+    { throw LIBRORC_BUFFER_ERROR_GETBUF_FAILED; }
 
-    if(overmap == 1)
+    if(overmap == 1 && !isOvermapped())
     {
-        void *map_two = NULL;
-        if(DMABuffer_getMapTwo(m_buffer, &map_two) == PDA_SUCCESS)
-        {
-            if(map_two == MAP_FAILED)
-            {
-                if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
-                {
-                    std::cout << "Wrap mapping failed!" << std::endl;
-                    throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-                }
-            }
-        }
-        else
-        { throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED; }
+        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+        { throw LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED; }
     }
     connect();
 }
@@ -153,24 +128,15 @@ buffer::connect()
 {
     m_size = 0;
     if( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
-    {
-        std::cout << "Failed to get buffer size!" << std::endl;
-        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-    }
+    { throw LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED; }
 
     m_mem = NULL;
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
-    {
-        std::cout << "Mapping failed!" << std::endl;
-        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-    }
+    { throw LIBRORC_BUFFER_ERROR_GETMAP_FAILED; }
 
     m_sglist = NULL;
     if(DMABuffer_getSGList(m_buffer, &m_sglist)!=PDA_SUCCESS)
-    {
-        std::cout << "SG list lookup failed!" << std::endl;
-        throw LIBRORC_BUFFER_ERROR_CONSTRUCTOR_FAILED;
-    }
+    { throw LIBRORC_BUFFER_ERROR_GETLIST_FAILED; }
 
     m_numberOfScatterGatherEntries = 0;
     for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
@@ -194,20 +160,14 @@ buffer::~buffer()
 
 
 
-int32_t
+bool
 buffer::isOvermapped()
 {
     void *map_two = NULL;
+    if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
+    { throw LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED; }
 
-    if(DMABuffer_getMapTwo(m_buffer, &map_two) == PDA_SUCCESS)
-    {
-        if(map_two != MAP_FAILED)
-        { return 1; }
-        else
-        {return 0;}
-    }
-    else
-    { return -1; }
+    return (map_two!=MAP_FAILED);
 }
 
 

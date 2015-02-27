@@ -43,10 +43,11 @@ namespace LIBRARY_NAME
 
 device::device(int32_t device_index)
 {
-    PDAInit();
+    if(PDAInit() != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH; }
 
     if(PDACheckVersion(8,1,4) != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+    { throw LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH; }
 
     /** A list of PCI ID to which PDA has to attach. */
     const char *pci_ids[] =
@@ -61,19 +62,19 @@ device::device(int32_t device_index)
 
     /** The device operator manages all devices with the given IDs. */
     if( (m_dop = DeviceOperator_new(pci_ids) ) == NULL)
-    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+    { throw LIBRORC_DEVICE_ERROR_PDADOP_FAILED; }
 
     /** Get a device object device from the list. */
     if(DeviceOperator_getPciDevice(m_dop, &m_device, device_index) != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+    { throw LIBRORC_DEVICE_ERROR_PDADEV_FAILED; }
 
     m_number = device_index;
 
     /** get MaxPayload and MaxReadRequest sizes from PDA */
     if(PciDevice_getmaxReadRequestSize(m_device, &m_maxReadRequestSize) != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+    { throw LIBRORC_DEVICE_ERROR_PDAGET_FAILED; }
     if(PciDevice_getmaxPayloadSize(m_device, &m_maxPayloadSize) != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_CONSTRUCTOR_FAILED; }
+    { throw LIBRORC_DEVICE_ERROR_PDAGET_FAILED; }
 }
 
 

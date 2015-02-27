@@ -54,9 +54,9 @@ bar_impl_hw::bar_impl_hw
 
     m_size = m_parent_dev->getBarSize(m_number);
 
-    m_pda_bar = NULL;
-    if( PDA_SUCCESS != PciDevice_getBar(m_pda_pci_device, &m_pda_bar, m_number) )
-    { throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED; }
+//    m_pda_bar = NULL;
+//    if( PDA_SUCCESS != PciDevice_getBar(m_pda_pci_device, &m_pda_bar, m_number) )
+//    { throw LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED; }
 
     pthread_mutex_init(&m_mtx, NULL);
 }
