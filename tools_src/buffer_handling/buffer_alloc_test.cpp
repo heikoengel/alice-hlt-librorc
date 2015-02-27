@@ -32,14 +32,18 @@
 #include <librorc.h>
 
 #define DEVICE_ID 0
-#define BUFFER_ID 0
 #define MIN_BUF_SIZE 0x1000 // 4k = 1 page
-#define MAX_BUF_SIZE ((uint64_t)0x1<<20) // 1MB
+#define MAX_BUF_SIZE ((uint64_t)0x1<<30) // 1GB
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
+    if( argc!=2 ) {
+        cerr << "provide buffer ID as parameter" << endl;
+        return -1;
+    }
+    uint64_t bufId = strtoul(argv[1], NULL, 0);
 
     librorc::device *dev = NULL;
 
@@ -54,26 +58,45 @@ int main()
     int32_t overmap = 1;
     uint64_t bufferSize = MIN_BUF_SIZE;
 
-    for( bufferSize=MIN_BUF_SIZE; bufferSize<MAX_BUF_SIZE; bufferSize=(bufferSize*2))
+    //for( bufferSize=MIN_BUF_SIZE; bufferSize<MAX_BUF_SIZE; bufferSize=(bufferSize*2))
+    while(true)
     {
-        cout << "Trying RequestedSize=0x" << hex << bufferSize << "..." << endl;
+        //cout << "Trying RequestedSize=0x" << hex << bufferSize << "..." << endl;
 
         librorc::buffer *buf = NULL;
-        try{ buf = new librorc::buffer(dev, bufferSize, BUFFER_ID, overmap); }
+        try{ buf = new librorc::buffer(dev, bufferSize, bufId, overmap); }
         catch(int e)
         {
-            cout << "buffer contructor failed with " << e << endl;
+            cout << "buffer alloc failed with " << e << endl;
             delete dev;
             exit(-1);
         }
 
-        cout << "\tPhysicalSize=0x" << hex << buf->getPhysicalSize()
-            << " MappingSize=0x" << hex << buf->getMappingSize()
-            << " Overmapped=" << hex << buf->isOvermapped()
-            << endl;
+        //cout << "\tPhysicalSize=0x" << hex << buf->getPhysicalSize()
+        //    << " MappingSize=0x" << hex << buf->getMappingSize()
+        //    << " Overmapped=" << hex << buf->isOvermapped()
+        //    << endl;
+        delete buf;
+
+        try{ buf = new librorc::buffer(dev, bufId, overmap); }
+        catch(int e)
+        {
+            cout << "buffer attach failed with " << e << endl;
+            delete dev;
+            exit(-1);
+        }
 
         buf->deallocate();
+        bufferSize = (bufferSize << 1);
+        if( bufferSize > MAX_BUF_SIZE ) {
+            bufferSize = MIN_BUF_SIZE;
+        }
         delete buf;
+
+        bufferSize = (bufferSize<<1);
+        if (bufferSize > MAX_BUF_SIZE) {
+            bufferSize = MIN_BUF_SIZE;
+        }
     }
 
     return 0;
