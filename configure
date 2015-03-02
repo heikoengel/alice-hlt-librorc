@@ -3,7 +3,8 @@
 VERSION=`cat CMakeLists.txt | grep "set(VERSION" | awk '{print $2}' | cut -d")" -f1 | cut -d"\"" -f2`
 INSTALL_PATH="/usr/"
 BASEDIR=`pwd`/`dirname $0`
-NOSHM="-DSHM=ON"
+#NOSHM="-DSHM=ON"
+NOSHM=""
 
 helptext()
 {
