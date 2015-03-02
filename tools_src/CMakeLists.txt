@@ -48,7 +48,7 @@ ENDFOREACH( STEMNAME )
 
 # Build all in buffer_handling
 SET( BUFFER_HANDLING_LIST crorc_preallocator bufferstats buffer_alloc_test
-  buffer_access_test reportbufferdump )
+  buffer_access_test buffer_reconnect_test reportbufferdump )
 FOREACH( STEMNAME ${BUFFER_HANDLING_LIST} )
   ADD_EXECUTABLE( ${STEMNAME}
     buffer_handling/${STEMNAME}.cpp )
