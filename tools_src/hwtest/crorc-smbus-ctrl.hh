@@ -33,7 +33,6 @@
 #define CRORC_SMBUS_CTRL_H
 
 #include <librorc.h>
-#include <pda.h>
 
 #include <sys/ioctl.h>
 #include <linux/i2c.h>

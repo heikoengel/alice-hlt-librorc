@@ -100,7 +100,6 @@ crorc_smbus_init
     int fd = open(filename, O_RDWR);
     if ( fd < 0 )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "error opening i2c device %d", chain);
         throw LIBRORC_SMBUS_OPEN_FAILED;
     }
 
@@ -108,7 +107,6 @@ crorc_smbus_init
     unsigned long funcs;
     if (ioctl(fd, I2C_FUNCS, &funcs) < 0) 
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "ioctl() I2C_FUNCS failed");
         throw LIBRORC_SMBUS_FUNCS_FAILED;
     }
 
@@ -116,8 +114,6 @@ crorc_smbus_init
     if( !(funcs & I2C_FUNC_SMBUS_READ_BYTE_DATA) ||
             !(funcs & I2C_FUNC_SMBUS_WRITE_BYTE_DATA) )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "Adapter does not support "
-                "read_byte_data or write_byte_data!");
         throw LIBRORC_SMBUS_CAPS_FAILED;
     }
 
@@ -136,7 +132,6 @@ crorc_smbus_read_byte
     /** select target slave address */
     if (ioctl(fd, I2C_SLAVE, slv_addr) < 0) 
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to select slave address\n");
         perror("ioctl");
         throw LIBRORC_SMBUS_SLA_SELECT_FAILED;
     }
@@ -147,8 +142,6 @@ crorc_smbus_read_byte
     int result = i2c_smbus_read_byte_data(fd, mem_addr);
     if ( result < 0 )
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR, "i2c_smbus_read_byte failed %x:%x\n",
-                slv_addr, mem_addr);
         perror("i2c_smbus_read_byte_data");
         throw LIBRORC_SMBUS_READ_FAILED;
     }

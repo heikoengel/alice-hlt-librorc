@@ -31,7 +31,6 @@
 
 #include <cstdio>
 #include <getopt.h>
-#include <pda.h>
 #include <librorc.h>
 
 #define HELP_TEXT "dmactrl usage: \n\
