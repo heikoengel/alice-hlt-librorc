@@ -29,7 +29,7 @@
  *
  **/
 
-#include <pda.h>
+#include <errno.h>
 #include <librorc/dma_channel.hh>
 #include <librorc/registers.h>
 #include <librorc/buffer.hh>
@@ -191,10 +191,6 @@ dma_channel::setBufferOffsetsOnDevice
     m_link->memcopy( RORC_REG_EBDM_SW_READ_POINTER_L, &offsets, sizeof(offsets) );
     m_last_ebdm_offset = eboffset;
     m_last_rbdm_offset = rboffset;
-
-    DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-            "Setting ptrs: RBDM=%016lx EBDM=%016lx\n",
-            rboffset, eboffset);
 }
 
 

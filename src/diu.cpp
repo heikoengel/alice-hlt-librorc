@@ -29,10 +29,11 @@
  *
  **/
 
+#include <unistd.h>
+
 #include <librorc/diu.hh>
 #include <librorc/registers.h>
 #include <librorc/link.hh>
-#include <pda.h>
 
 namespace LIBRARY_NAME
 {
@@ -160,11 +161,7 @@ namespace LIBRARY_NAME
         }
 
         if ( !timeout )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for LF_N to deassert\n");
-            return -1;
-        }
+        { return -1; }
         else
         { return 0; }
     }
@@ -339,19 +336,9 @@ namespace LIBRARY_NAME
         uint32_t result = waitForStatusWord(RORC_REG_DDL_CTSTW);
 
         if(result==0xffffffff)
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for DIU "
-                    "CommandTransmissionStatusWord\n");
-            return -1;
-        }
+        { return -1; }
         else
-        {
-            DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForCommandTransmissionStatusWord: "
-                    "got CTSTW: %08x\n", result);
-            return 0;
-        }
+        { return 0; }
 
         /**
          * TODO: check error bit 31:
@@ -367,19 +354,6 @@ namespace LIBRARY_NAME
     diu::waitForInterfaceStatusWord()
     {
         uint32_t result = waitForStatusWord(RORC_REG_DDL_IFSTW);
-
-        if (result==0xffffffff)
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for DDL"
-                    "InterfaceStatusWord\n");
-        }
-        else
-        {
-            DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForInterfaceStatusWord: "
-                    "got IFSTW: %08x\n", result);
-        }
         return result;
     }
 
@@ -388,19 +362,6 @@ namespace LIBRARY_NAME
     diu::waitForFrontEndStatusWord()
     {
         uint32_t result = waitForStatusWord(RORC_REG_DDL_FESTW);
-
-        if (result==0xffffffff)
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR,
-                    "Timeout waiting for DDL"
-                    "FrontEndStatusWord\n");
-        }
-        else
-        {
-            DEBUG_PRINTF(PDADEBUG_VALUE,
-                    "waitForFrontEndStatusWord: "
-                    "got FESTW: %08x\n", result);
-        }
         return result;
     }
 }

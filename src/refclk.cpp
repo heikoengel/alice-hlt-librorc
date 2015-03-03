@@ -30,7 +30,6 @@
  **/
 
 #include <math.h>
-#include <pda.h>
 
 #include <librorc/refclk.hh>
 #include <librorc/sysmon.hh>
@@ -289,9 +288,6 @@ namespace LIBRARY_NAME
 
         m_sysmon->i2c_write_mem_dual(LIBRORC_REFCLK_I2C_CHAIN,
                 LIBRORC_REFCLK_I2C_SLAVE, 137, freeze_val, 135, M_NEWFREQ);
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW,
-                "i2c_write_mem_dual(%02x->%02x, %02x->%02x)\n",
-                137, freeze_val, 135, M_NEWFREQ);
     }
 
     void
@@ -336,8 +332,6 @@ namespace LIBRARY_NAME
         uint8_t value;
         value = m_sysmon->i2c_read_mem(LIBRORC_REFCLK_I2C_CHAIN,
                 LIBRORC_REFCLK_I2C_SLAVE, addr);
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_read(%02d)=%02x\n",
-                addr, value);
         return value;
     }
 
@@ -350,7 +344,5 @@ namespace LIBRARY_NAME
     {
         m_sysmon->i2c_write_mem(LIBRORC_REFCLK_I2C_CHAIN,
                 LIBRORC_REFCLK_I2C_SLAVE, addr, value);
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "refclk_write(%02d, %02x)\n",
-                addr, value);
     }
 }

@@ -279,7 +279,7 @@ class buffer_sglist_programmer;
             uint64_t          m_numberOfScatterGatherEntries;
             uint64_t          m_size;
 
-            pthread_mutex_t   m_mtx;
+            //pthread_mutex_t   m_mtx;
 
             DMABuffer*
             getPDABuffer()

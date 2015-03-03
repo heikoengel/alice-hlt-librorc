@@ -34,7 +34,6 @@
 #include <iomanip>
 #include <pthread.h>
 #include <unistd.h>
-#include <pda.h>
 
 #define LIBRORC_INTERNAL
 #include <librorc/high_level_event_stream.hh>
@@ -165,10 +164,6 @@ namespace LIBRARY_NAME
         uint64_t        *events_per_iteration
     )
     {
-
-        DEBUG_PRINTF(PDADEBUG_CONTROL_FLOW, "New RB Entry: offset=0x%lx, calcSize=0x%x, repSize=0x%x\n",
-                report->offset, report->calc_event_size, report->reported_event_size);
-
         events_processed++;
 
         if( m_event_callback != NULL )
@@ -176,14 +171,6 @@ namespace LIBRARY_NAME
 
         updateChannelStatus(&m_reports[m_channel_status->index]);
         *events_per_iteration = *events_per_iteration + 1;
-        DEBUG_PRINTF
-        (
-            PDADEBUG_CONTROL_FLOW,
-            "CH %d - Event, %d DWs\n",
-            m_channel_status->channel,
-            report->calc_event_size
-        );
-
         return events_processed;
     }
 

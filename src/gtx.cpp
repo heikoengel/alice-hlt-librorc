@@ -26,8 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  **/
-
-#include <pda.h>
+#include <unistd.h>
 #include <librorc/gtx.hh>
 #include <librorc/link.hh>
 #include <librorc/registers.h>
@@ -272,9 +271,6 @@ namespace LIBRARY_NAME {
         uint32_t drp_cmd = (0<<24) | (drp_addr<<16) | (0x00);
         m_link->setPciReg(RORC_REG_GTX_DRP_CTRL, drp_cmd);
         uint32_t drp_status = waitForDrpDenToDeassert();
-
-        DEBUG_PRINTF( PDADEBUG_CONTROL_FLOW,
-            "drpRead(%x)=%04x\n", drp_addr, (drp_status & 0xffff) );
         return (drp_status & 0xffff);
     }
 
@@ -288,8 +284,6 @@ namespace LIBRARY_NAME {
         uint32_t drp_cmd = (1<<24) | (drp_addr<<16) | (drp_data);
         m_link->setPciReg(RORC_REG_GTX_DRP_CTRL, drp_cmd);
         waitForDrpDenToDeassert();
-        DEBUG_PRINTF( PDADEBUG_CONTROL_FLOW,
-            "drpWrite(%x, %04x)\n", drp_addr, drp_data );
     }
 
     gtxpll_settings

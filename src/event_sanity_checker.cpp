@@ -37,7 +37,6 @@
 #include <iostream>
 #include <cstring>
 #include <cstdio>
-#include <pda.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -513,13 +512,6 @@ event_sanity_checker::dumpReportBufferEntry
              uint32_t         channel_number
 )
 {
-    DEBUG_PRINTF
-    (
-        PDADEBUG_CONTROL_FLOW,
-        "CH%2d - RB[%3ld]: calc_size=%08x reported_size=%08x offset=%lx E:%d S:%d\n",
-        channel_number, index, m_calc_event_size, m_reported_event_size,
-        report_buffer->offset, m_error_flag, m_comletion_status
-    );
 }
 
 
@@ -549,13 +541,6 @@ event_sanity_checker::compareCalculatedToReportedEventSizes
 {
     if(m_calc_event_size != m_reported_event_size)
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "CH%2d ERROR: Event[%ld] sizes do not match: \n"
-                        "calculated: 0x%x, reported: 0x%x\n"
-                        "offset=0x%lx, rbdm_offset=0x%lx\n", m_channel_id,
-                report_buffer_index, m_calc_event_size, m_reported_event_size,
-                report_buffer->offset,
-                report_buffer_index * sizeof(EventDescriptor));
         return CHK_SIZES;
     }
 
@@ -570,8 +555,6 @@ event_sanity_checker::checkDiuError
 {
     if( m_error_flag )
     {
-        DEBUG_PRINTF( PDADEBUG_ERROR, "CH%2d ERROR: Event[%ld] DIU Error flag set\n",
-                m_channel_id, report_buffer_index);
         return CHK_DIU_ERR;
     }
     return 0;
@@ -585,21 +568,6 @@ event_sanity_checker::checkCompletion
 {
     if( m_error_flag || m_comletion_status)
     {
-        switch(m_comletion_status)
-        {
-            case 1:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] CMPL Status Unsupported Request\n", m_channel_id, report_buffer_index);
-                break;
-            case 2:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] CMPL Status Completer Abort\n", m_channel_id, report_buffer_index);
-                break;
-            case 3:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] CMPL Status unknown/reserved\n", m_channel_id, report_buffer_index);
-                break;
-            default:
-                DEBUG_PRINTF(PDADEBUG_ERROR, "CH%d ERROR: Event[%ld] Completion Timeout\n", m_channel_id, report_buffer_index);
-                break;
-        }
         return CHK_CMPL;
     }
     return 0;
@@ -617,11 +585,6 @@ event_sanity_checker::checkStartOfEvent
 {
     if((uint32_t) * (m_event) != 0xffffffff)
     {
-        DEBUG_PRINTF(PDADEBUG_ERROR,
-                "ERROR: Event[%ld][0]!=0xffffffff -> %08x? \n"
-                        "offset=%ld, rbdm_offset=%ld\n", report_buffer_index,
-                (uint32_t) * (m_event), report_buffer->offset,
-                report_buffer_index * sizeof(EventDescriptor));
         return CHK_SOE;
     }
 
@@ -688,9 +651,6 @@ event_sanity_checker::checkPattern
     {
         if( m_event[i] != expected_value)
         {
-            DEBUG_PRINTF( PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index, i,expected_value, m_event[i] );
             return CHK_PATTERN;
         }
         expected_value = nextPgWord(pattern_mode, expected_value);
@@ -713,14 +673,6 @@ event_sanity_checker::compareWithReferenceDdlFile
 
     if( ((uint64_t) m_calc_event_size << 2) != ddl_mapping_size )
     {
-        DEBUG_PRINTF
-        (
-            PDADEBUG_ERROR,
-            "ERROR: Eventsize %lx does not match "
-            "reference DDL file size %lx\n",
-            ((uint64_t) m_calc_event_size << 2),
-            ddl_mapping_size
-        );
         return_value |= CHK_FILE;
     }
 
@@ -728,15 +680,6 @@ event_sanity_checker::compareWithReferenceDdlFile
     {
         if( m_event[index] != ddl_mapping[index] )
         {
-            DEBUG_PRINTF
-            (
-                PDADEBUG_ERROR,
-                "ERROR: Event[%ld][%d] expected %08x read %08x\n",
-                report_buffer_index,
-                index,
-                ddl_mapping[index],
-                m_event[index]
-            );
             return_value |= CHK_FILE;
         }
     }
@@ -756,14 +699,6 @@ event_sanity_checker::checkEndOfEvent
     uint32_t eoe_length = (eoeword & 0x7fffffff);
     if( eoe_length != m_reported_event_size )
     {
-        DEBUG_PRINTF
-        (
-            PDADEBUG_ERROR,
-            "ERROR: could not find matching reported event size, "
-            "expected %08x, found %08x\n",
-            m_reported_event_size,
-            eoe_length
-        );
         return CHK_EOE;
     }
     return 0;
@@ -784,12 +719,6 @@ event_sanity_checker::checkForLostEvents
     if ( (m_last_event_id != EVENT_ID_UNDEFINED) &&
         (cur_event_id != ((m_last_event_id + 1) & 0xffffffffful)) )
     {
-        DEBUG_PRINTF
-        (
-            PDADEBUG_ERROR,
-            "ERROR: CH%d - Invalid Event Sequence: last ID: %ld, current ID: %ld\n",
-            m_channel_id, m_last_event_id, cur_event_id
-        );
         result = CHK_ID;
     }
     m_last_event_id = cur_event_id;

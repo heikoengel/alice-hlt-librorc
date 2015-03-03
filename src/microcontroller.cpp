@@ -31,7 +31,7 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <pda.h>
+#include <unistd.h>
 
 #include <librorc/microcontroller.hh>
 #include <librorc/bar.hh>
@@ -278,26 +278,14 @@ namespace LIBRARY_NAME
         // open file 
         int fd = open(filename, O_RDONLY);
         if ( fd < 0 )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to read file %s\n",
-                    filename);
-            throw LIBRORC_UC_FILE_ERROR;
-        }
+        { throw LIBRORC_UC_FILE_ERROR; }
 
         struct stat stats;
         if ( fstat(fd, &stats) == -1 )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Failed to stat file %s\n",
-                    filename);
-            throw LIBRORC_UC_FILE_ERROR;
-        }
+        { throw LIBRORC_UC_FILE_ERROR; }
 
         if ( stats.st_size & 1 )
-        {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Invalid file size: %d\n",
-                    stats.st_size);
-            throw LIBRORC_UC_FILE_ERROR;
-        }
+        { throw LIBRORC_UC_FILE_ERROR; }
 
         // configure FPGA IOs for SPI 
         configure_spi();

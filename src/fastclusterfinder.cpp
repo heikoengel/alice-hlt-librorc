@@ -30,7 +30,6 @@
  **/
 
 #include <stdlib.h>
-#include <pda.h>
 #include <fstream>
 #include <sstream>
 #include <librorc/fastclusterfinder.hh>
@@ -359,11 +358,7 @@ namespace LIBRARY_NAME
         while ( getline(memfile, line) )
         {
             if ( i>4095 )
-            {
-                DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has more " \
-                        "than 4096 entries - skipping remaining lines");
-                break;
-            }
+            { break; }
 
             uint32_t hexval = hexstringToUint32(line);
             /** TODO: this only works for RCU1 */
@@ -375,8 +370,6 @@ namespace LIBRARY_NAME
 
         if ( i<4096 )
         {
-            DEBUG_PRINTF(PDADEBUG_ERROR, "Mapping file has less " \
-                    "than 4096 entries - filling remaining lines");
             while( i<4096 )
             {
                 writeMappingRamEntry(i, 0);
