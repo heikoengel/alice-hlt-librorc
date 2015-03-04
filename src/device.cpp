@@ -81,6 +81,7 @@ device::device(int32_t device_index)
 
 device::~device()
 {
+    DeviceOperator_delete(m_dop, PDA_DELETE_PERSISTANT);
 }
 
 
