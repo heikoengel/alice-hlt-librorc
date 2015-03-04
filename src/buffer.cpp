@@ -79,7 +79,7 @@ buffer::buffer
         (
             PDA_SUCCESS !=
                 PciDevice_allocDMABuffer
-                    (m_device, id, size, PDABUFFER_DIRECTION_BI, &m_buffer)
+                    (m_device, id, size, &m_buffer)
         )
         { throw LIBRORC_BUFFER_ERROR_ALLOC_FAILED; }
     }

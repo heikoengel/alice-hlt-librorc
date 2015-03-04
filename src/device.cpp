@@ -46,7 +46,7 @@ device::device(int32_t device_index)
     if(PDAInit() != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH; }
 
-    if(PDACheckVersion(8,1,4) != PDA_SUCCESS)
+    if(PDACheckVersion(10,0,6) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH; }
 
     /** A list of PCI ID to which PDA has to attach. */
@@ -151,7 +151,7 @@ device::getBarMap(uint8_t n)
     if(PciDevice_getBar(m_device, &bar, n) != PDA_SUCCESS)
     { return(NULL); }
 
-    if(Bar_getMap(bar, &buffer, &size) != PDA_SUCCESS)
+    if(Bar_getMap(bar, (void**)&buffer, &size) != PDA_SUCCESS)
     { return(NULL); }
 
     return(buffer);
@@ -169,7 +169,7 @@ device::getBarSize(uint8_t n)
     if(PciDevice_getBar(m_device, &bar, n) != PDA_SUCCESS)
     { return(0); }
 
-    if(Bar_getMap(bar, &buffer, &size) != PDA_SUCCESS)
+    if(Bar_getMap(bar, (void **)&buffer, &size) != PDA_SUCCESS)
     { return(0); }
 
     return(size);

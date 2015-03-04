@@ -7,7 +7,7 @@ set(CPACK_RPM_PACKAGE_GROUP "System Environment/Base")
 set(CPACK_PACKAGE_CONTACT "Dominic Eschweiler <dominic.eschweiler@cern.ch>,
 Heiko Engel <hengel@cern.ch>")
 set(CPACK_PACKAGE_VENDOR "FIAS/IRI")
-set(CPACK_RPM_PACKAGE_REQUIRES "libpda = 8.1.4")
+set(CPACK_RPM_PACKAGE_REQUIRES "libpda = 10.0.6")
 set(CPACK_RPM_PACKAGE_SUMMARY "C-RORC device interface library")
 set(CPACK_RPM_PACKAGE_DESCRIPTION "${CPACK_RPM_PACKAGE_SUMMARY}")
 set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
