@@ -53,6 +53,15 @@ typedef struct PciDevice_struct PciDevice;
 
 namespace LIBRARY_NAME
 {
+
+    static errmsg_t device_errmsg_table[] = {
+        {LIBRORC_DEVICE_ERROR_BUFFER_FREEING_FAILED, "Failed to free librorc buffers"},
+        {LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH, "PDA kernel adapter missing or version mismatch"},
+        {LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH, "libpda version mismatch"},
+        {LIBRORC_DEVICE_ERROR_PDADOP_FAILED, "failed to get PDA device operator"},
+        {LIBRORC_DEVICE_ERROR_PDADEV_FAILED, "failed to get PDA PCI device"},
+        {LIBRORC_DEVICE_ERROR_PDAGET_FAILED, "failed to get PCI params from PDA"}};
+    const ssize_t device_errmsg_table_len = sizeof(device_errmsg_table) / sizeof(errmsg_t);
     /**
      * @brief represents a RORC PCIe device
      *
@@ -112,6 +121,8 @@ namespace LIBRARY_NAME
     uint8_t getDeviceId();
 
     void deleteAllBuffers();
+
+    const char* errMsg(int err) { return _errMsg(device_errmsg_table, device_errmsg_table_len, err); }
 
     private:
         uint64_t m_maxPayloadSize;

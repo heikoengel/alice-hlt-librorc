@@ -72,6 +72,18 @@ EventDescriptorStruct
     volatile uint64_t dummy2;  /** do not use! */
 } EventDescriptor;
 
+static errmsg_t buffer_errmsg_table[] = {
+    {LIBRORC_BUFFER_ERROR_INVALID_SIZE, "requested buffer with invalid size"},
+    {LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED, "failed to get buffer size"},
+    {LIBRORC_BUFFER_ERROR_GETMAP_FAILED, "failed to get buffer map"},
+    {LIBRORC_BUFFER_ERROR_GETLIST_FAILED, "failed to get scatter-gather-list"},
+    {LIBRORC_BUFFER_ERROR_DELETE_FAILED, "failed to delete buffer"},
+    {LIBRORC_BUFFER_ERROR_ALLOC_FAILED, "failed to allocate buffer"},
+    {LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED, "failed to overmap buffer"},
+    {LIBRORC_BUFFER_ERROR_GETBUF_FAILED, "failed to find buffer"},
+    {LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED, "failed to get wrap-map state"}};
+const ssize_t buffer_errmsg_table_len = sizeof(buffer_errmsg_table) / sizeof(errmsg_t);
+
 class device;
 class dma_channel;
 class buffer_sglist_programmer;
@@ -263,6 +275,9 @@ class buffer_sglist_programmer;
                  uint64_t size,
                  std::vector<ScatterGatherEntry> *list
             );
+
+            const char* errMsg(int err) { return _errMsg(buffer_errmsg_table, buffer_errmsg_table_len, err); }
+
         /**
          * @internal
          */

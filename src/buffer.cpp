@@ -40,8 +40,6 @@
 namespace LIBRARY_NAME
 {
 
-
-
 buffer::buffer
 (
     device   *dev,
@@ -309,5 +307,4 @@ buffer::composeSglistFromBufferSegment
     }
     return true;
 }
-
 }

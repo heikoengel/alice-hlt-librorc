@@ -133,38 +133,17 @@ namespace LIBRARY_NAME
         if( !m_called_with_bar )
         {
             try
-            {
-                m_dev = new device(m_deviceId);
-                m_bar1 = new bar(m_dev, 1);
-            }
+            { m_dev = new device(m_deviceId); }
             catch(int e)
             {
-                switch(e)
-                {
-                    case LIBRORC_DEVICE_ERROR_BUFFER_FREEING_FAILED:
-                        m_errstr = "Failed to free librorc buffers";
-                        break;
-                    case LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH:
-                        m_errstr = "PDA kernel adapter version mismatch";
-                        break;
-                    case LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH:
-                        m_errstr = "libpda version mismatch";
-                        break;
-                    case LIBRORC_DEVICE_ERROR_PDADOP_FAILED:
-                        m_errstr = "failed to get PDA device operator";
-                        break;
-                    case LIBRORC_DEVICE_ERROR_PDADEV_FAILED:
-                        m_errstr = "failed to get PDA PCI device";
-                        break;
-                    case LIBRORC_DEVICE_ERROR_PDAGET_FAILED:
-                        m_errstr = "failed to get PCI params from PDA";
-                        break;
-                    case LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED:
-                        m_errstr = "failed to get BAR map from PDA";
-                        break;
-                    default:
-                        m_errstr = "unknown device exception";
-                }
+                m_errstr = m_dev->errMsg(e);
+                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+            }
+            try
+            { m_bar1 = new bar(m_dev, 1); }
+            catch(int e)
+            {
+                //m_errstr = m_bar1->errMsg(e);
                 throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
             }
         }
@@ -308,11 +287,18 @@ namespace LIBRARY_NAME
             }
             else
             { m_eventBuffer = new buffer(m_dev, eventBufferId, 1); }
+        }
+        catch(int e)
+        {
+            m_errstr = m_eventBuffer->errMsg(e);
+            return -1;
+        }
 
-            uint64_t reportBufferSize
-                = (m_eventBuffer->getPhysicalSize()/ m_pciePacketSize)
-                * sizeof(EventDescriptor);
-
+        uint64_t reportBufferSize
+            = (m_eventBuffer->getPhysicalSize()/ m_pciePacketSize)
+            * sizeof(EventDescriptor);
+        try
+        {
             // ReportBuffer uses by default EventBuffer-ID + 1
             m_reportBuffer =
                 new buffer
@@ -320,38 +306,7 @@ namespace LIBRARY_NAME
         }
         catch(int e)
         {
-            switch(e)
-            {
-                case LIBRORC_BUFFER_ERROR_INVALID_SIZE:
-                    m_errstr = "requested buffer with invalid size";
-                    break;
-                case LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED:
-                    m_errstr = "failed to get buffer size from PDA";
-                    break;
-                case LIBRORC_BUFFER_ERROR_GETMAP_FAILED :
-                    m_errstr = "failed to get buffer map from PDA";
-                    break;
-                case LIBRORC_BUFFER_ERROR_GETLIST_FAILED:
-                    m_errstr = "failed to get scatter-gather-list from PDA";
-                    break;
-                case LIBRORC_BUFFER_ERROR_DELETE_FAILED:
-                    m_errstr = "PDA failed to delete buffer";
-                    break;
-                case LIBRORC_BUFFER_ERROR_ALLOC_FAILED:
-                    m_errstr = "PDA failed to allocate buffer";
-                    break;
-                case LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED:
-                    m_errstr = "PDA failed to overmap buffer";
-                    break;
-                case LIBRORC_BUFFER_ERROR_GETBUF_FAILED:
-                    m_errstr = "PDA failed to find buffer";
-                    break;
-                case LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED:
-                    m_errstr = "failed to get wrap-map from PDA";
-                    break;
-                default:
-                    m_errstr = "unknown buffer exception";
-            }
+            m_errstr = m_reportBuffer->errMsg(e);
             return -1;
         }
 
