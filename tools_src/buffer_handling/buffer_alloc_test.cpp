@@ -33,7 +33,7 @@
 
 #define DEVICE_ID 0
 #define MIN_BUF_SIZE 0x1000 // 4k = 1 page
-#define MAX_BUF_SIZE ((uint64_t)0x1<<30) // 1GB
+#define MAX_BUF_SIZE ((uint64_t)0x1<<20) // 1MB
 
 using namespace std;
 
@@ -49,20 +49,17 @@ int main(int argc, char *argv[])
 
     /** create new device instance **/
     try{ dev = new librorc::device(DEVICE_ID); }
-    catch(...)
+    catch(int e)
     {
-        cout << "ERROR: failed to initialize device." << endl;
+        cout << "ERROR: failed to initialize device. (" << e << ")" << endl;
         exit(-1);
     }
 
     int32_t overmap = 1;
     uint64_t bufferSize = MIN_BUF_SIZE;
 
-    //for( bufferSize=MIN_BUF_SIZE; bufferSize<MAX_BUF_SIZE; bufferSize=(bufferSize*2))
     while(true)
     {
-        //cout << "Trying RequestedSize=0x" << hex << bufferSize << "..." << endl;
-
         librorc::buffer *buf = NULL;
         try{ buf = new librorc::buffer(dev, bufferSize, bufId, overmap); }
         catch(int e)
@@ -72,10 +69,6 @@ int main(int argc, char *argv[])
             exit(-1);
         }
 
-        //cout << "\tPhysicalSize=0x" << hex << buf->getPhysicalSize()
-        //    << " MappingSize=0x" << hex << buf->getMappingSize()
-        //    << " Overmapped=" << hex << buf->isOvermapped()
-        //    << endl;
         delete buf;
 
         try{ buf = new librorc::buffer(dev, bufId, overmap); }
@@ -86,21 +79,14 @@ int main(int argc, char *argv[])
             exit(-1);
         }
 
-        buf->deallocate();
-        bufferSize = (bufferSize << 1);
-        if( bufferSize > MAX_BUF_SIZE ) {
-            bufferSize = MIN_BUF_SIZE;
-        }
+        //buf->deallocate();
         delete buf;
 
-        bufferSize = (bufferSize<<1);
-        if (bufferSize > MAX_BUF_SIZE) {
+        bufferSize = (bufferSize << 1);
+        if( bufferSize > MAX_BUF_SIZE ) {
             bufferSize = MIN_BUF_SIZE;
         }
     }
 
     return 0;
 }
-
-
-
