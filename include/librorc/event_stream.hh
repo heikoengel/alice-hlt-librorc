@@ -205,7 +205,7 @@ typedef struct
             int initializeDma(uint64_t eventBufferId, uint64_t eventBufferSize);
             int initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize);
 
-            const char *getErrorString() { return m_errstr; }
+            const char *errMsg() { return m_errstr; }
 
         protected:
             uint32_t  m_deviceId;
