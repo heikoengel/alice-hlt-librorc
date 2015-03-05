@@ -24,7 +24,8 @@ SET( LIBRORC_HEADERS
   librorc/refclk.hh
   librorc/registers.h
   librorc/siu.hh
-  librorc/sysmon.hh )
+  librorc/sysmon.hh
+  librorc/ddr3.hh )
 
 INSTALL( FILES librorc.h DESTINATION include)
 INSTALL( FILES ${LIBRORC_HEADERS} DESTINATION include/librorc)

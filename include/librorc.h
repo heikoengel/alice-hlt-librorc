@@ -53,5 +53,6 @@
 #include "librorc/siu.hh"
 #include "librorc/gtx.hh"
 #include "librorc/eventfilter.hh"
+#include "librorc/ddr3.hh"
 
 #endif /** LIBRORC_H */

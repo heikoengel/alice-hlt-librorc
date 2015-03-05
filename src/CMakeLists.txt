@@ -24,6 +24,7 @@ SET( LIBRORC_LIBRARY_SOURCE
   refclk.cpp
   siu.cpp
   sysmon.cpp
+  ddr3.cpp
   )
 
 ADD_LIBRARY(rorc SHARED ${LIBRORC_LIBRARY_SOURCE})
