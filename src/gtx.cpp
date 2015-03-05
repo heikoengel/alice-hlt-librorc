@@ -92,6 +92,14 @@ static inline
 uint8_t divselref_val2reg( uint8_t val )
 { return (val==1) ? 16 : 0 ; }
 
+#define GTX_ASYNCCFG_RESET 0
+#define GTX_ASYNCCFG_RXRESET 1
+#define GTX_ASYNCCFG_TXRESET 3
+
+#define GTX_RXINIT_RETRY_LIMIT 5
+#define GTX_RXINIT_MIN_DFE_EYE 120
+#define GTX_RXINIT_DFE_TIMEOUT 10000
+#define GTX_RXINIT_ALIGN_TIMEOUT 10000
 
 
 namespace LIBRARY_NAME {
@@ -149,7 +157,9 @@ namespace LIBRARY_NAME {
         // bit1: RX reset
         // bit3: TX reset
         // return as {TX,RX,GTX}
-        uint32_t reset = (asynccfg & 0x3) | ((asynccfg >> 1) & (1 << 2));
+        uint32_t reset = ((asynccfg >> GTX_ASYNCCFG_RESET) & 1) |
+            (((asynccfg >> GTX_ASYNCCFG_RXRESET) & 1) << 1) |
+            (((asynccfg >> GTX_ASYNCCFG_TXRESET) & 1) << 2);
         return reset;
     }
 
@@ -221,11 +231,37 @@ namespace LIBRARY_NAME {
     {
         uint32_t asynccfg = m_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
         // clear previous reset bits (0,1,3)
-        asynccfg &= ~(0x0000000b);
+        asynccfg &= ~( (1<<GTX_ASYNCCFG_RESET) |
+                       (1<<GTX_ASYNCCFG_RXRESET) |
+                       (1<<GTX_ASYNCCFG_TXRESET) );
         // set new reset values */
-        asynccfg |= (value & 1); // GTXreset
-        asynccfg |= (((value >> 1) & 1) << 1); // RXreset
-        asynccfg |= (((value >> 2) & 1) << 3); // TXreset
+        asynccfg |= ((value & 1) << GTX_ASYNCCFG_RESET); // GTXreset
+        asynccfg |= (((value >> 1) & 1) << GTX_ASYNCCFG_RXRESET); // RXreset
+        asynccfg |= (((value >> 2) & 1) << GTX_ASYNCCFG_TXRESET); // TXreset
+        m_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, asynccfg);
+    }
+
+    uint32_t gtx::getRxReset() {
+        uint32_t asynccfg = m_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
+        return ((asynccfg >> GTX_ASYNCCFG_RXRESET) & 1);
+    }
+
+    uint32_t gtx::getTxReset() {
+        uint32_t asynccfg = m_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
+        return ((asynccfg >> GTX_ASYNCCFG_TXRESET) & 1);
+    }
+
+    void gtx::setRxReset( uint32_t value ) {
+        uint32_t asynccfg = m_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
+        asynccfg &= ~(1 << GTX_ASYNCCFG_RXRESET);
+        asynccfg |= ((value & 1) << GTX_ASYNCCFG_RXRESET);
+        m_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, asynccfg);
+    }
+
+    void gtx::setTxReset( uint32_t value ) {
+        uint32_t asynccfg = m_link->pciReg(RORC_REG_GTX_ASYNC_CFG);
+        asynccfg &= ~(1<<GTX_ASYNCCFG_TXRESET);
+        asynccfg |= ((value & 1) << GTX_ASYNCCFG_TXRESET);
         m_link->setPciReg(RORC_REG_GTX_ASYNC_CFG, asynccfg);
     }
 
@@ -239,6 +275,51 @@ namespace LIBRARY_NAME {
     gtx::isLinkUp()
     {
         return m_link->isGtxLinkUp();
+    }
+
+    int
+    gtx::rxInitialize()
+    {
+        if (!isDomainReady() ) {
+            return -1;
+        };
+
+        bool rxInitDone = false;
+        int retryCount = 0;
+
+        do {
+            setRxReset(1);
+            usleep(100);
+            setRxReset(0);
+
+            // wait for DFE Eye opening
+            uint32_t timeout = GTX_RXINIT_DFE_TIMEOUT;
+            while ((dfeEye() < GTX_RXINIT_MIN_DFE_EYE) && (timeout > 0)) {
+                timeout--;
+                usleep(100);
+            }
+
+            if (timeout == 0) {
+                retryCount++;
+                continue;
+            }
+
+            // wait for alignment
+            timeout = GTX_RXINIT_ALIGN_TIMEOUT;
+            while (!isLinkUp() && (timeout > 0)) {
+                timeout--;
+                usleep(100);
+            }
+
+            if (timeout == 0) {
+                retryCount++;
+                continue;
+            }
+
+            rxInitDone = true;
+        } while (!rxInitDone && (retryCount < GTX_RXINIT_RETRY_LIMIT));
+
+        return (rxInitDone) ? retryCount : -1;
     }
 
     void

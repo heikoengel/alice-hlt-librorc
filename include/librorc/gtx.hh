@@ -91,6 +91,8 @@ namespace LIBRARY_NAME {
             uint32_t getRxEqMix();
             uint32_t getLoopback();
             uint32_t getReset();
+            uint32_t getRxReset();
+            uint32_t getTxReset();
 
             bool isDomainReady();
             bool isLinkUp();
@@ -103,12 +105,16 @@ namespace LIBRARY_NAME {
             void setRxEqMix( uint32_t value );
             void setLoopback( uint32_t value );
             void setReset( uint32_t value );
+            void setRxReset( uint32_t value );
+            void setTxReset( uint32_t value );
 
             void clearErrorCounters();
             uint32_t getDisparityErrorCount();
             uint32_t getRealignCount();
             uint32_t getRxNotInTableErrorCount();
             uint32_t getRxLossOfSyncErrorCount();
+
+            int rxInitialize();
 
 
             /**
