@@ -253,6 +253,13 @@ namespace LIBRARY_NAME
              **/
             uint32_t readAndClearPtrStallFlags();
 
+            /**
+             * read DMA pointer stall flags
+             * @return 2 bit stall flags: if bit 0 is set the EventBuffer pointer
+             * stalled, if bit 1 is set the ReportBuffer pointer stalled.
+             **/
+            uint32_t ptrStallFlags();
+
 
             /**
              * get DMA stall count. This counter increments if the Multiplexer from

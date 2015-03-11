@@ -401,6 +401,13 @@ dma_channel::readAndClearPtrStallFlags()
     return stallflags;
 }
 
+uint32_t
+dma_channel::ptrStallFlags()
+{
+    uint32_t dmacfg = DMAConfig();
+    return ( (dmacfg>>11) & 3 );
+}
+
 
 uint32_t
 dma_channel::stallCount()
