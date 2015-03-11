@@ -33,6 +33,7 @@
 #include <sys/mman.h>
 
 #include <librorc/device.hh>
+#include <librorc/error.hh>
 #include <librorc/bar_impl_hw.hh>
 
 namespace LIBRARY_NAME

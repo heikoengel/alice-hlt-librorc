@@ -59,19 +59,6 @@ typedef enum
     kEventStreamToDevice,
 } EventStreamDirection;
 
-typedef struct {
-    int errcode;
-    const char *msg;
-} errmsg_t;
-
-inline const char *_errMsg(errmsg_t *table, int len, int err) {
-  for (int i = 0; i < len; i++) {
-    if (table[i].errcode == err) {
-      return table[i].msg;
-    }
-  }
-  return "unknown";
-}
 
 /**
  * gettimeofday_diff

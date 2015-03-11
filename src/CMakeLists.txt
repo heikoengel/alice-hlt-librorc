@@ -8,7 +8,9 @@ SET( LIBRORC_LIBRARY_SOURCE
   buffer.cpp
   datareplaychannel.cpp
   ddl.cpp
+  ddr3.cpp
   device.cpp
+  error.cpp
   diu.cpp
   dma_channel.cpp
   event_sanity_checker.cpp
@@ -24,7 +26,6 @@ SET( LIBRORC_LIBRARY_SOURCE
   refclk.cpp
   siu.cpp
   sysmon.cpp
-  ddr3.cpp
   )
 
 ADD_LIBRARY(rorc SHARED ${LIBRORC_LIBRARY_SOURCE})

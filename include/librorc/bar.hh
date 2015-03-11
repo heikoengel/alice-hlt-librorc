@@ -30,8 +30,6 @@
 #ifndef LIBRORC_BAR_H
 #define LIBRORC_BAR_H
 
-#define LIBRORC_BAR_ERROR_CONSTRUCTOR_FAILED 1
-
 namespace LIBRARY_NAME {
 class device;
 class bar_impl_hw;

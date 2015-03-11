@@ -54,5 +54,6 @@
 #include "librorc/gtx.hh"
 #include "librorc/eventfilter.hh"
 #include "librorc/ddr3.hh"
+#include "librorc/error.hh"
 
 #endif /** LIBRORC_H */

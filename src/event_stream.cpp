@@ -37,6 +37,7 @@
 #define LIBRORC_INTERNAL
 #include <librorc/event_stream.hh>
 
+#include <librorc/error.hh>
 #include <librorc/buffer.hh>
 #include <librorc/device.hh>
 #include <librorc/bar.hh>
@@ -132,29 +133,14 @@ namespace LIBRARY_NAME
 
         if( !m_called_with_bar )
         {
-            try
-            { m_dev = new device(m_deviceId); }
-            catch(int e)
-            {
-                m_errstr = m_dev->errMsg(e);
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-            }
-            try
-            { m_bar1 = new bar(m_dev, 1); }
-            catch(int e)
-            {
-                //m_errstr = m_bar1->errMsg(e);
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-            }
+            m_dev = new device(m_deviceId);
+            m_bar1 = new bar(m_dev, 1);
         }
 
         /** check if selected channel is available in current FW */
         m_sm = new sysmon(m_bar1);
         if( m_channelId >= m_sm->numberOfChannels() )
-        {
-            m_errstr = "Requested channel not available in FW";
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-        }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CHANNEL_NOT_AVAIL; }
 
         m_fwtype   = m_sm->firmwareType();
         m_link     = new link(m_bar1, m_channelId);
@@ -162,10 +148,7 @@ namespace LIBRARY_NAME
         m_linktype = m_link->linkType();
 
         if( m_channel->getEnable() )
-        {
-            m_errstr = "DMA Engine is already enabled";
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-        }
+        { throw LIBRORC_EVENT_STREAM_ERROR_CHANNEL_BUSY; }
 
         // get default pciePacketSize from device
         switch(m_esType)
@@ -177,8 +160,7 @@ namespace LIBRARY_NAME
                 m_pciePacketSize = m_dev->maxPayloadSize();
                 break;
             default:
-                m_errstr = "Invalid event stream type";
-                throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
+                throw LIBRORC_EVENT_STREAM_ERROR_INV_ES_TYPE;
                 break;
         }
 
@@ -253,10 +235,7 @@ namespace LIBRARY_NAME
         }
 
         if( !fwOK )
-        {
-            m_errstr = "Requested event stream type not available in FW";
-            throw LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED;
-        }
+        { throw LIBRORC_EVENT_STREAM_ERROR_ES_TYPE_NOT_AVAIL; }
     }
 
 
@@ -270,10 +249,7 @@ namespace LIBRARY_NAME
         // only allow even eventBufferIds becaus the report buffer ID
         // is always eventBufferId+1
         if( eventBufferId & 1 )
-        {
-            m_errstr = "odd librorc buffer ID for event buffer";
-            return EINVAL;
-        }
+        { return LIBRORC_EVENT_STREAM_ERROR_INV_BUFFER_ID; }
 
         try
         {
@@ -289,10 +265,7 @@ namespace LIBRARY_NAME
             { m_eventBuffer = new buffer(m_dev, eventBufferId, 1); }
         }
         catch(int e)
-        {
-            m_errstr = m_eventBuffer->errMsg(e);
-            return -1;
-        }
+        { return e; }
 
         uint64_t reportBufferSize
             = (m_eventBuffer->getPhysicalSize()/ m_pciePacketSize)
@@ -305,10 +278,7 @@ namespace LIBRARY_NAME
                 (m_dev, reportBufferSize, (eventBufferId+1), 1);
         }
         catch(int e)
-        {
-            m_errstr = m_reportBuffer->errMsg(e);
-            return -1;
-        }
+        { return e; }
 
         m_raw_event_buffer = (uint32_t *)(m_eventBuffer->getMem());
         m_reports          = (EventDescriptor*)m_reportBuffer->getMem();
@@ -350,10 +320,7 @@ namespace LIBRARY_NAME
     event_stream::initializeDmaChannel()
     {
         if( m_eventBuffer==NULL || m_reportBuffer==NULL )
-        {
-            m_errstr = "cannot configure DMA engine with uninitialized buffers";
-            return ENODEV;
-        }
+        { return LIBRORC_EVENT_STREAM_ERROR_BUFFER_NOT_INITIALIZED; }
 
         int ret = m_channel->configure(
                 m_eventBuffer, m_reportBuffer, m_esType, m_pciePacketSize);
@@ -364,12 +331,11 @@ namespace LIBRARY_NAME
         if( ret != 0 )
         {
             if( ret == ENODEV )
-            { m_errstr = "cannot configure DMA engine with uninitialized buffers"; }
+            { return LIBRORC_EVENT_STREAM_ERROR_BUFFER_NOT_INITIALIZED; }
             else if( ret == EFBIG )
-            { m_errstr = "scatter-gather list does not fit into onboard buffer"; }
+            { return LIBRORC_EVENT_STREAM_ERROR_BUFFER_SGLIST_EXCEEDED; }
             else
-            { m_errstr = "unknown error configuring DMA engine"; }
-            return ret;
+            { return LIBRORC_EVENT_STREAM_ERROR_DMA_CONFIG_FAILED; }
         }
 
         m_reportBuffer->clear();
@@ -390,26 +356,17 @@ namespace LIBRARY_NAME
                 shmget(SHM_KEY_OFFSET + m_deviceId*SHM_DEV_OFFSET + m_channelId,
                     sizeof(ChannelStatus), IPC_CREAT | 0666);
             if(shID==-1)
-            {
-                m_errstr = "failed to get SysV SHM for librorc ChannelStatus";
-                throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED);
-            }
+            { throw(LIBRORC_EVENT_STREAM_ERROR_STS_GET_FAILED); }
 
             /** attach to shared memory */
             shm = (char*)shmat(shID, 0, 0);
             if(shm==(char*)-1)
-            {
-                m_errstr = "failed to attach to SysV SHM for librorc ChannelStatus";
-                throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED);
-            }
+            { throw(LIBRORC_EVENT_STREAM_ERROR_STS_ATTACH_FAILED); }
         #else
             #pragma message "Compiling without SHM"
             shm = (char*)malloc(sizeof(ChannelStatus));
             if(shm == NULL)
-            {
-                m_errstr = "Failed to allocate memory for librorc ChannelStatus";
-                throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED);
-            }
+            { throw(LIBRORC_EVENT_STREAM_ERROR_STS_MALLOC_FAILED); }
         #endif
 
         m_channel_status = (ChannelStatus*)shm;
@@ -421,9 +378,7 @@ namespace LIBRARY_NAME
     event_stream::clearSharedMemory()
     {
         if(m_channel_status==NULL)
-        {
-            m_errstr = "librorc ChannelStatus is not initialized";
-            throw(LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED); }
+        { throw(LIBRORC_EVENT_STREAM_ERROR_STS_NOT_INITIALIZED); }
 
         memset(m_channel_status, 0, sizeof(ChannelStatus));
 

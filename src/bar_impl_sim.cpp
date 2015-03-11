@@ -38,6 +38,7 @@
 #include <cstdio> //perror
 
 #include <librorc/device.hh>
+#include <librorc/error.hh>
 #include <librorc/bar_impl_sim.hh>
 #include <librorc/buffer.hh>
 

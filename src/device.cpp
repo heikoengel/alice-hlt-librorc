@@ -34,6 +34,7 @@
 #include <string>
 
 #include <librorc/device.hh>
+#include <librorc/error.hh>
 #include <librorc/registers.h>
 
 #include <librorc/bar.hh>

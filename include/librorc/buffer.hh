@@ -35,16 +35,6 @@
 #include <vector>
 #include <librorc/defines.hh>
 
-#define LIBRORC_BUFFER_ERROR_INVALID_SIZE     1
-#define LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED 2
-#define LIBRORC_BUFFER_ERROR_GETMAP_FAILED    3
-#define LIBRORC_BUFFER_ERROR_GETLIST_FAILED   4
-#define LIBRORC_BUFFER_ERROR_DELETE_FAILED    5
-#define LIBRORC_BUFFER_ERROR_ALLOC_FAILED     6
-#define LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED   7
-#define LIBRORC_BUFFER_ERROR_GETBUF_FAILED    8
-#define LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED 9
-
 
 typedef struct PciDevice_struct        PciDevice;
 typedef struct DMABuffer_struct        DMABuffer;
@@ -71,18 +61,6 @@ EventDescriptorStruct
     volatile uint64_t dummy;   /** do not use! */
     volatile uint64_t dummy2;  /** do not use! */
 } EventDescriptor;
-
-static errmsg_t buffer_errmsg_table[] = {
-    {LIBRORC_BUFFER_ERROR_INVALID_SIZE, "requested buffer with invalid size"},
-    {LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED, "failed to get buffer size"},
-    {LIBRORC_BUFFER_ERROR_GETMAP_FAILED, "failed to get buffer map"},
-    {LIBRORC_BUFFER_ERROR_GETLIST_FAILED, "failed to get scatter-gather-list"},
-    {LIBRORC_BUFFER_ERROR_DELETE_FAILED, "failed to delete buffer"},
-    {LIBRORC_BUFFER_ERROR_ALLOC_FAILED, "failed to allocate buffer"},
-    {LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED, "failed to overmap buffer"},
-    {LIBRORC_BUFFER_ERROR_GETBUF_FAILED, "failed to find buffer"},
-    {LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED, "failed to get wrap-map state"}};
-const ssize_t buffer_errmsg_table_len = sizeof(buffer_errmsg_table) / sizeof(errmsg_t);
 
 class device;
 class dma_channel;
@@ -275,8 +253,6 @@ class buffer_sglist_programmer;
                  uint64_t size,
                  std::vector<ScatterGatherEntry> *list
             );
-
-            const char* errMsg(int err) { return _errMsg(buffer_errmsg_table, buffer_errmsg_table_len, err); }
 
         /**
          * @internal

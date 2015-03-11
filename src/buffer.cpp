@@ -36,6 +36,7 @@
 
 #include <librorc/buffer.hh>
 #include <librorc/device.hh>
+#include <librorc/error.hh>
 
 namespace LIBRARY_NAME
 {

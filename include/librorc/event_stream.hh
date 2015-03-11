@@ -39,7 +39,7 @@
 namespace LIBRARY_NAME
 {
 
-#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED 1
+//#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED 1
 
 /** Shared mem key offset **/
 #define SHM_KEY_OFFSET 2048
@@ -205,8 +205,6 @@ typedef struct
             int initializeDma(uint64_t eventBufferId, uint64_t eventBufferSize);
             int initializeDmaBuffers(uint64_t eventBufferId, uint64_t eventBufferSize);
 
-            const char *errMsg() { return m_errstr; }
-
         protected:
             uint32_t  m_deviceId;
             uint32_t  m_channelId;
@@ -216,7 +214,6 @@ typedef struct
             bool      m_called_with_bar;
             bool     *m_release_map;
             uint64_t  m_max_rb_entries;
-            const char *m_errstr;
 
             pthread_mutex_t      m_releaseEnable;
             pthread_mutex_t      m_getEventEnable;
