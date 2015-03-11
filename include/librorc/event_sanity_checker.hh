@@ -92,7 +92,7 @@ class ddl_reference_file;
 
             ~event_sanity_checker();
 
-            void
+            int
             check
             (
                 EventDescriptor  report,

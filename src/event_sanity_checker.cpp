@@ -417,7 +417,7 @@ event_sanity_checker::~event_sanity_checker()
 
 
 
-void
+int
 event_sanity_checker::check
 (
     EventDescriptor  report,
@@ -461,6 +461,8 @@ event_sanity_checker::check
            report
         );
     }
+
+    return error_code;
 }
 
 
@@ -473,8 +475,7 @@ event_sanity_checker::check
 )
 {
     uint64_t event_id = getEventIdFromCdh(dwordOffset(&report));
-    check(report, channel_status, event_id);
-    return event_id;
+    return check(report, channel_status, event_id);
 }
 
 
