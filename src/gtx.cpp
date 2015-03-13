@@ -280,10 +280,6 @@ namespace LIBRARY_NAME {
     int
     gtx::rxInitialize()
     {
-        if (!isDomainReady() ) {
-            return -1;
-        };
-
         bool rxInitDone = false;
         int retryCount = 0;
 
