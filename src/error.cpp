@@ -67,6 +67,13 @@ const errmsg_t table[] = {
     {LIBRORC_EVENT_STREAM_ERROR_STS_ATTACH_FAILED, "failed to attach to SysV SHM for librorc ChannelStatus"},
     {LIBRORC_EVENT_STREAM_ERROR_STS_MALLOC_FAILED, "Failed to allocate memory for librorc ChannelStatus"},
     {LIBRORC_EVENT_STREAM_ERROR_STS_NOT_INITIALIZED, "librorc ChannelStatus is not initialized"},
+
+    /** sysmon **/
+    {LIBRORC_SYSMON_ERROR_CONSTRUCTOR_FAILED, "parent bar not initialized"},
+    {LIBRORC_SYSMON_ERROR_I2C_RXACK, "failed to read from I2C"},
+    {LIBRORC_SYSMON_ERROR_I2C_INVALID_PARAM, "invalid I2C chain selected"},
+    {LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT, "data replay timeout"},
+    {LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID, "invalid replay channel selected"},
 };
 
 const ssize_t table_len = sizeof(table) / sizeof(errmsg_t);

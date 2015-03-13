@@ -36,6 +36,7 @@
 #include <cstdlib>
 #include <unistd.h>
 
+#include <librorc/error.hh>
 #include <librorc/sysmon.hh>
 #include <librorc/registers.h>
 #include <librorc/bar.hh>
@@ -1109,7 +1110,7 @@ namespace LIBRARY_NAME
 
         if ( status & (0xc0) ) /** error flags: bits 6,7 */
         {
-            throw LIBRORC_SYSMON_ERROR_RXACK;
+            throw LIBRORC_SYSMON_ERROR_I2C_RXACK;
         }
         return status;
     }
