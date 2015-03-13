@@ -74,6 +74,10 @@ const errmsg_t table[] = {
     {LIBRORC_SYSMON_ERROR_I2C_INVALID_PARAM, "invalid I2C chain selected"},
     {LIBRORC_SYSMON_ERROR_DATA_REPLAY_TIMEOUT, "data replay timeout"},
     {LIBRORC_SYSMON_ERROR_DATA_REPLAY_INVALID, "invalid replay channel selected"},
+
+    /** refclk **/
+    {LIBRORC_REFCLK_ERROR_CONSTRUCTOR_FAILED, "parent sysmon not initialized"},
+    {LIBRORC_REFCLK_ERROR_INVALID_PARAMETER, "failed to find config for requested clock frequencies"},
 };
 
 const ssize_t table_len = sizeof(table) / sizeof(errmsg_t);

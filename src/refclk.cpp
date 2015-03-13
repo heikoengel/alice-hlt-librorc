@@ -31,6 +31,7 @@
 
 #include <math.h>
 
+#include <librorc/error.hh>
 #include <librorc/refclk.hh>
 #include <librorc/sysmon.hh>
 
