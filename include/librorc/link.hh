@@ -172,8 +172,9 @@ namespace LIBRARY_NAME
              * wait for GTX domain to be ready read asynchronous GTX status
              * wait for rxresetdone & txresetdone & rxplllkdet & txplllkdet
              * & !gtx_in_rst
+             * @return 0 on success, -1 on error/timeout
             **/
-            void waitForGTXDomain();
+            int waitForGTXDomain();
 
             /**
              * get link type

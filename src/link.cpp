@@ -36,6 +36,9 @@
 
 namespace LIBRARY_NAME
 {
+
+#define LIBRORC_LINK_WAITFORGTX_TIMEOUT 10000
+
     link::link
     (
         bar      *bar,
@@ -178,16 +181,21 @@ namespace LIBRARY_NAME
     }
 
 
-    void
+    int
     link::waitForGTXDomain()
     {
-        /**
-         * TODO:
-         * - add timeout
-         * - return/handle/report timeout error
-         * */
-        while( !isGtxDomainReady() )
-        { usleep(100); }
+        bool ready = isGtxDomainReady();
+        uint32_t timeout = LIBRORC_LINK_WAITFORGTX_TIMEOUT;
+        while( !ready || timeout==0 )
+        {
+            usleep(100);
+#ifndef MODELSIM
+            // don't use timeout in Simulation
+            timeout--;
+#endif
+            ready = isGtxDomainReady();
+        }
+        return (timeout==0) ? 0 : -1;
     }
 
 
