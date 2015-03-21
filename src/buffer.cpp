@@ -29,7 +29,9 @@
  *
  **/
 
+#ifdef PDA
 #include <pda.h>
+#endif
 #include <vector>
 #include <sys/mman.h>
 #include <string.h>
@@ -37,6 +39,7 @@
 #include <librorc/buffer.hh>
 #include <librorc/device.hh>
 #include <librorc/error.hh>
+#include <librorc/sysfs_handler.hh>
 
 namespace LIBRARY_NAME
 {
@@ -44,12 +47,15 @@ namespace LIBRARY_NAME
 buffer::buffer
 (
     device   *dev,
-    uint64_t  size,
+    ssize_t   size,
     uint64_t  id,
     int32_t   overmap
 )
 {
-    m_id                = id;
+    m_id      = id;
+    m_sglist_vector.clear();
+
+#ifdef PDA
     m_device            = dev->getPdaPciDevice();
 
     bool newAllocNeeded = false;
@@ -93,6 +99,41 @@ buffer::buffer
         }
     }
 
+#else
+
+    m_hdl = dev->getHandler();
+    if (m_hdl->buffer_exists(m_id)) {
+      m_size = m_hdl->get_buffer_size(m_id);
+    } else {
+      m_size = 0;
+    }
+    m_wrapmap = (overmap==1);
+    bool deallocate = false;
+    bool allocate = true;
+
+    if (m_size > 0) {
+      if (m_size != size) {
+          deallocate = true;
+          allocate = true;
+      } else {
+          deallocate = false;
+          allocate = false;
+      }
+    }
+
+    if (deallocate) {
+      if (m_hdl->deallocate_buffer(m_id) < 0) {
+        throw LIBRORC_BUFFER_ERROR_DELETE_FAILED;
+      }
+    }
+    if (allocate) {
+      if (m_hdl->allocate_buffer(m_id, size) < 0) {
+        throw LIBRORC_BUFFER_ERROR_ALLOC_FAILED;
+      }
+      m_size = size;
+    }
+
+#endif
     connect();
 }
 
@@ -105,7 +146,10 @@ buffer::buffer
     int32_t   overmap
 )
 {
-    m_id     = id;
+    m_id      = id;
+    m_sglist_vector.clear();
+
+#ifdef PDA
     m_device = dev->getPdaPciDevice();
 
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
@@ -116,6 +160,11 @@ buffer::buffer
         if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
         { throw LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED; }
     }
+#else
+    m_hdl = dev->getHandler();
+    m_size = m_hdl->get_buffer_size(m_id);
+    m_wrapmap = (overmap==1);
+#endif
     connect();
 }
 
@@ -125,11 +174,15 @@ void
 buffer::connect()
 
 {
+#ifdef PDA
     m_size = 0;
-    if( DMABuffer_getLength( m_buffer, &m_size) != PDA_SUCCESS )
-    { throw LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED; }
-
     m_mem = NULL;
+
+    size_t size;
+    if( DMABuffer_getLength( m_buffer, &size) != PDA_SUCCESS )
+    { throw LIBRORC_BUFFER_ERROR_GETLENGTH_FAILED; }
+    m_size = size;
+
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     { throw LIBRORC_BUFFER_ERROR_GETMAP_FAILED; }
 
@@ -148,13 +201,25 @@ buffer::connect()
         entry.length  = sg->length;
         m_sglist_vector.push_back(entry);
     }
+#else
+
+    m_sglist_initialized = false;
+    if (m_hdl->mmap_buffer(&m_mem, m_id, m_size, m_wrapmap) < 0) {
+        throw LIBRORC_BUFFER_ERROR_GETMAP_FAILED;
+    }
+
+#endif
 }
 
 
 
 buffer::~buffer()
 {
-
+#ifdef PDA
+#else
+    m_hdl->munmap_buffer(m_mem, m_size, m_wrapmap);
+    //delete m_hdl;
+#endif
 }
 
 
@@ -162,11 +227,15 @@ buffer::~buffer()
 bool
 buffer::isOvermapped()
 {
+#ifdef PDA
     void *map_two = NULL;
     if(DMABuffer_getMapTwo(m_buffer, &map_two) != PDA_SUCCESS)
     { throw LIBRORC_BUFFER_ERROR_GETMAPTWO_FAILED; }
 
     return (map_two!=MAP_FAILED);
+#else
+    return m_wrapmap;
+#endif
 }
 
 
@@ -182,6 +251,7 @@ buffer::clear()
 int32_t
 buffer::deallocate()
 {
+#ifdef PDA
     if(PciDevice_deleteDMABuffer(m_device, m_buffer) != PDA_SUCCESS)
     { return 1; }
 
@@ -191,14 +261,80 @@ buffer::deallocate()
 
     m_sglist_vector.erase(m_sglist_vector.begin(), m_sglist_vector.end());
 
+    m_sglist_vector.clear();
     m_mem                          = NULL;
     m_id                           = 0;
     m_numberOfScatterGatherEntries = 0;
     m_size                         = 0;
 
     return 0;
+#else
+
+    m_hdl->munmap_buffer(m_mem, m_size, m_wrapmap);
+    m_sglist_vector.clear();
+    return m_hdl->deallocate_buffer(m_id);
+#endif
 }
 
+#ifndef PDA
+int
+buffer::initializeSglist() {
+    ssize_t sgmapsize = m_hdl->get_sglist_size(m_id);
+    if( sgmapsize < 0) {
+        return -1;
+    }
+
+    struct scatter *sglist;
+    if( m_hdl->mmap_sglist( (void **)&sglist, m_id, sgmapsize) < 0) {
+        return -1;
+    }
+
+    uint64_t nsg = sgmapsize / sizeof(struct scatter);
+    uint64_t i = 0;
+    while (i < nsg) {
+        ScatterGatherEntry entry;
+        entry.length = sglist[i].length;
+        entry.pointer = sglist[i].dma_address;
+        // combine with following entries if possible, but make sure length
+        // does not exceed 32 bit.
+        while( i < (nsg - 1) &&
+                (entry.pointer + entry.length
+                 == sglist[i+1].dma_address) &&
+                (entry.length + sglist[i].length < 0xffffffff) ) {
+            entry.length += sglist[i+1].length;
+            i++;
+        }
+        m_sglist_vector.push_back(entry);
+        i++;
+
+    }
+    m_numberOfScatterGatherEntries = m_sglist_vector.size();
+    m_sglist_initialized = true;
+    return 0;
+}
+#endif
+
+std::vector<ScatterGatherEntry>
+buffer::sgList()
+{
+#ifndef PDA
+    if(!m_sglist_initialized) {
+        initializeSglist();
+    }
+#endif
+    return m_sglist_vector;
+}
+
+uint64_t
+buffer::getnSGEntries()
+{
+#ifndef PDA
+    if(!m_sglist_initialized) {
+        initializeSglist();
+    }
+#endif
+    return m_numberOfScatterGatherEntries;
+}
 
 bool
 buffer::offsetToPhysAddr
@@ -210,6 +346,11 @@ buffer::offsetToPhysAddr
 {
     std::vector<ScatterGatherEntry>::iterator iter, end;
     uint64_t reference_offset = 0;
+#ifndef PDA
+    if(!m_sglist_initialized) {
+        initializeSglist();
+    }
+#endif
     iter = m_sglist_vector.begin();
     end = m_sglist_vector.end();
     while( iter != end )
@@ -237,6 +378,11 @@ buffer::physAddrToOffset
 {
     std::vector<ScatterGatherEntry>::iterator iter, end;
     uint64_t reference_offset = 0;
+#ifndef PDA
+    if(!m_sglist_initialized) {
+        initializeSglist();
+    }
+#endif
     iter = m_sglist_vector.begin();
     end = m_sglist_vector.end();
     while( iter != end )
@@ -274,8 +420,6 @@ buffer::composeSglistFromBufferSegment
         // get physical address and remaining segment length of current offset
         if( !offsetToPhysAddr(cur_offset, &phys_addr, &segment_length) )
         {
-            DEBUG_PRINTF( PDADEBUG_ERROR, "Failed to convert offset %llx "
-                    " to pysical address\n", cur_offset);
             return false;
         }
 

@@ -47,7 +47,7 @@ bar_impl_hw::bar_impl_hw
 {
     m_parent_dev     = dev;
     m_number         = n;
-    m_pda_pci_device = dev->getPdaPciDevice();
+    //m_pda_pci_device = dev->getPdaPciDevice();
     m_bar            = m_parent_dev->getBarMap(m_number);
 
     if(m_bar == NULL)

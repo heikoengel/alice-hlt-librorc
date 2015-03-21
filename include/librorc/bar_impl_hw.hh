@@ -37,7 +37,9 @@
 #ifndef LIBRORC_BAR_IMPL_HW_H
 #define LIBRORC_BAR_IMPL_HW_H
 
+#ifdef PDA
 #include <pda.h>
+#endif
 
 #include <librorc/defines.hh>
 #include <librorc/bar.hh>
@@ -111,9 +113,11 @@ namespace LIBRARY_NAME
             );
 
         protected:
+#ifdef PDA
             Bar *m_pda_bar;
+            //PciDevice *m_pda_pci_device;
+#endif
             device *m_parent_dev;
-            PciDevice *m_pda_pci_device;
             pthread_mutex_t m_mtx;
             int32_t m_number;
             uint8_t *m_bar;

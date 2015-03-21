@@ -40,11 +40,16 @@
 #include <librorc/defines.hh>
 
 
+#ifdef PDA
 typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct PciDevice;
+#else
+#include <librorc/sysfs_handler.hh>
+#endif
 
 namespace LIBRARY_NAME
 {
+#define LIBRORC_MAX_BARS 6
     /**
      * @brief represents a RORC PCIe device
      *
@@ -105,10 +110,15 @@ namespace LIBRARY_NAME
 
     void deleteAllBuffers();
 
+#ifndef PDA
+    sysfs_handler* getHandler() { return m_hdl; }
+#endif
+
     private:
         uint64_t m_maxPayloadSize;
         uint64_t m_maxReadRequestSize;
 
+#ifdef PDA
         /**
          * get PCI-Device
          * @return PCI-Device-Pointer
@@ -120,6 +130,12 @@ namespace LIBRARY_NAME
 
         DeviceOperator *m_dop;
         PciDevice      *m_device;
+#else
+        sysfs_handler  *m_hdl;
+        uint8_t        *m_bar_map[LIBRORC_MAX_BARS];
+        ssize_t         m_bar_size[LIBRORC_MAX_BARS];
+#endif
+
         uint8_t         m_number;
 
     };

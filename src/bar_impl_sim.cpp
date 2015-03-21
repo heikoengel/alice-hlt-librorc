@@ -29,7 +29,6 @@
  *
  **/
 
-#include <pda.h>
 #include <pthread.h>
 #include <netdb.h>
 #include <sys/mman.h>
@@ -54,7 +53,6 @@
 namespace LIBRARY_NAME
 {
 
-
 bar_impl_sim::bar_impl_sim
 (
     device  *dev,
@@ -64,7 +62,9 @@ bar_impl_sim::bar_impl_sim
     m_parent_dev = dev;
     m_number     = n;
 
+#ifdef PDA
     m_pda_pci_device = dev->getPdaPciDevice();
+#endif
 
     /** initialize mutex */
     pthread_mutex_init(&m_mtx, NULL);
@@ -184,8 +184,8 @@ bar_impl_sim::memcopy
         }
         m_write_to_dev_done=0;
 
-        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: memcpy %ld DWs to %lx\n",
-                buffer[1], ndw, target);
+        //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: memcpy %ld DWs to %lx\n",
+        //        buffer[1], ndw, target);
     }
 }
 
@@ -240,8 +240,8 @@ uint32_t bar_impl_sim::get32(bar_address address )
         data = m_read_from_dev_data;
         m_read_from_dev_done = 0;
 
-        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get32(0x%lx)=%08x\n",
-                buffer[1], address, data);
+        //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get32(0x%lx)=%08x\n",
+        //        buffer[1], address, data);
 
     }
     return data;
@@ -289,8 +289,8 @@ uint16_t bar_impl_sim::get16(bar_address address )
         data = m_read_from_dev_data & 0xffff;
         m_read_from_dev_done = 0;
 
-        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get16(0x%lx)=%04x\n",
-                buffer[1], address, data);
+        //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: get16(0x%lx)=%04x\n",
+        //        buffer[1], address, data);
     }
 
     return data;
@@ -335,8 +335,8 @@ bar_impl_sim::set32
         }
         m_write_to_dev_done=0;
 
-        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set32(0x%lx, %08x)\n",
-                buffer[1], address, data);
+        //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set32(0x%lx, %08x)\n",
+        //        buffer[1], address, data);
     }
 }
 
@@ -388,8 +388,8 @@ bar_impl_sim::set16
         }
         m_write_to_dev_done=0;
 
-        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set32(0x%lx, %04x)\n",
-                buffer[1], address, data);
+        //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "%d: set32(0x%lx, %04x)\n",
+        //        buffer[1], address, data);
     }
 }
 
@@ -493,7 +493,7 @@ bar_impl_sim::sockMonitor()
         if (result == 0)
         {
             /** terminate if 0 characters received */
-            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "readDWfromSock: closing socket\n");
+            //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "readDWfromSock: closing socket\n");
             close(sock);
         }
         else if (result!=sizeof(uint32_t))
@@ -569,8 +569,8 @@ bar_impl_sim::sockMonitor()
             uint32_t *mem = buf->getMem();
             memcpy(mem+(offset>>2), msg_buffer, msgsize*sizeof(uint32_t));
 
-            DEBUG_PRINTF(PDADEBUG_EXTERNAL, "CMD_WRITE_TO_HOST: %d DWs to buf %ld offset 0x%lx\n",
-                    msgsize, buffer_id, offset);
+            //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "CMD_WRITE_TO_HOST: %d DWs to buf %ld offset 0x%lx\n",
+            //        msgsize, buffer_id, offset);
 
             delete buf;
         }
@@ -602,8 +602,8 @@ bar_impl_sim::sockMonitor()
         rdreq.lower_addr   = (addr & 0xff);
         rdreq.requester_id = reqid;
 
-        DEBUG_PRINTF(PDADEBUG_EXTERNAL, "CMD_READ_FROM_HOST: %d bytes from 0x%lx, tag=%d\n",
-                rdreq.length, addr, rdreq.tag);
+        //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "CMD_READ_FROM_HOST: %d bytes from 0x%lx, tag=%d\n",
+        //        rdreq.length, addr, rdreq.tag);
 
         if( getOffset(addr, &(rdreq.buffer_id), &(rdreq.offset)) )
         {
@@ -681,6 +681,7 @@ bar_impl_sim::sockMonitor()
         uint64_t *offset
     )
     {
+#ifdef PDA
         DMABuffer *first_buffer;
 
         if
@@ -739,8 +740,28 @@ bar_impl_sim::sockMonitor()
 
             }
         }
-
         return 1;
+#else
+        sysfs_handler *hd = m_parent_dev->getHandler();
+        std::vector<uint64_t> bufferlist = hd->list_all_buffers();
+        std::vector<uint64_t>::iterator iter, end;
+        iter = bufferlist.begin();
+        end = bufferlist.end();
+        while( iter != end )
+        {
+            buffer *buf = new buffer(m_parent_dev, *iter, 0);
+            uint64_t buf_offset;
+            if( buf->physAddrToOffset(phys_addr, &buf_offset)) {
+                 *offset = buf_offset;
+                 *buffer_id = *iter;
+                 delete buf;
+                 return 0;
+            }                 
+            delete buf;
+            ++iter;
+        }
+        return 1;
+#endif
     }
 
 void
@@ -837,9 +858,9 @@ bar_impl_sim::cmplHandler()
                 }
                 m_cmpl_to_dev_done = 0;
 
-                DEBUG_PRINTF(PDADEBUG_EXTERNAL,
-                        "CMD_CMPL_TO_DEVICE tag=%d, length=%d B, buffer=%ld, offset=0x%x\n",
-                        rdreq.tag, length, rdreq.buffer_id, (rdreq.offset>>2));
+                //DEBUG_PRINTF(PDADEBUG_EXTERNAL,
+                //        "CMD_CMPL_TO_DEVICE tag=%d, length=%d B, buffer=%ld, offset=0x%x\n",
+                //        rdreq.tag, length, rdreq.buffer_id, (rdreq.offset>>2));
             }
 
             rdreq.length     -= length;
@@ -850,7 +871,7 @@ bar_impl_sim::cmplHandler()
         delete buf;
     }
 
-    DEBUG_PRINTF(PDADEBUG_EXTERNAL, "Pipe has been closed, cmpl_handler stopping.\n");
+    //DEBUG_PRINTF(PDADEBUG_EXTERNAL, "Pipe has been closed, cmpl_handler stopping.\n");
 
     return 0;
 }
@@ -862,7 +883,6 @@ bar_impl_sim::size()
 {
     return m_size;
 }
-
 
 }
 

@@ -63,6 +63,7 @@ EventDescriptorStruct
 } EventDescriptor;
 
 class device;
+class sysfs_handler;
 class dma_channel;
 class buffer_sglist_programmer;
 
@@ -96,7 +97,7 @@ class buffer_sglist_programmer;
              buffer
              (
                  device   *dev,
-                 uint64_t  size,
+                 ssize_t   size,
                  uint64_t  id,
                  int32_t   overmap
              );
@@ -185,16 +186,15 @@ class buffer_sglist_programmer;
              * @return Number of sg-entries.
              **/
             uint64_t
-            getnSGEntries()
-            { return m_numberOfScatterGatherEntries; }
+            getnSGEntries();
 
             /**
              * Get the scatter gather list for SG-DMA.
              * @return Vector of librorc_sg_entry.
              */
             std::vector<ScatterGatherEntry>
-            sgList()
-            { return m_sglist_vector; }
+            sgList();
+            //{ return m_sglist_vector; }
 
             /**
              * Get the maximum number of report buffer entries in the RB
@@ -259,24 +259,32 @@ class buffer_sglist_programmer;
          */
         private:
 
+#ifdef PDA
             PciDevice        *m_device;
             DMABuffer        *m_buffer;
             DMABuffer_SGNode *m_sglist;
-
-            std::vector<ScatterGatherEntry> m_sglist_vector;
-
-            uint32_t         *m_mem;
-            uint64_t          m_id;
-            uint64_t          m_numberOfScatterGatherEntries;
-            uint64_t          m_size;
-
-            //pthread_mutex_t   m_mtx;
 
             DMABuffer*
             getPDABuffer()
             {
                 return m_buffer;
             }
+#else
+            sysfs_handler *m_hdl;
+            bool           m_wrapmap;
+            bool           m_sglist_initialized;
+
+            int initializeSglist();
+#endif
+
+            std::vector<ScatterGatherEntry> m_sglist_vector;
+
+            uint32_t         *m_mem;
+            uint64_t          m_id;
+            int64_t           m_numberOfScatterGatherEntries;
+            ssize_t           m_size;
+
+            //pthread_mutex_t   m_mtx;
 
             /**
              * Connect to an existing buffer.

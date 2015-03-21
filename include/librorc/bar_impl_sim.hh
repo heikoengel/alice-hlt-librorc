@@ -34,6 +34,9 @@
 
 #include <librorc/defines.hh>
 #include <librorc/bar.hh>
+#ifdef PDA
+#include <pda.h>
+#endif
 
 /**
  * FLI_CMD bit definitions
@@ -51,7 +54,6 @@
 
 
 #define DEFAULT_PACKET_SIZE 128
-
 
 namespace LIBRARY_NAME
 {
@@ -125,7 +127,9 @@ namespace LIBRARY_NAME
 
         private:
             device *m_parent_dev;
+#ifdef PDA
             PciDevice *m_pda_pci_device;
+#endif
             pthread_mutex_t m_mtx;
             int32_t m_number;
             uint8_t *m_bar;
