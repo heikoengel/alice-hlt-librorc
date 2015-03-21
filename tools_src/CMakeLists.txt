@@ -18,6 +18,14 @@ FOREACH( STEMNAME ${RORCTL_LIST} )
   TARGET_LINK_LIBRARIES( ${STEMNAME} rorc ${EXTRA_LIBS} )
 ENDFOREACH( STEMNAME )
 
+# Build all in test
+SET( TEST_LIST sysfs_test allocate_buffer )
+FOREACH( STEMNAME ${TEST_LIST} )
+  ADD_EXECUTABLE( ${STEMNAME}
+    test/${STEMNAME}.cpp )
+  TARGET_LINK_LIBRARIES( ${STEMNAME} rorc ${EXTRA_LIBS} )
+ENDFOREACH( STEMNAME )
+
 #-----------------------------------------------------------
 
 # Build DMA-in standalone tool
