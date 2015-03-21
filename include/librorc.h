@@ -35,6 +35,7 @@
 #include "librorc/registers.h"
 #include "librorc/defines.hh"
 #include "librorc/device.hh"
+#include "librorc/sysfs_handler.hh"
 #include "librorc/bar.hh"
 #include "librorc/buffer.hh"
 #include "librorc/flash.hh"

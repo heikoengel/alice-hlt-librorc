@@ -1,5 +1,6 @@
 PROJECT(librorc)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/kernelmodule/)
 
 SET( LIBRORC_LIBRARY_SOURCE
   bar.cpp
@@ -26,6 +27,7 @@ SET( LIBRORC_LIBRARY_SOURCE
   refclk.cpp
   siu.cpp
   sysmon.cpp
+  sysfs_handler.cpp
   )
 
 ADD_LIBRARY(rorc SHARED ${LIBRORC_LIBRARY_SOURCE})

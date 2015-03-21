@@ -10,6 +10,7 @@ SET( LIBRORC_HEADERS
   librorc/ddr3.hh
   librorc/defines.hh
   librorc/device.hh
+  librorc/sysfs_handler.hh
   librorc/diu.hh
   librorc/dma_channel.hh
   librorc/error.hh
