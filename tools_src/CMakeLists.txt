@@ -19,11 +19,11 @@ FOREACH( STEMNAME ${RORCTL_LIST} )
 ENDFOREACH( STEMNAME )
 
 # Build all in test
-SET( TEST_LIST sysfs_test allocate_buffer )
+SET( TEST_LIST sysfs_test allocate_buffer mmap_perf shm_perf)
 FOREACH( STEMNAME ${TEST_LIST} )
   ADD_EXECUTABLE( ${STEMNAME}
     test/${STEMNAME}.cpp )
-  TARGET_LINK_LIBRARIES( ${STEMNAME} rorc ${EXTRA_LIBS} )
+  TARGET_LINK_LIBRARIES( ${STEMNAME} rorc ${EXTRA_LIBS} rt )
 ENDFOREACH( STEMNAME )
 
 #-----------------------------------------------------------
