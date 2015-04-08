@@ -97,8 +97,6 @@ uint8_t divselref_val2reg( uint8_t val )
 #define GTX_ASYNCCFG_TXRESET 3
 
 #define GTX_RXINIT_RETRY_LIMIT 5
-#define GTX_RXINIT_MIN_DFE_EYE 120
-#define GTX_RXINIT_DFE_TIMEOUT 10000
 #define GTX_RXINIT_ALIGN_TIMEOUT 10000
 
 
@@ -288,20 +286,8 @@ namespace LIBRARY_NAME {
             usleep(100);
             setRxReset(0);
 
-            // wait for DFE Eye opening
-            uint32_t timeout = GTX_RXINIT_DFE_TIMEOUT;
-            while ((dfeEye() < GTX_RXINIT_MIN_DFE_EYE) && (timeout > 0)) {
-                timeout--;
-                usleep(100);
-            }
-
-            if (timeout == 0) {
-                retryCount++;
-                continue;
-            }
-
             // wait for alignment
-            timeout = GTX_RXINIT_ALIGN_TIMEOUT;
+            int timeout = GTX_RXINIT_ALIGN_TIMEOUT;
             while (!isLinkUp() && (timeout > 0)) {
                 timeout--;
                 usleep(100);
@@ -315,7 +301,12 @@ namespace LIBRARY_NAME {
             rxInitDone = true;
         } while (!rxInitDone && (retryCount < GTX_RXINIT_RETRY_LIMIT));
 
-        return (rxInitDone) ? retryCount : -1;
+        if (rxInitDone) {
+            clearErrorCounters();
+            return retryCount;
+        } else {
+            return -1;
+        }
     }
 
     void
@@ -430,12 +421,6 @@ namespace LIBRARY_NAME {
         // Common
         // set TX_TDCC_CFG: addr 0x39, bits [15:14]
         drpUpdateField(0x39, pll.tx_tdcc_cfg, 14, 2);
-    }
-
-    uint32_t
-    gtx::dfeEye()
-    {
-        return ((m_link->gtxReg(RORC_REG_GTX_RXDFE)>>21 & 0x1f)*200/31);
     }
 
 

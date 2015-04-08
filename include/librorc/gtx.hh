@@ -97,8 +97,6 @@ namespace LIBRARY_NAME {
             bool isDomainReady();
             bool isLinkUp();
 
-            uint32_t dfeEye();
-
             void setTxDiffCtrl(uint32_t value);
             void setTxPreEmph( uint32_t value );
             void setTxPostEmph( uint32_t value );
