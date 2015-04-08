@@ -127,7 +127,7 @@ waitForResetDone
         if ( link->isGtxDomainReady() )
         {
             /** make sure DFE eye is above threshold */
-            return (gtx->dfeEye() > GTX_DFE_EYE_DAC_MIN);
+            return true;
         }
         usleep(100);
         timeout++;
@@ -155,7 +155,6 @@ resetAllGtx
             uint32_t retry = WAIT_FOR_RESET_DONE_RETRY;
             while( !waitForResetDone(link, gtx) )
             {
-                gtx->setReset(reset);
                 if(retry==0)
                 {
                     cout << "WARNING: Link " << i
@@ -164,6 +163,10 @@ resetAllGtx
                          << " retries." << endl;
                     break;
                 }
+                gtx->setReset(1);
+                usleep(1000);
+                gtx->setReset(0);
+
                 retry--;
             }
         }
