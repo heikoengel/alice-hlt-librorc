@@ -195,7 +195,7 @@ namespace LIBRARY_NAME
 #endif
             ready = isGtxDomainReady();
         }
-        return (timeout==0) ? 0 : -1;
+        return (timeout==0) ? -1 : 0;
     }
 
 
