@@ -47,7 +47,7 @@ device::device(int32_t device_index)
     if(PDAInit() != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH; }
 
-    if(PDACheckVersion(10,0,6) != PDA_SUCCESS)
+    if(PDACheckVersion(10,1,6) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH; }
 
     /** A list of PCI ID to which PDA has to attach. */
