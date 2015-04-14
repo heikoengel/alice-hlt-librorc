@@ -61,7 +61,6 @@ __attribute__((__packed__))
     volatile uint32_t ebdm_sw_read_pointer_high; /** EBDM read pointer high **/
     volatile uint32_t rbdm_sw_read_pointer_low;  /** RBDM read pointer low **/
     volatile uint32_t rbdm_sw_read_pointer_high; /** RBDM read pointer high **/
-    volatile uint32_t dma_ctrl;                  /** DMA control register **/
 } SwReadPointerRegisters;
 
 
@@ -181,7 +180,7 @@ dma_channel::setBufferOffsetsOnDevice
     offsets.rbdm_sw_read_pointer_low  = (uint32_t)(rboffset & 0xffffffff);
     offsets.rbdm_sw_read_pointer_high = (uint32_t)(rboffset>>32 & 0xffffffff);
 
-    offsets.dma_ctrl =
+    uint32_t dma_ctrl =
         (1<<DMACTRL_SYNC_SWRDPTRS_BIT) | // sync pointers)
         m_pci_tag | // set channel ID as tag
         (1<<DMACTRL_EBDM_ENABLE_BIT)  | // enable EB
@@ -189,6 +188,7 @@ dma_channel::setBufferOffsetsOnDevice
         (1<<DMACTRL_ENABLE_BIT);   // enable DMA engine
 
     m_link->memcopy( RORC_REG_EBDM_SW_READ_POINTER_L, &offsets, sizeof(offsets) );
+    setDMAConfig(dma_ctrl);
     m_last_ebdm_offset = eboffset;
     m_last_rbdm_offset = rboffset;
 }
@@ -583,9 +583,10 @@ dma_channel::configureDmaChannelRegisters
     chcfg.swptrs.ebdm_sw_read_pointer_high = (ebrdptr >> 32);
     chcfg.swptrs.rbdm_sw_read_pointer_low  = (rbrdptr & 0xffffffff);
     chcfg.swptrs.rbdm_sw_read_pointer_high = (rbrdptr >> 32);
-    chcfg.swptrs.dma_ctrl = (1<<DMACTRL_SYNC_SWRDPTRS_BIT) | m_pci_tag;
+    uint32_t dma_ctrl = (1<<DMACTRL_SYNC_SWRDPTRS_BIT) | m_pci_tag;
 
     m_link->memcopy( RORC_REG_EBDM_N_SG_CONFIG, &chcfg, sizeof(chcfg) );
+    setDMAConfig(dma_ctrl);
     setPciePacketSize(pcie_packet_size);
     m_last_rbdm_offset = rbrdptr;
     m_last_ebdm_offset = ebrdptr;
