@@ -463,20 +463,26 @@ configureDiu
     if( diu )
     {
         diu->useAsDataSource();
-        diu->setEnable(1);
         if(opts.datasource==ES_SRC_SIU)
         {
             if( diu->prepareForSiuData() < 0 )
             {
-                cout << "Failed to enable DIU->SIU chain!";
+                cout << "Failed to reset DIU->SIU chain!" << endl;
+            }
+
+            diu->setEnable(1);
+            if (diu->sendFeeReadyToReceiveCmd())
+            {
+                cout << "Failed to send RDYRX to SIU" << endl;
             }
         }
         else
         {
             if( diu->prepareForDiuData() < 0 )
             {
-                cout << "Failed to enable DIU->SIU chain!";
+                cout << "Failed to reset DIU->SIU chain!" << endl;
             }
+            diu->setEnable(1);
         }
     }
     else
