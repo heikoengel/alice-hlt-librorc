@@ -58,6 +58,12 @@ namespace LIBRARY_NAME
                 m_link->ddlReg(RORC_REG_DDL_CTRL)|(1<<2));
     }
 
+    uint32_t
+    diu::eventSizeCounter()
+    {
+        return m_link->ddlReg(RORC_REG_DDL_EVENTSIZE);
+    }
+
     void
     diu::clearAllLastStatusWords()
     {

@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: 0a2a7aa78a15b2947c9b7c8ba0333be2e86b56cc
-// short hash: 0a2a7aa
+// hash: d7cdbc8d3896d64ab15b0f01bd3f28eb95d1fa95
+// short hash: d7cdbc8
 //
 
-#define RORC_REVISION 0x0a2a7aa
-#define RORC_BUILD_DATE 0x20150203
+#define RORC_REVISION 0xd7cdbc8
+#define RORC_BUILD_DATE 0x20150416
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_REG_FIRMWARE_REVISION 0
@@ -93,6 +93,7 @@
 #define RORC_REG_FCF_CTRL 12
 #define RORC_REG_DDL_CMD 13
 #define RORC_REG_DDL_SERIAL 14
+#define RORC_REG_DDL_EVENTSIZE 15
 #define RORC_REG_DDL_EC 16
 #define RORC_REG_DDL_DEADTIME 17
 #define RORC_REG_DDL_CTSTW 18

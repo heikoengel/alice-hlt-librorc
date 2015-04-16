@@ -86,6 +86,9 @@ namespace LIBRARY_NAME
             void
             clearEventSizeCounter();
 
+            uint32_t
+            eventSizeCounter();
+
             /**
              * get num,ber of events received from DIU
              * @return number of events
