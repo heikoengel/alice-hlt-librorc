@@ -673,7 +673,9 @@ configureDataSource
     DMAOptions opts
 )
 {
-    hlEventStream->m_link->waitForGTXDomain();
+    while( !hlEventStream->m_link->isDdlDomainReady() ) {
+        usleep(100);
+    }
     hlEventStream->m_link->setFlowControlEnable(1);
     hlEventStream->m_link->setChannelActive(1);
 
