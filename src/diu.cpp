@@ -175,36 +175,29 @@ namespace LIBRARY_NAME
     int
     diu::prepareForSiuData()
     {
-        // same steps as for DIU
-        if( prepareForDiuData() )
+        if( toggleDdlReset() < 0 )
         { return -1; }
-
-        // but additionally send RXRDY
-        if( sendFeeReadyToReceiveCmd() < 0 )
+        if( sendSiuResetCmd() < 0 )
         { return -1; }
-
+        if( toggleDdlReset() < 0 )
+        { return -1; }
         return 0;
     }
 
     int
     diu::prepareForDiuData()
     {
-        setReset(1);
-        getReset();
-        setReset(0);
-        getReset();
-        if( waitForLinkUp() < 0 )
-        { return -1; }
-        if( sendSiuResetCmd() < 0 )
-        { return -1; }
-        setReset(1);
-        getReset();
-        setReset(0);
-        getReset();
-        if( waitForLinkUp() < 0 )
-        { return -1; }
+        return toggleDdlReset();
+    }
 
-        return 0;
+    int
+    diu::toggleDdlReset()
+    {
+        setReset(1);
+        getReset();
+        setReset(0);
+        getReset();
+        return waitForLinkUp();
     }
 
 

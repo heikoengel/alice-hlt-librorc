@@ -401,6 +401,12 @@ namespace LIBRARY_NAME
              * */
             int
             waitForFrontEndStatusWord();
+
+            /**
+             * set and clear DDL reset, wait for link to come up.
+             * @return 0 on success, -1 on timeout waiting for link to come up
+             **/
+            int toggleDdlReset();
     };
 }
 #endif
