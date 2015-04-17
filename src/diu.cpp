@@ -51,6 +51,17 @@ namespace LIBRARY_NAME
     diu::linkFull()
     { return ( ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>4) & 1) != 1 ); }
 
+    uint32_t
+    diu::getForcedXoff()
+    { return ((m_link->ddlReg(RORC_REG_DDL_CTRL) >> 6) & 1); }
+
+    void
+    diu::setForcedXoff( uint32_t xoff ) {
+        uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
+        ddlctrl &= ~(1<<6);
+        ddlctrl |= ((xoff&1) << 6);
+    }
+
     void
     diu::clearEventSizeCounter()
     {

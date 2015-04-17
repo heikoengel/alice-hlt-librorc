@@ -123,6 +123,12 @@ namespace LIBRARY_NAME
             void
             clearDdlDeadtime();
 
+            uint32_t
+            getForcedXoff();
+
+            void
+            setForcedXoff( uint32_t xoff );
+
 
             /**********************************************************
              *             Protocol Level DDL Status and Control
