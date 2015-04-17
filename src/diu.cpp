@@ -57,9 +57,11 @@ namespace LIBRARY_NAME
 
     void
     diu::setForcedXoff( uint32_t xoff ) {
+        std::cout << "Setting XOFF to " << xoff << std::endl;
         uint32_t ddlctrl = m_link->ddlReg(RORC_REG_DDL_CTRL);
         ddlctrl &= ~(1<<6);
         ddlctrl |= ((xoff&1) << 6);
+        m_link->setDdlReg(RORC_REG_DDL_CTRL, ddlctrl);
     }
 
     void
