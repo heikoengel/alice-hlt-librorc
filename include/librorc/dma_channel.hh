@@ -328,6 +328,16 @@ namespace LIBRARY_NAME
                  std::vector<ScatterGatherEntry> sglist
             );
 
+            /**
+             * read sglist-entry from E/RBD-RAM
+             * @param ram_sel 0 for EBDRAM, 1 for RBDRAM
+             * @param addr address in selected RAM
+             * @return struct sg_entry
+             **/
+            void
+            readSgListEntry(uint32_t ram_sel, uint32_t addr, uint64_t &sg_addr,
+                            uint32_t &sg_len);
+
         protected:
             link     *m_link;
             uint64_t  m_last_ebdm_offset;

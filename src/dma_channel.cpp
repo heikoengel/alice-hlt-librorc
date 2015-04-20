@@ -454,6 +454,14 @@ dma_channel::rateLimit
     return rate;
 }
 
+void
+dma_channel::readSgListEntry(uint32_t ram_sel, uint32_t addr, uint64_t &sg_addr, uint32_t &sg_len) {
+    uint32_t ctrl = ( (ram_sel & 1) << 30 ) | addr;
+    m_link->setPciReg(RORC_REG_SGENTRY_CTRL, ctrl);
+    sg_addr = (uint64_t)(m_link->pciReg(RORC_REG_SGENTRY_ADDR_HIGH)) << 32;
+    sg_addr |= m_link->pciReg(RORC_REG_SGENTRY_ADDR_LOW);
+    sg_len = m_link->pciReg(RORC_REG_SGENTRY_LEN);
+}
 
 /*******************************************************************
 *    HLT-OUT related
