@@ -72,9 +72,9 @@ namespace LIBRARY_NAME
     }
 
     uint32_t
-    diu::eventSizeCounter()
+    diu::totalWordsReceived()
     {
-        return m_link->ddlReg(RORC_REG_DDL_EVENTSIZE);
+        return m_link->ddlReg(RORC_REG_DDL_TOTAL_WORDS);
     }
 
     void

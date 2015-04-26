@@ -67,6 +67,10 @@ namespace LIBRARY_NAME
     { m_link->setDdlReg(RORC_REG_DDL_EC, 0); }
 
     uint32_t
+    siu::totalWordsTransmitted()
+    { return m_link->ddlReg(RORC_REG_DDL_TOTAL_WORDS); }
+
+    uint32_t
     siu::lastFrontEndCommandWord()
     {
         return m_link->ddlReg(RORC_REG_DDL_FESTW);

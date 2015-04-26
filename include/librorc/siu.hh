@@ -86,6 +86,14 @@ namespace LIBRARY_NAME
             getEventcount();
 
             /**
+             * get the total number of data words transmitted via SIU interface.
+             * Control words are not counted.
+             * @return number of 32bit data words
+             **/
+            uint32_t
+            totalWordsTransmitted();
+
+            /**
              * clear SIU event count
              **/
             void

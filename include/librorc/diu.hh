@@ -86,11 +86,16 @@ namespace LIBRARY_NAME
             void
             clearEventSizeCounter();
 
+            /**
+             * get the total number of data words received on the DIU
+             * interface. Control words are not counted.
+             * @return number of 32bit data words received
+             **/
             uint32_t
-            eventSizeCounter();
+            totalWordsReceived();
 
             /**
-             * get num,ber of events received from DIU
+             * get number of events received from DIU
              * @return number of events
              **/
             uint32_t
