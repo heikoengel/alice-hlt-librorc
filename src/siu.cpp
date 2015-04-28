@@ -100,4 +100,8 @@ namespace LIBRARY_NAME
         return ((m_link->ddlReg(RORC_REG_DDL_CTRL)>>30) & 1)==1;
     }
 
+   uint32_t
+   siu::errorFlags()
+   { return (m_link->ddlReg(RORC_REG_DDL_IFSTW)); }
+
 }

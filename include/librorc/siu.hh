@@ -138,6 +138,9 @@ namespace LIBRARY_NAME
             bool
             isSourceEmpty();
 
+            uint32_t
+            errorFlags();
+
         protected:
     };
 }
