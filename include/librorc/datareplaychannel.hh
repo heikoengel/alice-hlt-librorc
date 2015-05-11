@@ -173,6 +173,24 @@ namespace LIBRARY_NAME
                 uint32_t start_address
             );
 
+            /**
+             * set event limit for continuous replay. A limit of 0 means
+             * no limit.
+             * @param event_limit number of events to be replayed
+             **/
+            void
+            setEventLimit
+            (
+                uint32_t event_limit
+            );
+
+            /**
+             * get the current event limit for continuous replay
+             * @return number of events to be replayed
+             **/
+            uint32_t
+            eventLimit();
+
 
         protected:
             link *m_link;

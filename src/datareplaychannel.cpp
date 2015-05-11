@@ -160,4 +160,19 @@ namespace LIBRARY_NAME
         m_link->setDdlReg(RORC_REG_DDR3_DATA_REPLAY_CHANNEL_CTRL, ch_cfg);
     }
 
+    void
+    datareplaychannel::setEventLimit
+    (
+        uint32_t event_limit
+    )
+    {
+        m_link->setDdlReg(RORC_REG_DDL_PG_NUM_EVENTS, event_limit);
+    }
+
+    uint32_t
+    datareplaychannel::eventLimit()
+    {
+        return m_link->ddlReg(RORC_REG_DDL_PG_NUM_EVENTS);
+    }
+
 }
