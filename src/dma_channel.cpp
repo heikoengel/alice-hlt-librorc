@@ -636,4 +636,27 @@ uint32_t
 dma_channel::DMAConfig()
 { return m_link->pciReg(RORC_REG_DMA_CTRL); }
 
+
+bool
+dma_channel::eoeInFifo()
+{ return (((DMAConfig() >> 4) & 1) != 0); }
+
+bool
+dma_channel::fifoEmpty()
+{ return (((DMAConfig() >> 5) & 1) != 0); }
+
+bool
+dma_channel::fifoAlmostEmpty()
+{ return (((DMAConfig() >> 6) & 1) != 0); }
+
+bool
+dma_channel::fifoUnderrun()
+{ return (((DMAConfig() >> 13) & 1) != 0); }
+
+void
+dma_channel::clearFifoUnterrunFlag()
+{
+    setDMAConfig(DMAConfig() | (1<<13));
+}
+
 }

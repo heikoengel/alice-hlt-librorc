@@ -338,6 +338,37 @@ namespace LIBRARY_NAME
             readSgListEntry(uint32_t ram_sel, uint32_t addr, uint64_t &sg_addr,
                             uint32_t &sg_len);
 
+            /**
+             * check if there is an End-Of-Event in the DMA engines
+             * input FIFO
+             * @return true if EOE in FIFO, else false
+             **/
+            bool eoeInFifo();
+
+            /**
+             * check if DMA engine input FIFO is empty
+             * @return true if empty, else false
+             **/
+            bool fifoEmpty();
+
+            /**
+             * check if DMA engine input FIFO is almost empty
+             * @return true if almost empty, else false
+             **/
+            bool fifoAlmostEmpty();
+
+            /**
+             * check if a FIFO underrun occured
+             * @return true if unterrun occured, else false
+             **/
+            bool fifoUnderrun();
+
+            /**
+             * clear underrun flag
+             **/
+            void clearFifoUnterrunFlag();
+
+
         protected:
             link     *m_link;
             uint64_t  m_last_ebdm_offset;
