@@ -8,6 +8,7 @@ set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 
 #--- Find and check PDA
 include(CMakePda.txt)
+add_definitions(-DPDA)
 
 #--- Define whether SHM is used or not
 option(MyOption "SHM" OFF)
