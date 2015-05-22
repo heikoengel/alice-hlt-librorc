@@ -119,6 +119,17 @@ class buffer_sglist_programmer;
                  int32_t   overmap
              );
 
+             /**
+              * Constructor to directly attach to a pre-existing buffer without
+              * requiring a librorc::device instance.
+              **/
+             buffer
+             (
+                  uint64_t deviceId,
+                  uint64_t bufferId,
+                  int32_t overmap
+             );
+
             ~buffer();
 
             /**
@@ -273,6 +284,7 @@ class buffer_sglist_programmer;
             sysfs_handler *m_hdl;
             bool           m_wrapmap;
             bool           m_sglist_initialized;
+            bool           m_free_hdl;
 
             int initializeSglist();
 #endif

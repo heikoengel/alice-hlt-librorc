@@ -101,6 +101,7 @@ buffer::buffer
 
 #else
 
+    m_free_hdl = false;
     m_hdl = dev->getHandler();
     if (m_hdl->buffer_exists(m_id)) {
       m_size = m_hdl->get_buffer_size(m_id);
@@ -161,6 +162,7 @@ buffer::buffer
         { throw LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED; }
     }
 #else
+    m_free_hdl = false;
     m_hdl = dev->getHandler();
     m_size = m_hdl->get_buffer_size(m_id);
     m_wrapmap = (overmap==1);
@@ -168,6 +170,23 @@ buffer::buffer
     connect();
 }
 
+#ifndef PDA
+buffer::buffer
+(
+  uint64_t deviceId,
+  uint64_t bufferId,
+  int32_t overmap
+)
+{
+    m_id = bufferId;
+    m_free_hdl = true;
+    m_sglist_vector.clear();
+    m_hdl = new sysfs_handler(deviceId, LIBRORC_SCANMODE_UIO);
+    m_size = m_hdl->get_buffer_size(m_id);
+    m_wrapmap = (overmap==1);
+    connect();
+}
+#endif
 
 
 void
@@ -218,7 +237,9 @@ buffer::~buffer()
 #ifdef PDA
 #else
     m_hdl->munmap_buffer(m_mem, m_size, m_wrapmap);
-    //delete m_hdl;
+    if (m_free_hdl) {
+        delete m_hdl;
+    }
 #endif
 }
 
