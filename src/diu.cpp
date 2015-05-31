@@ -65,7 +65,7 @@ namespace LIBRARY_NAME
     }
 
     void
-    diu::clearEventSizeCounter()
+    diu::clearInterfaceCounters()
     {
         m_link->setDdlReg(RORC_REG_DDL_CTRL,
                 m_link->ddlReg(RORC_REG_DDL_CTRL)|(1<<2));

@@ -77,14 +77,11 @@ namespace LIBRARY_NAME
             bool linkFull();
 
             /**
-             * DIU Interface internal counter providing the reported
-             * event size (riD[31:12]) to DMA engine on each EndOfEvent.
-             * Clearing this counter should only be required after a
-             * crash. No doing so may result in in a mismatch of
-             * calculated and reported event size. No data gets lost.
+             * Clear DIU interface internal counters:
+             * EventSizeCounter and TotalWordsReceived
              * */
             void
-            clearEventSizeCounter();
+            clearInterfaceCounters();
 
             /**
              * get the total number of data words received on the DIU

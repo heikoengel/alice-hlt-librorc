@@ -70,6 +70,13 @@ namespace LIBRARY_NAME
     siu::totalWordsTransmitted()
     { return m_link->ddlReg(RORC_REG_DDL_TOTAL_WORDS); }
 
+    void
+    siu::clearInterfaceCounters()
+    {
+        m_link->setDdlReg(RORC_REG_DDL_CTRL,
+                m_link->ddlReg(RORC_REG_DDL_CTRL)|(1<<2));
+    }
+
     uint32_t
     siu::lastFrontEndCommandWord()
     {

@@ -85,6 +85,14 @@ namespace LIBRARY_NAME
             uint32_t
             getEventcount();
 
+
+            /**
+             * Clear DIU interface internal counters:
+             * totalWordsTransmitted
+             * */
+            void
+            clearInterfaceCounters();
+
             /**
              * get the total number of data words transmitted via SIU interface.
              * Control words are not counted.
