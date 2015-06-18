@@ -631,7 +631,11 @@ configureFcf
     {
         fcf->setReset(1);
         fcf->setEnable(0);
-        fcf->setBypass(0);
+        if( opts.loadFcfMappingRam ) {
+          fcf->setBypass(0);
+        } else {
+          fcf->setBypass(1);
+        }
         fcf->clearErrors();
 #ifndef MODELSIM
         if( opts.loadFcfMappingRam )
