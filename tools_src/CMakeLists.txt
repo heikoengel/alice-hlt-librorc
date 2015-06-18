@@ -19,7 +19,7 @@ FOREACH( STEMNAME ${RORCTL_LIST} )
 ENDFOREACH( STEMNAME )
 
 # Build all in test
-SET( TEST_LIST sysfs_test allocate_buffer mmap_perf shm_perf)
+SET( TEST_LIST sysfs_test allocate_buffer mmap_perf shm_perf mmap_buffer )
 FOREACH( STEMNAME ${TEST_LIST} )
   ADD_EXECUTABLE( ${STEMNAME}
     test/${STEMNAME}.cpp )
