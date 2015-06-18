@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   uint32_t buffer_id = 0;
   uint64_t buffer_size = 0;
 
-  while ((arg = getopt(argc, argv, "n:b:s:")) != -1) {
+  while ((arg = getopt(argc, argv, "hn:b:s:")) != -1) {
     switch (arg) {
     case 'n':
       device_id = strtol(optarg, NULL, 0);
