@@ -308,6 +308,10 @@ namespace LIBRARY_NAME
         }
     }
 
+    bool link::fastClusterFinderAvailable() {
+        return ((ddlReg(RORC_REG_DDL_CTRL) & (1<<25)) != 0);
+    }
+
     /**************** protected ******************/
 
     void link::setDataSourceMux( uint32_t value )

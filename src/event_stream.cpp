@@ -533,8 +533,7 @@ namespace LIBRARY_NAME
     fastclusterfinder*
     event_stream::getFastClusterFinder()
     {
-        if( m_fwtype == RORC_CFG_PROJECT_hlt_in_fcf &&
-                m_linktype == RORC_CFG_LINK_TYPE_DIU )
+        if( m_link->fastClusterFinderAvailable() )
         { return new fastclusterfinder(m_link); }
         else
         { return NULL; }

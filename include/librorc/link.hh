@@ -286,6 +286,14 @@ namespace LIBRARY_NAME
             bool
             ddr3DataReplayAvailable();
 
+            /**
+             * check if current channel has a FastClusterFinder
+             * instance in the data flow
+             * @return true if available, else false
+             **/
+            bool
+            fastClusterFinderAvailable();
+
 
         protected:
             bar      *m_bar;
