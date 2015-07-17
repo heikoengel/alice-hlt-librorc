@@ -82,19 +82,12 @@ device::device(int32_t device_index)
     };
 
     /** The device operator manages all devices with the given IDs. */
-    if( (m_dop = DeviceOperator_new(pci_ids) ) == NULL)
+    if( (m_dop = DeviceOperator_new(pci_ids, PDA_DONT_ENUMERATE_DEVICES) ) == NULL)
     { throw LIBRORC_DEVICE_ERROR_PDADOP_FAILED; }
 
     /** Get a device object device from the list. */
     if(DeviceOperator_getPciDevice(m_dop, &m_device, device_index) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_PDADEV_FAILED; }
-
-
-    /** get MaxPayload and MaxReadRequest sizes from PDA */
-    if(PciDevice_getmaxReadRequestSize(m_device, &m_maxReadRequestSize) != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_PDAGET_FAILED; }
-    if(PciDevice_getmaxPayloadSize(m_device, &m_maxPayloadSize) != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_PDAGET_FAILED; }
 
 #else
 
@@ -250,21 +243,32 @@ device::getBarSize(uint8_t n)
 #endif
 }
 
-uint64_t device::maxPayloadSize() {
+
+uint64_t
+device::maxPayloadSize()
+{
 #ifdef PDA
-  return (m_maxPayloadSize);
+    if(PciDevice_getmaxPayloadSize(m_device, &m_maxPayloadSize) != PDA_SUCCESS)
+    { return 0; }
+    return(m_maxPayloadSize);
 #else
   return m_hdl->get_bin_attr(SYSFS_ATTR_MAX_PAYLOAD_SIZE);
 #endif
 }
 
-uint64_t device::maxReadRequestSize() {
+
+uint64_t
+device::maxReadRequestSize()
+{
 #ifdef PDA
-  return (m_maxReadRequestSize);
+    if(PciDevice_getmaxReadRequestSize(m_device, &m_maxReadRequestSize) != PDA_SUCCESS)
+    { return 0; }
+    return(m_maxReadRequestSize);
 #else
   return m_hdl->get_bin_attr(SYSFS_ATTR_MAX_READ_REQ_SIZE);
 #endif
 }
+
 
 std::string*
 device::deviceDescription()

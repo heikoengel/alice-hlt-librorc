@@ -57,6 +57,7 @@ buffer::buffer
 
 #ifdef PDA
     m_device            = dev->getPdaPciDevice();
+    m_dop               = NULL;
 
     bool newAllocNeeded = false;
     m_buffer            = NULL;
@@ -152,6 +153,7 @@ buffer::buffer
 
 #ifdef PDA
     m_device = dev->getPdaPciDevice();
+    m_dop    = NULL;
 
     if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, id, &m_buffer) )
     { throw LIBRORC_BUFFER_ERROR_GETBUF_FAILED; }
@@ -170,7 +172,6 @@ buffer::buffer
     connect();
 }
 
-#ifndef PDA
 buffer::buffer
 (
   uint64_t deviceId,
@@ -178,15 +179,33 @@ buffer::buffer
   int32_t overmap
 )
 {
+#ifdef PDA
+    /** The device operator manages all devices with the given IDs. */
+    if( (m_dop = DeviceOperator_new(NULL, PDA_DONT_ENUMERATE_DEVICES) ) == NULL)
+    { throw LIBRORC_DEVICE_ERROR_PDADOP_FAILED; }
+
+    /** Get a device object device from the list. */
+    if(DeviceOperator_getPciDevice(m_dop, &m_device, deviceId) != PDA_SUCCESS)
+    { throw LIBRORC_DEVICE_ERROR_PDADEV_FAILED; }
+
+    if(PDA_SUCCESS != PciDevice_getDMABuffer(m_device, bufferId, &m_buffer) )
+    { throw LIBRORC_BUFFER_ERROR_GETBUF_FAILED; }
+
+    if(overmap == 1 && !isOvermapped())
+    {
+        if(PDA_SUCCESS != DMABuffer_wrapMap(m_buffer) )
+        { throw LIBRORC_BUFFER_ERROR_WRAPMAP_FAILED; }
+    }
+#else
     m_id = bufferId;
     m_free_hdl = true;
     m_sglist_vector.clear();
     m_hdl = new sysfs_handler(deviceId, LIBRORC_SCANMODE_UIO);
     m_size = m_hdl->get_buffer_size(m_id);
     m_wrapmap = (overmap==1);
+#endif
     connect();
 }
-#endif
 
 
 void
@@ -235,6 +254,9 @@ buffer::connect()
 buffer::~buffer()
 {
 #ifdef PDA
+    if (m_dop) {
+        DeviceOperator_delete(m_dop, PDA_DELETE_PERSISTANT);
+    }
 #else
     m_hdl->munmap_buffer(m_mem, m_size, m_wrapmap);
     if (m_free_hdl) {

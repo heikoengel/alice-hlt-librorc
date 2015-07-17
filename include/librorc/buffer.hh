@@ -36,9 +36,12 @@
 #include <librorc/defines.hh>
 
 
+#ifdef PDA
+typedef struct DeviceOperator_struct DeviceOperator;
 typedef struct PciDevice_struct        PciDevice;
 typedef struct DMABuffer_struct        DMABuffer;
 typedef struct DMABuffer_SGNode_struct DMABuffer_SGNode;
+#endif
 
 
 namespace LIBRARY_NAME
@@ -272,6 +275,7 @@ class buffer_sglist_programmer;
 
 #ifdef PDA
             PciDevice        *m_device;
+            DeviceOperator   *m_dop;
             DMABuffer        *m_buffer;
             DMABuffer_SGNode *m_sglist;
 
