@@ -339,7 +339,7 @@ namespace LIBRARY_NAME
 
 
 
-    void
+    int
     fastclusterfinder::loadMappingRam
     (
         const char *fname
@@ -348,8 +348,7 @@ namespace LIBRARY_NAME
         std::ifstream memfile(fname);
         if ( !memfile.is_open() )
         {
-            std::cout << "Failed to open mapping file" << std::endl;
-            abort();
+            return -1;
         }
 
         std::string line;
@@ -361,20 +360,17 @@ namespace LIBRARY_NAME
             { break; }
 
             uint32_t hexval = hexstringToUint32(line);
-            /** TODO: this only works for RCU1 */
-            uint32_t branch = ((i>>11) & 1); // Set this to 0 for RCU2
+            uint32_t branch = ((i>>11) & 1);
             hexval |= (branch<<29);
             writeMappingRamEntry(i, hexval);
             i++;
         }
 
-        if ( i<4096 )
+        while( i<4096 )
         {
-            while( i<4096 )
-            {
-                writeMappingRamEntry(i, 0);
-                i++;
-            }
+            writeMappingRamEntry(i, 0);
+            i++;
         }
+        return 0;
     }
 }

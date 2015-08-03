@@ -339,7 +339,12 @@ namespace LIBRARY_NAME
                 std::string line
             );
 
-            void
+            /**
+             * load mapping file to FCF RAM
+             * @param fname path to mapping file
+             * @return 0 on success, -1 on error
+             **/
+            int
             loadMappingRam
             (
                 const char *fname
