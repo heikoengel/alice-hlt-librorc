@@ -186,7 +186,7 @@ namespace LIBRARY_NAME
     {
         bool ready = isGtxDomainReady();
         uint32_t timeout = LIBRORC_LINK_WAITFORGTX_TIMEOUT;
-        while( !ready || timeout==0 )
+        while( !ready && timeout!=0 )
         {
             usleep(100);
 #ifndef MODELSIM
