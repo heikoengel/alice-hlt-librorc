@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <sys/shm.h>
 #include <unistd.h>
+#include <math.h>
 #include <librorc.h>
 
 using namespace std;
@@ -44,7 +45,7 @@ parameters: \n\
 
 #define TIME_ES_TO_STAT 1
 #define TIME_STAT_TO_STAT 1
-#define ITERATIONS_PER_ES 10
+#define ITERATIONS_PER_ES 5
 #define LIBRORC_MAX_DMA_CHANNELS 12
 
 
@@ -63,14 +64,14 @@ typedef struct
 
 
 /**
- * set EventSize for PatternGenerator DMA Channel
+ * set EventSizeDW for PatternGenerator DMA Channel
  * */
 int
-setEventSize
+setEventSizeDW
 (
     librorc::bar *bar,
     uint32_t ChannelId,
-    uint32_t EventSize
+    uint32_t EventSizeDW
 )
 { 
     /** get current link */
@@ -83,13 +84,13 @@ setEventSize
         return -1;
     }
     
-    /** set new EventSize
+    /** set new EventSizeDW
      *  '-1' because EOE is attached to each event. Without '-1' but 
-     *  EventSizes aligned to the max payload size boundaries a new full
+     *  EventSizeDWs aligned to the max payload size boundaries a new full
      *  packet is sent containing only the EOE word. -> would take
      *  bandwidth but would not appear in number of bytes transferred
      *  */
-    current_link->setDdlReg(RORC_REG_DDL_PG_EVENT_LENGTH, EventSize-1);
+    current_link->setDdlReg(RORC_REG_DDL_PG_EVENT_LENGTH, EventSizeDW-1);
 
     delete current_link;
     return 0;
@@ -146,21 +147,21 @@ getSnapshotDiff
 }
 
 uint32_t
-nextEventSize
+nextEventSizeDW
 (
-    uint32_t EventSize
+    uint32_t EventSizeDW
 )
 {
     for ( uint32_t i=0; i<32; i++ )
     {
-        uint32_t es = (EventSize>>i);
+        uint32_t es = (EventSizeDW>>i);
         switch (es)
         {
             case 2:
             case 3:
-                return EventSize + (1<<(i-1));
+                return EventSizeDW + (1<<(i-1));
             case 5:
-                return EventSize + (1<<i);
+                return EventSizeDW + (1<<i);
             case 7:
                 return ( 1<<(i+3) );
             default:
@@ -169,6 +170,31 @@ nextEventSize
     }
     //TODO
     return 0;
+}
+
+uint32_t nextMpsEventSizeDW( uint32_t EventSizeDW, uint32_t maxPayloadSize ) {
+    uint32_t numPkts = (EventSizeDW<<2) / maxPayloadSize;
+    uint32_t nextNumPkts = 2 * numPkts;
+    if ( nextNumPkts == numPkts ) {
+        nextNumPkts++;
+    }
+    return ((nextNumPkts * maxPayloadSize)>>2);
+}
+
+double average( double *values, int num ) {
+    double avg = 0.0;
+    for (int i=0; i<num; i++) {
+        avg += values[i];
+    }
+    return avg/num;
+}
+
+double variance( double *values, double avg, int num) {
+    double var = 0;
+    for (int i=0; i<num; i++) {
+        var += (values[i]-avg)*(values[i]-avg);
+    }
+    return sqrt(var);
 }
 
 int main( int argc, char *argv[])
@@ -252,7 +278,7 @@ int main( int argc, char *argv[])
     /** open dump file for writing */
     if ( fname )
     {
-        log_fd = fopen(fname, "a");
+        log_fd = fopen(fname, "w+");
         if ( log_fd==NULL )
         {
             perror("Failed to open destination file");
@@ -297,6 +323,8 @@ int main( int argc, char *argv[])
         abort();
     }
 
+    uint32_t maxPayloadSize = dev->maxPayloadSize();
+
     /** make sure FW is HLT_IN */
     if ( !sm->firmwareIsHltIn() && !sm->firmwareIsHltHardwareTest() )
     {
@@ -310,16 +338,21 @@ int main( int argc, char *argv[])
     uint32_t startChannel = 0;
     uint32_t endChannel = sm->numberOfChannels() - 1;
 
-    for ( uint32_t EventSize=16; 
-            EventSize<0x10000; 
-            EventSize=nextEventSize(EventSize) )
+    if (fname) {
+        fprintf(log_fd, "# numPciePkts, EventSizeBytes, ebrate_avg, ebrate_var, rbrate_avg, rbrate_var, totalrate_avg, totalrate_var\n");
+    }
+
+    for ( uint32_t EventSizeDW=64;
+            EventSizeDW<0x800000;
+            EventSizeDW=nextMpsEventSizeDW(EventSizeDW, maxPayloadSize) )
+            //EventSizeDW=nextEventSizeDW(EventSizeDW) )
     {
-        /** set new EventSize for all channels */
+        /** set new EventSizeDW for all channels */
         for ( chID=startChannel; chID<=endChannel; chID++ )
         {
-            if ( setEventSize(bar, chID, EventSize) < 0 )
+            if ( setEventSizeDW(bar, chID, EventSizeDW) < 0 )
             {
-                cout << "ERROR: Failed to set EventSize for Channel"
+                cout << "ERROR: Failed to set EventSizeDW for Channel"
                      << chID << endl;
             }
         }
@@ -330,36 +363,46 @@ int main( int argc, char *argv[])
         /** get a snapshot with timestamp */
         tChannelSnapshot last_status = getSnapshot(chstats);
 
+        double ebrate[ITERATIONS_PER_ES];
+        double rbrate[ITERATIONS_PER_ES];
+        double totalrate[ITERATIONS_PER_ES];
+        uint64_t EventSizeBytes = ((EventSizeDW) << 2);
+        uint64_t numPciePkts = (EventSizeBytes % maxPayloadSize) ?
+                (EventSizeBytes/maxPayloadSize+1) : (EventSizeBytes/maxPayloadSize);
+
         for ( int itCount=0; itCount<ITERATIONS_PER_ES; itCount++ )
         {
-            /** wait some time */
             sleep(TIME_STAT_TO_STAT);
-
-            /** get new snapshot */
             tChannelSnapshot cur_status = getSnapshot(chstats);
-
-            /** get diff*/
             tSnapshotDiff diff = getSnapshotDiff(last_status, cur_status);
 
-            /** get rate to EB */
-            double ebrate = ((double)diff.bytes/1024.0/1024.0)/diff.time;
-            
-            /** get rate to RB */
-            double rbrate = ((double)diff.events*16.0/1024.0/1024.0)/diff.time;
-
-
-            /** EventSize is in DWs, multiply by 216 links */
-            uint32_t EventSizeTpc = 216 * (EventSize<<2);
+            ebrate[itCount] = ((double)diff.bytes/1024.0/1024.0)/diff.time;
+            rbrate[itCount] = ((double)diff.events*16.0/1024.0/1024.0)/diff.time;
+            totalrate[itCount] = ebrate[itCount] + rbrate[itCount];
 
             /** output */
-            cout << EventSizeTpc << ", " << ebrate  << ", " << rbrate << endl;
-            if ( fname )
-            {
-                fprintf(log_fd, "%d, %f, %f\n", EventSizeTpc, ebrate, rbrate);
-            }
+            //cout << EventSizeTPC << ", " << ebrate  << ", " << rbrate << endl;
+            printf("%ld, %ld, %f, %f, %f\n", numPciePkts, EventSizeBytes,
+                   ebrate[itCount], rbrate[itCount], totalrate[itCount]);
 
             last_status = cur_status;
         }
+        if ( fname )
+        {
+            double ebrate_avg = average(ebrate, ITERATIONS_PER_ES);
+            double ebrate_var = variance(ebrate, ebrate_avg, ITERATIONS_PER_ES);
+            double rbrate_avg = average(rbrate, ITERATIONS_PER_ES);
+            double rbrate_var = variance(rbrate, rbrate_avg, ITERATIONS_PER_ES);
+            double totalrate_avg = average(totalrate, ITERATIONS_PER_ES);
+            double totalrate_var = variance(totalrate, totalrate_avg, ITERATIONS_PER_ES);
+
+            fprintf(log_fd, "%ld, %ld, %f, %f, %f, %f, %f, %f\n", numPciePkts, EventSizeBytes,
+                    ebrate_avg, ebrate_var, rbrate_avg, rbrate_var, totalrate_avg, totalrate_var);
+            printf("%ld, %ld, %f, %f, %f, %f, %f, %f\n", numPciePkts, EventSizeBytes,
+                   ebrate_avg, ebrate_var, rbrate_avg, rbrate_var, totalrate_avg, totalrate_var);
+
+         }
+
     } /** for-loop: Event Sizes */
 
 
