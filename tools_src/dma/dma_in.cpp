@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     if(opts.useRefFile)
     { sanity_check_mask |= CHK_FILE; }
     else if ( opts.datasource == ES_SRC_HWPG )
-    { sanity_check_mask |= (CHK_PATTERN|CHK_ID|CHK_SOE); }
+    { sanity_check_mask |= (CHK_ID|CHK_SOE); }
 
     if ( opts.datasource == ES_SRC_DIU || opts.datasource == ES_SRC_RAW )
     { sanity_check_mask |= (CHK_DIU_ERR); }
