@@ -6,7 +6,7 @@ DEV=$1
 SIZE=$2
 SCRIPTPATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
 LOGPATH=$SCRIPTPATH/log
-BINPATH=$SCRIPTPATH/../build/release/tools_src
+BINPATH=$LIBRORC_BUILD/tools_src
 
 if [ -z $DEV ]; then
   echo "Please provide device number as argument - aborting."
@@ -27,8 +27,8 @@ mkdir -p $LOGPATH
 
 for CH in {0..11}
 do
-  PID=/var/run/pgdma_${DEV}_${CH}.pid
-  LOG=$LOGPATH/dev${DEV}_ch${CH}
+  PID=${LOGPATH}/pgdma_$(hostname)_${DEV}_${CH}.pid
+  LOG=$LOGPATH/pgdma_$(hostname)_${DEV}_${CH}
   echo "Starting PatterGenerator DMA on device ${DEV} Channel ${CH}"
   daemonize -o $LOG.log -e $LOG.err -p $PID -l $PID $BINPATH/dma_in --dev $DEV --ch $CH --size $SIZE --source pg
   sleep 1
