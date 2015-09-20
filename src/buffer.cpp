@@ -212,6 +212,7 @@ void
 buffer::connect()
 
 {
+    m_sglist_initialized = false;
 #ifdef PDA
     m_size = 0;
     m_mem = NULL;
@@ -224,24 +225,8 @@ buffer::connect()
     if( DMABuffer_getMap(m_buffer, (void**)(&m_mem) )!=PDA_SUCCESS )
     { throw LIBRORC_BUFFER_ERROR_GETMAP_FAILED; }
 
-    m_sglist = NULL;
-    if(DMABuffer_getSGList(m_buffer, &m_sglist)!=PDA_SUCCESS)
-    { throw LIBRORC_BUFFER_ERROR_GETLIST_FAILED; }
-
-    m_numberOfScatterGatherEntries = 0;
-    for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
-    { m_numberOfScatterGatherEntries++; }
-
-    for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
-    {
-        ScatterGatherEntry entry;
-        entry.pointer = (uint64_t)sg->d_pointer,
-        entry.length  = sg->length;
-        m_sglist_vector.push_back(entry);
-    }
 #else
 
-    m_sglist_initialized = false;
     if (m_hdl->mmap_buffer(&m_mem, m_id, m_size, m_wrapmap) < 0) {
         throw LIBRORC_BUFFER_ERROR_GETMAP_FAILED;
     }
@@ -309,6 +294,7 @@ buffer::deallocate()
     m_id                           = 0;
     m_numberOfScatterGatherEntries = 0;
     m_size                         = 0;
+    m_sglist_initialized           = false;
 
     return 0;
 #else
@@ -319,9 +305,24 @@ buffer::deallocate()
 #endif
 }
 
-#ifndef PDA
 int
 buffer::initializeSglist() {
+    m_sglist_initialized = false;
+    m_sglist_vector.clear();
+    m_numberOfScatterGatherEntries = 0;
+#ifdef PDA
+    m_sglist = NULL;
+    if(DMABuffer_getSGList(m_buffer, &m_sglist)!=PDA_SUCCESS)
+    { return -1; }
+
+    for(DMABuffer_SGNode *sg=m_sglist; sg!=NULL; sg=sg->next)
+    {
+        ScatterGatherEntry entry;
+        entry.pointer = (uint64_t)sg->d_pointer,
+        entry.length  = sg->length;
+        m_sglist_vector.push_back(entry);
+    }
+#else
     ssize_t sgmapsize = m_hdl->get_sglist_size(m_id);
     if( sgmapsize < 0) {
         return -1;
@@ -351,31 +352,27 @@ buffer::initializeSglist() {
         i++;
 
     }
+#endif
     m_numberOfScatterGatherEntries = m_sglist_vector.size();
     m_sglist_initialized = true;
     return 0;
 }
-#endif
 
 std::vector<ScatterGatherEntry>
 buffer::sgList()
 {
-#ifndef PDA
     if(!m_sglist_initialized) {
         initializeSglist();
     }
-#endif
     return m_sglist_vector;
 }
 
 uint64_t
 buffer::getnSGEntries()
 {
-#ifndef PDA
     if(!m_sglist_initialized) {
         initializeSglist();
     }
-#endif
     return m_numberOfScatterGatherEntries;
 }
 
@@ -389,11 +386,11 @@ buffer::offsetToPhysAddr
 {
     std::vector<ScatterGatherEntry>::iterator iter, end;
     uint64_t reference_offset = 0;
-#ifndef PDA
     if(!m_sglist_initialized) {
-        initializeSglist();
+        if(initializeSglist()) {
+            return false;
+        }
     }
-#endif
     iter = m_sglist_vector.begin();
     end = m_sglist_vector.end();
     while( iter != end )
@@ -421,11 +418,11 @@ buffer::physAddrToOffset
 {
     std::vector<ScatterGatherEntry>::iterator iter, end;
     uint64_t reference_offset = 0;
-#ifndef PDA
     if(!m_sglist_initialized) {
-        initializeSglist();
+        if(initializeSglist()) {
+            return false;
+        }
     }
-#endif
     iter = m_sglist_vector.begin();
     end = m_sglist_vector.end();
     while( iter != end )

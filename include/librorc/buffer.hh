@@ -287,14 +287,14 @@ class buffer_sglist_programmer;
 #else
             sysfs_handler *m_hdl;
             bool           m_wrapmap;
-            bool           m_sglist_initialized;
             bool           m_free_hdl;
 
-            int initializeSglist();
 #endif
 
+            int initializeSglist();
             std::vector<ScatterGatherEntry> m_sglist_vector;
 
+            bool              m_sglist_initialized;
             uint32_t         *m_mem;
             uint64_t          m_id;
             int64_t           m_numberOfScatterGatherEntries;
