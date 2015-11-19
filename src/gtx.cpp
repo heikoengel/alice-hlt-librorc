@@ -423,23 +423,6 @@ namespace LIBRARY_NAME {
         drpUpdateField(0x39, pll.tx_tdcc_cfg, 14, 2);
     }
 
-
-    /**************************************************************************
-     *                            protected
-     *************************************************************************/
-
-    uint32_t
-    gtx::waitForDrpDenToDeassert()
-    {
-        uint32_t drp_status;
-        do
-        {
-            usleep(100);
-            drp_status = m_link->pciReg(RORC_REG_GTX_DRP_CTRL);
-        } while (drp_status & (1 << 31));
-        return drp_status;
-    }
-
     void
     gtx::drpUpdateField
     (
@@ -463,4 +446,74 @@ namespace LIBRARY_NAME {
             drpRead(0);
         }
     }
+
+    bool gtx::dfeTapOverride() {
+        return (((m_link->gtxReg(RORC_REG_GTX_CTRL) >> 4) & 1) == 1);
+    }
+
+    void gtx::setDfeTapOverride(uint32_t ovrd) {
+        uint32_t value = m_link->gtxReg(RORC_REG_GTX_CTRL);
+        value &= ~(1<<4);
+        value |= ((value & 1) << 4);
+        m_link->setGtxReg(RORC_REG_GTX_CTRL, value);
+    }
+
+    gtxdfe_taps gtx::dfeTaps() {
+        uint32_t value = m_link->gtxReg(RORC_REG_GTX_RXDFE);
+        gtxdfe_taps taps;
+        taps.tap1 = (value & 0x1f);
+        taps.tap2 = ((value >> 5) & 0x1f);
+        taps.tap3 = ((value >> 10) & 0x0f);
+        taps.tap4 = ((value >> 14) & 0x0f);
+        return taps;
+    }
+
+    void gtx::setDfeTaps(gtxdfe_taps taps) {
+        uint32_t value = m_link->gtxReg(RORC_REG_GTX_RXDFE);
+        value &= ~(0x1ffff);
+        value |= (taps.tap1 & 0x1f);
+        value |= ((taps.tap2 & 0x1f) << 5);
+        value |= ((taps.tap3 & 0x0f) << 10);
+        value |= ((taps.tap4 & 0x0f) << 14);
+        m_link->setGtxReg(RORC_REG_GTX_RXDFE, value);
+    }
+
+    uint32_t gtx::dfeEyeOpening() {
+        uint32_t value = m_link->gtxReg(RORC_REG_GTX_RXDFE);
+        return ((value >> 21) & 0x1f) * 200 / 32;
+    }
+
+    void gtx::setDrpEyeScanMode(uint32_t value) {
+        drpUpdateField(0x2e, value, 9, 2);
+    }
+
+    uint32_t gtx::drpEyeScanMode() {
+        return ((drpRead(0x2e) >> 9) & 0x3);
+    }
+
+    uint32_t gtx::dfeClockDelayAdjustPhase() {
+        return ((m_link->gtxReg(RORC_REG_GTX_RXDFE) >> 26) & 0x3f) * 64 / 90;
+    }
+
+    uint32_t gtx::dfeSensCal() {
+        return ((m_link->gtxReg(RORC_REG_GTX_RXDFE) >> 18) & 0x07);
+    }
+
+
+    /**************************************************************************
+     *                            protected
+     *************************************************************************/
+
+    uint32_t
+    gtx::waitForDrpDenToDeassert()
+    {
+        uint32_t drp_status;
+        do
+        {
+            usleep(100);
+            drp_status = m_link->pciReg(RORC_REG_GTX_DRP_CTRL);
+        } while (drp_status & (1 << 31));
+        return drp_status;
+    }
+
 }

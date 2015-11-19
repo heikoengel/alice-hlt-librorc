@@ -51,6 +51,13 @@ namespace LIBRARY_NAME {
         float refclk;
     }gtxpll_settings;
 
+    typedef struct gtxdfe_taps_struct {
+        int tap1;
+        int tap2;
+        int tap3;
+        int tap4;
+    } gtxdfe_taps;
+
 
     /**
      * fPLL = fREF * N1 * N2 / M
@@ -151,11 +158,15 @@ namespace LIBRARY_NAME {
             void
             drpSetPllConfig(gtxpll_settings pll);
 
-        protected:
-            librorc::link *m_link;
-
-            uint32_t waitForDrpDenToDeassert();
-
+            /**
+             * update DRP register segment with a new value
+             * @param drp_addr DRP register address
+             * @param field_data value to be written
+             * @param field_bit lowest bit in DRP register field where
+             * value should be set
+             * @param field_width width of the field where value should
+             * be set.
+             **/
             void
             drpUpdateField
             (
@@ -164,6 +175,22 @@ namespace LIBRARY_NAME {
                  uint16_t field_bit,
                  uint16_t field_width
             );
+
+            bool dfeTapOverride();
+            void setDfeTapOverride(uint32_t ovrd);
+            gtxdfe_taps dfeTaps();
+            void setDfeTaps(gtxdfe_taps taps);
+            uint32_t dfeEyeOpening();
+            void setDrpEyeScanMode(uint32_t value);
+            uint32_t drpEyeScanMode();
+            uint32_t dfeClockDelayAdjustPhase();
+            uint32_t dfeSensCal();
+
+        protected:
+            librorc::link *m_link;
+
+            uint32_t waitForDrpDenToDeassert();
+
 
     };
 }
