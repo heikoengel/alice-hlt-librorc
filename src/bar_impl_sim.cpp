@@ -682,6 +682,40 @@ bar_impl_sim::sockMonitor()
     )
     {
 #ifdef PDA
+
+        uint64_t *listOfBuffers = NULL;
+        uint64_t numOfBuffers = PciDevice_getListOfBuffers(m_pda_pci_device, &listOfBuffers);
+
+        for( uint64_t idx=0; idx < numOfBuffers; idx++ ) {
+            *buffer_id = listOfBuffers[idx];
+            *offset = 0;
+            DMABuffer *buffer;
+            if (PDA_SUCCESS != PciDevice_getDMABuffer(m_pda_pci_device, listOfBuffers[idx], &buffer)) {
+                return 1;
+            }
+
+            DMABuffer_SGNode *sglist;
+            if( DMABuffer_getSGList(buffer, &sglist ) != PDA_SUCCESS ) {
+                return 1;
+            }
+
+            /** Iterate sglist entries of the current buffer */
+            for (DMABuffer_SGNode *node = sglist; node != NULL; node = node->next ) {
+                if(   ( (uint64_t)(node->d_pointer) <= phys_addr)
+                   && (((uint64_t)(node->d_pointer) + node->length) > phys_addr) )
+                {
+                    *offset += ( phys_addr - (uint64_t)(node->d_pointer) );
+                    return 0;
+                }
+                else
+                {
+                    *offset += (node->length)/sizeof(uint64_t);
+                }
+            }
+        }
+        return 1;
+
+#if 0
         DMABuffer *first_buffer;
 
         if
@@ -741,6 +775,7 @@ bar_impl_sim::sockMonitor()
             }
         }
         return 1;
+#endif
 #else
         sysfs_handler *hd = m_parent_dev->getHandler();
         std::vector<uint64_t> bufferlist = hd->list_all_buffers();

@@ -54,9 +54,6 @@ namespace LIBRARY_NAME
 
 #define SYSFS_ATTR_MAX_READ_REQ_SIZE "dma/max_read_request_size"
 #define SYSFS_ATTR_MAX_PAYLOAD_SIZE "dma/max_payload_size"
-#define SYSFS_ATTR_DEVICE_ID "device"
-#define SYSFS_ATTR_VENDOR_ID "vendor"
-#define SYSFS_ATTR_NUMA_NODE "numa_node"
 #define SYSFS_ATTR_BAR "bar"
 
 device::device(int32_t device_index)
@@ -64,10 +61,7 @@ device::device(int32_t device_index)
     m_number = device_index;
 
 #ifdef PDA
-    if(PDAInit() != PDA_SUCCESS)
-    { throw LIBRORC_DEVICE_ERROR_PDA_KMOD_MISMATCH; }
-
-    if(PDACheckVersion(10,1,6) != PDA_SUCCESS)
+    if(PDACheckVersion(10,2,6) != PDA_SUCCESS)
     { throw LIBRORC_DEVICE_ERROR_PDA_VERSION_MISMATCH; }
 
     /** A list of PCI ID to which PDA has to attach. */
