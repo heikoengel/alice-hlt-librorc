@@ -232,7 +232,7 @@ prepareEventStream
     { hlEventStream = new librorc::high_level_event_stream(opts.deviceId, opts.channelId, opts.esType); }
     catch( int error )
     {
-        cout << "ERROR: failed to initialize event stream." << endl;
+        cout << "ERROR: failed to initialize event stream: " << librorc::errMsg(error) << endl;
         return(NULL);
     }
 
@@ -268,7 +268,7 @@ prepareEventStream
     { hlEventStream = new librorc::high_level_event_stream(dev, bar, opts.channelId, opts.esType); }
     catch( int error )
     {
-        cout << "ERROR: failed to initialize event stream: " << error << endl;
+        cout << "ERROR: failed to initialize event stream: " << librorc::errMsg(error) << endl;
         return(NULL);
     }
 
