@@ -92,6 +92,25 @@ static inline
 uint8_t divselref_val2reg( uint8_t val )
 { return (val==1) ? 16 : 0 ; }
 
+static uint32_t signedTap2Val(int tap, int width) {
+  uint32_t value = 0;
+  if (tap < 0) {
+    value = (-tap);
+    value |= (1 << (width-1));
+  } else {
+    value = tap;
+  }
+  return value;
+}
+
+static int signedVal2Tap(uint32_t value, int width) {
+  int tap = (value & ((1 << (width-1)) - 1));
+  if (value & (1 << (width - 1))) {
+    tap = -tap;
+  }
+  return tap;
+}
+
 #define GTX_ASYNCCFG_RESET 0
 #define GTX_ASYNCCFG_RXRESET 1
 #define GTX_ASYNCCFG_TXRESET 3
@@ -462,9 +481,9 @@ namespace LIBRARY_NAME {
         uint32_t value = m_link->gtxReg(RORC_REG_GTX_RXDFE);
         gtxdfe_taps taps;
         taps.tap1 = (value & 0x1f);
-        taps.tap2 = ((value >> 5) & 0x1f);
-        taps.tap3 = ((value >> 10) & 0x0f);
-        taps.tap4 = ((value >> 14) & 0x0f);
+        taps.tap2 = signedVal2Tap(((value >> 5) & 0x1f), 5);
+        taps.tap3 = signedVal2Tap(((value >> 10) & 0x0f), 4);
+        taps.tap4 = signedVal2Tap(((value >> 14) & 0x0f), 4);
         return taps;
     }
 
@@ -472,9 +491,9 @@ namespace LIBRARY_NAME {
         uint32_t value = m_link->gtxReg(RORC_REG_GTX_RXDFE);
         value &= ~(0x1ffff);
         value |= (taps.tap1 & 0x1f);
-        value |= ((taps.tap2 & 0x1f) << 5);
-        value |= ((taps.tap3 & 0x0f) << 10);
-        value |= ((taps.tap4 & 0x0f) << 14);
+        value |= ((signedTap2Val(taps.tap2, 5) & 0x1f) << 5);
+        value |= ((signedTap2Val(taps.tap3, 4) & 0x0f) << 10);
+        value |= ((signedTap2Val(taps.tap4, 4) & 0x0f) << 14);
         m_link->setGtxReg(RORC_REG_GTX_RXDFE, value);
     }
 
@@ -483,11 +502,11 @@ namespace LIBRARY_NAME {
         return ((value >> 21) & 0x1f) * 200 / 32;
     }
 
-    void gtx::setDrpEyeScanMode(uint32_t value) {
+    void gtx::setDrpRxEyeScanMode(uint32_t value) {
         drpUpdateField(0x2e, value, 9, 2);
     }
 
-    uint32_t gtx::drpEyeScanMode() {
+    uint32_t gtx::drpRxEyeScanMode() {
         return ((drpRead(0x2e) >> 9) & 0x3);
     }
 
@@ -497,6 +516,14 @@ namespace LIBRARY_NAME {
 
     uint32_t gtx::dfeSensCal() {
         return ((m_link->gtxReg(RORC_REG_GTX_RXDFE) >> 18) & 0x07);
+    }
+
+    uint32_t gtx::drpRxEyeOffset() {
+        return (drpRead(0x2d) >> 8);
+    }
+
+    void gtx::setDrpRxEyeOffset(uint32_t value) {
+        drpUpdateField(0x2d, value, 8, 8);
     }
 
 

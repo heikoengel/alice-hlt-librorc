@@ -181,10 +181,12 @@ namespace LIBRARY_NAME {
             gtxdfe_taps dfeTaps();
             void setDfeTaps(gtxdfe_taps taps);
             uint32_t dfeEyeOpening();
-            void setDrpEyeScanMode(uint32_t value);
-            uint32_t drpEyeScanMode();
+            void setDrpRxEyeScanMode(uint32_t value);
+            uint32_t drpRxEyeScanMode();
             uint32_t dfeClockDelayAdjustPhase();
             uint32_t dfeSensCal();
+            uint32_t drpRxEyeOffset();
+            void setDrpRxEyeOffset(uint32_t value);
 
         protected:
             librorc::link *m_link;
