@@ -478,8 +478,8 @@ namespace LIBRARY_NAME
              * read string from DDR3 SPD monitor. This iteratively calls
              * ddr3SpdRead and returns the results as a string
              * @param module 0 or 1 to select target SO-DIMM module
-             * @start_address first address to read
-             * @end_address last address to read
+             * @param start_address first address to read
+             * @param end_address last address to read
              * @return string of the values from start_address to
              * end_address
              **/
