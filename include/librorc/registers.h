@@ -116,6 +116,7 @@
 #define RORC_CFG_PROJECT_hlt_in_fcf_ddl2 3
 #define RORC_CFG_PROJECT_hwtest 4
 #define RORC_CFG_PROJECT_ibert 5
+#define RORC_CFG_PROJECT_hwcf_coproc 7
 #define RORC_CFG_LINK_TYPE_DIU 0
 #define RORC_CFG_LINK_TYPE_SIU 1
 #define RORC_CFG_LINK_TYPE_VIRTUAL 2

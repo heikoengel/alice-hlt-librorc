@@ -151,6 +151,8 @@ namespace LIBRARY_NAME
                 return "hwtest";
             case RORC_CFG_PROJECT_ibert:
                 return "ibert";
+            case RORC_CFG_PROJECT_hwcf_coproc:
+                return "hwcf_coproc";
             default:
                 return "UNKNOWN";
         }
