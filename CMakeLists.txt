@@ -1,12 +1,18 @@
 cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
 
-#set( REQUIRED_PDA_VERSION "10:2:6" )
-set( VERSION "13.0.1" )
+# get librorc version from include/librorc.h
+FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/librorc.h _librorc_VERSION_H_CONTENTS)
+STRING(REGEX REPLACE ".*#define LIBRORC_VERSION ([0-9]+).*" "\\1" librorc_VERSION_NUMERIC "${_librorc_VERSION_H_CONTENTS}")
+MATH(EXPR LIBRORC_MAJOR_VERSION "${librorc_VERSION_NUMERIC} / 100000")
+MATH(EXPR LIBRORC_MINOR_VERSION "${librorc_VERSION_NUMERIC} / 100 % 1000")
+MATH(EXPR LIBRORC_SUBMINOR_VERSION "${librorc_VERSION_NUMERIC} % 100")
 
+SET(VERSION "${LIBRORC_MAJOR_VERSION}.${LIBRORC_MINOR_VERSION}.${LIBRORC_SUBMINOR_VERSION}")
 set( CMAKE_CXX_FLAGS "-Wall" )
 set( CMAKE_CXX_FLAGS_DEBUG  "-Wall -O0 -g -DDEBUG" )
 
 #--- Find and check PDA
+#set( REQUIRED_PDA_VERSION "10:2:6" )
 #include(CMakePda.txt)
 #add_definitions(-DPDA)
 
