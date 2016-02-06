@@ -423,15 +423,15 @@ int64_t sysfs_handler::__get_char_attr(std::string attr_path, int nbytes) {
     perror(attr_path.c_str());
     return -1;
   }
-  char str[nbytes];
+  char str[nbytes+1];
+  memset(str, 0, nbytes+1);
   ssize_t readsize = read(fd, str, nbytes);
+  close(fd);
   // note: the actual number of chars in the attr may be lower than nbytes
   if (readsize == -1) {
-    close(fd);
     perror(attr_path.c_str());
     return -1;
   }
-  close(fd);
   return strtoll(str, NULL, 0);
 }
 
