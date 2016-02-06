@@ -45,7 +45,7 @@ ENDIF(${MODELSIM})
 
 add_subdirectory(src)
 add_subdirectory(include)
-add_subdirectory(tools_src)
+#add_subdirectory(tools_src)
 
 #--- Setup CPack
 include(CPack.txt)
