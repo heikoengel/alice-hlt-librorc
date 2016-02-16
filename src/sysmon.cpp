@@ -1032,6 +1032,18 @@ namespace LIBRARY_NAME
         return readout;
     }
 
+    float sysmon::maxPcieDeadtime() {
+      uint32_t max_deadtime = m_bar->get32(RORC_REG_PCIE_DST_MAX_BUSY);
+      float deadtime_us = (pcieGeneration() == 2)
+                              ? max_deadtime * 4 / 1000.0
+                              : max_deadtime * 8 / 1000.0;
+      return deadtime_us;
+    }
+
+    void sysmon::clearMaxPcieDeadtime() {
+      m_bar->set32(RORC_REG_PCIE_DST_MAX_BUSY, 0);
+    }
+
 
 
 

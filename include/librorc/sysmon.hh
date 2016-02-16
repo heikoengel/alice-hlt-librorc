@@ -516,6 +516,17 @@ namespace LIBRARY_NAME
              **/
             void clearAllErrorCounters();
 
+            /**
+             * get maximum PCIe deadtime in us
+             * @return maximum deadtime in us
+             **/
+            float maxPcieDeadtime();
+
+            /**
+             * clear maximum PCIe deadtime counter
+             **/
+            void clearMaxPcieDeadtime();
+
         protected:
 
 
