@@ -11,7 +11,7 @@ FOREACH( STEMNAME ${RORCTL_LIST} )
 ENDFOREACH( STEMNAME )
 
 # Build all in linkctrl
-SET( RORCTL_LIST gtxctrl ddlctrl diuctrl dmactrl ddr3_data_replay )
+SET( RORCTL_LIST gtxctrl ddlctrl diuctrl dmactrl )
 FOREACH( STEMNAME ${RORCTL_LIST} )
   ADD_EXECUTABLE( ${STEMNAME}
     linkctrl/${STEMNAME}.cpp )
@@ -74,8 +74,7 @@ target_link_libraries( hwpgdma_es_sweep rorc ${EXTRA_LIBS})
 #-----------------------------------------------------------
 
 # Build all in hwtest
-SET( HWTEST_LIST fmc_loopback_tester ledctrl lvdsctrl fanctrl
-  ddr3_module_status ddr3_tester_status )
+SET( HWTEST_LIST fmc_loopback_tester ledctrl lvdsctrl fanctrl )
 FOREACH( STEMNAME ${HWTEST_LIST} )
   ADD_EXECUTABLE( ${STEMNAME}
     hwtest/${STEMNAME}.cpp )

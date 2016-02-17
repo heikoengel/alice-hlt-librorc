@@ -427,41 +427,6 @@ namespace LIBRARY_NAME
             );
 
             /**
-             * check if DDR3 controller and module are ready to be used
-             * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
-             * @return true if ready, false if not ready or not implemented
-             **/
-            bool
-            ddr3ModuleInitReady
-            (
-                uint32_t controller
-            );
-
-            /**
-             * get Bitrate of DDR3 controller
-             * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
-             * @return 0 if not implemented in firmware else bitrate, e.g.
-             * 1066, 800, 606, ...
-             **/
-            uint32_t
-            ddr3Bitrate
-            (
-                uint32_t controller
-            );
-
-            /**
-             * get maximum module size supported by firmware controller
-             * @param controller 0 for SO-DIMM 0, 1 for SO-DIMM 1
-             * @return modules size in bytes
-             **/
-            uint32_t
-            ddr3ControllerMaxModuleSize
-            (
-                 uint32_t controller
-            );
-
-
-            /**
              * read from DDR3 SPD monitor
              * @param module 0 or 1 to select target SO-DIMM module
              * @param address target address to be read

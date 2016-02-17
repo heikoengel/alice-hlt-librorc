@@ -44,29 +44,45 @@ namespace LIBRARY_NAME {
 #define LIBRORC_DDR3_WRLVL_ERROR 8
 #define LIBRORC_DDR3_TG_ERROR 15
 
-    class bar;
-    class ddr3 {
-        public:
-            ddr3(bar *bar, uint32_t moduleId);
-            ~ddr3();
+class bar;
+class ddr3 {
+public:
+  ddr3(bar *bar, uint32_t moduleId);
+  ~ddr3();
 
-            void setReset(uint32_t value);
-            uint32_t getReset();
-            uint32_t getBitrate();
-            bool isImplemented();
-            uint32_t maxModuleSize();
-            bool initSuccessful();
-            bool initPhaseDone();
-            uint16_t controllerState();
-            uint32_t getTgErrorFlag();
-            uint32_t id() { return m_id; }
-            uint32_t getTgRdCount();
-            uint32_t getTgWrCount();
+  void setReset(uint32_t value);
+  uint32_t getReset();
 
-        protected:
-            bar *m_bar;
-            uint32_t m_id;
-            uint32_t m_offset;
-    };
+  /**
+   * get Bitrate of DDR3 controller
+   * @return 0 if not implemented in firmware else bitrate, e.g.
+   * 1066, 800, 606, ...
+   **/
+  uint32_t getBitrate();
+  bool isImplemented();
+
+  /**
+   * get maximum module size supported by firmware controller
+   * @return modules size in bytes
+   **/
+  uint32_t maxModuleSize();
+
+  /**
+   * check if DDR3 controller and module are ready to be used
+   * @return true if ready, false if not ready
+   **/
+  bool initSuccessful();
+  bool initPhaseDone();
+  uint16_t controllerState();
+  uint32_t getTgErrorFlag();
+  uint32_t id() { return m_id; }
+  uint32_t getTgRdCount();
+  uint32_t getTgWrCount();
+
+protected:
+  bar *m_bar;
+  uint32_t m_id;
+  uint32_t m_offset;
+};
 }
 #endif

@@ -33,7 +33,7 @@
 namespace LIBRARY_NAME {
     ddr3::ddr3( bar *bar, uint32_t moduleId) {
         m_bar = bar;
-        m_id = moduleId;
+        m_id = (moduleId & 1);
         m_offset = (m_id * 16);
     }
 
