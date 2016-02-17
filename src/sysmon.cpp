@@ -54,6 +54,7 @@ namespace LIBRARY_NAME
 #define DATA_REPLAY_C1_WRITE_DONE (1<<1)
 #define DATA_REPLAY_EOE (1<<8)
 #define DATA_REPLAY_END (1<<9)
+#define DATA_REPLAY_DIU_ERROR (1<<10)
 
 
     sysmon::sysmon
@@ -880,7 +881,8 @@ namespace LIBRARY_NAME
          uint32_t num_dws,
          uint32_t ddr3_start_addr,
          uint8_t channel,
-         bool last_event
+         bool last_event,
+         bool diu_error
     )
     {
         uint32_t *dataptr = event_data;
@@ -894,6 +896,10 @@ namespace LIBRARY_NAME
             {
                 mask = (1<<num_dws)-1;
                 flags |= DATA_REPLAY_EOE;
+                if (diu_error)
+                {
+                    flags |= DATA_REPLAY_DIU_ERROR;
+                }
                 if (last_event)
                 {
                     flags |= DATA_REPLAY_END;

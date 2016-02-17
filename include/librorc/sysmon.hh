@@ -423,7 +423,8 @@ namespace LIBRARY_NAME
                 uint32_t num_dws,
                 uint32_t ddr3_start_addr,
                 uint8_t channel,
-                bool last_event
+                bool last_event,
+                bool diu_error = false
             );
 
             /**
