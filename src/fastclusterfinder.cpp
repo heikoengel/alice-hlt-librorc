@@ -118,6 +118,25 @@ namespace LIBRARY_NAME
         return (((fcfctrl >> 13) & 1) == 1);
     }
 
+    void
+    fastclusterfinder::setBranchOverride
+    (
+        uint32_t ovrd
+    )
+    {
+        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+        fcfctrl &= ~(1<<14);
+        fcfctrl |= ((ovrd & 1) << 14);
+        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+    }
+
+    uint32_t
+    fastclusterfinder::branchOverride()
+    {
+        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+        return ((fcfctrl >> 14) & 1);
+    }
+
 
     /****************************************************
      * FastClusterFinder Configuration/Status

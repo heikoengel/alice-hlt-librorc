@@ -71,6 +71,20 @@ namespace LIBRARY_NAME
              **/
             void setBypass( uint32_t val );
 
+            /**
+             * set Branch override
+             * @param override if set 1, the clusterfinder will treat all input
+             * data as "branch A" data. If set 0, the clusterfind will take the
+             * branch information from the highest RCU hardware address bit.
+             **/
+            void setBranchOverride( uint32_t ovrd );
+
+            /**
+             * get Branch override
+             * @return current override setting
+             **/
+            uint32_t branchOverride();
+
              /**
              * legacy wrapper around setReset and setEnable
              * @param reset set clusterfinder reset to 1 or 0
@@ -302,7 +316,6 @@ namespace LIBRARY_NAME
              * write an entry to the mapping RAM
              * @param addr target RCU channel address
              * @param data:
-             *        [29]   : branch
              *        [28:16]: gain
              *        [15]   : channel active
              *        [14]   : first or last pad in row
@@ -320,7 +333,6 @@ namespace LIBRARY_NAME
              * read an entry from the mapping RAM
              * @param addr target RCU channel address
              * @return data:
-             *        [29]   : branch
              *        [28:16]: gain
              *        [15]   : channel active
              *        [14]   : first or last pad in row
