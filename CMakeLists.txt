@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 # get librorc version from include/librorc.h
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/librorc.h _librorc_VERSION_H_CONTENTS)
