@@ -16,10 +16,10 @@
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL A COPYRIGHT HOLDER BE LIABLE FOR ANY
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL A COPYRIGHT HOLDER BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -32,364 +32,162 @@
 #include <stdlib.h>
 #include <fstream>
 #include <sstream>
+#include <cassert>
 #include <librorc/fastclusterfinder.hh>
 #include <librorc/link.hh>
 
-namespace LIBRARY_NAME
-{
-    fastclusterfinder::fastclusterfinder( link *link )
-    {
-        m_link = link;
-    }
+namespace LIBRARY_NAME {
+fastclusterfinder::fastclusterfinder(link *link) { m_link = link; }
 
-    fastclusterfinder::~fastclusterfinder()
-    {
-        m_link = NULL;
-    }
+fastclusterfinder::~fastclusterfinder() { m_link = NULL; }
 
-    /****************************************************
-     * FastClusterFinder Basic Controls
-     ***************************************************/
-    void
-    fastclusterfinder::setReset
-    (
-        uint32_t val
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<15);
-        fcfctrl |= ((val & 1) << 15);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+void fastclusterfinder::setCtrlBit(uint32_t pos, uint32_t val) {
+  assert(pos < 32);
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  fcfctrl &= ~(1 << pos);
+  fcfctrl |= ((val & 1) << pos);
+  m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+}
 
-    void
-    fastclusterfinder::setEnable
-    (
-        uint32_t val
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<0);
-        fcfctrl |= ((val & 1) << 0);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+uint32_t fastclusterfinder::getCtrlBit(uint32_t pos) {
+  assert(pos < 32);
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  return ((fcfctrl >> pos) & 1);
+}
 
-    void
-    fastclusterfinder::setBypass
-    (
-        uint32_t val
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<13);
-        fcfctrl |= ((val & 1) << 13);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+/****************************************************
+ * FastClusterFinder Basic Controls
+ ***************************************************/
+void fastclusterfinder::setReset(uint32_t val) { setCtrlBit(15, val); }
 
-    void
-    fastclusterfinder::setState
-    (
-        uint32_t reset,
-        uint32_t enable
-    )
-    {
-        setReset(reset);
-        setEnable(enable);
-    }
+void fastclusterfinder::setEnable(uint32_t val) { setCtrlBit(0, val); }
 
-    bool
-    fastclusterfinder::isEnabled()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl & 1) == 1);
-    }
+void fastclusterfinder::setBypass(uint32_t val) { setCtrlBit(13, val); }
 
-    bool
-    fastclusterfinder::isInReset()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl & 0x00008000) == 0x00008000);
-    }
+void fastclusterfinder::setState(uint32_t reset, uint32_t enable) {
+  setReset(reset);
+  setEnable(enable);
+}
 
-    bool
-    fastclusterfinder::isBypassed()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return (((fcfctrl >> 13) & 1) == 1);
-    }
+bool fastclusterfinder::isEnabled() { return (getCtrlBit(0) == 1); }
 
-    void
-    fastclusterfinder::setBranchOverride
-    (
-        uint32_t ovrd
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<14);
-        fcfctrl |= ((ovrd & 1) << 14);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+bool fastclusterfinder::isInReset() { return (getCtrlBit(15) == 1); }
 
-    uint32_t
-    fastclusterfinder::branchOverride()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl >> 14) & 1);
-    }
+bool fastclusterfinder::isBypassed() { return (getCtrlBit(13) == 1); }
 
+/****************************************************
+ * FastClusterFinder Configuration/Status
+ ***************************************************/
 
-    /****************************************************
-     * FastClusterFinder Configuration/Status
-     ***************************************************/
-    void
-    fastclusterfinder::setSinglePadSuppression
-    (
-        uint32_t spSupprValue
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<2);
-        fcfctrl |= ((spSupprValue&1)<<2);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+void fastclusterfinder::setSinglePadSuppression(uint32_t spSupprValue) {
+  setCtrlBit(2, spSupprValue);
+}
 
-    uint32_t
-    fastclusterfinder::singlePadSuppression()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>2)&1);
-    }
+uint32_t fastclusterfinder::singlePadSuppression() { return getCtrlBit(2); }
 
+void fastclusterfinder::setBypassMerger(uint32_t bypassValue) {
+  setCtrlBit(3, bypassValue);
+}
 
-    void
-    fastclusterfinder::setBypassMerger
-    (
-        uint32_t bypassValue
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<3);
-        fcfctrl |= ((bypassValue&1)<<3);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+uint32_t fastclusterfinder::bypassMerger() { return getCtrlBit(3); }
 
-    uint32_t
-    fastclusterfinder::bypassMerger()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>3)&1);
-    }
+void fastclusterfinder::setDeconvPad(uint32_t deconvValue) {
+  setCtrlBit(4, deconvValue);
+}
 
-    void
-    fastclusterfinder::setDeconvPad
-    (
-        uint32_t deconvValue
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<4);
-        fcfctrl |= ((deconvValue&1)<<4);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+uint32_t fastclusterfinder::deconvPad() { return getCtrlBit(4); }
 
-    uint32_t
-    fastclusterfinder::deconvPad()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>4)&1);
-    }
+void fastclusterfinder::setMergerAlgorithm(uint32_t mode) {
+  setCtrlBit(5, mode);
+}
 
-    void
-    fastclusterfinder::setSingleSeqLimit
-    (
-        uint8_t singe_seq_limit
-    )
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        limits &= ~(0xff<<16);
-        limits |= ((singe_seq_limit&0xff)<<16);
-        m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
-    }
+uint32_t fastclusterfinder::mergerAlgorithm() { return getCtrlBit(5); }
 
-    uint8_t
-    fastclusterfinder::singleSeqLimit()
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        return ((limits>>16) & 0xff);
-    }
+void fastclusterfinder::setBranchOverride(uint32_t ovrd) {
+  setCtrlBit(14, ovrd);
+}
 
-    void
-    fastclusterfinder::setClusterLowerLimit
-    (
-        uint16_t cluster_low_limit
-    )
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        limits &= ~(0x0000ffff);
-        limits |= (cluster_low_limit&0xffff);
-        m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
-    }
+uint32_t fastclusterfinder::branchOverride() { return getCtrlBit(14); }
 
-    uint16_t
-    fastclusterfinder::clusterLowerLimit()
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        return (limits & 0xffff);
-    }
+uint32_t fastclusterfinder::splitClusterTagging() { return getCtrlBit(16); }
 
-    void
-    fastclusterfinder::setMergerDistance
-    (
-        uint8_t match_distance
-    )
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        limits &= ~(0x0f<<24);
-        limits |= ((match_distance&0x0f)<<24);
-        m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
-    }
+void fastclusterfinder::setSplitClusterTagging(uint32_t tag) {
+  setCtrlBit(16, tag);
+}
 
-    uint8_t
-    fastclusterfinder::mergerDistance()
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        return (limits>>24 & 0x0f);
-    }
+void fastclusterfinder::setSingleSeqLimit(uint8_t singe_seq_limit) {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  limits &= ~(0xff << 16);
+  limits |= ((singe_seq_limit & 0xff) << 16);
+  m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
+}
 
-    void
-    fastclusterfinder::setMergerAlgorithm
-    (
-        uint32_t mode
-    )
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl &= ~(1<<5);
-        fcfctrl |= ((mode&1)<<5);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+uint8_t fastclusterfinder::singleSeqLimit() {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  return ((limits >> 16) & 0xff);
+}
 
-    uint32_t
-    fastclusterfinder::mergerAlgorithm()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>5)&1);
-    }
+void fastclusterfinder::setClusterLowerLimit(uint16_t cluster_low_limit) {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  limits &= ~(0x0000ffff);
+  limits |= (cluster_low_limit & 0xffff);
+  m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
+}
 
-    void
-    fastclusterfinder::setChargeTolerance
-    (
-        uint8_t charge_tolerance
-    )
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        limits &= ~(0x0f<<28);
-        limits |= ((charge_tolerance&0x0f)<<28);
-        m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
-    }
+uint16_t fastclusterfinder::clusterLowerLimit() {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  return (limits & 0xffff);
+}
 
-    uint8_t
-    fastclusterfinder::chargeTolerance()
-    {
-        uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
-        return (limits>>28 & 0x0f);
-    }
+void fastclusterfinder::setMergerDistance(uint8_t match_distance) {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  limits &= ~(0x0f << 24);
+  limits |= ((match_distance & 0x0f) << 24);
+  m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
+}
 
-    uint8_t
-    fastclusterfinder::errorMask()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        return ((fcfctrl>>6) & 0x7f);
-    }
+uint8_t fastclusterfinder::mergerDistance() {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  return (limits >> 24 & 0x0f);
+}
 
-    void
-    fastclusterfinder::clearErrors()
-    {
-        uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-        fcfctrl |= (1<<1);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-        fcfctrl &= ~(1<<1);
-        m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
-    }
+void fastclusterfinder::setChargeTolerance(uint8_t charge_tolerance) {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  limits &= ~(0x0f << 28);
+  limits |= ((charge_tolerance & 0x0f) << 28);
+  m_link->setDdlReg(RORC_REG_FCF_LIMITS, limits);
+}
 
+uint8_t fastclusterfinder::chargeTolerance() {
+  uint32_t limits = m_link->ddlReg(RORC_REG_FCF_LIMITS);
+  return (limits >> 28 & 0x0f);
+}
 
-    /****************************************************
-     * Mapping RAM access
-     ***************************************************/
+uint8_t fastclusterfinder::errorMask() {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  return ((fcfctrl >> 6) & 0x7f);
+}
 
-    /** see header file for 'data' bit mapping */
-    void
-    fastclusterfinder::writeMappingRamEntry
-    (
-        uint32_t addr,
-        uint32_t data
-    )
-    {
-        m_link->setDdlReg(RORC_REG_FCF_RAM_DATA, data);
-        m_link->setDdlReg(RORC_REG_FCF_RAM_CTRL, (addr | (1<<31)));
-    }
+void fastclusterfinder::clearErrors() {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  fcfctrl |= (1 << 1);
+  m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+  fcfctrl &= ~(1 << 1);
+  m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+}
 
-    uint32_t
-    fastclusterfinder::readMappingRamEntry
-    (
-        uint32_t addr
-    )
-    {
-        m_link->setDdlReg(RORC_REG_FCF_RAM_CTRL, addr);
-        return m_link->ddlReg(RORC_REG_FCF_RAM_DATA);
-    }
+/****************************************************
+ * Mapping RAM access
+ ***************************************************/
 
+/** see header file for 'data' bit mapping */
+void fastclusterfinder::writeMappingRamEntry(uint32_t addr, uint32_t data) {
+  m_link->setDdlReg(RORC_REG_FCF_RAM_DATA, data);
+  m_link->setDdlReg(RORC_REG_FCF_RAM_CTRL, (addr | (1 << 31)));
+}
 
-    /****************************************************
-     * temporary functions to fill mapping RAM
-     * TODO: parameters from framework instead of text file
-     ***************************************************/
-    uint32_t
-    fastclusterfinder::hexstringToUint32
-    (
-        std::string line
-    )
-    {
-        uint32_t hexval;
-        std::stringstream ss;
-        ss << std::hex << line;
-        ss >> hexval;
-        return hexval;
-    }
-
-
-
-    int
-    fastclusterfinder::loadMappingRam
-    (
-        const char *fname
-    )
-    {
-        std::ifstream memfile(fname);
-        if ( !memfile.is_open() )
-        {
-            return -1;
-        }
-
-        std::string line;
-        uint32_t i = 0;
-
-        while ( getline(memfile, line) )
-        {
-            if ( i>4095 )
-            { break; }
-
-            uint32_t hexval = hexstringToUint32(line);
-            uint32_t branch = ((i>>11) & 1);
-            hexval |= (branch<<29);
-            writeMappingRamEntry(i, hexval);
-            i++;
-        }
-
-        while( i<4096 )
-        {
-            writeMappingRamEntry(i, 0);
-            i++;
-        }
-        return 0;
-    }
+uint32_t fastclusterfinder::readMappingRamEntry(uint32_t addr) {
+  m_link->setDdlReg(RORC_REG_FCF_RAM_CTRL, addr);
+  return m_link->ddlReg(RORC_REG_FCF_RAM_DATA);
+}
 }
