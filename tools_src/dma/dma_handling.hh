@@ -56,7 +56,6 @@ parameters:                                                           \n\
                                 available options:                    \n\
                                 none,pg,ddr3,diu,dma,raw              \n\
         --size [value]          PatternGenerator event size in DWs    \n\
-        --fcfmapping [filename] File to be loaded as FCF mapping file \n\
         --file [filename]       DDL reference file                    \n\
         --help                  Show this text                        \n"
 
@@ -94,7 +93,6 @@ typedef struct
     int32_t       channelId;
     uint32_t      eventSize;
     char          refname[4096];
-    char          fcfmappingfile[4096];
     uint32_t      datasource;
     bool          useRefFile;
     bool          loadFcfMappingRam;

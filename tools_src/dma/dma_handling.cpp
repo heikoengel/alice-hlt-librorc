@@ -56,7 +56,6 @@ evaluateArguments(int argc, char *argv[])
         {"file"      , required_argument, 0, 'f'},
         {"size"      , required_argument, 0, 's'},
         {"source"    , required_argument, 0, 'r'},
-        {"fcfmapping", required_argument, 0, 'm'},
         {"help"      , no_argument      , 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -145,19 +144,6 @@ evaluateArguments(int argc, char *argv[])
             case 's':
             {
                 ret.eventSize = strtol(optarg, NULL, 0);
-            }
-            break;
-
-            case 'm':
-            {
-                if( ret.esType!=librorc::kEventStreamToHost )
-                {
-                    cout << "FCF is not available for this datastream"
-                         << endl;
-                    exit(0);
-                }
-                strcpy(ret.fcfmappingfile, optarg);
-                ret.loadFcfMappingRam = true;
             }
             break;
 
@@ -631,16 +617,8 @@ configureFcf
     {
         fcf->setReset(1);
         fcf->setEnable(0);
-        if( opts.loadFcfMappingRam ) {
-          fcf->setBypass(0);
-        } else {
-          fcf->setBypass(1);
-        }
+        fcf->setBypass(1);
         fcf->clearErrors();
-#ifndef MODELSIM
-        if( opts.loadFcfMappingRam )
-        { fcf->loadMappingRam(opts.fcfmappingfile); }
-#endif
         fcf->setSinglePadSuppression(0);
         fcf->setBypassMerger(0);
         fcf->setDeconvPad(1);
