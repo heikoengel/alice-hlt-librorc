@@ -34,7 +34,6 @@
 #include <sys/shm.h>
 #include <cstdlib>
 
-#define LIBRORC_INTERNAL
 #include <librorc/event_stream.hh>
 
 #include <librorc/error.hh>

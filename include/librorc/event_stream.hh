@@ -91,7 +91,6 @@ typedef struct
                 EventStreamDirection esType
              );
 
-#ifdef LIBRORC_INTERNAL
              event_stream
              (
                 device          *dev,
@@ -99,7 +98,6 @@ typedef struct
                 uint32_t         channelId,
                 EventStreamDirection    esType
              );
-#endif
 
             virtual ~event_stream();
 
