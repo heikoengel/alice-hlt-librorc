@@ -418,8 +418,40 @@ namespace LIBRARY_NAME
             *reference                =  m_channel_status->index;
             *report                   = &m_reports[m_channel_status->index];
             *event                    =  getRawEvent(**report);
+            m_channel_status->receive_offset = m_reports[tmp_index].offset;
         pthread_mutex_unlock(&m_getEventEnable);
         return true;
+    }
+
+    uint64_t event_stream::getNumberOfPendingReleases()
+    {
+        uint64_t numberOfEvents = 0;
+        for(uint64_t i=0; i < m_max_rb_entries; i++)
+        {
+            if (m_release_map[i])
+            {
+                numberOfEvents++;
+            }
+        }
+        return numberOfEvents;
+    }
+
+
+    uint64_t event_stream::getRingbufferFillCount()
+    {
+        if ( m_channel_status->index == EVENT_INDEX_UNDEFINED )
+        {
+            return 0;
+        }
+        else if ( m_channel_status->index >= m_channel_status->shadow_index )
+        {
+            return m_channel_status->index - m_channel_status->shadow_index;
+        }
+        else
+        {
+            return m_max_rb_entries -
+                (m_channel_status->shadow_index - m_channel_status->index);
+        }
     }
 
 
@@ -473,6 +505,7 @@ namespace LIBRARY_NAME
 
         memset(&m_reports[shadow_index], 0, counter*sizeof(EventDescriptor));
         m_channel->setBufferOffsetsOnDevice(event_buffer_offset, report_buffer_offset);
+        m_channel_status->release_offset = event_buffer_offset;
     }
 
 

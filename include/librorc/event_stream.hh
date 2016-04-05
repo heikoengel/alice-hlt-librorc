@@ -69,6 +69,8 @@ typedef struct
     uint64_t error_count;
     uint32_t channel;
     uint32_t device;
+    uint64_t receive_offset;
+    uint64_t release_offset;
 }ChannelStatus;
 
     /**
@@ -189,6 +191,43 @@ typedef struct
              * @return 0 on success, -1 on invalid packet size
              **/
             int overridePciePacketSize( uint32_t pciePacketSize );
+
+            /**
+             * get EventBuffer offset of last event received
+             * @return offset in bytes
+             **/
+            uint64_t getEBReceiveOffset() { return m_channel_status->receive_offset; }
+
+            /**
+             * get ReportBuffer entry index of last event received
+             * @return ReportBuffer entry index
+             **/
+            uint64_t getRBReceiveIndex() { return m_channel_status->index; }
+
+            /**
+             * get EventBuffer offset of last event released
+             * @return offset in bytes
+             **/
+            uint64_t getEBReleaseOffset() { return m_channel_status->release_offset; }
+
+            /**
+             * get ReportBuffer entry index of last event released
+             * @return ReportBuffer entry index
+             **/
+            uint64_t getRBReleaseIndex() { return m_channel_status->shadow_index; }
+
+            /**
+             * get number of events that were received but not released yet
+             * @return number of events
+             **/
+            uint64_t getNumberOfPendingReleases();
+
+            /**
+             * get number of events between the last read index and
+             * the last release index.
+             * @return number of events
+             **/
+            uint64_t getRingbufferFillCount();
 
             /** Member Variables */
             device        *m_dev; // for device IDs
