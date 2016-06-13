@@ -493,6 +493,9 @@ namespace LIBRARY_NAME
              **/
             void clearMaxPcieDeadtime();
 
+            void storeRefclkFreq( uint32_t freq );
+            uint32_t refclkFreq();
+
         protected:
 
 

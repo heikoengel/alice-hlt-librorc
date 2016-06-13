@@ -957,6 +957,14 @@ namespace LIBRARY_NAME
       m_bar->set32(RORC_REG_PCIE_DST_MAX_BUSY, 0);
     }
 
+    void sysmon::storeRefclkFreq(uint32_t freq) {
+      m_bar->set32(RORC_REG_REFCLK_FREQ, freq);
+    }
+
+    uint32_t sysmon::refclkFreq() {
+      return m_bar->get32(RORC_REG_REFCLK_FREQ);
+    }
+
 
 
 

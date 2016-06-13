@@ -30,6 +30,7 @@
  **/
 
 #include <librorc/defines.hh>
+#include <librorc/registers.h>
 
 #ifndef LIBRORC_REFCLK_H
 #define LIBRORC_REFCLK_H
@@ -120,6 +121,12 @@ namespace LIBRARY_NAME
                 sysmon *m_sysmon;
 
         protected:
+
+            /**
+             * get last frequency registered in system_manger
+             * @return frequency in MHz
+             **/
+            double getLastFout();
 
             /**
              * Release DCO

@@ -149,10 +149,15 @@ namespace LIBRARY_NAME
 
         opts.rfreq_float = hex2float(opts.rfreq_int);
 
+        double last_fout = getLastFout();
+        double actual_fout = fout;
+        if (last_fout != 0) {
+          actual_fout = last_fout;
+        }
         // fOUT is known -> get accurate fDCO
-        if ( fout!=0 )
+        if ( actual_fout != 0 )
         {
-            opts.fdco = fout * opts.n1 * opts.hs_div;
+            opts.fdco = actual_fout * opts.n1 * opts.hs_div;
             opts.fxtal = opts.fdco/opts.rfreq_float;
         }
         else
@@ -263,6 +268,20 @@ namespace LIBRARY_NAME
 
         // wait for NewFreq to be deasserted
         waitForClearance(M_NEWFREQ);
+
+        // store new output frequency in firmware
+        uint32_t fout = uint32_t(getFout(opts) * 1000000);
+        m_sysmon->storeRefclkFreq(fout);
+    }
+
+    double
+    refclk::getLastFout()
+    {
+        uint32_t fout_regval = m_sysmon->refclkFreq();
+        if (fout_regval == RORC_CFG_TIMEOUT_PATTERN) {
+          return 0.0;
+        }
+        return fout_regval / 1000000.0;
     }
 
     void
@@ -273,6 +292,7 @@ namespace LIBRARY_NAME
         /** Wait for RECALL to complete */
         waitForClearance( M_RECALL );
         /** fOUT is now the default freqency */
+        m_sysmon->storeRefclkFreq(LIBRORC_REFCLK_DEFAULT_FOUT * 1000000);
     }
 
 
