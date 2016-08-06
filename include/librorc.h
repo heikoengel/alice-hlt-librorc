@@ -57,6 +57,6 @@
 #include "librorc/ddr3.hh"
 #include "librorc/error.hh"
 
-#define LIBRORC_VERSION 1500101
+#define LIBRORC_VERSION 1500103
 
 #endif /** LIBRORC_H */
