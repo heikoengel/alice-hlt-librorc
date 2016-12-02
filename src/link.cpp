@@ -177,7 +177,7 @@ namespace LIBRARY_NAME
     uint32_t
     link::linkType()
     {
-        return ((pciReg(RORC_REG_GTX_ASYNC_CFG)>>12) & 3);
+        return ((pciReg(RORC_REG_GTX_ASYNC_CFG)>>12) & 0x7);
     }
 
 
