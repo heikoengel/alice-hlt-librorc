@@ -654,7 +654,7 @@ dma_channel::fifoUnderrun()
 { return (((DMAConfig() >> 13) & 1) != 0); }
 
 void
-dma_channel::clearFifoUnterrunFlag()
+dma_channel::clearFifoUnderrunFlag()
 {
     setDMAConfig(DMAConfig() | (1<<13));
 }

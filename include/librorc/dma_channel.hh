@@ -366,7 +366,7 @@ namespace LIBRARY_NAME
             /**
              * clear underrun flag
              **/
-            void clearFifoUnterrunFlag();
+            void clearFifoUnderrunFlag();
 
 
         protected:
