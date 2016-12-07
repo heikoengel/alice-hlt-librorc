@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: def71ab0eb2364a19e75b6d60935789e49cb9034
-// short hash: def71ab
+// hash: 5efb0cf25d439b0ab4b82614319f0f3a28c74a0b
+// short hash: 5efb0cf
 //
 
-#define RORC_REVISION 0xdef71ab
-#define RORC_BUILD_DATE 0x20160413
+#define RORC_REVISION 0x5efb0cf
+#define RORC_BUILD_DATE 0x20161214
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_CFG_TIMEOUT_PATTERN 0xa5a5a5a5
@@ -121,8 +121,10 @@
 #define RORC_CFG_PROJECT_hwtest 4
 #define RORC_CFG_PROJECT_ibert 5
 #define RORC_CFG_PROJECT_hwcf_coproc 7
+#define RORC_CFG_PROJECT_trorc 8
 #define RORC_CFG_LINK_TYPE_DIU 0
 #define RORC_CFG_LINK_TYPE_SIU 1
 #define RORC_CFG_LINK_TYPE_VIRTUAL 2
 #define RORC_CFG_LINK_TYPE_LINKTEST 3
 #define RORC_CFG_LINK_TYPE_IBERT 4
+#define RORC_CFG_LINK_TYPE_GBT 5
