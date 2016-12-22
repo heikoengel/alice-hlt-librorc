@@ -39,8 +39,6 @@
 
 namespace LIBRARY_NAME {
 
-//#define LIBRORC_EVENT_STREAM_ERROR_CONSTRUCTOR_FAILED 1
-
 /** Shared mem key offset **/
 #define SHM_KEY_OFFSET 2048
 /** Shared mem device offset **/
@@ -62,8 +60,6 @@ typedef struct {
   uint64_t bytes_received;
   uint64_t min_epi;
   uint64_t max_epi;
-  uint64_t index;
-  uint64_t shadow_index;
   uint64_t set_offset_count;
   uint64_t error_count;
   uint32_t channel;
@@ -188,7 +184,7 @@ public:
    * get ReportBuffer entry index of last event received
    * @return ReportBuffer entry index
    **/
-  uint64_t getRBReceiveIndex() { return m_channel_status->index; }
+  uint64_t getRBReceiveIndex() { return m_receive_index; }
 
   /**
    * get EventBuffer offset of last event released
@@ -200,7 +196,7 @@ public:
    * get ReportBuffer entry index of last event released
    * @return ReportBuffer entry index
    **/
-  uint64_t getRBReleaseIndex() { return m_channel_status->shadow_index; }
+  uint64_t getRBReleaseIndex() { return m_release_index; }
 
   /**
    * get number of events that were received but not released yet
@@ -237,6 +233,8 @@ protected:
   bool m_called_with_bar;
   bool *m_release_map;
   uint64_t m_max_rb_entries;
+  uint64_t m_receive_index;
+  uint64_t m_release_index;
 
   pthread_mutex_t m_releaseEnable;
   pthread_mutex_t m_getEventEnable;

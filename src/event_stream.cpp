@@ -105,6 +105,8 @@ void event_stream::initMembers() {
   m_eventBuffer = NULL;
   m_reportBuffer = NULL;
   m_release_map = NULL;
+  m_receive_index = EVENT_INDEX_UNDEFINED;
+  m_release_index = 0;
 
   if (!m_called_with_bar) {
     m_dev = new device(m_deviceId);
@@ -336,8 +338,8 @@ void event_stream::clearSharedMemory() {
 
   memset(m_channel_status, 0, sizeof(ChannelStatus));
 
-  m_channel_status->index = EVENT_INDEX_UNDEFINED;
-  m_channel_status->shadow_index = 0;
+  //m_channel_status->index = EVENT_INDEX_UNDEFINED;
+  //m_channel_status->shadow_index = 0;
   m_channel_status->channel = m_channelId;
   m_channel_status->device = m_deviceId;
 }
@@ -347,12 +349,10 @@ bool event_stream::getNextEvent(EventDescriptor **report,
   pthread_mutex_lock(&m_getEventEnable);
 
   uint64_t tmp_index = 0;
-  if (m_channel_status->index == EVENT_INDEX_UNDEFINED) {
+  if (m_receive_index == EVENT_INDEX_UNDEFINED) {
     tmp_index = 0;
   } else {
-    tmp_index = (m_channel_status->index < m_max_rb_entries - 1)
-                    ? (m_channel_status->index + 1)
-                    : 0;
+    tmp_index = (m_receive_index < m_max_rb_entries - 1) ? (m_receive_index + 1) : 0;
   }
 
   if (m_reports[tmp_index].reported_event_size == 0) {
@@ -360,9 +360,9 @@ bool event_stream::getNextEvent(EventDescriptor **report,
     return false;
   }
 
-  m_channel_status->index = tmp_index;
-  *reference = m_channel_status->index;
-  *report = &m_reports[m_channel_status->index];
+  m_receive_index = tmp_index;
+  *reference = m_receive_index;
+  *report = &m_reports[m_receive_index];
   *event = getRawEvent(**report);
   m_channel_status->receive_offset = m_reports[tmp_index].offset;
   pthread_mutex_unlock(&m_getEventEnable);
@@ -380,13 +380,12 @@ uint64_t event_stream::getNumberOfPendingReleases() {
 }
 
 uint64_t event_stream::getRingbufferFillCount() {
-  if (m_channel_status->index == EVENT_INDEX_UNDEFINED) {
+  if (m_receive_index == EVENT_INDEX_UNDEFINED) {
     return 0;
-  } else if (m_channel_status->index >= m_channel_status->shadow_index) {
-    return m_channel_status->index - m_channel_status->shadow_index;
+  } else if (m_receive_index >= m_release_index) {
+    return m_receive_index - m_release_index;
   } else {
-    return m_max_rb_entries -
-           (m_channel_status->shadow_index - m_channel_status->index);
+    return m_max_rb_entries - (m_release_index - m_receive_index);
   }
 }
 
@@ -397,39 +396,35 @@ void event_stream::updateChannelStatus(EventDescriptor *report) {
 }
 
 void event_stream::updateBufferOffsets() {
-  if (m_release_map[m_channel_status->shadow_index] != true) {
+  if (m_release_map[m_release_index] != true) {
     return;
   }
 
   uint64_t report_buffer_offset;
   uint64_t event_buffer_offset;
-  uint64_t shadow_index = m_channel_status->shadow_index;
-  uint64_t counter = 0;
+  uint64_t release_index_start = m_release_index;
+  uint64_t release_index_count = 0;
 
-  while (m_release_map[m_channel_status->shadow_index] == true) {
-    m_release_map[m_channel_status->shadow_index] = false;
+  while (m_release_map[m_release_index] == true) {
+    m_release_map[m_release_index] = false;
+    event_buffer_offset = m_reports[m_release_index].offset;
+    report_buffer_offset = ((m_release_index) * sizeof(EventDescriptor)) %
+                           m_reportBuffer->getPhysicalSize();
+    release_index_count++;
+    m_release_index =
+        (m_release_index < m_max_rb_entries - 1) ? (m_release_index + 1) : 0;
 
-    event_buffer_offset = m_reports[m_channel_status->shadow_index].offset;
-
-    report_buffer_offset =
-        ((m_channel_status->shadow_index) * sizeof(EventDescriptor)) %
-        m_reportBuffer->getPhysicalSize();
-
-    counter++;
-
-    m_channel_status->shadow_index =
-        (m_channel_status->shadow_index < m_max_rb_entries - 1)
-            ? (m_channel_status->shadow_index + 1)
-            : 0;
-
-    if (m_channel_status->shadow_index == 0) {
-      memset(&m_reports[shadow_index], 0, counter * sizeof(EventDescriptor));
-      counter = 0;
-      shadow_index = 0;
+    // ring buffer wrap-around: clear up to the end and start over from 0
+    if (m_release_index == 0) {
+      memset(&m_reports[release_index_start], 0,
+             release_index_count * sizeof(EventDescriptor));
+      release_index_count = 0;
+      release_index_start = 0;
     }
   }
 
-  memset(&m_reports[shadow_index], 0, counter * sizeof(EventDescriptor));
+  memset(&m_reports[release_index_start], 0,
+         release_index_count * sizeof(EventDescriptor));
   m_channel->setBufferOffsetsOnDevice(event_buffer_offset,
                                       report_buffer_offset);
   m_channel_status->release_offset = event_buffer_offset;
