@@ -14,13 +14,11 @@ SET( LIBRORC_LIBRARY_SOURCE
   error.cpp
   diu.cpp
   dma_channel.cpp
-  event_sanity_checker.cpp
   event_stream.cpp
   eventfilter.cpp
   fastclusterfinder.cpp
   flash.cpp
   gtx.cpp
-  high_level_event_stream.cpp
   link.cpp
   microcontroller.cpp
   patterngenerator.cpp
