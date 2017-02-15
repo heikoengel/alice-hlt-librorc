@@ -154,6 +154,8 @@ namespace LIBRARY_NAME
                 return "ibert";
             case RORC_CFG_PROJECT_hwcf_coproc:
                 return "hwcf_coproc";
+            case RORC_CFG_PROJECT_trorc:
+                return "t-rorc";
             default:
                 return "UNKNOWN";
         }
