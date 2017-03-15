@@ -14,13 +14,11 @@ SET( LIBRORC_HEADERS
   librorc/diu.hh
   librorc/dma_channel.hh
   librorc/error.hh
-  librorc/event_sanity_checker.hh
   librorc/event_stream.hh
   librorc/eventfilter.hh
   librorc/fastclusterfinder.hh
   librorc/flash.hh
   librorc/gtx.hh
-  librorc/high_level_event_stream.hh
   librorc/link.hh
   librorc/microcontroller.hh
   librorc/patterngenerator.hh

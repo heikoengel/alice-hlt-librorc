@@ -44,8 +44,6 @@
 #include "librorc/microcontroller.hh"
 #include "librorc/dma_channel.hh"
 #include "librorc/event_stream.hh"
-#include "librorc/high_level_event_stream.hh"
-#include "librorc/event_sanity_checker.hh"
 #include "librorc/patterngenerator.hh"
 #include "librorc/fastclusterfinder.hh"
 #include "librorc/datareplaychannel.hh"
