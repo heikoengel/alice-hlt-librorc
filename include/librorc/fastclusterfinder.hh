@@ -291,6 +291,56 @@ public:
    **/
   uint32_t readMappingRamEntry(uint32_t addr);
 
+  /**
+   * set noise suppression value
+   * @param noise_suppression noise suppression value, valid range from 0-15
+   **/
+  void setNoiseSuppression(uint8_t noise_suppresion);
+
+  /**
+   * get noise suppression value
+   * @return noise suppression value
+   **/
+  uint8_t noiseSuppression();
+
+  /**
+   * set noise suppression minimum value
+   * @param noise_suppression noise suppression minimum value, valid range from
+   *        0-15
+   **/
+  void setNoiseSuppressionMinimum(uint8_t noise_suppresion);
+
+  /**
+   * get noise suppression minimum value
+   * @return noise suppression minimum value
+   **/
+  uint8_t noiseSuppressionMinimum();
+
+  /**
+   * set noise suppression neighbor value
+   * @param noise_suppression noise suppression neighbor value, valid range from
+   *        0-15
+   **/
+  void setNoiseSuppressionNeighbor(uint8_t noise_suppresion);
+
+  /**
+   * get noise suppression neighbor value
+   * @return noise suppression neighbor value
+   **/
+  uint8_t noiseSuppressionNeighbor();
+
+  /**
+   * get edge cluster tagging status
+   * @return 1 if enabled, 0 if disabled
+   **/
+  uint32_t tagEdgeClusters();
+
+  /**
+   * enable/disable edge cluster flagging
+   * @param tag 1 to enable, 0 to disable
+   **/
+  void setTagEdgeClusters(uint32_t tag);
+
 protected:
   void setCtrlBit(uint32_t pos, uint32_t val);
   uint32_t getCtrlBit(uint32_t pos);

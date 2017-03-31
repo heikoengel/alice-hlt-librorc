@@ -176,6 +176,48 @@ void fastclusterfinder::clearErrors() {
   m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
 }
 
+void fastclusterfinder::setNoiseSuppression(uint8_t noise_suppresion) {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_LIMITS2);
+  fcfctrl &= ~(0xf << 28);
+  fcfctrl |= (noise_suppresion & 0xf) << 28;
+  m_link->setDdlReg(RORC_REG_FCF_LIMITS2, fcfctrl);
+}
+
+uint8_t fastclusterfinder::noiseSuppression() {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_LIMITS2);
+  return (fcfctrl >> 28) & 0xf;
+}
+
+void fastclusterfinder::setNoiseSuppressionMinimum(uint8_t noise_suppresion) {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_LIMITS2);
+  fcfctrl &= ~(0xf << 24);
+  fcfctrl |= (noise_suppresion & 0xf) << 24;
+  m_link->setDdlReg(RORC_REG_FCF_LIMITS2, fcfctrl);
+}
+
+uint8_t fastclusterfinder::noiseSuppressionMinimum() {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_LIMITS2);
+  return (fcfctrl >> 24) & 0xf;
+}
+
+void fastclusterfinder::setNoiseSuppressionNeighbor(uint8_t noise_suppresion) {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  fcfctrl &= ~(0x3 << 17);
+  fcfctrl |= (noise_suppresion & 0x3) << 17;
+  m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
+}
+
+uint8_t fastclusterfinder::noiseSuppressionNeighbor() {
+  uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  return (fcfctrl >> 17) & 0x3;
+}
+
+uint32_t fastclusterfinder::tagEdgeClusters() { return getCtrlBit(19); }
+
+void fastclusterfinder::setTagEdgeClusters(uint32_t tag) {
+  setCtrlBit(19, tag);
+}
+
 /****************************************************
  * Mapping RAM access
  ***************************************************/

@@ -4,12 +4,12 @@
 // Note:
 // This file was automatically generated from:
 // src/packages/rorc_config.vhd
-// hash: 5efb0cf25d439b0ab4b82614319f0f3a28c74a0b
-// short hash: 5efb0cf
+// hash: f6ccd23d8c44840996a07f46428a677cbdbe3b7d
+// short hash: f6ccd23
 //
 
-#define RORC_REVISION 0x5efb0cf
-#define RORC_BUILD_DATE 0x20161214
+#define RORC_REVISION 0xf6ccd23
+#define RORC_BUILD_DATE 0x20170403
 
 #define RORC_CHANNEL_OFFSET 0x00008000
 #define RORC_CFG_TIMEOUT_PATTERN 0xa5a5a5a5
@@ -112,6 +112,7 @@
 #define RORC_REG_FCF_MP_TIMER_IDLE 28
 #define RORC_REG_FCF_MP_NUM_EVENTS 29
 #define RORC_REG_FCF_MP_NUM_CLUSTERS 30
+#define RORC_REG_FCF_LIMITS2 31
 #define RORC_REGFILE_GTX_SEL 13
 #define RORC_REGFILE_DDL_SEL 14
 #define RORC_CFG_PROJECT_hlt_in 0
