@@ -330,6 +330,18 @@ public:
   uint8_t noiseSuppressionNeighbor();
 
   /**
+   * set lower limit for cluster Qmax
+   * @param limit integer part of qmax lower limit cut
+   **/
+  void setClusterQmaxLowerLimit(uint16_t limit);
+
+  /**
+   * get lower limit for cluster Qmax
+   * @return iteger part of qmax lower limit cut
+   **/
+  uint16_t clusterQmaxLowerLimit();
+
+  /**
    * get edge cluster tagging status
    * @return 1 if enabled, 0 if disabled
    **/
