@@ -109,10 +109,14 @@ void fastclusterfinder::setBranchOverride(uint32_t ovrd) {
 
 uint32_t fastclusterfinder::branchOverride() { return getCtrlBit(14); }
 
-uint32_t fastclusterfinder::splitClusterTagging() { return getCtrlBit(16); }
+uint32_t fastclusterfinder::splitClusterTagging() {
+  // legacy interface
+  return tagDeconvolutedClusters();
+}
 
 void fastclusterfinder::setSplitClusterTagging(uint32_t tag) {
-  setCtrlBit(16, tag);
+  // legacy interface: simple tagging mechanism
+  setTagDeconvolutedClusters(1);
 }
 
 void fastclusterfinder::setSingleSeqLimit(uint8_t singe_seq_limit) {
@@ -202,14 +206,14 @@ uint8_t fastclusterfinder::noiseSuppressionMinimum() {
 
 void fastclusterfinder::setNoiseSuppressionNeighbor(uint8_t noise_suppresion) {
   uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-  fcfctrl &= ~(0x3 << 17);
-  fcfctrl |= (noise_suppresion & 0x3) << 17;
+  fcfctrl &= ~(0x3 << 18);
+  fcfctrl |= (noise_suppresion & 0x3) << 18;
   m_link->setDdlReg(RORC_REG_FCF_CTRL, fcfctrl);
 }
 
 uint8_t fastclusterfinder::noiseSuppressionNeighbor() {
   uint32_t fcfctrl = m_link->ddlReg(RORC_REG_FCF_CTRL);
-  return (fcfctrl >> 17) & 0x3;
+  return (fcfctrl >> 18) & 0x3;
 }
 
 void fastclusterfinder::setClusterQmaxLowerLimit(uint16_t limit) {
@@ -223,10 +227,21 @@ uint16_t fastclusterfinder::clusterQmaxLowerLimit() {
   return m_link->ddlReg(RORC_REG_FCF_LIMITS2) & 0x7ff;
 }
 
-uint32_t fastclusterfinder::tagEdgeClusters() { return getCtrlBit(19); }
+uint32_t fastclusterfinder::tagEdgeClusters() { return getCtrlBit(20); }
 
 void fastclusterfinder::setTagEdgeClusters(uint32_t tag) {
-  setCtrlBit(19, tag);
+  setCtrlBit(20, tag);
+}
+
+uint32_t fastclusterfinder::tagDeconvolutedClusters() {
+  return (m_link->ddlReg(RORC_REG_FCF_CTRL) >> 16) & 3;
+}
+
+void fastclusterfinder::setTagDeconvolutedClusters(uint32_t tag) {
+  uint32_t regval = m_link->ddlReg(RORC_REG_FCF_CTRL);
+  regval &= ~(3 << 16);
+  regval |= (tag & 3) << 16;
+  m_link->setDdlReg(RORC_REG_FCF_CTRL, regval);
 }
 
 /****************************************************

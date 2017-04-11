@@ -353,6 +353,21 @@ public:
    **/
   void setTagEdgeClusters(uint32_t tag);
 
+  /**
+   * get deconvoluted cluster tagging status
+   * @return 0: tagging disabled, 1: simple tagging in time and pad direction,
+   * 2: simple tagging in pad direction, tag in time direction only if >=2 pads
+   * were deconvoluted in time direction
+   **/
+  uint32_t tagDeconvolutedClusters();
+
+  /**
+   * enable/disable deconvoluted cluster tagging
+   * param tag 0 to disable, 1 for simple tagging, 2 for extended tagging, see
+   * tagDeconvolutedClusters() getter.
+   **/
+  void setTagDeconvolutedClusters(uint32_t tag);
+
 protected:
   void setCtrlBit(uint32_t pos, uint32_t val);
   uint32_t getCtrlBit(uint32_t pos);
