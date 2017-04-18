@@ -233,6 +233,12 @@ void fastclusterfinder::setTagEdgeClusters(uint32_t tag) {
   setCtrlBit(20, tag);
 }
 
+uint32_t fastclusterfinder::correctEdgeClusters() { return getCtrlBit(21); }
+
+void fastclusterfinder::setCorrectEdgeClusters(uint32_t value) {
+  setCtrlBit(21, value);
+}
+
 uint32_t fastclusterfinder::tagDeconvolutedClusters() {
   return (m_link->ddlReg(RORC_REG_FCF_CTRL) >> 16) & 3;
 }

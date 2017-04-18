@@ -354,6 +354,18 @@ public:
   void setTagEdgeClusters(uint32_t tag);
 
   /**
+   * get edge cluster correction status
+   * @return 1 if enabled, 0 if disabled
+   **/
+  uint32_t correctEdgeClusters();
+
+  /**
+   * enable/disable edge cluster correction
+   * @param value 1 to enable, 0 to disable
+   **/
+  void setCorrectEdgeClusters(uint32_t value);
+
+  /**
    * get deconvoluted cluster tagging status
    * @return 0: tagging disabled, 1: simple tagging in time and pad direction,
    * 2: simple tagging in pad direction, tag in time direction only if >=2 pads
