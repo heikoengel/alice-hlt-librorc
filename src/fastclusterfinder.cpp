@@ -227,9 +227,9 @@ uint16_t fastclusterfinder::clusterQmaxLowerLimit() {
   return m_link->ddlReg(RORC_REG_FCF_LIMITS2) & 0x7ff;
 }
 
-uint32_t fastclusterfinder::tagEdgeClusters() { return getCtrlBit(20); }
+uint32_t fastclusterfinder::tagBorderClusters() { return getCtrlBit(20); }
 
-void fastclusterfinder::setTagEdgeClusters(uint32_t tag) {
+void fastclusterfinder::setTagBorderClusters(uint32_t tag) {
   setCtrlBit(20, tag);
 }
 

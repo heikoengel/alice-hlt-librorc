@@ -342,16 +342,16 @@ public:
   uint16_t clusterQmaxLowerLimit();
 
   /**
-   * get edge cluster tagging status
+   * get border cluster tagging status
    * @return 1 if enabled, 0 if disabled
    **/
-  uint32_t tagEdgeClusters();
+  uint32_t tagBorderClusters();
 
   /**
-   * enable/disable edge cluster flagging
+   * enable/disable border cluster flagging
    * @param tag 1 to enable, 0 to disable
    **/
-  void setTagEdgeClusters(uint32_t tag);
+  void setTagBorderClusters(uint32_t tag);
 
   /**
    * get edge cluster correction status
