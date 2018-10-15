@@ -293,7 +293,7 @@ std::vector<uint64_t> sysfs_handler::list_all_buffers() {
     if (S_ISDIR(file_status.st_mode)) {
       char *endptr;
       uint64_t bufid = strtoul(directory_entry->d_name, &endptr, 0);
-      if ((const char *)directory_entry->d_name != '\0' and *endptr == '\0') {
+      if (std::string(directory_entry->d_name).empty() == false and *endptr == '\0') {
         bufferlist.push_back(bufid);
       }
     }
