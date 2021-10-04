@@ -352,6 +352,7 @@ buffer::initializeSglist() {
         i++;
 
     }
+    m_hdl->munmap_sglist((void *)sglist, sgmapsize);
 #endif
     m_numberOfScatterGatherEntries = m_sglist_vector.size();
     m_sglist_initialized = true;
