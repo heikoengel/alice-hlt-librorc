@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
+project(librorc)
+
 # get librorc version from include/librorc.h
 FILE(READ ${CMAKE_CURRENT_SOURCE_DIR}/include/librorc.h _librorc_VERSION_H_CONTENTS)
 STRING(REGEX REPLACE ".*#define LIBRORC_VERSION ([0-9]+).*" "\\1" librorc_VERSION_NUMERIC "${_librorc_VERSION_H_CONTENTS}")
